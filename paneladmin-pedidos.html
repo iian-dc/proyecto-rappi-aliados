@@ -51,7 +51,6 @@ body{background:#FAFAFA;min-height:100vh}
 .tiempo-verde{background:#16a34a;color:white}
 .tiempo-amarillo{background:#EAB308;color:white}
 .tiempo-rojo{background:#EF4444;color:white}
-.tiempo-negro{background:#111;color:white}
 .tracking{display:flex;flex-direction:column;gap:0;border-left:2px dashed #e5e7eb;padding-left:8px;margin-left:2px}
 .track-item{display:flex;align-items:center;gap:6px;padding:4px 0;position:relative;font-size:11px;color:#94a3b8}
 .track-item::before{content:'';position:absolute;left:-14px;top:50%;transform:translateY(-50%);width:8px;height:8px;border-radius:50%;background:#e5e7eb;border:2px solid white}
@@ -60,6 +59,21 @@ body{background:#FAFAFA;min-height:100vh}
 .track-icon{width:18px;height:18px;background:#f1f5f9;border-radius:50%;display:flex;align-items:center;justify-content:center}
 .track-item.active .track-icon{background:#dcfce7}
 .icon-row{display:flex;align-items:center;gap:5px}
+.reps-box{margin-top:10px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:10px;display:none}
+.reps-box.open{display:block}
+.reps-title{font-size:11px;font-weight:700;color:#334155;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.reps-row{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px}
+.rep-card{min-width:120px;background:white;border:1px solid #e5e7eb;border-radius:12px;padding:8px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px}
+.rep-img{width:48px;height:48px;border-radius:50%;background:#f1f5f9;object-fit:cover;border:2px solid #e5e7eb;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.rep-name{font-size:11px;font-weight:700;color:#0f172a}
+.rep-est{font-size:10px;padding:2px 8px;border-radius:999px;font-weight:700}
+.rep-est.disponible{background:#dcfce7;color:#16a34a}
+.rep-est.ocupado{background:#fee2e2;color:#ef4444}
+.btn-enviar-rep{background:#B70A1A;color:white;border:none;border-radius:8px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;width:100%}
+.btn-enviar-rep:disabled{background:#94a3b8}
+.detalle-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;display:none;align-items:center;justify-content:center;padding:16px}
+.detalle-overlay.open{display:flex}
+.detalle-box{background:white;border-radius:16px;padding:16px;max-width:420px;width:100%;box-shadow:0 20px 40px rgba(0,0,0,.15)}
 </style>
 </head>
 <body>
@@ -78,6 +92,7 @@ body{background:#FAFAFA;min-height:100vh}
 <div class="tabs">
   <div class="tab active" data-f="todos">Todos <span class="tab-count" id="c-todos">0</span></div>
   <div class="tab" data-f="sin_enviar">Sin enviar a repartidor <span class="tab-count" id="c-sin">0</span></div>
+  <div class="tab" data-f="enviado">Enviado a repartidor <span class="tab-count" id="c-enviado">0</span></div>
   <div class="tab" data-f="recogido">Recogido <span class="tab-count" id="c-recogido">0</span></div>
   <div class="tab" data-f="en_camino">En camino a entregar <span class="tab-count" id="c-camino">0</span></div>
   <div class="tab" data-f="finalizado">Finalizado <span class="tab-count" id="c-fin">0</span></div>
@@ -86,9 +101,13 @@ body{background:#FAFAFA;min-height:100vh}
 
 <div class="container" id="listaPedidos"><div class="vacio">Esperando pedidos del restaurante...</div></div>
 
+<div class="detalle-overlay" id="detalleOverlay" onclick="this.classList.remove('open')">
+  <div class="detalle-box" id="detalleBox" onclick="event.stopPropagation()"></div>
+</div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-import { getFirestore, collection, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+import { getFirestore, collection, onSnapshot, doc, updateDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
 const config = {
   apiKey: "AIzaSyDLKngPyi_SWAXEQwdrHO5h8L8OufulAR4",
@@ -105,52 +124,69 @@ const lista = document.getElementById('listaPedidos');
 const bell = document.getElementById('bellIcon');
 const bellCount = document.getElementById('bellCount');
 let pedidosCache = []; let filtro='todos'; let primerCarga=true; let ultimoTotal=0;
+let cacheRepartidores = [];
 
 function sonar(){
   bell.classList.add('vibrar'); setTimeout(()=>bell.classList.remove('vibrar'),3500);
-  try{
-    const ctx=new (window.AudioContext||window.webkitAudioContext)();
-    const osc=ctx.createOscillator(); const g=ctx.createGain();
-    osc.frequency.value=950; g.gain.setValueAtTime(0.9,ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.01,ctx.currentTime+0.6);
-    osc.connect(g); g.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime+0.6);
-  }catch{}
+  try{ const ctx=new (window.AudioContext||window.webkitAudioContext)(); const o=ctx.createOscillator(); const g=ctx.createGain(); o.frequency.value=950; g.gain.setValueAtTime(0.9,ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.01,ctx.currentTime+0.6); o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime+0.6);}catch{}
   try{speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance("Nuevo pedido listo para repartidor"); u.lang='es-MX'; speechSynthesis.speak(u);}catch{}
 }
 
 function calcularTiempoReal(sec, estado){
-  if(!sec) return {texto:'0s', clase:'tiempo-verde', diff:0};
+  if(!sec) return {texto:'0s', clase:'tiempo-verde'};
   const diffSeg = Math.floor(Date.now()/1000 - sec);
   const min=Math.floor(diffSeg/60); const seg=diffSeg%60;
   let texto=''; if(diffSeg<60) texto=diffSeg+'s'; else if(diffSeg<3600) texto=min+'m '+seg+'s'; else { const h=Math.floor(min/60); const m=min%60; texto=h+'h '+m+'m'; }
-
-  // LOGICA QUE PEDISTE:
   let clase='tiempo-verde';
   const esSinEnviar = ['nuevo','listo_para_admin','listo','sin_enviar'].includes(estado);
   if(esSinEnviar){
-    if(diffSeg < 840){ clase='tiempo-verde'; } // 0 - 13:59
-    else if(diffSeg >= 840 && diffSeg < 960){ clase='tiempo-amarillo'; } // 14:00 - 15:59
-    else if(diffSeg >= 1080){ clase='tiempo-rojo'; } // 18 min en adelante rojo si no recogió
-    else { clase='tiempo-amarillo'; } // 16-17:59 sigue amarillo hasta rojo
-  }else{
-    // Si ya recogió, siempre verde hasta entregar
-    if(['recogido','enviado_a_repartidor','en_camino','finalizado','entregado'].includes(estado)){
-      clase='tiempo-verde';
-    }
-  }
-  return {texto, clase, diff:diffSeg};
+    if(diffSeg < 840) clase='tiempo-verde';
+    else if(diffSeg < 960) clase='tiempo-amarillo';
+    else if(diffSeg >= 1080) clase='tiempo-rojo';
+    else clase='tiempo-amarillo';
+  }else{ clase='tiempo-verde'; }
+  return {texto, clase};
 }
 
+async function cargarRepartidores(){
+  try{
+    const snap = await getDocs(collection(db,"repartidores"));
+    if(snap.empty){
+      cacheRepartidores=[
+        {id:'rep1', nombre:'Carlos', foto:'', estado:'disponible'},
+        {id:'rep2', nombre:'Luis', foto:'', estado:'ocupado'},
+        {id:'rep3', nombre:'Jorge', foto:'', estado:'disponible'}
+      ];
+    }else{
+      cacheRepartidores=snap.docs.map(d=>({id:d.id,...d.data()}));
+    }
+  }catch{
+    cacheRepartidores=[
+      {id:'rep1', nombre:'Carlos', foto:'', estado:'disponible'},
+      {id:'rep2', nombre:'Luis', foto:'', estado:'ocupado'},
+      {id:'rep3', nombre:'Jorge', foto:'', estado:'disponible'}
+    ];
+  }
+}
+cargarRepartidores();
+
 function render(){
-  const counts={todos:pedidosCache.length,sin:0,recogido:0,en_camino:0,fin:0,cancelado:0};
+  const counts={todos:pedidosCache.length,sin:0,enviado:0,recogido:0,en_camino:0,fin:0,cancelado:0};
   pedidosCache.forEach(p=>{
     if(['nuevo','listo_para_admin','listo'].includes(p.estado)) counts.sin++;
-    else if(['recogido','enviado_a_repartidor'].includes(p.estado)) counts.recogido++;
-    else if(p.estado==='en_camino') counts.en_camino++;
-    else if(['finalizado','entregado'].includes(p.estado)) counts.fin++;
-    else if(p.estado==='cancelado') counts.cancelado++;
+    else if(p.estado==='enviado_a_repartidor') counts.enviado++;
+    else if(['recogido','enviado_a_repartidor'].includes(p.estado) && p.estado!=='enviado_a_repartidor' ? false : false){}
+    if(['recogido'].includes(p.estado)) counts.recogido++;
+    if(p.estado==='en_camino') counts.en_camino++;
+    if(['finalizado','entregado'].includes(p.estado)) counts.fin++;
+    if(p.estado==='cancelado') counts.cancelado++;
   });
+  // fix sin count already
+  counts.recogido = pedidosCache.filter(p=>p.estado==='recogido').length;
+  counts.enviado = pedidosCache.filter(p=>p.estado==='enviado_a_repartidor').length;
   document.getElementById('c-todos').textContent=counts.todos;
   document.getElementById('c-sin').textContent=counts.sin;
+  document.getElementById('c-enviado').textContent=counts.enviado;
   document.getElementById('c-recogido').textContent=counts.recogido;
   document.getElementById('c-camino').textContent=counts.en_camino;
   document.getElementById('c-fin').textContent=counts.fin;
@@ -160,10 +196,7 @@ function render(){
   let filtrados=pedidosCache;
   if(filtro!=='todos'){
     if(filtro==='sin_enviar') filtrados=pedidosCache.filter(p=>['nuevo','listo_para_admin','listo'].includes(p.estado));
-    else if(filtro==='recogido') filtrados=pedidosCache.filter(p=>['recogido','enviado_a_repartidor'].includes(p.estado));
-    else if(filtro==='en_camino') filtrados=pedidosCache.filter(p=>p.estado==='en_camino');
-    else if(filtro==='finalizado') filtrados=pedidosCache.filter(p=>['finalizado','entregado'].includes(p.estado));
-    else filtrados=pedidosCache.filter(p=>p.estado===filtro);
+    else filtrados=pedidosCache.filter(p=>p.estado===filtro || (filtro==='enviado' && p.estado==='enviado_a_repartidor') || (filtro==='finalizado' && ['finalizado','entregado'].includes(p.estado)));
   }
   if(filtrados.length===0){ lista.innerHTML='<div class="vacio">No hay pedidos en '+filtro+'</div>'; return; }
 
@@ -171,27 +204,24 @@ function render(){
     const id=p.codigo || p.id.slice(0,4).toUpperCase();
     const cliente=p.nombre || p.detalles?.nombre || 'Cliente';
     const tel=p.telefono || p.detalles?.telefono || '+52 477 123 4567';
-    const rest=p.restaurante?.nombre || p.restauranteNombre || 'La Esquina del Sabor';
-    const dirRec=p.restaurante?.direccion || 'Calle Independencia #124 Col. Centro';
-    const dirEnt=p.detalles?.direccion || 'Av. Hidalgo #256 Col. Centro';
+    const rest=p.restaurante?.nombre || 'La Esquina del Sabor';
+    const dirRec=p.restaurante?.direccion || 'Calle Independencia #124';
+    const dirEnt=p.detalles?.direccion || 'Av. Hidalgo #256';
     const productos=p.productos||[];
     let htmlProd=productos.map(it=>`<div class="product-item"><span>${it.nombre||it.name}</span><span>x${it.cantidad||1}</span><span>$${it.precio||0}</span></div>`).join('')||'<div class="product-item"><span>Producto</span><span>x1</span><span>$65</span></div>';
     const totalProd=p.totales?.costoProductos||95; const envio=p.totales?.costoEnvio||30; const total=p.totales?.total||125;
-    let hora='Hoy, 12:34 p.m.'; let tsSec=0;
+    let hora='12:34'; let tsSec=0;
     if(p.timestampAdmin?.seconds){ tsSec=p.timestampAdmin.seconds; hora=new Date(tsSec*1000).toLocaleString('es-MX',{hour:'2-digit',minute:'2-digit'}); }
     else if(p.timestamp?.seconds){ tsSec=p.timestamp.seconds; hora=new Date(tsSec*1000).toLocaleString('es-MX',{hour:'2-digit',minute:'2-digit'}); }
-    else if(p.listoEn?.seconds){ tsSec=p.listoEn.seconds; hora=new Date(tsSec*1000).toLocaleString('es-MX',{hour:'2-digit',minute:'2-digit'}); }
     const tiempo=calcularTiempoReal(tsSec, p.estado);
-    let step=0; if(['recogido','enviado_a_repartidor','en_camino','finalizado','entregado'].includes(p.estado)) step=1; if(p.estado==='en_camino') step=2; if(['finalizado','entregado'].includes(p.estado)) step=3;
+    let step=0; if(['enviado_a_repartidor','recogido','en_camino','finalizado','entregado'].includes(p.estado)) step=1; if(['recogido','en_camino','finalizado','entregado'].includes(p.estado)) step=1; if(p.estado==='recogido') step=1; if(p.estado==='en_camino') step=2; if(['finalizado','entregado'].includes(p.estado)) step=3;
+    if(p.estado==='enviado_a_repartidor') step=0;
 
     return `
-    <div class="card">
+    <div class="card" id="card-${p.id}">
       <div class="card-top">
         <div class="card-id"><span class="id-badge">#${id}</span></div>
-        <div class="card-date">
-          <span style="display:flex;align-items:center;gap:6px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#334155" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> ${hora}</span>
-          <span class="tiempo-real ${tiempo.clase}" data-ts="${tsSec}" data-estado="${p.estado}">${tiempo.texto}</span>
-        </div>
+        <div class="card-date"><span style="display:flex;align-items:center;gap:6px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#334155" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> ${hora}</span><span class="tiempo-real ${tiempo.clase}" data-ts="${tsSec}" data-estado="${p.estado}">${tiempo.texto}</span></div>
       </div>
       <div class="card-grid">
         <div><div class="label">Cliente:</div><div class="value">${cliente}<small>${tel}</small></div></div>
@@ -202,25 +232,23 @@ function render(){
       <div class="card-bottom">
         <div><div class="label">Productos</div>${htmlProd}</div>
         <div class="total-box"><div class="line"><span>Total productos</span><span>$${totalProd}</span></div><div class="line"><span>Envío</span><span>$${envio}</span></div><div class="total-final">Total<br><b>$${total} MXN</b></div></div>
-        <div><div class="label">Datos del restaurante</div><div class="value" style="font-size:11px">
-          <div class="icon-row"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#334155" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> ${rest}</div>
-          <div class="icon-row"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#334155" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg> +52 477 123 4567</div>
-          <div class="icon-row" style="color:#10b981"><span style="width:6px;height:6px;background:#10b981;border-radius:50%;display:inline-block"></span> Listo para repartidor</div>
-        </div></div>
+        <div><div class="label">Datos del restaurante</div><div class="value" style="font-size:11px"><div class="icon-row"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#334155" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> ${rest}</div><div class="icon-row"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#334155" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg> +52 477 123 4567</div><div class="icon-row" style="color:#10b981"><span style="width:6px;height:6px;background:#10b981;border-radius:50%;display:inline-block"></span> Listo</div></div></div>
         <div>
           <div class="tracking">
             <div class="track-item ${step>=1?'active':''}"><div class="track-icon"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="${step>=1?'#16a34a':'#94a3b8'}" stroke-width="2"><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/><rect x="2" y="7" width="20" height="14" rx="2"/></svg></div> Recogido</div>
-            <div class="track-item ${step>=2?'active':''}"><div class="track-icon"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="${step>=2?'#16a34a':'#94a3b8'}" stroke-width="2"><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><path d="M5.5 17.5L7 10h10l1.5 7.5"/></svg></div> En camino a entregar</div>
+            <div class="track-item ${step>=2?'active':''}"><div class="track-icon"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="${step>=2?'#16a34a':'#94a3b8'}" stroke-width="2"><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/></svg></div> En camino a entregar</div>
             <div class="track-item ${step>=3?'active':''}"><div class="track-icon"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="${step>=3?'#16a34a':'#94a3b8'}" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></div> Finalizado</div>
           </div>
-          <div class="acciones" style="margin-top:8px">
-            <button class="btn-borde" style="width:100%"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> Ver detalles</button>
-          </div>
+          <div class="acciones" style="margin-top:8px"><button class="btn-borde" style="width:100%" onclick="verDetalles('${p.id}')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> Ver detalles</button></div>
         </div>
       </div>
       <div class="acciones">
-        <button class="btn-rojo" onclick="enviarRepartidor('${p.id}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Enviar a repartidor</button>
+        <button class="btn-rojo" onclick="toggleRepartidores('${p.id}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Enviar a repartidor</button>
         <button class="btn-gris" onclick="enviarHistorial('${p.id}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Enviar a historial</button>
+      </div>
+      <div class="reps-box" id="reps-${p.id}">
+        <div class="reps-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#334155" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> Selecciona repartidor para #${id}</div>
+        <div class="reps-row" id="reps-row-${p.id}">Cargando repartidores...</div>
       </div>
     </div>`;
   }).join('');
@@ -244,11 +272,66 @@ onSnapshot(collection(db,"pedidos_admin"), (snap)=>{
   ultimoTotal=pedidosCache.length; primerCarga=false; render();
 });
 
-window.enviarRepartidor=async(id)=>{
-  try{ await updateDoc(doc(db,"pedidos_admin",id),{estado:'recogido', recogidoEn:new Date()}); }catch(e){ alert(e.message); }
+window.toggleRepartidores = async (pedidoId)=>{
+  await cargarRepartidores();
+  const box = document.getElementById('reps-'+pedidoId);
+  const row = document.getElementById('reps-row-'+pedidoId);
+  box.classList.toggle('open');
+  if(!box.classList.contains('open')) return;
+  row.innerHTML = cacheRepartidores.map(r=>{
+    const foto = r.foto || r.avatar || r.imagen || '';
+    const estado = (r.estado||r.disponible?'disponible':'ocupado').toLowerCase();
+    const disponible = estado==='disponible' || r.disponible===true;
+    return `
+      <div class="rep-card">
+        <div class="rep-img">${foto?`<img src="${foto}" style="width:100%;height:100%;object-fit:cover">`:`<svg width="24" height="24" viewBox="0 0 24 24" fill="#94a3b8"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>`}</div>
+        <div class="rep-name">${r.nombre||r.name||'Repartidor'}</div>
+        <span class="rep-est ${disponible?'disponible':'ocupado'}">${disponible?'Disponible':'Ocupado'}</span>
+        <button class="btn-enviar-rep" ${!disponible?'disabled':''} onclick="asignarRepartidor('${pedidoId}','${r.id}','${r.nombre||''}')">Enviar</button>
+      </div>`;
+  }).join('');
 }
+
+window.asignarRepartidor = async (pedidoId, repId, repNombre)=>{
+  try{
+    await updateDoc(doc(db,"pedidos_admin",pedidoId),{
+      estado:'enviado_a_repartidor',
+      repartidorId: repId,
+      repartidorNombre: repNombre,
+      enviadoARepartidorEn: new Date(),
+      historial: { enviado: new Date(), repartidor: repNombre }
+    });
+    alert('Pedido enviado a '+repNombre);
+    document.getElementById('reps-'+pedidoId)?.classList.remove('open');
+  }catch(e){ alert(e.message); }
+}
+
 window.enviarHistorial=async(id)=>{
   try{ await updateDoc(doc(db,"pedidos_admin",id),{estado:'finalizado', finalizadoEn:new Date()}); }catch(e){ alert(e.message); }
+}
+
+window.verDetalles = (id)=>{
+  const p = pedidosCache.find(x=>x.id===id);
+  if(!p) return;
+  const box = document.getElementById('detalleBox');
+  let step = 0;
+  if(['enviado_a_repartidor','recogido','en_camino','finalizado'].includes(p.estado)) step=1;
+  if(p.estado==='recogido') step=1;
+  if(p.estado==='en_camino') step=2;
+  if(['finalizado','entregado'].includes(p.estado)) step=3;
+  box.innerHTML = `
+    <h3 style="font-size:16px;font-weight:800;margin-bottom:12px">Seguimiento #${p.codigo||id.slice(0,4)}</h3>
+    <div style="font-size:12px;color:#64748b;margin-bottom:12px">Repartidor: <b style="color:#0f172a">${p.repartidorNombre||'Por asignar'}</b></div>
+    <div class="tracking">
+      <div class="track-item ${step>=0?'active':''}"><div class="track-icon"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></div> Sin enviar - Listo en restaurante</div>
+      <div class="track-item ${step>=1?'active':''}"><div class="track-icon"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="${step>=1?'#16a34a':'#94a3b8'}" stroke-width="2"><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></div> Enviado a repartidor ${p.enviadoARepartidorEn?' - '+new Date(p.enviadoARepartidorEn.seconds*1000).toLocaleTimeString() : ''}</div>
+      <div class="track-item ${step>=1?'active':''}"><div class="track-icon"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="${step>=1?'#16a34a':'#94a3b8'}" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/></svg></div> Recogido ${p.recogidoEn?' - '+new Date(p.recogidoEn.seconds*1000).toLocaleTimeString() : ''}</div>
+      <div class="track-item ${step>=2?'active':''}"><div class="track-icon"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="${step>=2?'#16a34a':'#94a3b8'}" stroke-width="2"><circle cx="5.5" cy="17.5" r="3.5"/></svg></div> En camino a entregar</div>
+      <div class="track-item ${step>=3?'active':''}"><div class="track-icon"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="${step>=3?'#16a34a':'#94a3b8'}" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></div> Finalizado ${p.finalizadoEn?' - '+new Date(p.finalizadoEn.seconds*1000).toLocaleTimeString() : ''}</div>
+    </div>
+    <button class="btn-borde" style="margin-top:14px;width:100%;justify-content:center" onclick="document.getElementById('detalleOverlay').classList.remove('open')">Cerrar</button>
+  `;
+  document.getElementById('detalleOverlay').classList.add('open');
 }
 </script>
 </body>
