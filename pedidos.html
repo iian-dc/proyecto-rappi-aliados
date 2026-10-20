@@ -271,7 +271,7 @@ window.preguntarListo=(id)=>{
   card.classList.add('confirmando');
 }
 
-// === NUEVA LOGICA VINCULADA A ADMIN ===
+// === UNICO CAMBIO - VINCULADO A ADMIN ===
 window.confirmarListo=async(id)=>{
   try{ 
     const refOriginal = doc(db,"pedidos",id);
@@ -279,22 +279,21 @@ window.confirmarListo=async(id)=>{
     if(!snap.exists()){ alert("Pedido no encontrado"); return; }
     const data = snap.data();
 
-    // 1. Crear en nueva carpeta pedidos_admin
+    // 1. Copiar a pedidos_admin
     await setDoc(doc(db,"pedidos_admin",id),{
       ...data,
       estado:'listo_para_admin',
       listo:true,
       listoEn: new Date(),
+      timestampAdmin: new Date(),
       actualizadoEn: new Date(),
       enviadoAAdmin:true,
-      timestampAdmin: new Date(),
       idOriginal: id
     });
     
-    // 2. Borrar de pedidos del aliado - ya no aparece en panel aliado
+    // 2. Borrar de pedidos (ya no aparece en restaurante)
     await deleteDoc(refOriginal);
-    console.log("✅ Pedido movido a pedidos_admin y eliminado de pedidos");
-
+    console.log("✅ Movido a pedidos_admin");
   }catch(e){ alert("Error: "+e.message); console.error(e); }
 }
 
