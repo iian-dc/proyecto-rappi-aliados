@@ -44,6 +44,7 @@ body{background:#FAFAFA;min-height:100vh}
 .total-final b{font-size:15px;color:#B70A1A;font-weight:800}
 .acciones{display:flex;gap:8px;padding-top:6px;flex-wrap:wrap}
 .btn-rojo{background:#16a34a;color:white;border:none;border-radius:10px;padding:9px 14px;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;flex:1;min-width:140px}
+.btn-rojo:disabled{background:#94a3b8;cursor:not-allowed;opacity:0.6}
 .btn-gris{background:#7A8A9A;color:white;border:none;border-radius:10px;padding:9px 14px;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;flex:1;min-width:140px}
 .btn-borde{background:white;border:1px solid #d1d5db;border-radius:999px;padding:6px 14px;font-size:11px;font-weight:600;color:#475569;display:flex;align-items:center;gap:5px;cursor:pointer}
 .vacio{text-align:center;padding:40px;color:#94a3b8}
@@ -59,14 +60,12 @@ body{background:#FAFAFA;min-height:100vh}
 .track-icon{width:18px;height:18px;background:#f1f5f9;border-radius:50%;display:flex;align-items:center;justify-content:center}
 .track-item.active .track-icon{background:#dcfce7}
 .icon-row{display:flex;align-items:center;gap:5px}
-
-/* OVERLAY ENCIMA DE LA TARJETA */
 .card-overlay{position:absolute;inset:0;background:rgba(255,255,255,0.93);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;z-index:10;border-radius:14px;padding:12px;flex-direction:column}
 .card-overlay.open{display:flex}
 .overlay-box{background:white;border:1px solid #e5e7eb;border-radius:14px;box-shadow:0 12px 32px rgba(0,0,0,.15);padding:14px;max-width:90%;width:380px;text-align:center}
 .reps-row{display:flex;gap:10px;justify-content:center;margin-top:10px;flex-wrap:wrap}
 .rep-card{min-width:100px;background:#fafafa;border:1px solid #e5e7eb;border-radius:12px;padding:8px;display:flex;flex-direction:column;align-items:center;gap:6px}
-.rep-img{width:48px;height:48px;border-radius:50%;background:#f1f5f9;object-fit:cover;border:2px solid #e5e7eb;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.rep-img{width:48px;height:48px;border-radius:50%;background:#f1f5f9;border:2px solid #e5e7eb;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .rep-name{font-size:11px;font-weight:700;color:#0f172a}
 .rep-est{font-size:10px;padding:2px 8px;border-radius:999px;font-weight:700}
 .rep-est.disponible{background:#dcfce7;color:#16a34a}
@@ -178,7 +177,8 @@ function render(){
     if(p.timestampAdmin?.seconds){ tsSec=p.timestampAdmin.seconds; hora=new Date(tsSec*1000).toLocaleString('es-MX',{hour:'2-digit',minute:'2-digit'}); }
     else if(p.timestamp?.seconds){ tsSec=p.timestamp.seconds; hora=new Date(tsSec*1000).toLocaleString('es-MX',{hour:'2-digit',minute:'2-digit'}); }
     const tiempo=calcularTiempoReal(tsSec, p.estado);
-    let step=0; if(['enviado_a_repartidor','recogido','en_camino','finalizado','entregado'].includes(p.estado)) step=0; if(p.estado==='recogido') step=1; if(p.estado==='en_camino') step=2; if(['finalizado','entregado'].includes(p.estado)) step=3;
+    let step=0; if(p.estado==='recogido') step=1; if(p.estado==='en_camino') step=2; if(['finalizado','entregado'].includes(p.estado)) step=3;
+    const yaEnviado = !['nuevo','listo_para_admin','listo','sin_enviar'].includes(p.estado);
 
     return `
     <div class="card" id="card-${p.id}">
@@ -203,16 +203,13 @@ function render(){
         </div>
       </div>
       <div class="acciones">
-        <button class="btn-rojo" onclick="toggleRepartidores('${p.id}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Enviar a repartidor</button>
+        <button class="btn-rojo" ${yaEnviado?'disabled':''} onclick="toggleRepartidores('${p.id}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> ${yaEnviado?'Enviado a '+(p.repartidorNombre||'repartidor'):'Enviar a repartidor'}</button>
         <button class="btn-gris" onclick="enviarHistorial('${p.id}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Enviar a historial</button>
       </div>
 
       <div class="card-overlay" id="overlay-reps-${p.id}">
         <div class="overlay-box">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-            <b style="font-size:12px">Seleccionar repartidor para #${id}</b>
-            <button class="btn-borde" onclick="cerrarOverlay('overlay-reps-${p.id}')">✕</button>
-          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b style="font-size:12px">Seleccionar repartidor para #${id}</b><button class="btn-borde" onclick="cerrarOverlay('overlay-reps-${p.id}')">✕</button></div>
           <div class="reps-row">
             ${cacheRepartidores.map(r=>{
               const disp=r.estado==='disponible';
@@ -228,7 +225,7 @@ function render(){
           <div style="font-size:11px;color:#64748b;margin-bottom:10px">Repartidor: <b style="color:#0f172a">${p.repartidorNombre||'Por asignar'}</b></div>
           <div class="tracking">
             <div class="track-item ${step>=0?'active':''}"><div class="track-icon"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></div> Sin enviar - Listo en restaurante</div>
-            <div class="track-item ${p.estado==='enviado_a_repartidor' || step>=1?'active':''}"><div class="track-icon"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/></svg></div> Enviado a repartidor</div>
+            <div class="track-item ${yaEnviado?'active':''}"><div class="track-icon"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/></svg></div> Enviado a repartidor</div>
             <div class="track-item ${step>=1?'active':''}"><div class="track-icon"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="${step>=1?'#16a34a':'#94a3b8'}" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/></svg></div> Recogido</div>
             <div class="track-item ${step>=2?'active':''}"><div class="track-icon"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="${step>=2?'#16a34a':'#94a3b8'}" stroke-width="2"><circle cx="5.5" cy="17.5" r="3.5"/></svg></div> En camino a entregar</div>
             <div class="track-item ${step>=3?'active':''}"><div class="track-icon"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="${step>=3?'#16a34a':'#94a3b8'}" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></div> Finalizado</div>
@@ -259,6 +256,8 @@ onSnapshot(collection(db,"pedidos_admin"), (snap)=>{
 });
 
 window.toggleRepartidores = (pedidoId)=>{
+  const p=pedidosCache.find(x=>x.id===pedidoId);
+  if(p && !['nuevo','listo_para_admin','listo','sin_enviar'].includes(p.estado)) return;
   document.getElementById('overlay-reps-'+pedidoId)?.classList.add('open');
 }
 window.cerrarOverlay = (id)=>{ document.getElementById(id)?.classList.remove('open'); }
