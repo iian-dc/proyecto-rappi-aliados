@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pedidos - DoloYa</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
+body{background:#f8f8f9;min-height:100vh}
+:root{--rojo:#C50D1F}
+.header{height:64px;background:white;border-bottom:1px solid #ececec;display:flex;align-items:center;justify-content:space-between;padding:0 20px;position:sticky;top:0;z-index:20}
+.h-left{display:flex;align-items:center;gap:16px}
+.btn-x{width:36px;height:36px;background:var(--rojo);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;border:none;cursor:pointer;text-decoration:none;font-size:20px;font-weight:700}
+.h-left h1{font-size:20px;font-weight:800}
+.h-right{display:flex;align-items:center;gap:14px}
+.bell{position:relative;width:32px;height:32px;display:flex;align-items:center;justify-content:center}
+.bell.vibrar{animation:bell3d .15s infinite}
+@keyframes bell3d{0%{transform:rotate(-12deg) scale(1.1)}25%{transform:rotate(12deg) scale(1.25)}50%{transform:rotate(-10deg) scale(1.15)}75%{transform:rotate(10deg) scale(1.25)}100%{transform:rotate(-12deg) scale(1.1)}}
+.chip-rest{background:white;border:1px solid #e5e7eb;border-radius:999px;padding:6px 14px;display:flex;align-items:center;gap:8px}
+.chip-rest small{font-size:10px;color:#22c55e;font-weight:700;display:block}
+.chip-rest b{font-size:12px;line-height:1}
+.tabs{display:flex;gap:12px;padding:18px 20px;flex-wrap:wrap}
+.tab{border-radius:999px;padding:8px 18px;font-size:13px;font-weight:600;border:1px solid #e5e7eb;background:#f1f2f4;color:#6b7280;cursor:pointer;display:flex;align-items:center;gap:8px}
+.tab.active{background:var(--rojo);color:white;border-color:var(--rojo)}
+.tab span.count{background:white;color:#111;min-width:20px;height:20px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;padding:0 6px}
+.tab.active span.count{background:white;color:var(--rojo)}
+.container{padding:0 20px 20px}
+.card{background:white;border-radius:16px;border:1px solid #ececec;overflow:hidden;margin-bottom:14px;display:flex;flex-direction:row}
+.card-left{flex:1.2;padding:18px;display:flex;flex-direction:column;gap:14px}
+.card-center{width:1px;background:#f0f0f0;margin:16px 0}
+.card-right{flex:1;padding:18px}
+.badge-nuevo{background:var(--rojo);color:white;border-radius:999px;padding:5px 12px;font-size:11px;font-weight:800;display:inline-flex;align-items:center;gap:6px;width:fit-content}
+.dot{width:8px;height:8px;background:white;border-radius:50%;display:inline-block}
+.cliente{display:flex;gap:12px;align-items:flex-start}
+.avatar{width:42px;height:42px;background:#f1f2f4;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.cliente b{font-size:13.5px}
+.cliente span{font-size:12px;color:#6b7280;display:flex;align-items:center;gap:6px;margin-top:3px}
+.direccion{display:flex;gap:10px;margin-top:4px}
+.direccion b{font-size:12.5px}
+.direccion p{font-size:12px;color:#6b7280;line-height:1.4;margin-top:2px}
+.stats{display:flex;gap:18px;margin-top:6px;flex-wrap:wrap}
+.stat{display:flex;align-items:center;gap:8px}
+.stat svg{width:22px}
+.stat small{font-size:10px;color:#6b7280;display:block}
+.stat b{font-size:12px}
+.prod-head{display:flex;justify-content:space-between;align-items:center}
+.prod-head b{font-size:13px;display:flex;align-items:center;gap:8px}
+.prod-head #num{font-size:18px;font-weight:800}
+.prod-head small{font-size:11px;color:#6b7280;font-weight:400}
+.prod-list{margin:12px 0;border-bottom:1px solid #f0f0f0;padding-bottom:10px}
+.prod-item{display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px;color:#4b5563}
+.prod-item b{color:#6b7280;font-weight:500}
+.obs{margin:10px 0 14px}
+.obs b{font-size:12px}
+.obs p{font-size:12px;color:#6b7280;margin-top:2px}
+.actions{display:flex;gap:10px;flex-wrap:wrap}
+.btn{display:flex;align-items:center;gap:8px;border:none;border-radius:999px;padding:10px 18px;font-size:12.5px;font-weight:700;cursor:pointer;color:white;transition:.2s}
+.btn-rojo{background:var(--rojo)}
+.btn-naranja{background:#F59E0B}
+.btn-gris{background:#8B95A5}
+.btn:disabled{opacity:0.4;cursor:not-allowed}
+.empty{text-align:center;padding:60px 20px;color:#9ca3af}
+@media(max-width:800px){
+  .card{flex-direction:column}
+  .card-center{display:none}
+  .tabs{overflow:auto;flex-wrap:nowrap;white-space:nowrap}
+  .header{padding:0 12px}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="h-left">
+    <a href="panelaliado.html" class="btn-x">✕</a>
+    <h1>Pedidos</h1>
+  </div>
+  <div class="h-right">
+    <div class="bell" id="bellIcon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C50D1F" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 6 5 6 9H0s6-2 6-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></div>
+    <div class="chip-rest">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="#C50D1F"><path d="M3 9l1-5h16l1 5"/><path d="M3 9h18v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9z"/></svg>
+      <div><b id="restName">Mi restaurante</b><small>● En línea</small></div>
+    </div>
+  </div>
+</div>
+
+<div class="tabs" id="tabs">
+  <button class="tab active" data-f="todos">Todos <span class="count" id="c-todos">0</span></button>
+  <button class="tab" data-f="nuevo">Nuevos <span class="count" id="c-nuevo">0</span></button>
+  <button class="tab" data-f="aceptado">Aceptados <span class="count" id="c-aceptado">0</span></button>
+  <button class="tab" data-f="en_preparacion">En preparación <span class="count" id="c-prep">0</span></button>
+  <button class="tab" data-f="listo">Listos <span class="count" id="c-listo">0</span></button>
+</div>
+
+<div class="container" id="listaPedidos">
+  <div class="empty">Cargando pedidos...</div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+import { getFirestore, collection, onSnapshot, doc, updateDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+
+const configConfirmacion = {
+  apiKey: "AIzaSyDLKngPyi_SWAXEQwdrHO5h8L8OufulAR4",
+  authDomain: "doloya-confirmacion.firebaseapp.com",
+  databaseURL: "https://doloya-confirmacion-default-rtdb.firebaseio.com",
+  projectId: "doloya-confirmacion",
+  storageBucket: "doloya-confirmacion.firebasestorage.app",
+  messagingSenderId: "832228761099",
+  appId: "1:832228761099:web:ddd4b6a0ee0d7f0494b10e"
+};
+const app = initializeApp(configConfirmacion);
+const db = getFirestore(app);
+
+const sesion = JSON.parse(localStorage.getItem('doloya_aliado_sesion')||'null');
+const idNegocio = sesion?.id || sesion?.negocio || 'burgers';
+const mapaCat = { alitas:'alitas', burgers:'burgers', pizzas:'pizzas' };
+const catBuscada = mapaCat[idNegocio] || idNegocio;
+
+const restName = document.getElementById('restName');
+if(sesion?.nombreReal) restName.textContent = sesion.nombreReal;
+else restName.textContent = sesion?.nombre || 'Mi restaurante';
+
+const bell = document.getElementById('bellIcon');
+let primerCarga = true;
+let ultimoTotal = 0;
+let pedidosCache = [];
+let filtroActual = 'todos';
+
+function sonarDoloYa(){
+  bell.classList.add('vibrar');
+  setTimeout(()=>bell.classList.remove('vibrar'),3000);
+  try{
+    window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance("¡DoloYa! ¡DoloYa! ¡DoloYa! ¡Pedido! ¡Pedido! ¡Pedido!");
+    utter.lang='es-MX'; utter.rate=1.25; utter.pitch=1.4; utter.volume=1;
+    window.speechSynthesis.speak(utter);
+    const ctx = new (window.AudioContext||window.webkitAudioContext)();
+    const now = ctx.currentTime;
+    [523,659,784,1046].forEach((f,i)=>{ const o=ctx.createOscillator(); const g=ctx.createGain(); o.type='triangle'; o.frequency.setValueAtTime(f,now+i*0.4); g.gain.setValueAtTime(0.25,now+i*0.4); g.gain.exponentialRampToValueAtTime(0.01,now+i*0.4+0.35); o.connect(g); g.connect(ctx.destination); o.start(now+i*0.4); o.stop(now+i*0.4+0.35); });
+  }catch{}
+}
+document.body.addEventListener('click', ()=>{ try{ new (window.AudioContext||window.webkitAudioContext)().resume(); }catch{} }, {once:true});
+
+document.querySelectorAll('.tab').forEach(t=>{
+  t.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    filtroActual = t.dataset.f;
+    render(pedidosCache);
+  });
+});
+
+function render(lista){
+  const cont = document.getElementById('listaPedidos');
+  const filtrados = filtroActual==='todos' ? lista : lista.filter(p=> (p.estado||'nuevo')===filtroActual);
+  if(filtrados.length===0){ cont.innerHTML='<div class="empty">No hay pedidos en '+filtroActual+'</div>'; return; }
+  cont.innerHTML='';
+  filtrados.forEach((p,i)=>{
+    const productos = p.productos || p.items || [];
+    const total = p.total || p.totalPedido || p.montoTotal || 0;
+    const cliente = p.cliente?.nombre || p.nombreCliente || p.clienteNombre || 'Cliente';
+    const tel = p.cliente?.telefono || p.telefono || p.clienteTelefono || '+52';
+    const dir = p.direccion?.completa || p.direccionEntrega || p.direccion || (p.direccion?.calle? `${p.direccion.calle} ${p.direccion.colonia||''}` : 'Dirección no disponible');
+    const col = p.direccion?.colonia || p.colonia || 'Col. Centro, Dolores Hidalgo, Gto.';
+    const obs = p.observaciones || p.notas || p.comentario || 'Sin observaciones.';
+    const distancia = p.distancia || '2.4 km';
+    const tiempo = p.tiempoEstimado || p.tiempo || '12 min';
+    const hora = p.fecha ? new Date(p.fecha?.seconds ? p.fecha.seconds*1000 : p.fecha).toLocaleString('es-MX',{hour:'numeric',minute:'numeric', hour12:true}) : 'Hoy, 12:34 p.m.';
+    const estado = p.estado || 'nuevo';
+    const num = p.numero || ('#00'+(i+15).toString().padStart(2,'0'));
+
+    const div = document.createElement('div');
+    div.className='card';
+    div.innerHTML=`
+      <div class="card-left">
+        <span class="badge-nuevo" style="${estado!=='nuevo'?'background:#8B95A5':''}"><span class="dot"></span> ${estado==='nuevo'?'Nuevo':estado.replace('_',' ')}</span>
+        <div class="cliente">
+          <div class="avatar"><svg width="22" height="22" viewBox="0 0 24 24" fill="#6b7280"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm0 2c-5 0-9 2.5-9 5.5V21h18v-1.5C21 16.5 17 14 12 14z"/></svg></div>
+          <div><b>Cliente: ${cliente}</b><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.68A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L9 10a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg> ${tel}</span></div>
+        </div>
+        <div class="direccion">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="#111"><path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg>
+          <div><b>Dirección de entrega</b><p>${dir}<br>${col}</p></div>
+        </div>
+        <div class="stats">
+          <div class="stat"><svg viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="1.8"><path d="M5 17a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM15 17a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM5 19h9M2 6h3l2 6h9l2-3h3"/><circle cx="7" cy="9" r="1"/></svg><div><small>Distancia</small><b>${distancia}</b></div></div>
+          <div class="stat"><svg viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><div><small>Tiempo estimado</small><b>${tiempo}</b></div></div>
+          <div class="stat"><svg viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="1.8"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M6 9h4M6 12h2"/><path d="M16 11h2v2h-2z"/></svg><div><small>Total del pedido</small><b>$${total} MXN</b></div></div>
+        </div>
+      </div>
+      <div class="card-center"></div>
+      <div class="card-right">
+        <div class="prod-head"><b><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg> Productos</b><div style="text-align:right"><div id="num">${num}</div><small>${hora}</small></div></div>
+        <div class="prod-list">
+          ${productos.length>0 ? productos.map(pr=>`<div class="prod-item"><span><b>${pr.cantidad||pr.qty||1}x</b> &nbsp; ${pr.nombre||pr.name||pr.titulo}</span><span>$${pr.precio||pr.price||0}</span></div>`).join('') : `<div class="prod-item"><span><b>1x</b> Pedido DoloYa</span><span>$${total}</span></div>`}
+        </div>
+        <div class="obs"><b>Observaciones:</b><p>${obs}</p></div>
+        <div class="actions">
+          <button class="btn btn-rojo" onclick="cambiarEstado('${p.id}','aceptado')" ${estado!=='nuevo'?'disabled':''}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M5 17a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM15 17a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/></svg> Hacer pedido</button>
+          <button class="btn btn-naranja" onclick="cambiarEstado('${p.id}','en_preparacion')" ${estado==='listo'?'disabled':''}><svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M6 13c0-3 2-5 6-5s6 2 6 5v6H6v-6zM8 8c0-2 1.5-4 4-4s4 2 4 4"/></svg> Preparando</button>
+          <button class="btn btn-gris" onclick="cambiarEstado('${p.id}','listo')"><svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zm-1.2 14.5L7 12.7l1.4-1.4 2.4 2.4 4.8-4.8L17 10.3 10.8 16.5z"/></svg> Listo</button>
+        </div>
+      </div>
+    `;
+    cont.appendChild(div);
+  });
+}
+
+function actualizarContadores(lista){
+  const todos = lista.length;
+  const nuevo = lista.filter(p=>(p.estado||'nuevo')==='nuevo').length;
+  const aceptado = lista.filter(p=>p.estado==='aceptado').length;
+  const prep = lista.filter(p=>p.estado==='en_preparacion').length;
+  const listo = lista.filter(p=>p.estado==='listo').length;
+  document.getElementById('c-todos').textContent=todos;
+  document.getElementById('c-nuevo').textContent=nuevo;
+  document.getElementById('c-aceptado').textContent=aceptado;
+  document.getElementById('c-prep').textContent=prep;
+  document.getElementById('c-listo').textContent=listo;
+}
+
+// ESCUCHA FIRESTORE EN TIEMPO REAL
+onSnapshot(collection(db, "pedidos"), (snap)=>{
+  let lista=[];
+  snap.forEach(d=>{
+    const data=d.data();
+    const cat = (data.restaurante?.cat||'').toLowerCase();
+    if(sesion?.rol==='administrador' || cat===catBuscada){
+      lista.push({id:d.id, ...data, estado: data.estado||'nuevo'});
+      if(!restName.textContent || restName.textContent==='Mi restaurante'){
+        if(data.restaurante?.nombre) restName.textContent=data.restaurante.nombre;
+      }
+    }
+  });
+  lista.sort((a,b)=> (b.fecha?.seconds||0)-(a.fecha?.seconds||0));
+  pedidosCache=lista;
+  actualizarContadores(lista);
+  render(lista);
+  if(!primerCarga && lista.length>ultimoTotal){ sonarDoloYa(); }
+  ultimoTotal=lista.length;
+  primerCarga=false;
+});
+
+window.cambiarEstado = async (id, nuevoEstado)=>{
+  try{
+    await updateDoc(doc(db, "pedidos", id), { estado: nuevoEstado, actualizadoEn: new Date() });
+  }catch(e){ alert('Error al actualizar: '+e.message); }
+}
+</script>
+</body>
+</html>
