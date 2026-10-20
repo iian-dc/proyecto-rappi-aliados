@@ -140,7 +140,6 @@ function calcularTiempoReal(sec){
   if(diffSeg < 60) texto = diffSeg + 's';
   else if(diffSeg < 3600) texto = min + 'm ' + seg + 's';
   else { const h=Math.floor(min/60); const m=min%60; texto = h+'h '+m+'m'; }
-
   let clase='', iconoSvg='';
   if(diffSeg < 960){ clase='tiempo-verde'; }
   else if(diffSeg < 2160){ clase='tiempo-amarillo'; }
@@ -153,7 +152,6 @@ function calcularTiempoReal(sec){
 }
 
 function obtenerNombreCliente(p){
-  // ORDEN EXACTO DE FIRESTORE COMO ESTA EN TU BASE
   return p.nombre || 
          p.detalles?.nombre || 
          p.cliente?.nombre || 
@@ -185,7 +183,7 @@ function render(lista){
     let claseEstado='', badgeClass='badge-nuevo', badgeText='Nuevo';
     if(estado==='aceptado'){ claseEstado='aceptado'; badgeClass='badge-nuevo verde'; badgeText='Aceptado'; }
     else if(estado==='en_preparacion'){ claseEstado='preparando'; badgeClass='badge-nuevo amarillo'; badgeText='En preparación'; }
-    else if(estado==='listo'){ claseEstado='aceptado'; badgeClass='badge-nuevo verde'; badgeText='Listo'; }
+    else if(estado==='listo' || estado==='listo_para_admin'){ claseEstado='aceptado'; badgeClass='badge-nuevo verde'; badgeText='Listo'; }
 
     let fechaStr='', horaStr='', tsSec=0;
     if(p.timestamp?.seconds){ tsSec=p.timestamp.seconds; const d=new Date(tsSec*1000); fechaStr=d.toLocaleDateString('es-MX',{day:'2-digit',month:'2-digit',year:'2-digit'}); horaStr=d.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit',hour12:true}); }
@@ -247,7 +245,7 @@ function actualizarContadores(lista){
   document.getElementById('c-nuevo').textContent=lista.filter(p=>(p.estado||'nuevo')==='nuevo').length;
   document.getElementById('c-aceptado').textContent=lista.filter(p=>p.estado==='aceptado').length;
   document.getElementById('c-prep').textContent=lista.filter(p=>p.estado==='en_preparacion').length;
-  document.getElementById('c-listo').textContent=lista.filter(p=>p.estado==='listo').length;
+  document.getElementById('c-listo').textContent=lista.filter(p=>['listo','listo_para_admin'].includes(p.estado)).length;
 }
 
 setInterval(()=>{
@@ -291,8 +289,20 @@ window.preguntarListo=(id)=>{
   card.classList.remove('aceptado','preparando');
   card.classList.add('confirmando');
 }
+
+// VINCULADO AL PANEL ADMIN - AHORA SI MANDA AL ADMIN
 window.confirmarListo=async(id)=>{
-  try{ await updateDoc(doc(db,"pedidos",id),{estado:'listo', actualizadoEn: new Date()}); }catch(e){ alert(e.message); }
+  try{ 
+    await updateDoc(doc(db,"pedidos",id),{
+      estado:'listo_para_admin',
+      listo:true,
+      listoEn: new Date(),
+      actualizadoEn: new Date(),
+      enviadoAAdmin:true,
+      timestampAdmin: new Date()
+    }); 
+    console.log("Pedido enviado a paneladmin-pedidos.html");
+  }catch(e){ alert(e.message); }
 }
 window.negarListo=async(id)=>{
   const card=document.getElementById('card-'+id);
