@@ -88,7 +88,7 @@ body{background:#f8f8f9;min-height:100vh}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-import { getFirestore, collection, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+import { getFirestore, collection, onSnapshot, doc, updateDoc, getDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
 const configConfirmacion = {
   apiKey: "AIzaSyDLKngPyi_SWAXEQwdrHO5h8L8OufulAR4",
@@ -152,16 +152,7 @@ function calcularTiempoReal(sec){
 }
 
 function obtenerNombreCliente(p){
-  return p.nombre || 
-         p.detalles?.nombre || 
-         p.cliente?.nombre || 
-         p.nombreCliente || 
-         p.clienteNombre || 
-         p.cliente?.nombreCliente ||
-         p.datosCliente?.nombre ||
-         p.usuario?.nombre ||
-         (p.detalles?.direccion ? p.detalles.direccion.split(',')[0] : null) ||
-         'Cliente';
+  return p.nombre || p.detalles?.nombre || p.cliente?.nombre || p.nombreCliente || p.clienteNombre || p.cliente?.nombreCliente || p.datosCliente?.nombre || p.usuario?.nombre || (p.detalles?.direccion ? p.detalles.direccion.split(',')[0] : null) || 'Cliente';
 }
 
 function render(lista){
@@ -176,7 +167,6 @@ function render(lista){
     if(!costoProductos){ productos.forEach(pr=>{ costoProductos+= (pr.cantidad||1)*parseFloat(pr.precio||0); }); }
     const costoOriginal = parseFloat(costoProductos);
     const costoFinal = (costoOriginal*0.9).toFixed(0);
-
     const nombreCliente = obtenerNombreCliente(p);
     const codigoReal = p.codigo || 'ST-00';
     const estado = p.estado || 'nuevo';
@@ -184,13 +174,10 @@ function render(lista){
     if(estado==='aceptado'){ claseEstado='aceptado'; badgeClass='badge-nuevo verde'; badgeText='Aceptado'; }
     else if(estado==='en_preparacion'){ claseEstado='preparando'; badgeClass='badge-nuevo amarillo'; badgeText='En preparación'; }
     else if(estado==='listo' || estado==='listo_para_admin'){ claseEstado='aceptado'; badgeClass='badge-nuevo verde'; badgeText='Listo'; }
-
     let fechaStr='', horaStr='', tsSec=0;
     if(p.timestamp?.seconds){ tsSec=p.timestamp.seconds; const d=new Date(tsSec*1000); fechaStr=d.toLocaleDateString('es-MX',{day:'2-digit',month:'2-digit',year:'2-digit'}); horaStr=d.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit',hour12:true}); }
     else if(p.fecha){ const d=new Date(p.fecha); tsSec=Math.floor(d.getTime()/1000); fechaStr=d.toLocaleDateString('es-MX',{day:'2-digit',month:'2-digit',year:'2-digit'}); horaStr=d.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit',hour12:true}); }
-
     const tiempo = calcularTiempoReal(tsSec);
-
     const div=document.createElement('div');
     div.className=`card ${claseEstado}`;
     div.dataset.ts=tsSec;
@@ -224,15 +211,9 @@ function render(lista){
           ${productos.map(pr=>`<div class="prod-item"><span><b>${pr.cantidad||1}x</b> ${pr.nombre||'Producto'}</span></div>`).join('')}
         </div>
         <div class="actions">
-          <button class="btn btn-verde" onclick="cambiarEstado('${p.id}','aceptado')">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M5 12l5 5L20 7"/></svg> Aceptar
-          </button>
-          <button class="btn btn-amarillo" onclick="cambiarEstado('${p.id}','en_preparacion')">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 2a7 7 0 0 0 7 7c0 4-3 7-7 11-4-4-7-7-7-11a7 7 0 0 1 7-7z"/><circle cx="12" cy="10" r="2"/></svg> Preparando
-          </button>
-          <button class="btn btn-verde" onclick="preguntarListo('${p.id}')">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><path d="M8 12l2.5 2.5L16 9"/></svg> Listo
-          </button>
+          <button class="btn btn-verde" onclick="cambiarEstado('${p.id}','aceptado')">Aceptar</button>
+          <button class="btn btn-amarillo" onclick="cambiarEstado('${p.id}','en_preparacion')">Preparando</button>
+          <button class="btn btn-verde" onclick="preguntarListo('${p.id}')">Listo</button>
         </div>
       </div>
     `;
@@ -290,20 +271,33 @@ window.preguntarListo=(id)=>{
   card.classList.add('confirmando');
 }
 
-// VINCULADO AL PANEL ADMIN - AHORA SI MANDA AL ADMIN
+// === NUEVA LOGICA VINCULADA A ADMIN ===
 window.confirmarListo=async(id)=>{
   try{ 
-    await updateDoc(doc(db,"pedidos",id),{
+    const refOriginal = doc(db,"pedidos",id);
+    const snap = await getDoc(refOriginal);
+    if(!snap.exists()){ alert("Pedido no encontrado"); return; }
+    const data = snap.data();
+
+    // 1. Crear en nueva carpeta pedidos_admin
+    await setDoc(doc(db,"pedidos_admin",id),{
+      ...data,
       estado:'listo_para_admin',
       listo:true,
       listoEn: new Date(),
       actualizadoEn: new Date(),
       enviadoAAdmin:true,
-      timestampAdmin: new Date()
-    }); 
-    console.log("Pedido enviado a paneladmin-pedidos.html");
-  }catch(e){ alert(e.message); }
+      timestampAdmin: new Date(),
+      idOriginal: id
+    });
+    
+    // 2. Borrar de pedidos del aliado - ya no aparece en panel aliado
+    await deleteDoc(refOriginal);
+    console.log("✅ Pedido movido a pedidos_admin y eliminado de pedidos");
+
+  }catch(e){ alert("Error: "+e.message); console.error(e); }
 }
+
 window.negarListo=async(id)=>{
   const card=document.getElementById('card-'+id);
   card.classList.remove('confirmando');
