@@ -25,23 +25,25 @@ body{background:#f8f8f9;min-height:100vh}
 .container{padding:0 20px 20px}
 .card{position:relative;background:white;border-radius:16px;border:1px solid #ececec;overflow:hidden;margin-bottom:14px;display:flex;flex-direction:row;transition:.3s}
 .card.aceptado{background:#E8F5E9;border-color:#16a34a}
-.card.preparando{background:#FFF176;border-color:#FACC15;box-shadow:0 0 22px rgba(250,204,21,0.6)}
+.card.preparando{background:#FFF176;border-color:#FACC15;box-shadow:0 0 22px rgba(250,204,21,0.5)}
+.card.confirmando{background:#38BDF8;border-color:#0EA5E9;box-shadow:0 0 25px rgba(56,189,248,0.6)}
 .card-left{flex:1;padding:18px;display:flex;flex-direction:column;gap:18px;justify-content:space-between}
 .card-center{width:1px;background:#f0f0f0;margin:16px 0}
 .card-right{flex:1.2;padding:18px;display:flex;flex-direction:column;gap:12px}
 .badge-nuevo{background:var(--rojo);color:white;border-radius:999px;padding:6px 14px;font-size:11px;font-weight:900;display:inline-flex;align-items:center;gap:6px;width:fit-content;text-transform:uppercase;letter-spacing:0.5px}
 .badge-nuevo.verde{background:#16a34a}
 .badge-nuevo.amarillo{background:#111;color:#FFEB3B}
+.badge-nuevo.azul{background:#0EA5E9;color:white}
 .dot{width:8px;height:8px;background:white;border-radius:50%;display:inline-block}
-.cliente-name{font-size:15px;font-weight:800;color:#111;line-height:1.2}
-.costo-box{margin-top:6px}
+.cliente-line{font-size:14px;font-weight:700;color:#111}
+.cliente-line span{font-weight:800}
 .costo-box small{font-size:11px;color:#6b7280;display:block;margin-bottom:4px;font-weight:600}
 .costo-original{text-decoration:line-through;color:#9ca3af;font-size:13px;margin-right:8px}
-.costo-final{color:#16a34a;font-weight:900;font-size:18px;text-shadow:0 0 8px rgba(22,163,74,0.4)}
+.costo-final{color:#16a34a;font-weight:900;font-size:18px;text-shadow:0 0 8px rgba(22,163,74,0.3)}
 .prod-head{display:flex;justify-content:space-between;align-items:flex-start}
-.fecha-hora{display:flex;align-items:center;gap:8px;font-size:11px;color:#6b7280}
+.fecha-hora{display:flex;align-items:center;gap:8px;font-size:11px;color:#6b7280;flex-wrap:wrap}
 .fecha-hora b{color:#111;font-size:11px}
-.tiempo-real{background:#16a34a;color:white;border-radius:999px;padding:3px 10px;font-size:11px;font-weight:900;box-shadow:0 0 10px rgba(22,163,74,0.5);margin-left:6px}
+.tiempo-real{background:#16a34a;color:white;border-radius:999px;padding:3px 10px;font-size:11px;font-weight:900;box-shadow:0 0 10px rgba(22,163,74,0.5)}
 .codigo-pedido{font-size:20px;font-weight:900;letter-spacing:1px;color:#111}
 .prod-list{margin:8px 0;border-bottom:1px solid #f0f0f0;padding-bottom:10px}
 .prod-item{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:6px;color:#111}
@@ -49,13 +51,13 @@ body{background:#f8f8f9;min-height:100vh}
 .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
 .btn{border:none;border-radius:999px;padding:11px 18px;font-size:12.5px;font-weight:800;cursor:pointer;color:white;display:flex;align-items:center;gap:7px}
 .btn-verde{background:#16a34a}
-.btn-amarillo{background:#111;color:#FFEB3B}
+.btn-amarillo{background:#EAB308}
 .btn:disabled{opacity:.4}
-.overlay-preg{display:none;position:absolute;inset:0;background:rgba(255,235,59,0.94);z-index:10;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px}
-.card.preparando .overlay-preg{display:flex}
-.overlay-preg h3{font-size:18px;font-weight:900;line-height:1.3;color:#111;margin-bottom:16px}
-.btn-si{background:#16a34a;color:white;padding:11px 30px;border-radius:999px;border:none;font-weight:900;cursor:pointer;font-size:14px}
-.btn-no{background:white;color:#111;padding:11px 30px;border-radius:999px;border:2px solid #111;font-weight:900;cursor:pointer;font-size:14px}
+.overlay-preg{display:none;position:absolute;inset:0;background:#38BDF8;z-index:10;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px}
+.card.confirmando .overlay-preg{display:flex}
+.overlay-preg h3{font-size:19px;font-weight:900;line-height:1.3;color:white;margin-bottom:18px;text-shadow:0 1px 2px rgba(0,0,0,0.2)}
+.btn-si{background:white;color:#0EA5E9;padding:11px 32px;border-radius:999px;border:none;font-weight:900;cursor:pointer;font-size:14px}
+.btn-no{background:transparent;color:white;padding:11px 32px;border-radius:999px;border:2px solid white;font-weight:900;cursor:pointer;font-size:14px}
 .empty{text-align:center;padding:60px 20px;color:#9ca3af}
 @media(max-width:800px){.card{flex-direction:column}.card-center{display:none}}
 </style>
@@ -113,36 +115,28 @@ function sonarDoloYa(){
   setTimeout(()=>bell.classList.remove('vibrar'),3000);
   try{
     window.speechSynthesis.cancel();
-    const texto = "¡DoloYa! ¡DoloYa! ¡DoloYa! ¡Pedido! ¡Pedido! ¡Pedido!";
-    const utter = new SpeechSynthesisUtterance(texto);
-    utter.lang='es-MX';
-    utter.rate=1.25;
-    utter.pitch=1.4;
-    utter.volume=1;
+    const utter = new SpeechSynthesisUtterance("¡DoloYa! ¡DoloYa! ¡DoloYa! ¡Pedido! ¡Pedido! ¡Pedido!");
+    utter.lang='es-MX'; utter.rate=1.25; utter.pitch=1.4; utter.volume=1;
     window.speechSynthesis.speak(utter);
     const ctx = new (window.AudioContext||window.webkitAudioContext)();
     const now = ctx.currentTime;
     [523,659,784,1046].forEach((f,i)=>{
-      const o=ctx.createOscillator();
-      const g=ctx.createGain();
-      o.type='triangle';
-      o.frequency.setValueAtTime(f,now+i*0.4);
-      g.gain.setValueAtTime(0.25,now+i*0.4);
-      g.gain.exponentialRampToValueAtTime(0.01,now+i*0.4+0.35);
-      o.connect(g); g.connect(ctx.destination);
-      o.start(now+i*0.4); o.stop(now+i*0.4+0.35);
+      const o=ctx.createOscillator(); const g=ctx.createGain();
+      o.type='triangle'; o.frequency.setValueAtTime(f,now+i*0.4);
+      g.gain.setValueAtTime(0.25,now+i*0.4); g.gain.exponentialRampToValueAtTime(0.01,now+i*0.4+0.35);
+      o.connect(g); g.connect(ctx.destination); o.start(now+i*0.4); o.stop(now+i*0.4+0.35);
     });
   }catch{}
 }
 document.body.addEventListener('click', ()=>{ try{ new (window.AudioContext||window.webkitAudioContext)().resume(); }catch{} }, {once:true});
 document.querySelectorAll('.tab').forEach(t=>{ t.addEventListener('click', ()=>{ document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active')); t.classList.add('active'); filtroActual=t.dataset.f; render(pedidosCache); }); });
 
-function calcularTiempoReal(timestampSec){
-  if(!timestampSec) return '0m';
-  const diff = Math.floor((Date.now()/1000 - timestampSec)/60);
+function calcularTiempoReal(sec){
+  if(!sec) return '0m';
+  const diff=Math.floor((Date.now()/1000 - sec)/60);
   if(diff<1) return 'Ahora';
   if(diff<60) return diff+'m';
-  const h=Math.floor(diff/60); const m=diff%60;
+  const h=Math.floor(diff/60), m=diff%60;
   return h+'h '+m+'m';
 }
 
@@ -154,53 +148,50 @@ function render(lista){
   filtrados.forEach((p)=>{
     const productos=p.productos||[];
     const totales=p.totales||{};
-    
     let costoProductos = totales.costoProductos || 0;
     if(!costoProductos){ productos.forEach(pr=>{ costoProductos+= (pr.cantidad||1)*parseFloat(pr.precio||0); }); }
     const costoOriginal = parseFloat(costoProductos);
     const costoFinal = (costoOriginal*0.9).toFixed(0);
 
     const nombreCliente = p.nombre || p.detalles?.nombre || 'Cliente';
-    const codigoReal = p.codigo || 'ST-0';
+    const codigoReal = p.codigo || 'ST-00';
     const estado = p.estado || 'nuevo';
-    const claseEstado = estado==='aceptado'?'aceptado':estado==='en_preparacion'?'preparando':'';
-    
-    let fechaStr='', horaStr='', tsSec=0;
-    if(p.timestamp?.seconds){ tsSec=p.timestamp.seconds; const d=new Date(tsSec*1000); fechaStr=d.toLocaleDateString('es-MX',{day:'2-digit',month:'2-digit'}); horaStr=d.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit',hour12:true}); }
-    else if(p.fecha){ const d=new Date(p.fecha); tsSec=Math.floor(d.getTime()/1000); fechaStr=d.toLocaleDateString('es-MX',{day:'2-digit',month:'2-digit'}); horaStr=d.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit',hour12:true}); }
+    let claseEstado='', badgeClass='badge-nuevo', badgeText='Nuevo';
+    if(estado==='aceptado'){ claseEstado='aceptado'; badgeClass='badge-nuevo verde'; badgeText='Aceptado'; }
+    else if(estado==='en_preparacion'){ claseEstado='preparando'; badgeClass='badge-nuevo amarillo'; badgeText='En preparación'; }
+    else if(estado==='listo'){ claseEstado='aceptado'; badgeClass='badge-nuevo verde'; badgeText='Listo'; }
 
-    const tiempoReal = calcularTiempoReal(tsSec);
-    const badgeText = estado==='nuevo'?'Nuevo':estado==='aceptado'?'Aceptado':estado==='en_preparacion'?'En preparación':estado;
-    const badgeClass = estado==='nuevo'?'badge-nuevo':estado==='aceptado'?'badge-nuevo verde':'badge-nuevo amarillo';
+    let fechaStr='', horaStr='', tsSec=0;
+    if(p.timestamp?.seconds){ tsSec=p.timestamp.seconds; const d=new Date(tsSec*1000); fechaStr=d.toLocaleDateString('es-MX',{day:'2-digit',month:'2-digit',year:'2-digit'}); horaStr=d.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit',hour12:true}); }
+    else if(p.fecha){ const d=new Date(p.fecha); tsSec=Math.floor(d.getTime()/1000); fechaStr=d.toLocaleDateString('es-MX',{day:'2-digit',month:'2-digit',year:'2-digit'}); horaStr=d.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit',hour12:true}); }
 
     const div=document.createElement('div');
     div.className=`card ${claseEstado}`;
     div.dataset.ts=tsSec;
+    div.id=`card-${p.id}`;
     div.innerHTML=`
-      <div class="overlay-preg">
-        <h3>¿Está listo tu producto?<br>Ya puede venir el repartidor por él</h3>
+      <div class="overlay-preg" id="overlay-${p.id}">
+        <h3>¿Está listo tu producto?<br>Ya puede venir repartidor por él</h3>
         <div style="display:flex;gap:12px">
-          <button class="btn-si" onclick="cambiarEstado('${p.id}','listo')">Sí</button>
-          <button class="btn-no" onclick="cerrarPregunta(this)">No</button>
+          <button class="btn-si" onclick="confirmarListo('${p.id}')">Sí</button>
+          <button class="btn-no" onclick="negarListo('${p.id}')">No</button>
         </div>
       </div>
       <div class="card-left">
         <span class="${badgeClass}"><span class="dot"></span> ${badgeText}</span>
         <div>
-          <div class="cliente-name">${nombreCliente}</div>
+          <div class="cliente-line">cliente: <span>${nombreCliente}</span></div>
           <div class="costo-box">
             <small>Costo del producto</small>
-            <span class="costo-original">$${costoOriginal.toFixed(0)}</span>
-            <span class="costo-final">$${costoFinal}</span>
+            <span class="costo-original">$${costoOriginal.toFixed(0)} MXN</span>
+            <span class="costo-final">$${costoFinal} MXN</span>
           </div>
         </div>
       </div>
       <div class="card-center"></div>
       <div class="card-right">
         <div class="prod-head">
-          <div class="fecha-hora">
-            <b>${fechaStr}</b> ${horaStr} <span class="tiempo-real" data-ts="${tsSec}">${tiempoReal}</span>
-          </div>
+          <div class="fecha-hora"><b>${fechaStr}</b> ${horaStr} <span class="tiempo-real" data-ts="${tsSec}">${calcularTiempoReal(tsSec)}</span></div>
           <div class="codigo-pedido">${codigoReal}</div>
         </div>
         <div class="prod-list">
@@ -208,12 +199,12 @@ function render(lista){
         </div>
         <div class="actions">
           <button class="btn btn-verde" onclick="cambiarEstado('${p.id}','aceptado')">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M5 12l5 5L20 7"/></svg> Aceptado
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M5 12l5 5L20 7"/></svg> Aceptar
           </button>
           <button class="btn btn-amarillo" onclick="cambiarEstado('${p.id}','en_preparacion')">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFEB3B" stroke-width="2"><path d="M6 13c0-3 2-5 6-5s6 2 6 5v6H6v-6z"/><path d="M8 8c0-2 1.5-4 4-4s4 2 4 4" stroke-width="1.5"/></svg> Preparando
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 2a7 7 0 0 0 7 7c0 4-3 7-7 11-4-4-7-7-7-11a7 7 0 0 1 7-7z"/><circle cx="12" cy="10" r="2"/></svg> Preparando
           </button>
-          <button class="btn btn-verde" onclick="cambiarEstado('${p.id}','listo')">
+          <button class="btn btn-verde" onclick="preguntarListo('${p.id}')">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><path d="M8 12l2.5 2.5L16 9"/></svg> Listo
           </button>
         </div>
@@ -236,7 +227,7 @@ setInterval(()=>{
     const ts=parseInt(el.dataset.ts||0);
     if(ts) el.textContent=calcularTiempoReal(ts);
   });
-}, 30000);
+},30000);
 
 onSnapshot(collection(db, "pedidos"), (snap)=>{
   let lista=[];
@@ -263,10 +254,19 @@ onSnapshot(collection(db, "pedidos"), (snap)=>{
 window.cambiarEstado=async(id,estado)=>{
   try{ await updateDoc(doc(db,"pedidos",id),{estado, actualizadoEn: new Date()}); }catch(e){ alert(e.message); }
 }
-window.cerrarPregunta=(btn)=>{
-  const card=btn.closest('.card');
-  card.style.display='none';
-  setTimeout(()=>{ card.classList.remove('preparando'); card.style.display='flex'; }, 1200);
+window.preguntarListo=(id)=>{
+  const card=document.getElementById('card-'+id);
+  card.classList.remove('aceptado','preparando');
+  card.classList.add('confirmando');
+}
+window.confirmarListo=async(id)=>{
+  try{ await updateDoc(doc(db,"pedidos",id),{estado:'listo', actualizadoEn: new Date()}); }catch(e){ alert(e.message); }
+}
+window.negarListo=async(id)=>{
+  const card=document.getElementById('card-'+id);
+  card.classList.remove('confirmando');
+  card.classList.add('preparando');
+  try{ await updateDoc(doc(db,"pedidos",id),{estado:'en_preparacion', actualizadoEn: new Date()}); }catch(e){}
 }
 </script>
 </body>
