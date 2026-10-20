@@ -126,17 +126,16 @@ function sonar(){
       osc2.connect(g2); g2.connect(ctx.destination); osc2.start(); osc2.stop(ctx.currentTime+0.5);
     },250);
   }catch{}
-  try{ speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance("Nuevo pedido listo"); u.lang='es-MX'; speechSynthesis.speak(u);}catch{}
+  try{ speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance("Nuevo pedido listo para repartidor"); u.lang='es-MX'; speechSynthesis.speak(u);}catch{}
 }
 
 function render(){
   const counts = {todos:pedidosCache.length,nuevos:0,aceptados:0,en_preparacion:0,listo:0,en_camino:0,cancelado:0};
   pedidosCache.forEach(p=>{
-    if(['listo','listo_para_admin'].includes(p.estado)) counts.listos++;
+    if(['listo','listo_para_admin'].includes(p.estado)) counts.listo++;
     if(p.estado==='nuevo' || p.estado==='listo_para_admin') counts.nuevos++;
     if(p.estado==='aceptado') counts.aceptados++;
     if(p.estado==='en_preparacion') counts.en_preparacion++;
-    if(p.estado==='listo' || p.estado==='listo_para_admin') counts.listo++;
     if(p.estado==='en_camino' || p.estado==='entregado') counts.en_camino++;
     if(p.estado==='cancelado') counts.cancelado++;
   });
@@ -160,18 +159,20 @@ function render(){
 
   lista.innerHTML = filtrados.map(p=>{
     const id = p.codigo || p.id.slice(0,4).toUpperCase();
-    const cliente = p.clienteNombre || p.nombre || 'Cliente';
-    const tel = p.clienteTelefono || p.telefono || '+52 477 123 4567';
-    const rest = p.restauranteNombre || p.negocio || 'La Esquina del Sabor';
-    const dirRec = p.direccionRestaurante || 'Calle Independencia #124<br>Col. Centro, Dolores Hidalgo, Gto.';
-    const dirEnt = p.direccionCliente || p.direccion || 'Av. Hidalgo #256<br>Col. Centro, Dolores Hidalgo, Gto.';
+    const cliente = p.nombre || p.detalles?.nombre || p.clienteNombre || 'Cliente';
+    const tel = p.telefono || p.detalles?.telefono || '+52 477 123 4567';
+    const rest = p.restaurante?.nombre || p.restauranteNombre || 'La Esquina del Sabor';
+    const dirRec = p.restaurante?.direccion || p.direccionRestaurante || 'Calle Independencia #124<br>Col. Centro, Dolores Hidalgo, Gto.';
+    const dirEnt = p.detalles?.direccion || p.direccionCliente || 'Av. Hidalgo #256<br>Col. Centro, Dolores Hidalgo, Gto.';
     const productos = p.productos || p.items || [];
-    let htmlProd = productos.map(it=>`<div class="product-item"><span>${it.nombre||it.name}</span><span>x${it.cantidad||it.qty||1}</span><span>$${it.precio||it.price||0}</span></div>`).join('') || '<div class="product-item"><span>Hamburguesa clásica</span><span>x1</span><span>$65</span></div>';
-    const totalProd = p.totalProductos || 95;
-    const envio = p.costoEnvio || 30;
-    const total = p.total || 125;
-    const notas = p.notas || 'Sin cebolla, por favor.';
-    const hora = p.listoEn ? new Date(p.listoEn.seconds*1000).toLocaleString('es-MX',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : 'Hoy, 12:34 p.m.';
+    let htmlProd = productos.map(it=>`<div class="product-item"><span>${it.nombre||it.name}</span><span>x${it.cantidad||it.qty||1}</span><span>$${it.precio||it.price||0}</span></div>`).join('') || '<div class="product-item"><span>Producto</span><span>x1</span><span>$65</span></div>';
+    const totalProd = p.totales?.costoProductos || 95;
+    const envio = p.totales?.costoEnvio || 30;
+    const total = p.totales?.total || p.total || 125;
+    const notas = p.detalles?.nota || p.notas || 'Sin cebolla, por favor.';
+    let hora = 'Hoy, 12:34 p.m.';
+    if(p.timestampAdmin?.seconds) hora = new Date(p.timestampAdmin.seconds*1000).toLocaleString('es-MX',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    else if(p.listoEn?.seconds) hora = new Date(p.listoEn.seconds*1000).toLocaleString('es-MX',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     const estadoLabel = p.estado==='listo_para_admin' ? 'Nuevo' : p.estado;
 
     return `
@@ -190,7 +191,7 @@ function render(){
         <div><div class="label">Productos</div>${htmlProd}</div>
         <div class="total-box"><div class="line"><span>Total productos</span><span>$${totalProd}</span></div><div class="line"><span>Envío</span><span>$${envio}</span></div><div class="total-final">Total del pedido<br><b>$${total} MXN</b></div></div>
         <div><div class="label">Notas del cliente</div><div class="value" style="font-weight:400;font-size:12px;color:#64748b">${notas}</div></div>
-        <div><div class="label">Datos del restaurante</div><div class="value" style="font-size:12px"><div>👤 ${rest}</div><div>📞 +52 477 123 4567</div><div style="color:#10b981">● Abierto · 9:00 a.m. - 11:00 p.m.</div></div></div>
+        <div><div class="label">Datos del restaurante</div><div class="value" style="font-size:12px"><div>👤 ${rest}</div><div>📞 +52 477 123 4567</div><div style="color:#10b981">● Listo para repartidor</div></div></div>
       </div>
       <div class="acciones">
         <button class="btn-rojo" onclick="enviarRepartidor('${p.id}')">Enviar a repartidor</button>
@@ -206,7 +207,8 @@ document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
   t.classList.add('active'); filtro=t.dataset.f; render();
 }));
 
-onSnapshot(query(collection(db,"pedidos"), orderBy("creadoEn","desc")), (snap)=>{
+// === AHORA ESCUCHA pedidos_admin ===
+onSnapshot(query(collection(db,"pedidos_admin"), orderBy("timestampAdmin","desc")), (snap)=>{
   pedidosCache = snap.docs.map(d=>({id:d.id,...d.data()}));
   if(!primerCarga && pedidosCache.length>ultimoTotal) sonar();
   ultimoTotal=pedidosCache.length; primerCarga=false;
@@ -214,7 +216,15 @@ onSnapshot(query(collection(db,"pedidos"), orderBy("creadoEn","desc")), (snap)=>
 });
 
 window.enviarRepartidor = async (id)=>{
-  const { updateDoc: upd, doc: d } = await import("https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js");
+  try{
+    await updateDoc(doc(db,"pedidos_admin",id),{estado:'en_camino', enviadoARepartidorEn: new Date()});
+    alert('✅ Pedido enviado a repartidor');
+  }catch(e){ alert(e.message); }
+}
+window.cancelarPedido = async (id)=>{
+  if(confirm('¿Cancelar pedido?')){
+    await updateDoc(doc(db,"pedidos_admin",id),{estado:'cancelado'});
+  }
 }
 </script>
 </body>
