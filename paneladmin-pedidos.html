@@ -45,11 +45,26 @@ body{background:#FAFAFA;min-height:100vh}
 .total-final{font-size:13px;font-weight:700;color:#0f172a;margin-top:8px;border-top:1px solid #e5e7eb;padding-top:8px}
 .total-final b{font-size:18px;color:#B70A1A;font-weight:800}
 .acciones{display:flex;gap:10px;padding-top:8px;flex-wrap:wrap}
-.btn-rojo{background:#B70A1A;color:white;border:none;border-radius:10px;padding:11px 18px;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;flex:1;min-width:170px}
+.btn-rojo{background:#16a34a;color:white;border:none;border-radius:10px;padding:11px 18px;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;flex:1;min-width:170px}
 .btn-gris{background:#7A8A9A;color:white;border:none;border-radius:10px;padding:11px 18px;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;flex:1;min-width:170px}
 .btn-borde{margin-left:auto;background:white;border:1px solid #d1d5db;border-radius:999px;padding:8px 18px;font-size:12px;font-weight:600;color:#475569;display:flex;align-items:center;gap:6px;cursor:pointer}
 .vacio{text-align:center;padding:40px;color:#94a3b8}
 .icon-row{display:flex;align-items:center;gap:6px}
+.tiempo-real{border-radius:999px;padding:4px 12px;font-size:11px;font-weight:900;display:inline-flex;align-items:center;gap:4px}
+.tiempo-verde{background:#16a34a;color:white}
+.tiempo-amarillo{background:#EAB308;color:white}
+.tiempo-rojo{background:#EF4444;color:white;animation:pulseRojo 1s infinite}
+.tiempo-negro{background:#111;color:white;animation:pulseNegro .6s infinite}
+@keyframes pulseRojo{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+@keyframes pulseNegro{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+.tracking{display:flex;flex-direction:column;gap:0;margin-top:10px;border-left:2px dashed #e5e7eb;padding-left:10px;margin-left:4px}
+.track-item{display:flex;align-items:center;gap:8px;padding:6px 0;position:relative}
+.track-item::before{content:'';position:absolute;left:-16px;top:50%;transform:translateY(-50%);width:10px;height:10px;border-radius:50%;background:#e5e7eb;border:2px solid white}
+.track-item.active::before{background:#16a34a;box-shadow:0 0 0 3px rgba(22,163,74,.15)}
+.track-item.active{color:#0f172a;font-weight:700}
+.track-item{font-size:12px;color:#94a3b8}
+.track-icon{width:20px;height:20px;background:#f1f5f9;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.track-item.active .track-icon{background:#dcfce7}
 </style>
 </head>
 <body>
@@ -79,10 +94,9 @@ body{background:#FAFAFA;min-height:100vh}
 <div class="tabs" id="tabs">
   <div class="tab active" data-f="todos">Todos <span class="tab-count" id="c-todos">0</span></div>
   <div class="tab" data-f="nuevos">Nuevos <span class="tab-count" id="c-nuevos">0</span></div>
-  <div class="tab" data-f="aceptados">Aceptados <span class="tab-count" id="c-aceptados">0</span></div>
-  <div class="tab" data-f="en_preparacion">En preparación <span class="tab-count" id="c-prep">0</span></div>
-  <div class="tab" data-f="listo">Listos <span class="tab-count" id="c-listos">0</span></div>
-  <div class="tab" data-f="en_camino">Entregados <span class="tab-count" id="c-entregados">0</span></div>
+  <div class="tab" data-f="enviado">Enviados al repartidor <span class="tab-count" id="c-enviado">0</span></div>
+  <div class="tab" data-f="en_camino">En camino <span class="tab-count" id="c-camino">0</span></div>
+  <div class="tab" data-f="entregado">Entregado <span class="tab-count" id="c-entregado">0</span></div>
   <div class="tab" data-f="cancelado">Cancelados <span class="tab-count" id="c-cancel">0</span></div>
 </div>
 
@@ -130,29 +144,37 @@ function sonar(){
   try{ speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance("Nuevo pedido listo para repartidor"); u.lang='es-MX'; speechSynthesis.speak(u);}catch{}
 }
 
+function calcularTiempoReal(sec){
+  if(!sec) return {texto:'0s', clase:'tiempo-verde'};
+  const diffSeg = Math.floor(Date.now()/1000 - sec);
+  const min = Math.floor(diffSeg/60);
+  const seg = diffSeg % 60;
+  let texto=''; if(diffSeg<60) texto=diffSeg+'s'; else if(diffSeg<3600) texto=min+'m '+seg+'s'; else { const h=Math.floor(min/60); const m=min%60; texto=h+'h '+m+'m'; }
+  let clase='tiempo-verde'; if(diffSeg>=960 && diffSeg<2160) clase='tiempo-amarillo'; else if(diffSeg>=2160 && diffSeg<3000) clase='tiempo-rojo'; else if(diffSeg>=3000) clase='tiempo-negro';
+  return {texto, clase, sec:diffSeg};
+}
+
 function render(){
-  const counts = {todos:pedidosCache.length,nuevos:0,aceptados:0,en_preparacion:0,listo:0,en_camino:0,cancelado:0};
+  const counts = {todos:pedidosCache.length,nuevos:0,enviado:0,en_camino:0,entregado:0,cancelado:0};
   pedidosCache.forEach(p=>{
-    if(['listo','listo_para_admin'].includes(p.estado)) counts.listo++;
-    if(p.estado==='nuevo' || p.estado==='listo_para_admin') counts.nuevos++;
-    if(p.estado==='aceptado') counts.aceptados++;
-    if(p.estado==='en_preparacion') counts.en_preparacion++;
-    if(p.estado==='en_camino' || p.estado==='entregado') counts.en_camino++;
-    if(p.estado==='cancelado') counts.cancelado++;
+    if(['nuevo','listo_para_admin','listo'].includes(p.estado)) counts.nuevos++;
+    else if(p.estado==='enviado_a_repartidor') counts.enviado++;
+    else if(p.estado==='en_camino') counts.en_camino++;
+    else if(p.estado==='entregado') counts.entregado++;
+    else if(p.estado==='cancelado') counts.cancelado++;
   });
   document.getElementById('c-todos').textContent=counts.todos;
   document.getElementById('c-nuevos').textContent=counts.nuevos;
-  document.getElementById('c-aceptados').textContent=counts.aceptados;
-  document.getElementById('c-prep').textContent=counts.en_preparacion;
-  document.getElementById('c-listos').textContent=counts.listo;
-  document.getElementById('c-entregados').textContent=counts.en_camino;
+  document.getElementById('c-enviado').textContent=counts.enviado;
+  document.getElementById('c-camino').textContent=counts.en_camino;
+  document.getElementById('c-entregado').textContent=counts.entregado;
   document.getElementById('c-cancel').textContent=counts.cancelado;
   bellCount.textContent=counts.todos;
 
   let filtrados = pedidosCache;
   if(filtro!=='todos'){
-    if(filtro==='nuevos') filtrados = pedidosCache.filter(p=>['nuevo','listo_para_admin'].includes(p.estado));
-    else if(filtro==='listo') filtrados = pedidosCache.filter(p=>['listo','listo_para_admin'].includes(p.estado));
+    if(filtro==='nuevos') filtrados = pedidosCache.filter(p=>['nuevo','listo_para_admin','listo'].includes(p.estado));
+    else if(filtro==='enviado') filtrados = pedidosCache.filter(p=>p.estado==='enviado_a_repartidor');
     else filtrados = pedidosCache.filter(p=>p.estado===filtro);
   }
 
@@ -171,22 +193,38 @@ function render(){
     const envio = p.totales?.costoEnvio || 30;
     const total = p.totales?.total || p.total || 125;
     const notas = p.detalles?.nota || p.notas || 'Sin cebolla, por favor.';
-    let hora = 'Hoy, 12:34 p.m.';
-    if(p.timestampAdmin?.seconds) hora = new Date(p.timestampAdmin.seconds*1000).toLocaleString('es-MX',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
-    else if(p.listoEn?.seconds) hora = new Date(p.listoEn.seconds*1000).toLocaleString('es-MX',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    
+    let hora = 'Hoy, 12:34 p.m.'; let tsSec=0;
+    if(p.timestampAdmin?.seconds){ tsSec=p.timestampAdmin.seconds; hora = new Date(tsSec*1000).toLocaleString('es-MX',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}); }
+    else if(p.timestamp?.seconds){ tsSec=p.timestamp.seconds; hora = new Date(tsSec*1000).toLocaleString('es-MX',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}); }
+    else if(p.listoEn?.seconds){ tsSec=p.listoEn.seconds; hora = new Date(tsSec*1000).toLocaleString('es-MX',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}); }
+    const tiempo = calcularTiempoReal(tsSec);
     const estadoLabel = p.estado==='listo_para_admin' ? 'Nuevo' : p.estado;
+
+    // Tracking logic
+    let step=0; if(['enviado_a_repartidor','en_camino','entregado'].includes(p.estado)) step=1; if(['en_camino','entregado'].includes(p.estado)) step=2; if(p.estado==='entregado') step=3;
 
     return `
     <div class="card">
       <div class="card-top">
         <div class="card-id"><span class="id-badge">#${id}</span><span class="estado-mini">${estadoLabel}</span></div>
-        <div class="card-date"><span style="display:flex;align-items:center;gap:6px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#334155" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> ${hora}</span><span class="estado-mini" style="background:#B70A1A">Nuevo</span></div>
+        <div class="card-date">
+          <span style="display:flex;align-items:center;gap:6px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#334155" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> ${hora}</span>
+          <span class="tiempo-real ${tiempo.clase}" data-ts="${tsSec}">${tiempo.texto}</span>
+        </div>
       </div>
       <div class="card-grid">
         <div><div class="label">Cliente:</div><div class="value">${cliente}<small>${tel}</small></div></div>
         <div><div class="label">Restaurante / Aliado:</div><div class="value">${rest}</div></div>
         <div><div class="label">Recoger en:</div><div class="value"><small>${dirRec}</small></div></div>
-        <div><div class="label">Entregar en:</div><div class="value"><small>${dirEnt}</small></div></div>
+        <div>
+          <div class="label">Entregar en:</div><div class="value"><small>${dirEnt}</small></div>
+          <div class="tracking">
+            <div class="track-item ${step>=1?'active':''}"><div class="track-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="${step>=1?'#16a34a':'#94a3b8'}" stroke-width="2"><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/><rect x="2" y="7" width="20" height="14" rx="2"/></svg></div> Recogido</div>
+            <div class="track-item ${step>=2?'active':''}"><div class="track-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="${step>=2?'#16a34a':'#94a3b8'}" stroke-width="2"><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><path d="M5.5 17.5L7 10h10l1.5 7.5"/><path d="M7 10V7a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v3"/></svg></div> En camino a entregar</div>
+            <div class="track-item ${step>=3?'active':''}"><div class="track-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="${step>=3?'#16a34a':'#94a3b8'}" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></div> Finalizado</div>
+          </div>
+        </div>
       </div>
       <div class="card-bottom">
         <div><div class="label">Productos</div>${htmlProd}</div>
@@ -200,7 +238,7 @@ function render(){
       </div>
       <div class="acciones">
         <button class="btn-rojo" onclick="enviarRepartidor('${p.id}')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Enviar a repartidor</button>
-        <button class="btn-gris" onclick="cancelarPedido('${p.id}')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> Cancelar pedido</button>
+        <button class="btn-gris" onclick="enviarHistorial('${p.id}')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> Enviar a historial</button>
         <button class="btn-borde"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> Ver detalles</button>
       </div>
     </div>`;
@@ -212,23 +250,35 @@ document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
   t.classList.add('active'); filtro=t.dataset.f; render();
 }));
 
-// === VINCULADO A pedidos_admin SIN orderBy PARA QUE NO FALLE ===
+setInterval(()=>{
+  document.querySelectorAll('.tiempo-real').forEach(el=>{
+    const ts=parseInt(el.dataset.ts||0);
+    if(ts){
+      const t=calcularTiempoReal(ts);
+      el.textContent=t.texto;
+      el.className='tiempo-real '+t.clase;
+    }
+  });
+},1000);
+
 onSnapshot(collection(db,"pedidos_admin"), (snap)=>{
-  console.log("Pedidos admin:", snap.size);
   pedidosCache = snap.docs.map(d=>({id:d.id,...d.data()}));
   if(!primerCarga && pedidosCache.length>ultimoTotal) sonar();
   ultimoTotal=pedidosCache.length; 
   primerCarga=false;
   render();
 }, (err)=>{
-  console.error("Error pedidos_admin:", err);
   lista.innerHTML = "<div class='vacio'>Error: "+err.message+"</div>";
 });
 
 window.enviarRepartidor = async (id)=>{
   try{
-    await updateDoc(doc(db,"pedidos_admin",id),{estado:'en_camino', enviadoARepartidorEn: new Date()});
-    alert('Pedido enviado a repartidor');
+    await updateDoc(doc(db,"pedidos_admin",id),{estado:'enviado_a_repartidor', enviadoARepartidorEn: new Date()});
+  }catch(e){ alert(e.message); }
+}
+window.enviarHistorial = async (id)=>{
+  try{
+    await updateDoc(doc(db,"pedidos_admin",id),{estado:'entregado', entregadoEn: new Date()});
   }catch(e){ alert(e.message); }
 }
 window.cancelarPedido = async (id)=>{
