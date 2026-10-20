@@ -14,9 +14,9 @@ body{background:#f8f8f9;min-height:100vh}
 .btn-x{width:36px;height:36px;background:var(--rojo);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;border:none;cursor:pointer;text-decoration:none;font-size:20px;font-weight:700}
 .h-left h1{font-size:20px;font-weight:800}
 .h-right{display:flex;align-items:center;gap:14px}
-.bell{position:relative;width:32px;height:32px;display:flex;align-items:center;justify-content:center}
-.bell.vibrar{animation:bell3d .15s infinite}
-@keyframes bell3d{0%{transform:rotate(-12deg) scale(1.1)}25%{transform:rotate(12deg) scale(1.25)}50%{transform:rotate(-10deg) scale(1.15)}75%{transform:rotate(10deg) scale(1.25)}100%{transform:rotate(-12deg) scale(1.1)}}
+.bell{position:relative;width:32px;height:32px;display:flex;align-items:center;justify-content:center;perspective:100px}
+.bell.vibrar{animation:bell3d 0.15s infinite}
+@keyframes bell3d{0%{transform:rotate(-12deg) scale(1.1) translateY(-2px) rotateX(10deg)}25%{transform:rotate(12deg) scale(1.25) translateY(2px) rotateY(15deg)}50%{transform:rotate(-10deg) scale(1.15) rotateX(-10deg)}75%{transform:rotate(10deg) scale(1.25) rotateY(-15deg)}100%{transform:rotate(-12deg) scale(1.1)}}
 .chip-rest{background:white;border:1px solid #e5e7eb;border-radius:999px;padding:6px 14px;display:flex;align-items:center;gap:8px}
 .tabs{display:flex;gap:12px;padding:18px 20px;flex-wrap:wrap}
 .tab{border-radius:999px;padding:8px 18px;font-size:13px;font-weight:600;border:1px solid #e5e7eb;background:#f1f2f4;color:#6b7280;cursor:pointer;display:flex;align-items:center;gap:8px}
@@ -24,28 +24,30 @@ body{background:#f8f8f9;min-height:100vh}
 .tab span.count{background:white;color:#111;min-width:20px;height:20px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;padding:0 6px}
 .container{padding:0 20px 20px}
 .card{position:relative;background:white;border-radius:16px;border:1px solid #ececec;overflow:hidden;margin-bottom:14px;display:flex;flex-direction:row;transition:.3s}
-.card.aceptado{background:#E8F5E9;border-color:#16a34a;box-shadow:0 0 0 2px #16a34a inset}
-.card.preparando{background:#FFEB3B;border-color:#FACC15;box-shadow:0 0 22px rgba(250,204,21,0.8)}
-.card-left{flex:1.2;padding:18px;display:flex;flex-direction:column;gap:14px}
+.card.aceptado{background:#E8F5E9;border-color:#16a34a}
+.card.preparando{background:#FFF176;border-color:#FACC15;box-shadow:0 0 22px rgba(250,204,21,0.6)}
+.card-left{flex:1;padding:18px;display:flex;flex-direction:column;gap:18px;justify-content:space-between}
 .card-center{width:1px;background:#f0f0f0;margin:16px 0}
-.card-right{flex:1;padding:18px}
-.badge-nuevo{background:var(--rojo);color:white;border-radius:999px;padding:6px 14px;font-size:11px;font-weight:900;display:inline-flex;align-items:center;gap:6px;width:fit-content;text-transform:uppercase}
+.card-right{flex:1.2;padding:18px;display:flex;flex-direction:column;gap:12px}
+.badge-nuevo{background:var(--rojo);color:white;border-radius:999px;padding:6px 14px;font-size:11px;font-weight:900;display:inline-flex;align-items:center;gap:6px;width:fit-content;text-transform:uppercase;letter-spacing:0.5px}
 .badge-nuevo.verde{background:#16a34a}
 .badge-nuevo.amarillo{background:#111;color:#FFEB3B}
 .dot{width:8px;height:8px;background:white;border-radius:50%;display:inline-block}
-.cliente{display:flex;gap:12px}
-.avatar{width:42px;height:42px;background:#f1f2f4;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800}
-.referencia{display:flex;gap:10px;background:#fafafa;border-radius:10px;padding:10px;border:1px solid #f0f0f0}
-.card.aceptado .referencia{background:#ffffffc7}
-.card.preparando .referencia{background:#FFF9C4}
-.stats{display:flex;gap:12px}
-.prod-head{display:flex;justify-content:space-between;align-items:center}
-.prod-head #num{font-size:20px;font-weight:900;letter-spacing:1px}
-.prod-list{margin:12px 0;border-bottom:1px solid #f0f0f0;padding-bottom:10px}
-.prod-item{display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px}
-.precio-desc{color:#16a34a;font-weight:800}
-.actions{display:flex;gap:10px;flex-wrap:wrap}
-.btn{border:none;border-radius:999px;padding:11px 18px;font-size:12.5px;font-weight:800;cursor:pointer;color:white;display:flex;align-items:center;gap:6px}
+.cliente-name{font-size:15px;font-weight:800;color:#111;line-height:1.2}
+.costo-box{margin-top:6px}
+.costo-box small{font-size:11px;color:#6b7280;display:block;margin-bottom:4px;font-weight:600}
+.costo-original{text-decoration:line-through;color:#9ca3af;font-size:13px;margin-right:8px}
+.costo-final{color:#16a34a;font-weight:900;font-size:18px;text-shadow:0 0 8px rgba(22,163,74,0.4)}
+.prod-head{display:flex;justify-content:space-between;align-items:flex-start}
+.fecha-hora{display:flex;align-items:center;gap:8px;font-size:11px;color:#6b7280}
+.fecha-hora b{color:#111;font-size:11px}
+.tiempo-real{background:#16a34a;color:white;border-radius:999px;padding:3px 10px;font-size:11px;font-weight:900;box-shadow:0 0 10px rgba(22,163,74,0.5);margin-left:6px}
+.codigo-pedido{font-size:20px;font-weight:900;letter-spacing:1px;color:#111}
+.prod-list{margin:8px 0;border-bottom:1px solid #f0f0f0;padding-bottom:10px}
+.prod-item{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:6px;color:#111}
+.prod-item b{color:#6b7280;font-weight:600}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+.btn{border:none;border-radius:999px;padding:11px 18px;font-size:12.5px;font-weight:800;cursor:pointer;color:white;display:flex;align-items:center;gap:7px}
 .btn-verde{background:#16a34a}
 .btn-amarillo{background:#111;color:#FFEB3B}
 .btn:disabled{opacity:.4}
@@ -66,8 +68,8 @@ body{background:#f8f8f9;min-height:100vh}
     <h1>Pedidos</h1>
   </div>
   <div class="h-right">
-    <div class="bell" id="bellIcon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C50D1F" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 6 5 6 9H0s6-2 6-9"/></svg></div>
-    <div class="chip-rest"><div><b id="restName">La Catrina Burger</b><small style="color:#22c55e">● En línea</small></div></div>
+    <div class="bell" id="bellIcon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C50D1F" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 6 5 6 9H0s6-2 6-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></div>
+    <div class="chip-rest"><div><b id="restName">Mi restaurante</b><small style="color:#22c55e">● En línea</small></div></div>
   </div>
 </div>
 
@@ -107,11 +109,42 @@ const bell = document.getElementById('bellIcon');
 let primerCarga=true, ultimoTotal=0, pedidosCache=[], filtroActual='todos';
 
 function sonarDoloYa(){
-  bell.classList.add('vibrar'); setTimeout(()=>bell.classList.remove('vibrar'),3000);
-  try{ window.speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance("¡DoloYa! ¡DoloYa! ¡DoloYa! ¡Pedido! ¡Pedido! ¡Pedido!"); u.lang='es-MX'; u.rate=1.25; u.pitch=1.4; window.speechSynthesis.speak(u);}catch{}
+  bell.classList.add('vibrar');
+  setTimeout(()=>bell.classList.remove('vibrar'),3000);
+  try{
+    window.speechSynthesis.cancel();
+    const texto = "¡DoloYa! ¡DoloYa! ¡DoloYa! ¡Pedido! ¡Pedido! ¡Pedido!";
+    const utter = new SpeechSynthesisUtterance(texto);
+    utter.lang='es-MX';
+    utter.rate=1.25;
+    utter.pitch=1.4;
+    utter.volume=1;
+    window.speechSynthesis.speak(utter);
+    const ctx = new (window.AudioContext||window.webkitAudioContext)();
+    const now = ctx.currentTime;
+    [523,659,784,1046].forEach((f,i)=>{
+      const o=ctx.createOscillator();
+      const g=ctx.createGain();
+      o.type='triangle';
+      o.frequency.setValueAtTime(f,now+i*0.4);
+      g.gain.setValueAtTime(0.25,now+i*0.4);
+      g.gain.exponentialRampToValueAtTime(0.01,now+i*0.4+0.35);
+      o.connect(g); g.connect(ctx.destination);
+      o.start(now+i*0.4); o.stop(now+i*0.4+0.35);
+    });
+  }catch{}
 }
 document.body.addEventListener('click', ()=>{ try{ new (window.AudioContext||window.webkitAudioContext)().resume(); }catch{} }, {once:true});
 document.querySelectorAll('.tab').forEach(t=>{ t.addEventListener('click', ()=>{ document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active')); t.classList.add('active'); filtroActual=t.dataset.f; render(pedidosCache); }); });
+
+function calcularTiempoReal(timestampSec){
+  if(!timestampSec) return '0m';
+  const diff = Math.floor((Date.now()/1000 - timestampSec)/60);
+  if(diff<1) return 'Ahora';
+  if(diff<60) return diff+'m';
+  const h=Math.floor(diff/60); const m=diff%60;
+  return h+'h '+m+'m';
+}
 
 function render(lista){
   const cont=document.getElementById('listaPedidos');
@@ -122,36 +155,27 @@ function render(lista){
     const productos=p.productos||[];
     const totales=p.totales||{};
     
-    // COSTO PRODUCTO REAL DE FIRESTORE
     let costoProductos = totales.costoProductos || 0;
-    if(!costoProductos){
-      productos.forEach(pr=>{ costoProductos+= (pr.cantidad||1)*parseFloat(pr.precio||0); });
-    }
-    const costoConDescuento = (parseFloat(costoProductos)*0.9).toFixed(2);
+    if(!costoProductos){ productos.forEach(pr=>{ costoProductos+= (pr.cantidad||1)*parseFloat(pr.precio||0); }); }
+    const costoOriginal = parseFloat(costoProductos);
+    const costoFinal = (costoOriginal*0.9).toFixed(0);
 
-    // CLIENTE REAL DE FIRESTORE
-    const nombreCliente = p.nombre || p.cliente?.celular || p.detalles?.direccion || p.telefono || 'Cliente';
-    const clienteReal = p.nombre || p.detalles?.nombre || p.detalles?.direccion || p.cliente?.celular || 'iian';
-    const nombreFinal = p.nombre || p.detalles?.nombre || p.detalles?.nombreEdificio || 'Cliente';
-    
-    // REFERENCIA REAL
-    const referenciaReal = p.referencia || p.detalles?.referencia || p.direccion || 'Casa...';
-
-    // CODIGO REAL = NUMERO DE PEDIDO EXACTO DE FIRESTORE
-    const codigoReal = p.codigo || p.id.substring(0,6).toUpperCase() || 'ST-00';
-
-    // HORA REAL
-    let horaReal = 'Hoy';
-    if(p.timestamp?.seconds) horaReal = new Date(p.timestamp.seconds*1000).toLocaleString('es-MX',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit',hour12:true});
-    else if(p.fecha) horaReal = new Date(p.fecha).toLocaleString('es-MX',{hour:'2-digit',minute:'2-digit',hour12:true});
-
+    const nombreCliente = p.nombre || p.detalles?.nombre || 'Cliente';
+    const codigoReal = p.codigo || 'ST-0';
     const estado = p.estado || 'nuevo';
     const claseEstado = estado==='aceptado'?'aceptado':estado==='en_preparacion'?'preparando':'';
-    const badgeClass = estado==='nuevo'?'badge-nuevo':estado==='aceptado'?'badge-nuevo verde':'badge-nuevo amarillo';
+    
+    let fechaStr='', horaStr='', tsSec=0;
+    if(p.timestamp?.seconds){ tsSec=p.timestamp.seconds; const d=new Date(tsSec*1000); fechaStr=d.toLocaleDateString('es-MX',{day:'2-digit',month:'2-digit'}); horaStr=d.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit',hour12:true}); }
+    else if(p.fecha){ const d=new Date(p.fecha); tsSec=Math.floor(d.getTime()/1000); fechaStr=d.toLocaleDateString('es-MX',{day:'2-digit',month:'2-digit'}); horaStr=d.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit',hour12:true}); }
+
+    const tiempoReal = calcularTiempoReal(tsSec);
     const badgeText = estado==='nuevo'?'Nuevo':estado==='aceptado'?'Aceptado':estado==='en_preparacion'?'En preparación':estado;
+    const badgeClass = estado==='nuevo'?'badge-nuevo':estado==='aceptado'?'badge-nuevo verde':'badge-nuevo amarillo';
 
     const div=document.createElement('div');
     div.className=`card ${claseEstado}`;
+    div.dataset.ts=tsSec;
     div.innerHTML=`
       <div class="overlay-preg">
         <h3>¿Está listo tu producto?<br>Ya puede venir el repartidor por él</h3>
@@ -162,24 +186,36 @@ function render(lista){
       </div>
       <div class="card-left">
         <span class="${badgeClass}"><span class="dot"></span> ${badgeText}</span>
-        <div class="cliente"><div class="avatar">${nombreFinal.charAt(0).toUpperCase()}</div><div><b style="font-size:13px">Cliente: ${nombreFinal}</b><br><small style="color:#6b7280">📞 ${p.telefono||p.cliente?.celular||p.detalles?.celular||''}</small></div></div>
-        <div class="referencia"><div><b style="font-size:12px">Referencia</b><p style="font-size:12px;color:#6b7280">${referenciaReal}</p><p style="font-size:11px;color:#9ca3af;margin-top:4px">📍 ${p.direccion||p.detalles?.direccion||''}</p></div></div>
-        <div class="stats"><div><small>Costo producto -10%</small><b style="color:#16a34a">$${costoConDescuento} MXN</b> <small style="text-decoration:line-through;color:#9ca3af">$${parseFloat(costoProductos).toFixed(2)}</small></div></div>
+        <div>
+          <div class="cliente-name">${nombreCliente}</div>
+          <div class="costo-box">
+            <small>Costo del producto</small>
+            <span class="costo-original">$${costoOriginal.toFixed(0)}</span>
+            <span class="costo-final">$${costoFinal}</span>
+          </div>
+        </div>
       </div>
       <div class="card-center"></div>
       <div class="card-right">
-        <div class="prod-head"><b>📦 Productos</b><div style="text-align:right"><div id="num">#${codigoReal}</div><small>${horaReal}</small></div></div>
-        <div class="prod-list">
-          ${productos.map(pr=>{
-            const precDesc=(parseFloat(pr.precio||0)*0.9).toFixed(2);
-            return `<div class="prod-item"><span><b>${pr.cantidad||1}x</b> ${pr.nombre||'Producto'}</span><span><b class="precio-desc">$${precDesc}</b> <span style="text-decoration:line-through;font-size:10px">$${pr.precio||0}</span></span></div>`
-          }).join('')}
+        <div class="prod-head">
+          <div class="fecha-hora">
+            <b>${fechaStr}</b> ${horaStr} <span class="tiempo-real" data-ts="${tsSec}">${tiempoReal}</span>
+          </div>
+          <div class="codigo-pedido">${codigoReal}</div>
         </div>
-        <div class="obs"><b>Observaciones:</b><p style="font-size:12px;color:#6b7280">${p.detalles?.instrucciones||'Sin observaciones.'}</p><p style="font-size:11px;margin-top:4px">Método pago: <b>${p.metodoPago||'Efectivo'}</b> | Total: $${p.totales?.total||''}</p></div>
+        <div class="prod-list">
+          ${productos.map(pr=>`<div class="prod-item"><span><b>${pr.cantidad||1}x</b> ${pr.nombre||'Producto'}</span></div>`).join('')}
+        </div>
         <div class="actions">
-          <button class="btn btn-verde" onclick="cambiarEstado('${p.id}','aceptado')">✅ Aceptado</button>
-          <button class="btn btn-amarillo" onclick="cambiarEstado('${p.id}','en_preparacion')">👨‍🍳 Preparando</button>
-          <button class="btn btn-verde" onclick="cambiarEstado('${p.id}','listo')">✔️ Listo</button>
+          <button class="btn btn-verde" onclick="cambiarEstado('${p.id}','aceptado')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M5 12l5 5L20 7"/></svg> Aceptado
+          </button>
+          <button class="btn btn-amarillo" onclick="cambiarEstado('${p.id}','en_preparacion')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFEB3B" stroke-width="2"><path d="M6 13c0-3 2-5 6-5s6 2 6 5v6H6v-6z"/><path d="M8 8c0-2 1.5-4 4-4s4 2 4 4" stroke-width="1.5"/></svg> Preparando
+          </button>
+          <button class="btn btn-verde" onclick="cambiarEstado('${p.id}','listo')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><path d="M8 12l2.5 2.5L16 9"/></svg> Listo
+          </button>
         </div>
       </div>
     `;
@@ -195,6 +231,13 @@ function actualizarContadores(lista){
   document.getElementById('c-listo').textContent=lista.filter(p=>p.estado==='listo').length;
 }
 
+setInterval(()=>{
+  document.querySelectorAll('.tiempo-real').forEach(el=>{
+    const ts=parseInt(el.dataset.ts||0);
+    if(ts) el.textContent=calcularTiempoReal(ts);
+  });
+}, 30000);
+
 onSnapshot(collection(db, "pedidos"), (snap)=>{
   let lista=[];
   snap.forEach(d=>{
@@ -205,7 +248,6 @@ onSnapshot(collection(db, "pedidos"), (snap)=>{
       if(data.restaurante?.nombre) restName.textContent=data.restaurante.nombre;
     }
   });
-  // NUEVOS AL FINAL - ORDEN FIRESTORE EXACTO
   lista.sort((a,b)=>{
     const ta=a.timestamp?.seconds|| (a.fecha?new Date(a.fecha).getTime()/1000:0) ||0;
     const tb=b.timestamp?.seconds|| (b.fecha?new Date(b.fecha).getTime()/1000:0) ||0;
@@ -224,7 +266,7 @@ window.cambiarEstado=async(id,estado)=>{
 window.cerrarPregunta=(btn)=>{
   const card=btn.closest('.card');
   card.style.display='none';
-  setTimeout(()=>{ card.classList.remove('preparando'); card.style.display='flex'; }, 1500);
+  setTimeout(()=>{ card.classList.remove('preparando'); card.style.display='flex'; }, 1200);
 }
 </script>
 </body>
