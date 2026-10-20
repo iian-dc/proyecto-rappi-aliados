@@ -49,6 +49,7 @@ body{background:#FAFAFA;min-height:100vh}
 .btn-gris{background:#7A8A9A;color:white;border:none;border-radius:10px;padding:11px 18px;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;flex:1;min-width:170px}
 .btn-borde{margin-left:auto;background:white;border:1px solid #d1d5db;border-radius:999px;padding:8px 18px;font-size:12px;font-weight:600;color:#475569;display:flex;align-items:center;gap:6px;cursor:pointer}
 .vacio{text-align:center;padding:40px;color:#94a3b8}
+.icon-row{display:flex;align-items:center;gap:6px}
 </style>
 </head>
 <body>
@@ -91,7 +92,7 @@ body{background:#FAFAFA;min-height:100vh}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-import { getFirestore, collection, onSnapshot, query, orderBy, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+import { getFirestore, collection, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
 const config = {
   apiKey: "AIzaSyDLKngPyi_SWAXEQwdrHO5h8L8OufulAR4",
@@ -191,12 +192,16 @@ function render(){
         <div><div class="label">Productos</div>${htmlProd}</div>
         <div class="total-box"><div class="line"><span>Total productos</span><span>$${totalProd}</span></div><div class="line"><span>Envío</span><span>$${envio}</span></div><div class="total-final">Total del pedido<br><b>$${total} MXN</b></div></div>
         <div><div class="label">Notas del cliente</div><div class="value" style="font-weight:400;font-size:12px;color:#64748b">${notas}</div></div>
-        <div><div class="label">Datos del restaurante</div><div class="value" style="font-size:12px"><div>👤 ${rest}</div><div>📞 +52 477 123 4567</div><div style="color:#10b981">● Listo para repartidor</div></div></div>
+        <div><div class="label">Datos del restaurante</div><div class="value" style="font-size:12px">
+          <div class="icon-row"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#334155" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> ${rest}</div>
+          <div class="icon-row"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#334155" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg> +52 477 123 4567</div>
+          <div class="icon-row" style="color:#10b981"><span style="width:8px;height:8px;background:#10b981;border-radius:50%;display:inline-block"></span> Listo para repartidor</div>
+        </div></div>
       </div>
       <div class="acciones">
-        <button class="btn-rojo" onclick="enviarRepartidor('${p.id}')">Enviar a repartidor</button>
-        <button class="btn-gris" onclick="cancelarPedido('${p.id}')">Cancelar pedido</button>
-        <button class="btn-borde">Ver detalles</button>
+        <button class="btn-rojo" onclick="enviarRepartidor('${p.id}')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Enviar a repartidor</button>
+        <button class="btn-gris" onclick="cancelarPedido('${p.id}')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> Cancelar pedido</button>
+        <button class="btn-borde"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> Ver detalles</button>
       </div>
     </div>`;
   }).join('');
@@ -207,18 +212,23 @@ document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
   t.classList.add('active'); filtro=t.dataset.f; render();
 }));
 
-// === AHORA ESCUCHA pedidos_admin ===
-onSnapshot(query(collection(db,"pedidos_admin"), orderBy("timestampAdmin","desc")), (snap)=>{
+// === VINCULADO A pedidos_admin SIN orderBy PARA QUE NO FALLE ===
+onSnapshot(collection(db,"pedidos_admin"), (snap)=>{
+  console.log("Pedidos admin:", snap.size);
   pedidosCache = snap.docs.map(d=>({id:d.id,...d.data()}));
   if(!primerCarga && pedidosCache.length>ultimoTotal) sonar();
-  ultimoTotal=pedidosCache.length; primerCarga=false;
+  ultimoTotal=pedidosCache.length; 
+  primerCarga=false;
   render();
+}, (err)=>{
+  console.error("Error pedidos_admin:", err);
+  lista.innerHTML = "<div class='vacio'>Error: "+err.message+"</div>";
 });
 
 window.enviarRepartidor = async (id)=>{
   try{
     await updateDoc(doc(db,"pedidos_admin",id),{estado:'en_camino', enviadoARepartidorEn: new Date()});
-    alert('✅ Pedido enviado a repartidor');
+    alert('Pedido enviado a repartidor');
   }catch(e){ alert(e.message); }
 }
 window.cancelarPedido = async (id)=>{
