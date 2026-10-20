@@ -29,53 +29,21 @@ body{background:#CF0A2C;min-height:100vh;display:flex;justify-content:center}
 </head>
 <body>
 <div class="container">
-  <div class="logo-wrap">
-    <div class="logo-D">D</div>
-    <div class="logo-text">DoloYa</div>
-  </div>
+  <div class="logo-wrap"><div class="logo-D">D</div><div class="logo-text">DoloYa</div></div>
   <h1 class="title">¡Bienvenido, aliado!</h1>
   <p class="subtitle">Administra tu negocio y recibe pedidos<br>desde DoloYa</p>
-
   <div class="ilustracion">
-    <svg viewBox="0 0 300 130" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M60 118 L240 118" stroke="white" stroke-width="3" stroke-linecap="round"/>
-      <path d="M48 70 Q48 55 60 55 Q72 55 72 70 L72 115 L36 115 L36 70 Z" stroke="white" stroke-width="3" fill="none"/>
-      <path d="M50 70 Q50 50 60 48 Q70 50 68 70" stroke="white" stroke-width="3" fill="none"/>
-      <rect x="96" y="35" width="108" height="83" rx="2" stroke="white" stroke-width="3" fill="none"/>
-      <rect x="90" y="20" width="120" height="18" rx="8" stroke="white" stroke-width="3" fill="none"/>
-      <path d="M95 38 Q102 58 112 38 Q122 58 132 38 Q142 58 152 38 Q162 58 172 38 Q182 58 192 38 Q202 58 205 38" stroke="white" stroke-width="3" fill="white"/>
-      <rect x="106" y="70" width="44" height="32" stroke="white" stroke-width="2.5" fill="none"/>
-      <rect x="160" y="70" width="28" height="45" stroke="white" stroke-width="2.5" fill="none"/>
-      <path d="M70 45 L58 62 M78 55 L62 60" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
-      <path d="M230 45 L242 62 M222 55 L238 60" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
-      <path d="M235 50 Q250 50 250 68 Q250 90 235 104 Q220 90 220 68 Q220 50 235 50 Z" fill="white"/>
-      <circle cx="235" cy="69" r="10" fill="#CF0A2C"/>
-    </svg>
+    <svg viewBox="0 0 300 130" fill="none"><path d="M60 118 L240 118" stroke="white" stroke-width="3" stroke-linecap="round"/><path d="M48 70 Q48 55 60 55 Q72 55 72 70 L72 115 L36 115 L36 70 Z" stroke="white" stroke-width="3" fill="none"/><path d="M50 70 Q50 50 60 48 Q70 50 68 70" stroke="white" stroke-width="3" fill="none"/><rect x="96" y="35" width="108" height="83" rx="2" stroke="white" stroke-width="3" fill="none"/><rect x="90" y="20" width="120" height="18" rx="8" stroke="white" stroke-width="3" fill="none"/><path d="M95 38 Q102 58 112 38 Q122 58 132 38 Q142 58 152 38 Q162 58 172 38 Q182 58 192 38 Q202 58 205 38" stroke="white" stroke-width="3" fill="white"/><rect x="106" y="70" width="44" height="32" stroke="white" stroke-width="2.5" fill="none"/><rect x="160" y="70" width="28" height="45" stroke="white" stroke-width="2.5" fill="none"/><path d="M70 45 L58 62 M78 55 L62 60" stroke="white" stroke-width="2.5" stroke-linecap="round"/><path d="M230 45 L242 62 M222 55 L238 60" stroke="white" stroke-width="2.5" stroke-linecap="round"/><path d="M235 50 Q250 50 250 68 Q250 90 235 104 Q220 90 220 68 Q220 50 235 50 Z" fill="white"/><circle cx="235" cy="69" r="10" fill="#CF0A2C"/></svg>
   </div>
-
   <div class="error-msg" id="errorMsg"></div>
-
   <div class="input-box">
-    <!-- ICONO CORREO IGUAL A LA IMAGEN -->
-    <svg width="28" height="20" viewBox="0 0 28 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect x="1" y="1" width="26" height="18" rx="4" fill="#CF0A2C"/>
-      <path d="M2 3 L14 11 L26 3" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-      <rect x="1" y="1" width="26" height="18" rx="4" stroke="#CF0A2C" stroke-width="0.5"/>
-    </svg>
+    <svg width="28" height="20" viewBox="0 0 28 20" fill="none"><rect x="1" y="1" width="26" height="18" rx="4" fill="#CF0A2C"/><path d="M2 3 L14 11 L26 3" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
     <input id="txtUsuario" type="text" placeholder="Correo electrónico" autocomplete="off">
   </div>
-
   <div class="input-box">
-    <!-- ICONO CANDADO IGUAL A LA IMAGEN -->
-    <svg width="24" height="26" viewBox="0 0 24 26" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect x="2" y="11" width="20" height="13" rx="3" fill="#CF0A2C"/>
-      <path d="M7 11 V7 A5 5 0 0 1 17 7 V11" stroke="#CF0A2C" stroke-width="2.5" fill="none"/>
-      <circle cx="12" cy="17.5" r="1.8" fill="white"/>
-      <path d="M12 19.3 L12 21" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
-    </svg>
+    <svg width="24" height="26" viewBox="0 0 24 26" fill="none"><rect x="2" y="11" width="20" height="13" rx="3" fill="#CF0A2C"/><path d="M7 11 V7 A5 5 0 0 1 17 7 V11" stroke="#CF0A2C" stroke-width="2.5" fill="none"/><circle cx="12" cy="17.5" r="1.8" fill="white"/><path d="M12 19.3 L12 21" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
     <input id="txtPass" type="password" placeholder="Contraseña">
   </div>
-
   <div class="forgot" onclick="olvido()">¿Olvidaste tu contraseña?</div>
   <button class="btn-login" id="btnLogin" onclick="iniciarSesion()">Iniciar sesión</button>
   <p class="terms">Al continuar, aceptas nuestros términos y políticas de privacidad</p>
@@ -83,7 +51,7 @@ body{background:#CF0A2C;min-height:100vh;display:flex;justify-content:center}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-import { getFirestore, collection, query, where, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyD286qlJQT8D3rqbYTSfCyuTAEg9jjRchQ",
@@ -95,127 +63,106 @@ const firebaseConfig = {
   appId: "1:122314467740:web:9947a0a9560557e3a00059",
   measurementId: "G-5HETSEL4PT"
 };
-
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+function getPasswordPorNegocio(nombre){
+  const n = (nombre||'').toLowerCase();
+  if(n.includes('alita')) return '1111';
+  if(n.includes('hamburguesa') || n.includes('burger')) return '2222';
+  if(n.includes('pizza')) return '3333';
+  return null;
+}
+
+async function vincularRestaurantesExistentes(){
+  try{
+    const colRef = collection(db, "doloya_aliados");
+    const snap = await getDocs(colRef);
+    if(snap.empty){
+      await setDoc(doc(db, "doloya_aliados", "alitas"), { nombre: "Alitas", tipo: "alitas", usuario: "aliado", contraseña: "1111", rol: "aliado", codigo: "index" });
+      await setDoc(doc(db, "doloya_aliados", "hamburguesas"), { nombre: "Hamburguesas", tipo: "hamburguesas", usuario: "aliado", contraseña: "2222", rol: "aliado", codigo: "index" });
+      await setDoc(doc(db, "doloya_aliados", "pizzas"), { nombre: "Pizzas", tipo: "pizzas", usuario: "aliado", contraseña: "3333", rol: "aliado", codigo: "index" });
+      await setDoc(doc(db, "doloya_aliados", "negocio_4"), { nombre: "Negocio 4", tipo: "general", usuario: "aliado", contraseña: "4444", rol: "aliado", codigo: "index" });
+      return;
+    }
+    for(const d of snap.docs){
+      const data = d.data();
+      const nombre = data.nombre || data.nombreRestaurante || d.id;
+      let pass = getPasswordPorNegocio(nombre) || getPasswordPorNegocio(data.tipo) || getPasswordPorNegocio(d.id);
+      // Asignacion por orden si no detecta nombre
+      if(!pass){
+        if(snap.docs.indexOf(d)===0) pass='1111';
+        else if(snap.docs.indexOf(d)===1) pass='2222';
+        else if(snap.docs.indexOf(d)===2) pass='3333';
+        else pass='4444';
+      }
+      await setDoc(doc(db, "doloya_aliados", d.id), {
+        ...data,
+        nombre: nombre,
+        usuario: 'aliado',
+        contraseña: pass,
+        rol: 'aliado',
+        codigo: data.codigo || 'index'
+      }, { merge: true });
+    }
+  }catch(e){ console.log(e); }
+}
+vincularRestaurantesExistentes();
+
 window.iniciarSesion = async function(){
-  const userInput = document.getElementById('txtUsuario').value.trim();
+  const userInput = document.getElementById('txtUsuario').value.trim().toLowerCase();
   const passInput = document.getElementById('txtPass').value.trim();
   const errorBox = document.getElementById('errorMsg');
   const btn = document.getElementById('btnLogin');
-
   if(!userInput || !passInput){
-    errorBox.style.display='block';
-    errorBox.textContent='Ingresa correo y contraseña';
-    return;
+    errorBox.style.display='block'; errorBox.textContent='Ingresa correo y contraseña'; return;
+  }
+  btn.textContent='Ingresando...'; btn.disabled=true; errorBox.style.display='none';
+
+  if(userInput === 'admin' && passInput === '0831'){
+    localStorage.setItem('doloya_aliado_sesion', JSON.stringify({ rol:'administrador', usuario:'admin', codigo:'index', nombre:'Administrador DoloYa', id:'admin', loginAt:Date.now() }));
+    window.location.href='panelaliado.html'; return;
   }
 
-  btn.textContent='Ingresando...';
-  btn.disabled=true;
-  errorBox.style.display='none';
+  // LOGIN POR NEGOCIO DIFERENCIADO
+  if(userInput === 'aliado' && ['1111','2222','3333','4444','1234'].includes(passInput)){
+    try{ await vincularRestaurantesExistentes(); }catch(e){}
+    
+    // Detectar que negocio es segun contraseña
+    let negocioTipo = 'general';
+    if(passInput==='1111') negocioTipo='alitas';
+    if(passInput==='2222') negocioTipo='hamburguesas';
+    if(passInput==='3333') negocioTipo='pizzas';
+    
+    // Buscar el documento real en Firebase para vincularlo
+    let negocioId = negocioTipo;
+    try{
+      const snap = await getDocs(collection(db, "doloya_aliados"));
+      snap.forEach(d=>{
+        const data=d.data();
+        if((data.contraseña||'')===passInput) negocioId=d.id;
+      });
+    }catch(e){}
 
-  // CODIGO = index - ADMIN
-  if(userInput.toLowerCase() === 'admin' && passInput === '0831'){
     localStorage.setItem('doloya_aliado_sesion', JSON.stringify({
-      rol:'administrador',
-      usuario:'admin',
+      rol:'aliado',
+      usuario:'aliado',
+      contraseña:passInput,
       codigo:'index',
-      nombre:'Administrador DoloYa',
-      id:'admin',
-      loginAt: Date.now()
+      negocio:negocioTipo,
+      nombre: negocioTipo.charAt(0).toUpperCase()+negocioTipo.slice(1),
+      id:negocioId,
+      loginAt:Date.now()
     }));
     window.location.href='panelaliado.html';
     return;
   }
 
-  try{
-    const colRef = collection(db, "doloya_aliados");
-    let snap = null;
-    let encontrado = null;
-
-    // 1. Buscar por usuario = aliado (para todos los restaurantes vinculados)
-    if(userInput.toLowerCase() === 'aliado'){
-      // vinculacion automatica: todos los que ya existen les asignamos credenciales aliado/1234 rol aliado
-      let q = query(colRef);
-      snap = await getDocs(q);
-      
-      // Si hay restaurantes, les actualizamos usuario/contraseña/rol si no lo tienen
-      for(const d of snap.docs){
-        const data = d.data();
-        if(!data.usuario || !data.contraseña || !data.rol){
-          try{
-            await updateDoc(doc(db, "doloya_aliados", d.id), {
-              usuario: 'aliado',
-              contraseña: '1234',
-              rol: 'aliado'
-            });
-          }catch(e){}
-        }
-      }
-
-      // Validar contraseña 1234 para aliado
-      if(passInput === '1234' && !snap.empty){
-        const first = snap.docs[0].data();
-        encontrado = { id: snap.docs[0].id, ...first, usuario:'aliado', contraseña:'1234', rol:'aliado' };
-      }
-    }
-
-    // 2. Si no es aliado generico, buscar por usuario/email especifico en doloya_aliados
-    if(!encontrado){
-      let q1 = query(colRef, where("usuario", "==", userInput));
-      let s1 = await getDocs(q1);
-      if(!s1.empty){
-        s1.forEach(ds=>{
-          const data=ds.data();
-          const passDb = data.contraseña || data.contrasena || data.password;
-          if(passDb === passInput || (userInput==='aliado' && passInput==='1234')){
-            encontrado={id:ds.id,...data};
-          }
-        });
-      }
-      if(!encontrado){
-        let q2 = query(colRef, where("email", "==", userInput));
-        let s2 = await getDocs(q2);
-        s2.forEach(ds=>{
-          const data=ds.data();
-          const passDb = data.contraseña || data.contrasena || data.password;
-          if(passDb === passInput){
-            encontrado={id:ds.id,...data};
-          }
-        });
-      }
-    }
-
-    if(encontrado){
-      localStorage.setItem('doloya_aliado_sesion', JSON.stringify({
-        rol: encontrado.rol || 'aliado',
-        usuario: encontrado.usuario || 'aliado',
-        codigo: encontrado.codigo || 'index',
-        id: encontrado.id,
-        nombre: encontrado.nombre || encontrado.nombreRestaurante || 'Aliado',
-        data: encontrado,
-        loginAt: Date.now()
-      }));
-      window.location.href='panelaliado.html';
-    }else{
-      errorBox.style.display='block';
-      errorBox.textContent='Usuario o contraseña incorrectos';
-      btn.textContent='Iniciar sesión';
-      btn.disabled=false;
-    }
-  }catch(e){
-    console.error(e);
-    errorBox.style.display='block';
-    errorBox.textContent='Error: '+e.message;
-    btn.textContent='Iniciar sesión';
-    btn.disabled=false;
-  }
+  errorBox.style.display='block';
+  errorBox.textContent='Usuario o contraseña incorrectos';
+  btn.textContent='Iniciar sesión'; btn.disabled=false;
 }
-
-window.olvido = function(){
-  alert('Contacta al administrador DoloYa');
-}
+window.olvido = function(){ alert('Contacta al administrador DoloYa'); }
 </script>
 </body>
 </html>
