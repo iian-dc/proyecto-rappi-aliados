@@ -60,24 +60,20 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// CREAR USUARIO Y CONTRASEÑA EN CADA RESTAURANTE EXISTENTE EN REALTIME DATABASE
 async function vincularRestaurantes(){
   try{
-    // ALITAS -> aliado / 1111 / aliado
     await update(ref(db, 'doloya_aliados/alitas'), {
       usuario: 'aliado',
       contraseña: '1111',
       rol: 'aliado',
       codigo: 'index'
     });
-    // BURGERS (Hamburguesas) -> aliado / 2222 / aliado
     await update(ref(db, 'doloya_aliados/burgers'), {
       usuario: 'aliado',
       contraseña: '2222',
       rol: 'aliado',
       codigo: 'index'
     });
-    // PIZZAS -> aliado / 3333 / aliado
     await update(ref(db, 'doloya_aliados/pizzas'), {
       usuario: 'aliado',
       contraseña: '3333',
@@ -102,14 +98,13 @@ window.iniciarSesion = async function(){
     return;
   }
 
-  // ADMIN - codigo index
+  // ADMIN - RUTA INDEPENDIENTE A PANELADMIN
   if(user === 'admin' && pass === '0831'){
     localStorage.setItem('doloya_aliado_sesion', JSON.stringify({ rol:'administrador', usuario:'admin', codigo:'index', id:'admin', nombre:'Admin' }));
-    window.location.href='panelaliado.html';
+    window.location.href='paneladmin.html';
     return;
   }
 
-  // LOGIN ALIADO - ENTRADA DIRECTA, NO SE QUEDA CARGANDO
   if(user === 'aliado'){
     let idNegocio = null;
     let nombreNegocio = '';
@@ -118,9 +113,7 @@ window.iniciarSesion = async function(){
     if(pass === '3333'){ idNegocio='pizzas'; nombreNegocio='Pizzas'; }
 
     if(idNegocio){
-      // Verificar que existe en Realtime y si no, crearlo, pero sin bloquear login
       vincularRestaurantes();
-      
       localStorage.setItem('doloya_aliado_sesion', JSON.stringify({
         rol:'aliado',
         usuario:'aliado',
@@ -135,7 +128,6 @@ window.iniciarSesion = async function(){
     }
   }
 
-  // Si intenta con correo, buscar en Realtime Database
   try{
     const snapshot = await get(ref(db, 'doloya_aliados'));
     if(snapshot.exists()){
