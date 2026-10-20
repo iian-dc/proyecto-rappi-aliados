@@ -30,10 +30,18 @@ body{background:#f9f9fb;min-height:100vh;display:flex}
 .topbar-left{display:flex;align-items:center;gap:12px}
 .topbar-left strong{font-size:16px;font-weight:700}
 .topbar-left span.line{width:3px;height:18px;background:var(--rojo);border-radius:2px;display:inline-block}
-.topbar-left span.sub{font-size:13px;color:#6b7280;font-weight:400}
+.topbar-left span.sub{font-size:13px;color:#6b7280;font-weight:400;max-width:240px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .topbar-right{display:flex;align-items:center;gap:16px}
-.bell{position:relative;cursor:pointer}
-.bell::after{content:'';position:absolute;top:-2px;right:-2px;width:8px;height:8px;background:var(--rojo);border-radius:50%}
+.bell{position:relative;cursor:pointer;width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:50%}
+.bell::after{content:'';position:absolute;top:2px;right:2px;width:8px;height:8px;background:var(--rojo);border-radius:50%}
+.bell.vibrar{animation:bell3d 0.15s infinite}
+@keyframes bell3d{
+  0%{transform:rotate(-12deg) scale(1.1) translateY(-2px)}
+  25%{transform:rotate(12deg) scale(1.2) translateY(2px)}
+  50%{transform:rotate(-10deg) scale(1.15) rotateX(15deg)}
+  75%{transform:rotate(10deg) scale(1.2) rotateY(15deg)}
+  100%{transform:rotate(-12deg) scale(1.1)}
+}
 .btn-cerrar{display:flex;align-items:center;gap:8px;border:1.5px solid var(--rojo);color:var(--rojo);background:white;border-radius:999px;padding:7px 14px;font-size:13px;font-weight:600;cursor:pointer;text-decoration:none}
 .content{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px 20px;text-align:center}
 .illustration{width:420px;max-width:90%;margin-bottom:22px}
@@ -50,7 +58,7 @@ body{background:#f9f9fb;min-height:100vh;display:flex}
   .mobile-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:90;display:none}
   .mobile-overlay.show{display:block}
   .topbar{padding:12px 14px}
-  .topbar-left span.sub{font-size:12px}
+  .topbar-left span.sub{font-size:12px;max-width:160px}
   .title{font-size:26px}
   .illustration{width:300px}
   .btn-cerrar span.txt{display:none}
@@ -84,7 +92,7 @@ body{background:#f9f9fb;min-height:100vh;display:flex}
       <span class="sub" id="subTexto">Cargando negocio...</span>
     </div>
     <div class="topbar-right">
-      <div class="bell"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#C50D1F" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 6 5 6 9H0s6-2 6-9"/></svg></div>
+      <div class="bell" id="bellIcon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#C50D1F" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 6 5 6 9H0s6-2 6-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></div>
       <a href="index.html" class="btn-cerrar" onclick="cerrarSesion()"><span class="txt">Cerrar sesión</span></a>
     </div>
   </div>
@@ -134,48 +142,108 @@ else {
   const sub = document.getElementById('subTexto');
   const info = document.getElementById('infoNegocio');
   const badge = document.getElementById('badgePedidos');
+  const bell = document.getElementById('bellIcon');
 
   const idNegocio = sesion.id || sesion.negocio;
-  
-  // MAPEO DE TUS ALIADOS A CAT DE FIRESTORE
   const mapaCat = { alitas:'alitas', burgers:'burgers', pizzas:'pizzas' };
+  const catBuscada = mapaCat[idNegocio] || idNegocio;
+
+  let primerCarga = true;
+  let ultimoCount = 0;
+
+  function sonarRappi(){
+    // Sonido estilo Rappi con Web Audio API 3 seg
+    try{
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const duracion = 3;
+      const start = ctx.currentTime;
+      for(let i=0;i<6;i++){
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.type = 'sine';
+        o.frequency.setValueAtTime(i%2===0?880:1320, start + i*0.45);
+        g.gain.setValueAtTime(0.3, start + i*0.45);
+        g.gain.exponentialRampToValueAtTime(0.01, start + i*0.45 + 0.4);
+        o.connect(g); g.connect(ctx.destination);
+        o.start(start + i*0.45);
+        o.stop(start + i*0.45 + 0.4);
+      }
+      // segundo tono grave tipo notificación
+      setTimeout(()=>{
+        const o2 = ctx.createOscillator();
+        const g2 = ctx.createGain();
+        o2.frequency.setValueAtTime(600, ctx.currentTime);
+        g2.gain.setValueAtTime(0.4, ctx.currentTime);
+        o2.connect(g2); g2.connect(ctx.destination);
+        o2.start(); o2.stop(ctx.currentTime+0.5);
+      }, 1200);
+    }catch(e){ console.log('Audio bloqueado, click en pantalla para activar'); }
+    bell.classList.add('vibrar');
+    setTimeout(()=>{ bell.classList.remove('vibrar'); }, 3000);
+  }
+
+  // Habilitar audio al primer click (navegadores bloquean)
+  document.body.addEventListener('click', ()=>{ if(window.AudioContext){ new AudioContext().resume(); } }, {once:true});
 
   if(sesion.rol==='administrador'){
     sub.textContent='Administrador - Viendo todos los negocios';
     info.textContent='Sesión: Administrador (admin / 0831)';
-    // Admin ve total
     onSnapshot(collection(dbFirestore, "pedidos"), (snap)=>{
-      badge.style.display = snap.size>0 ? 'flex' : 'none';
-      badge.textContent = snap.size;
+      const nuevo = snap.size;
+      if(!primerCarga && nuevo>ultimoCount){ sonarRappi(); }
+      ultimoCount = nuevo;
+      primerCarga = false;
+      badge.style.display = nuevo>0 ? 'flex' : 'none';
+      badge.textContent = nuevo;
     });
   } else {
-    // 1. NOMBRE REAL DESDE REALTIME doloya_aliados
+    // NOMBRE REAL DEL RESTAURANTE DESDE FIRESTORE
     get(ref(dbAliados, 'doloya_aliados/'+idNegocio)).then(snap=>{
-      let nombreReal = sesion.nombre || idNegocio;
       if(snap.exists()){
-        const data = snap.val();
-        nombreReal = data.nombre || data.nombreRestaurante || nombreReal;
+        const d = snap.val();
+        const fallback = d.nombre || d.nombreRestaurante || idNegocio;
+        sub.textContent = fallback; // temporal
       }
-      sub.textContent = 'Negocio: ' + nombreReal;
-      info.textContent = 'Conectado como: aliado / '+(sesion.contraseña||'')+' - '+nombreReal+' | Rol: '+sesion.rol;
     });
 
-    // 2. CONTAR PEDIDOS DESDE FIRESTORE
-    const catBuscada = mapaCat[idNegocio] || idNegocio;
     onSnapshot(collection(dbFirestore, "pedidos"), (snap)=>{
       let count = 0;
+      let nombreRestauranteReal = null;
       snap.forEach(doc=>{
         const data = doc.data();
         const restaurante = data.restaurante || {};
-        const cat = (restaurante.cat || restaurante.categoria || '').toLowerCase();
-        const id = (restaurante.id || '').toLowerCase();
-        if(cat === catBuscada || id.includes(catBuscada) || catBuscada.includes(cat)){
+        const cat = (restaurante.cat || '').toLowerCase();
+        if(cat === catBuscada){
           count++;
+          if(!nombreRestauranteReal && restaurante.nombre){
+            nombreRestauranteReal = restaurante.nombre;
+          }
         }
       });
+
+      // AQUI QUITAMOS HAMBURGUESAS Y PONEMOS NOMBRE REAL
+      if(nombreRestauranteReal){
+        sub.textContent = nombreRestauranteReal;
+        info.textContent = 'Conectado como: aliado / '+(sesion.contraseña||'')+' - '+nombreRestauranteReal+' | Rol: '+sesion.rol;
+        // Guardar para que quede
+        sesion.nombreReal = nombreRestauranteReal;
+        localStorage.setItem('doloya_aliado_sesion', JSON.stringify(sesion));
+      } else if(count===0){
+        // Si aún no hay pedidos, mostrar nombre del aliado de Realtime
+        get(ref(dbAliados, 'doloya_aliados/'+idNegocio)).then(s=>{
+          if(s.exists()){
+            sub.textContent = s.val().nombre || idNegocio;
+          }
+        });
+      }
+
+      if(!primerCarga && count>ultimoCount){
+        sonarRappi();
+      }
+      ultimoCount = count;
+      primerCarga = false;
       badge.textContent = count;
       badge.style.display = count>0 ? 'flex' : 'none';
-      console.log('Pedidos encontrados para', catBuscada, ':', count);
     });
   }
 }
