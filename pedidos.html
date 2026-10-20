@@ -14,7 +14,7 @@ body{background:#f8f8f9;min-height:100vh}
 .btn-x{width:36px;height:36px;background:var(--rojo);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;border:none;cursor:pointer;text-decoration:none;font-size:20px;font-weight:700}
 .h-left h1{font-size:20px;font-weight:800}
 .h-right{display:flex;align-items:center;gap:14px}
-.bell{position:relative;width:32px;height:32px;display:flex;align-items:center;justify-content:center;perspective:100px}
+.bell{position:relative;width:32px;height:32px;display:flex;align-items:center;justify-content:center}
 .bell.vibrar{animation:bell3d 0.15s infinite}
 @keyframes bell3d{0%{transform:rotate(-12deg) scale(1.1)}25%{transform:rotate(12deg) scale(1.25)}50%{transform:rotate(-10deg) scale(1.15)}75%{transform:rotate(10deg) scale(1.25)}100%{transform:rotate(-12deg) scale(1.1)}}
 .chip-rest{background:white;border:1px solid #e5e7eb;border-radius:999px;padding:6px 14px;display:flex;align-items:center;gap:8px}
@@ -30,12 +30,12 @@ body{background:#f8f8f9;min-height:100vh}
 .card-left{flex:1;padding:18px;display:flex;flex-direction:column;gap:18px;justify-content:space-between}
 .card-center{width:1px;background:#f0f0f0;margin:16px 0}
 .card-right{flex:1.2;padding:18px;display:flex;flex-direction:column;gap:12px}
-.badge-nuevo{background:var(--rojo);color:white;border-radius:999px;padding:6px 14px;font-size:11px;font-weight:900;display:inline-flex;align-items:center;gap:6px;width:fit-content;text-transform:uppercase;letter-spacing:0.5px}
+.badge-nuevo{background:var(--rojo);color:white;border-radius:999px;padding:6px 14px;font-size:11px;font-weight:900;display:inline-flex;align-items:center;gap:6px;width:fit-content;text-transform:uppercase}
 .badge-nuevo.verde{background:#16a34a}
 .badge-nuevo.amarillo{background:#111;color:#FFEB3B}
 .dot{width:8px;height:8px;background:white;border-radius:50%;display:inline-block}
 .cliente-line{font-size:14px;font-weight:700;color:#111}
-.cliente-line span{font-weight:800}
+.cliente-line span{font-weight:800;color:#111;text-transform:capitalize}
 .costo-box small{font-size:11px;color:#6b7280;display:block;margin-bottom:4px;font-weight:600}
 .costo-original{text-decoration:line-through;color:#9ca3af;font-size:13px;margin-right:8px}
 .costo-final{color:#16a34a;font-weight:900;font-size:18px;text-shadow:0 0 8px rgba(22,163,74,0.3)}
@@ -43,10 +43,10 @@ body{background:#f8f8f9;min-height:100vh}
 .fecha-hora{display:flex;align-items:center;gap:8px;font-size:11px;color:#6b7280;flex-wrap:wrap}
 .fecha-hora b{color:#111;font-size:11px}
 .tiempo-real{border-radius:999px;padding:4px 12px;font-size:11px;font-weight:900;transition:.3s;display:inline-flex;align-items:center;gap:4px}
-.tiempo-verde{background:#16a34a;color:white;box-shadow:0 0 12px rgba(22,163,74,0.6);text-shadow:0 0 6px rgba(255,255,255,0.8)}
+.tiempo-verde{background:#16a34a;color:white;box-shadow:0 0 12px rgba(22,163,74,0.6)}
 .tiempo-amarillo{background:#EAB308;color:white;box-shadow:0 0 12px rgba(234,179,8,0.7)}
 .tiempo-rojo{background:#EF4444;color:white;box-shadow:0 0 14px rgba(239,68,68,0.8);animation:pulseRojo 1s infinite}
-.tiempo-negro{background:#111;color:white;box-shadow:0 0 14px rgba(0,0,0,0.8);animation:pulseNegro 0.6s infinite}
+.tiempo-negro{background:#111;color:white;box-shadow:0 0 14px rgba(0,0,0,0.8);animation:pulseNegro 0.6s infinite;display:flex;align-items:center;gap:5px}
 @keyframes pulseRojo{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
 @keyframes pulseNegro{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
 .codigo-pedido{font-size:20px;font-weight:900;letter-spacing:1px;color:#111}
@@ -57,10 +57,9 @@ body{background:#f8f8f9;min-height:100vh}
 .btn{border:none;border-radius:999px;padding:11px 18px;font-size:12.5px;font-weight:800;cursor:pointer;color:white;display:flex;align-items:center;gap:7px}
 .btn-verde{background:#16a34a}
 .btn-amarillo{background:#EAB308}
-.btn:disabled{opacity:.4}
 .overlay-preg{display:none;position:absolute;inset:0;background:#38BDF8;z-index:10;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px}
 .card.confirmando .overlay-preg{display:flex}
-.overlay-preg h3{font-size:19px;font-weight:900;line-height:1.3;color:white;margin-bottom:18px;text-shadow:0 1px 2px rgba(0,0,0,0.2)}
+.overlay-preg h3{font-size:19px;font-weight:900;line-height:1.3;color:white;margin-bottom:18px}
 .btn-si{background:white;color:#0EA5E9;padding:11px 32px;border-radius:999px;border:none;font-weight:900;cursor:pointer;font-size:14px}
 .btn-no{background:transparent;color:white;padding:11px 32px;border-radius:999px;border:2px solid white;font-weight:900;cursor:pointer;font-size:14px}
 .empty{text-align:center;padding:60px 20px;color:#9ca3af}
@@ -70,12 +69,9 @@ body{background:#f8f8f9;min-height:100vh}
 <body>
 
 <div class="header">
-  <div class="h-left">
-    <a href="panelaliado.html" class="btn-x">✕</a>
-    <h1>Pedidos</h1>
-  </div>
+  <div class="h-left"><a href="panelaliado.html" class="btn-x">✕</a><h1>Pedidos</h1></div>
   <div class="h-right">
-    <div class="bell" id="bellIcon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C50D1F" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 6 5 6 9H0s6-2 6-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></div>
+    <div class="bell" id="bellIcon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C50D1F" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 6 5 6 9H0s6-2 6-9"/></svg></div>
     <div class="chip-rest"><div><b id="restName">Mi restaurante</b><small style="color:#22c55e">● En línea</small></div></div>
   </div>
 </div>
@@ -136,7 +132,7 @@ document.body.addEventListener('click', ()=>{ try{ new (window.AudioContext||win
 document.querySelectorAll('.tab').forEach(t=>{ t.addEventListener('click', ()=>{ document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active')); t.classList.add('active'); filtroActual=t.dataset.f; render(pedidosCache); }); });
 
 function calcularTiempoReal(sec){
-  if(!sec) return {texto:'0s', clase:'tiempo-verde', icono:''};
+  if(!sec) return {texto:'0s', clase:'tiempo-verde', iconoSvg:''};
   const diffSeg = Math.floor(Date.now()/1000 - sec);
   const min = Math.floor(diffSeg/60);
   const seg = diffSeg % 60;
@@ -145,12 +141,29 @@ function calcularTiempoReal(sec){
   else if(diffSeg < 3600) texto = min + 'm ' + seg + 's';
   else { const h=Math.floor(min/60); const m=min%60; texto = h+'h '+m+'m'; }
 
-  let clase='', icono='';
-  if(diffSeg < 960){ clase='tiempo-verde'; } // 15:59
-  else if(diffSeg < 2160){ clase='tiempo-amarillo'; } // 35:59
-  else if(diffSeg < 3000){ clase='tiempo-rojo'; } // 49:59
-  else { clase='tiempo-negro'; icono='🚨 '; }
-  return {texto: icono + texto, clase, icono};
+  let clase='', iconoSvg='';
+  if(diffSeg < 960){ clase='tiempo-verde'; }
+  else if(diffSeg < 2160){ clase='tiempo-amarillo'; }
+  else if(diffSeg < 3000){ clase='tiempo-rojo'; }
+  else { 
+    clase='tiempo-negro'; 
+    iconoSvg = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+  }
+  return {texto, clase, iconoSvg};
+}
+
+function obtenerNombreCliente(p){
+  // ORDEN EXACTO DE FIRESTORE COMO ESTA EN TU BASE
+  return p.nombre || 
+         p.detalles?.nombre || 
+         p.cliente?.nombre || 
+         p.nombreCliente || 
+         p.clienteNombre || 
+         p.cliente?.nombreCliente ||
+         p.datosCliente?.nombre ||
+         p.usuario?.nombre ||
+         (p.detalles?.direccion ? p.detalles.direccion.split(',')[0] : null) ||
+         'Cliente';
 }
 
 function render(lista){
@@ -166,7 +179,7 @@ function render(lista){
     const costoOriginal = parseFloat(costoProductos);
     const costoFinal = (costoOriginal*0.9).toFixed(0);
 
-    const nombreCliente = p.nombre || p.detalles?.nombre || 'Cliente';
+    const nombreCliente = obtenerNombreCliente(p);
     const codigoReal = p.codigo || 'ST-00';
     const estado = p.estado || 'nuevo';
     let claseEstado='', badgeClass='badge-nuevo', badgeText='Nuevo';
@@ -206,7 +219,7 @@ function render(lista){
       <div class="card-center"></div>
       <div class="card-right">
         <div class="prod-head">
-          <div class="fecha-hora"><b>${fechaStr}</b> ${horaStr} <span class="tiempo-real ${tiempo.clase}" data-ts="${tsSec}">${tiempo.texto}</span></div>
+          <div class="fecha-hora"><b>${fechaStr}</b> ${horaStr} <span class="tiempo-real ${tiempo.clase}" data-ts="${tsSec}">${tiempo.iconoSvg}${tiempo.texto}</span></div>
           <div class="codigo-pedido">${codigoReal}</div>
         </div>
         <div class="prod-list">
@@ -242,7 +255,7 @@ setInterval(()=>{
     const ts=parseInt(el.dataset.ts||0);
     if(ts){
       const t=calcularTiempoReal(ts);
-      el.textContent=t.texto;
+      el.innerHTML = t.iconoSvg + t.texto;
       el.className='tiempo-real '+t.clase;
     }
   });
