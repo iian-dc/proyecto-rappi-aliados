@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Pedidos - DoloYa</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
 body{background:#f8f8f9;min-height:100vh}
@@ -24,45 +24,36 @@ body{background:#f8f8f9;min-height:100vh}
 .tab span.count{background:white;color:#111;min-width:20px;height:20px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;padding:0 6px}
 .container{padding:0 20px 20px}
 .card{position:relative;background:white;border-radius:16px;border:1px solid #ececec;overflow:hidden;margin-bottom:14px;display:flex;flex-direction:row;transition:.3s}
-.card.aceptado{background:#E8F5E9;border-color:#16a34a}
-.card.preparando{background:#FFF176;border-color:#FACC15;box-shadow:0 0 20px rgba(250,204,21,0.6)}
+.card.aceptado{background:#E8F5E9;border-color:#16a34a;box-shadow:0 0 0 2px #16a34a inset}
+.card.preparando{background:#FFEB3B;border-color:#FACC15;box-shadow:0 0 22px rgba(250,204,21,0.8)}
 .card-left{flex:1.2;padding:18px;display:flex;flex-direction:column;gap:14px}
 .card-center{width:1px;background:#f0f0f0;margin:16px 0}
 .card-right{flex:1;padding:18px}
-.badge-nuevo{background:var(--rojo);color:white;border-radius:999px;padding:5px 12px;font-size:11px;font-weight:800;display:inline-flex;align-items:center;gap:6px;width:fit-content}
+.badge-nuevo{background:var(--rojo);color:white;border-radius:999px;padding:6px 14px;font-size:11px;font-weight:900;display:inline-flex;align-items:center;gap:6px;width:fit-content;text-transform:uppercase}
 .badge-nuevo.verde{background:#16a34a}
 .badge-nuevo.amarillo{background:#111;color:#FFEB3B}
 .dot{width:8px;height:8px;background:white;border-radius:50%;display:inline-block}
-.cliente{display:flex;gap:12px;align-items:flex-start}
-.avatar{width:42px;height:42px;background:#f1f2f4;border-radius:50%;display:flex;align-items:center;justify-content:center}
-.cliente b{font-size:13.5px}
+.cliente{display:flex;gap:12px}
+.avatar{width:42px;height:42px;background:#f1f2f4;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800}
 .referencia{display:flex;gap:10px;background:#fafafa;border-radius:10px;padding:10px;border:1px solid #f0f0f0}
-.card.aceptado .referencia{background:#ffffffa6}
-.card.preparando .referencia{background:#fffde7}
-.stats{display:flex;gap:18px;margin-top:6px}
-.stat small{font-size:10px;color:#6b7280;display:block}
-.stat b{font-size:12px}
+.card.aceptado .referencia{background:#ffffffc7}
+.card.preparando .referencia{background:#FFF9C4}
+.stats{display:flex;gap:12px}
 .prod-head{display:flex;justify-content:space-between;align-items:center}
-.prod-head b{font-size:13px;display:flex;align-items:center;gap:8px}
-.prod-head #num{font-size:18px;font-weight:900}
+.prod-head #num{font-size:20px;font-weight:900;letter-spacing:1px}
 .prod-list{margin:12px 0;border-bottom:1px solid #f0f0f0;padding-bottom:10px}
-.prod-item{display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px;color:#4b5563}
-.precio-desc{color:#16a34a;font-weight:700}
-.obs{margin:10px 0 14px}
-.obs b{font-size:12px}
-.obs p{font-size:12px;color:#6b7280;margin-top:2px}
+.prod-item{display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px}
+.precio-desc{color:#16a34a;font-weight:800}
 .actions{display:flex;gap:10px;flex-wrap:wrap}
-.btn{border:none;border-radius:999px;padding:10px 18px;font-size:12.5px;font-weight:700;cursor:pointer;color:white;display:flex;align-items:center;gap:6px}
+.btn{border:none;border-radius:999px;padding:11px 18px;font-size:12.5px;font-weight:800;cursor:pointer;color:white;display:flex;align-items:center;gap:6px}
 .btn-verde{background:#16a34a}
 .btn-amarillo{background:#111;color:#FFEB3B}
-.btn-gris-verde{background:#16a34a}
-.btn:disabled{opacity:0.4}
-.overlay-preg{display:none;position:absolute;inset:0;background:rgba(255,235,59,0.92);backdrop-filter:blur(2px);z-index:5;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px}
+.btn:disabled{opacity:.4}
+.overlay-preg{display:none;position:absolute;inset:0;background:rgba(255,235,59,0.94);z-index:10;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px}
 .card.preparando .overlay-preg{display:flex}
-.overlay-preg h3{font-size:18px;font-weight:900;line-height:1.2;margin-bottom:16px;color:#111}
-.overlay-preg .btns{display:flex;gap:12px}
-.btn-si{background:#16a34a;color:white;padding:10px 28px;border-radius:999px;border:none;font-weight:800;cursor:pointer}
-.btn-no{background:white;color:#111;padding:10px 28px;border-radius:999px;border:1px solid #111;font-weight:800;cursor:pointer}
+.overlay-preg h3{font-size:18px;font-weight:900;line-height:1.3;color:#111;margin-bottom:16px}
+.btn-si{background:#16a34a;color:white;padding:11px 30px;border-radius:999px;border:none;font-weight:900;cursor:pointer;font-size:14px}
+.btn-no{background:white;color:#111;padding:11px 30px;border-radius:999px;border:2px solid #111;font-weight:900;cursor:pointer;font-size:14px}
 .empty{text-align:center;padding:60px 20px;color:#9ca3af}
 @media(max-width:800px){.card{flex-direction:column}.card-center{display:none}}
 </style>
@@ -76,7 +67,7 @@ body{background:#f8f8f9;min-height:100vh}
   </div>
   <div class="h-right">
     <div class="bell" id="bellIcon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C50D1F" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 6 5 6 9H0s6-2 6-9"/></svg></div>
-    <div class="chip-rest"><div><b id="restName">Mi restaurante</b><small style="color:#22c55e">● En línea</small></div></div>
+    <div class="chip-rest"><div><b id="restName">La Catrina Burger</b><small style="color:#22c55e">● En línea</small></div></div>
   </div>
 </div>
 
@@ -109,9 +100,9 @@ const sesion = JSON.parse(localStorage.getItem('doloya_aliado_sesion')||'null');
 const idNegocio = sesion?.id || sesion?.negocio || 'burgers';
 const mapaCat = { alitas:'alitas', burgers:'burgers', pizzas:'pizzas' };
 const catBuscada = mapaCat[idNegocio] || idNegocio;
-
 const restName = document.getElementById('restName');
 if(sesion?.nombreReal) restName.textContent = sesion.nombreReal;
+
 const bell = document.getElementById('bellIcon');
 let primerCarga=true, ultimoTotal=0, pedidosCache=[], filtroActual='todos';
 
@@ -124,30 +115,37 @@ document.querySelectorAll('.tab').forEach(t=>{ t.addEventListener('click', ()=>{
 
 function render(lista){
   const cont=document.getElementById('listaPedidos');
-  const filtrados=filtroActual==='todos'?lista:lista.filter(p=>(p.estado||'nuevo')===filtroActual);
+  const filtrados=filtroActual==='todos'?lista:lista.filter(p=> (p.estado||'nuevo')===filtroActual);
   if(filtrados.length===0){ cont.innerHTML='<div class="empty">No hay pedidos en '+filtroActual+'</div>'; return; }
   cont.innerHTML='';
-  filtrados.forEach((p, idxGlobal)=>{
-    const productos=p.productos||p.items||[];
-    let totalReal = parseFloat(p.total||p.totalPedido||0);
-    if(!totalReal){ productos.forEach(pr=>{ totalReal+=parseFloat(pr.cantidad||1)*parseFloat(pr.precio||pr.price||0); }); }
-    const totalDesc=(totalReal*0.9).toFixed(2);
+  filtrados.forEach((p)=>{
+    const productos=p.productos||[];
+    const totales=p.totales||{};
+    
+    // COSTO PRODUCTO REAL DE FIRESTORE
+    let costoProductos = totales.costoProductos || 0;
+    if(!costoProductos){
+      productos.forEach(pr=>{ costoProductos+= (pr.cantidad||1)*parseFloat(pr.precio||0); });
+    }
+    const costoConDescuento = (parseFloat(costoProductos)*0.9).toFixed(2);
 
-    const cliente=p.cliente?.nombre||p.nombreCliente||p.clienteNombre||p.nombre||'Cliente';
-    const referencia=p.referencia||p.direccion?.referencia||p.referenciaEntrega||p.direccion?.completa||p.direccionEntrega||'Referencia no disponible';
-    const obs=p.observaciones||p.notas||'Sin observaciones.';
+    // CLIENTE REAL DE FIRESTORE
+    const nombreCliente = p.nombre || p.cliente?.celular || p.detalles?.direccion || p.telefono || 'Cliente';
+    const clienteReal = p.nombre || p.detalles?.nombre || p.detalles?.direccion || p.cliente?.celular || 'iian';
+    const nombreFinal = p.nombre || p.detalles?.nombre || p.detalles?.nombreEdificio || 'Cliente';
+    
+    // REFERENCIA REAL
+    const referenciaReal = p.referencia || p.detalles?.referencia || p.direccion || 'Casa...';
 
-    let horaReal='Hoy';
-    if(p.creadoEn?.seconds) horaReal=new Date(p.creadoEn.seconds*1000).toLocaleString('es-MX',{hour:'numeric',minute:'numeric',hour12:true});
-    else if(p.fecha?.seconds) horaReal=new Date(p.fecha.seconds*1000).toLocaleString('es-MX',{hour:'numeric',minute:'numeric',hour12:true});
-    else if(p.timestamp?.seconds) horaReal=new Date(p.timestamp.seconds*1000).toLocaleString('es-MX',{hour:'numeric',minute:'numeric',hour12:true});
+    // CODIGO REAL = NUMERO DE PEDIDO EXACTO DE FIRESTORE
+    const codigoReal = p.codigo || p.id.substring(0,6).toUpperCase() || 'ST-00';
 
-    // NUMERO REAL DE FIREBASE - ORDEN EXACTO
-    const ordenReal = String(lista.indexOf(p)+1).padStart(4,'0');
-    const idCorto = (p.id||'').substring(0,4).toUpperCase();
-    const numPedido = p.numeroPedido ? `#${p.numeroPedido}` : `#${ordenReal} - ${idCorto}`;
+    // HORA REAL
+    let horaReal = 'Hoy';
+    if(p.timestamp?.seconds) horaReal = new Date(p.timestamp.seconds*1000).toLocaleString('es-MX',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit',hour12:true});
+    else if(p.fecha) horaReal = new Date(p.fecha).toLocaleString('es-MX',{hour:'2-digit',minute:'2-digit',hour12:true});
 
-    const estado=p.estado||'nuevo';
+    const estado = p.estado || 'nuevo';
     const claseEstado = estado==='aceptado'?'aceptado':estado==='en_preparacion'?'preparando':'';
     const badgeClass = estado==='nuevo'?'badge-nuevo':estado==='aceptado'?'badge-nuevo verde':'badge-nuevo amarillo';
     const badgeText = estado==='nuevo'?'Nuevo':estado==='aceptado'?'Aceptado':estado==='en_preparacion'?'En preparación':estado;
@@ -157,29 +155,27 @@ function render(lista){
     div.innerHTML=`
       <div class="overlay-preg">
         <h3>¿Está listo tu producto?<br>Ya puede venir el repartidor por él</h3>
-        <div class="btns">
+        <div style="display:flex;gap:12px">
           <button class="btn-si" onclick="cambiarEstado('${p.id}','listo')">Sí</button>
           <button class="btn-no" onclick="cerrarPregunta(this)">No</button>
         </div>
       </div>
       <div class="card-left">
         <span class="${badgeClass}"><span class="dot"></span> ${badgeText}</span>
-        <div class="cliente"><div class="avatar">👤</div><div><b>Cliente: ${cliente}</b></div></div>
-        <div class="referencia"><div><b>Referencia</b><p>${referencia}</p></div></div>
-        <div class="stats"><div class="stat"><small>Costo producto -10%</small><b style="color:#16a34a">$${totalDesc} MXN</b> <small style="text-decoration:line-through">$${totalReal.toFixed(2)}</small></div></div>
+        <div class="cliente"><div class="avatar">${nombreFinal.charAt(0).toUpperCase()}</div><div><b style="font-size:13px">Cliente: ${nombreFinal}</b><br><small style="color:#6b7280">📞 ${p.telefono||p.cliente?.celular||p.detalles?.celular||''}</small></div></div>
+        <div class="referencia"><div><b style="font-size:12px">Referencia</b><p style="font-size:12px;color:#6b7280">${referenciaReal}</p><p style="font-size:11px;color:#9ca3af;margin-top:4px">📍 ${p.direccion||p.detalles?.direccion||''}</p></div></div>
+        <div class="stats"><div><small>Costo producto -10%</small><b style="color:#16a34a">$${costoConDescuento} MXN</b> <small style="text-decoration:line-through;color:#9ca3af">$${parseFloat(costoProductos).toFixed(2)}</small></div></div>
       </div>
       <div class="card-center"></div>
       <div class="card-right">
-        <div class="prod-head"><b>📦 Productos</b><div style="text-align:right"><div id="num">${numPedido}</div><small>${horaReal}</small></div></div>
+        <div class="prod-head"><b>📦 Productos</b><div style="text-align:right"><div id="num">#${codigoReal}</div><small>${horaReal}</small></div></div>
         <div class="prod-list">
-          ${productos.length>0?productos.map(pr=>{
-            const cant=pr.cantidad||pr.qty||1;
-            const prec=parseFloat(pr.precio||pr.price||0);
-            const precDesc=(prec*0.9).toFixed(2);
-            return `<div class="prod-item"><span><b>${cant}x</b> ${pr.nombre||pr.name}</span><span><b class="precio-desc">$${precDesc}</b> <span style="text-decoration:line-through;font-size:10px">$${prec}</span></span></div>`
-          }).join(''): `<div class="prod-item">Pedido sin detalle</div>`}
+          ${productos.map(pr=>{
+            const precDesc=(parseFloat(pr.precio||0)*0.9).toFixed(2);
+            return `<div class="prod-item"><span><b>${pr.cantidad||1}x</b> ${pr.nombre||'Producto'}</span><span><b class="precio-desc">$${precDesc}</b> <span style="text-decoration:line-through;font-size:10px">$${pr.precio||0}</span></span></div>`
+          }).join('')}
         </div>
-        <div class="obs"><b>Observaciones:</b><p>${obs}</p></div>
+        <div class="obs"><b>Observaciones:</b><p style="font-size:12px;color:#6b7280">${p.detalles?.instrucciones||'Sin observaciones.'}</p><p style="font-size:11px;margin-top:4px">Método pago: <b>${p.metodoPago||'Efectivo'}</b> | Total: $${p.totales?.total||''}</p></div>
         <div class="actions">
           <button class="btn btn-verde" onclick="cambiarEstado('${p.id}','aceptado')">✅ Aceptado</button>
           <button class="btn btn-amarillo" onclick="cambiarEstado('${p.id}','en_preparacion')">👨‍🍳 Preparando</button>
@@ -209,9 +205,10 @@ onSnapshot(collection(db, "pedidos"), (snap)=>{
       if(data.restaurante?.nombre) restName.textContent=data.restaurante.nombre;
     }
   });
+  // NUEVOS AL FINAL - ORDEN FIRESTORE EXACTO
   lista.sort((a,b)=>{
-    const ta=a.creadoEn?.seconds||a.fecha?.seconds||a.timestamp?.seconds||0;
-    const tb=b.creadoEn?.seconds||b.fecha?.seconds||b.timestamp?.seconds||0;
+    const ta=a.timestamp?.seconds|| (a.fecha?new Date(a.fecha).getTime()/1000:0) ||0;
+    const tb=b.timestamp?.seconds|| (b.fecha?new Date(b.fecha).getTime()/1000:0) ||0;
     return ta-tb;
   });
   pedidosCache=lista;
@@ -222,12 +219,12 @@ onSnapshot(collection(db, "pedidos"), (snap)=>{
 });
 
 window.cambiarEstado=async(id,estado)=>{
-  try{ await updateDoc(doc(db,"pedidos",id),{estado, actualizadoEn:new Date()}); }catch(e){ alert(e.message); }
+  try{ await updateDoc(doc(db,"pedidos",id),{estado, actualizadoEn: new Date()}); }catch(e){ alert(e.message); }
 }
 window.cerrarPregunta=(btn)=>{
   const card=btn.closest('.card');
-  card.classList.remove('preparando');
-  setTimeout(()=>card.classList.add('preparando'), 2000);
+  card.style.display='none';
+  setTimeout(()=>{ card.classList.remove('preparando'); card.style.display='flex'; }, 1500);
 }
 </script>
 </body>
