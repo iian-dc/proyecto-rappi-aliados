@@ -36,12 +36,11 @@ body{background:#f8f8f9;min-height:100vh}
 .avatar{width:42px;height:42px;background:#f1f2f4;border-radius:50%;display:flex;align-items:center;justify-content:center}
 .cliente b{font-size:13.5px}
 .cliente span{font-size:12px;color:#6b7280;display:flex;align-items:center;gap:6px;margin-top:3px}
-.direccion{display:flex;gap:10px;margin-top:4px}
-.direccion b{font-size:12.5px}
-.direccion p{font-size:12px;color:#6b7280;line-height:1.4;margin-top:2px}
+.referencia{display:flex;gap:10px;margin-top:4px;background:#fafafa;border-radius:10px;padding:10px;border:1px solid #f0f0f0}
+.referencia b{font-size:12.5px}
+.referencia p{font-size:12px;color:#6b7280;line-height:1.4;margin-top:2px}
 .stats{display:flex;gap:18px;margin-top:6px;flex-wrap:wrap}
 .stat{display:flex;align-items:center;gap:8px}
-.stat svg{width:22px}
 .stat small{font-size:10px;color:#6b7280;display:block}
 .stat b{font-size:12px}
 .prod-head{display:flex;justify-content:space-between;align-items:center}
@@ -51,14 +50,15 @@ body{background:#f8f8f9;min-height:100vh}
 .prod-list{margin:12px 0;border-bottom:1px solid #f0f0f0;padding-bottom:10px}
 .prod-item{display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px;color:#4b5563}
 .prod-item b{color:#6b7280;font-weight:500}
+.prod-item .precio-desc{color:#16a34a;font-weight:700}
 .obs{margin:10px 0 14px}
 .obs b{font-size:12px}
 .obs p{font-size:12px;color:#6b7280;margin-top:2px}
 .actions{display:flex;gap:10px;flex-wrap:wrap}
 .btn{display:flex;align-items:center;gap:8px;border:none;border-radius:999px;padding:10px 18px;font-size:12.5px;font-weight:700;cursor:pointer;color:white;transition:.2s}
-.btn-rojo{background:var(--rojo)}
-.btn-naranja{background:#F59E0B}
-.btn-gris{background:#8B95A5}
+.btn-verde{background:#16a34a}
+.btn-amarillo{background:#F59E0B;color:white}
+.btn-gris-verde{background:#16a34a}
 .btn:disabled{opacity:0.4;cursor:not-allowed}
 .empty{text-align:center;padding:60px 20px;color:#9ca3af}
 @media(max-width:800px){
@@ -99,7 +99,7 @@ body{background:#f8f8f9;min-height:100vh}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-import { getFirestore, collection, onSnapshot, doc, updateDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+import { getFirestore, collection, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
 const configConfirmacion = {
   apiKey: "AIzaSyDLKngPyi_SWAXEQwdrHO5h8L8OufulAR4",
@@ -120,7 +120,6 @@ const catBuscada = mapaCat[idNegocio] || idNegocio;
 
 const restName = document.getElementById('restName');
 if(sesion?.nombreReal) restName.textContent = sesion.nombreReal;
-else restName.textContent = sesion?.nombre || 'Mi restaurante';
 
 const bell = document.getElementById('bellIcon');
 let primerCarga = true;
@@ -136,9 +135,6 @@ function sonarDoloYa(){
     const utter = new SpeechSynthesisUtterance("¡DoloYa! ¡DoloYa! ¡DoloYa! ¡Pedido! ¡Pedido! ¡Pedido!");
     utter.lang='es-MX'; utter.rate=1.25; utter.pitch=1.4; utter.volume=1;
     window.speechSynthesis.speak(utter);
-    const ctx = new (window.AudioContext||window.webkitAudioContext)();
-    const now = ctx.currentTime;
-    [523,659,784,1046].forEach((f,i)=>{ const o=ctx.createOscillator(); const g=ctx.createGain(); o.type='triangle'; o.frequency.setValueAtTime(f,now+i*0.4); g.gain.setValueAtTime(0.25,now+i*0.4); g.gain.exponentialRampToValueAtTime(0.01,now+i*0.4+0.35); o.connect(g); g.connect(ctx.destination); o.start(now+i*0.4); o.stop(now+i*0.4+0.35); });
   }catch{}
 }
 document.body.addEventListener('click', ()=>{ try{ new (window.AudioContext||window.webkitAudioContext)().resume(); }catch{} }, {once:true});
@@ -152,24 +148,46 @@ document.querySelectorAll('.tab').forEach(t=>{
   });
 });
 
+function calcularConDescuento(precio){
+  const p = parseFloat(precio)||0;
+  return (p * 0.9).toFixed(2);
+}
+
 function render(lista){
   const cont = document.getElementById('listaPedidos');
   const filtrados = filtroActual==='todos' ? lista : lista.filter(p=> (p.estado||'nuevo')===filtroActual);
   if(filtrados.length===0){ cont.innerHTML='<div class="empty">No hay pedidos en '+filtroActual+'</div>'; return; }
   cont.innerHTML='';
-  filtrados.forEach((p,i)=>{
-    const productos = p.productos || p.items || [];
-    const total = p.total || p.totalPedido || p.montoTotal || 0;
-    const cliente = p.cliente?.nombre || p.nombreCliente || p.clienteNombre || 'Cliente';
-    const tel = p.cliente?.telefono || p.telefono || p.clienteTelefono || '+52';
-    const dir = p.direccion?.completa || p.direccionEntrega || p.direccion || (p.direccion?.calle? `${p.direccion.calle} ${p.direccion.colonia||''}` : 'Dirección no disponible');
-    const col = p.direccion?.colonia || p.colonia || 'Col. Centro, Dolores Hidalgo, Gto.';
-    const obs = p.observaciones || p.notas || p.comentario || 'Sin observaciones.';
-    const distancia = p.distancia || '2.4 km';
-    const tiempo = p.tiempoEstimado || p.tiempo || '12 min';
-    const hora = p.fecha ? new Date(p.fecha?.seconds ? p.fecha.seconds*1000 : p.fecha).toLocaleString('es-MX',{hour:'numeric',minute:'numeric', hour12:true}) : 'Hoy, 12:34 p.m.';
+  filtrados.forEach((p, index)=>{
+    const productos = p.productos || p.items || p.productosLista || [];
+    // TOTAL REAL DE FIRESTORE
+    let totalReal = 0;
+    if(p.total) totalReal = p.total;
+    else if(p.totalPedido) totalReal = p.totalPedido;
+    else {
+      productos.forEach(pr=>{
+        const cant = parseFloat(pr.cantidad||pr.qty||1);
+        const prec = parseFloat(pr.precio||pr.price||0);
+        totalReal += cant*prec;
+      });
+    }
+    const totalConDescuento = (totalReal * 0.9).toFixed(2);
+
+    const cliente = p.cliente?.nombre || p.clienteNombre || p.nombreCliente || p.nombre || p.customerName || 'Cliente';
+    const tel = p.cliente?.telefono || p.telefono || p.clienteTelefono || p.phone || '';
+    const referencia = p.referencia || p.direccion?.referencia || p.direccionReferencia || p.notasEntrega || p.referenciaEntrega || p.direccion?.completa || 'Referencia no disponible';
+    const obs = p.observaciones || p.observacion || p.notas || p.comentario || 'Sin observaciones.';
+    
+    // HORA REAL DE FIRESTORE
+    let horaReal = 'Hoy';
+    if(p.creadoEn?.seconds) horaReal = new Date(p.creadoEn.seconds*1000).toLocaleString('es-MX',{day:'2-digit',month:'short',hour:'numeric',minute:'numeric',hour12:true});
+    else if(p.fecha?.seconds) horaReal = new Date(p.fecha.seconds*1000).toLocaleString('es-MX',{day:'2-digit',month:'short',hour:'numeric',minute:'numeric',hour12:true});
+    else if(p.timestamp?.seconds) horaReal = new Date(p.timestamp.seconds*1000).toLocaleString('es-MX',{day:'2-digit',month:'short',hour:'numeric',minute:'numeric',hour12:true});
+    else if(p.hora) horaReal = p.hora;
+    
+    // NUMERO DE PEDIDO REAL DE FIREBASE
+    const numPedido = p.numeroPedido || p.idPedido || p.codigo || p.folio || `#${(p.id||'').substring(0,4).toUpperCase()}` || `#${String(index+1).padStart(4,'0')}`;
     const estado = p.estado || 'nuevo';
-    const num = p.numero || ('#00'+(i+15).toString().padStart(2,'0'));
 
     const div = document.createElement('div');
     div.className='card';
@@ -178,29 +196,32 @@ function render(lista){
         <span class="badge-nuevo" style="${estado!=='nuevo'?'background:#8B95A5':''}"><span class="dot"></span> ${estado==='nuevo'?'Nuevo':estado.replace('_',' ')}</span>
         <div class="cliente">
           <div class="avatar"><svg width="22" height="22" viewBox="0 0 24 24" fill="#6b7280"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm0 2c-5 0-9 2.5-9 5.5V21h18v-1.5C21 16.5 17 14 12 14z"/></svg></div>
-          <div><b>Cliente: ${cliente}</b><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.68A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L9 10a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg> ${tel}</span></div>
+          <div><b>Cliente: ${cliente}</b>${tel?`<span>📞 ${tel}</span>`:''}</div>
         </div>
-        <div class="direccion">
+        <div class="referencia">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="#111"><path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg>
-          <div><b>Dirección de entrega</b><p>${dir}<br>${col}</p></div>
+          <div><b>Referencia</b><p>${referencia}</p></div>
         </div>
         <div class="stats">
-          <div class="stat"><svg viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="1.8"><path d="M5 17a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM15 17a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM5 19h9M2 6h3l2 6h9l2-3h3"/><circle cx="7" cy="9" r="1"/></svg><div><small>Distancia</small><b>${distancia}</b></div></div>
-          <div class="stat"><svg viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><div><small>Tiempo estimado</small><b>${tiempo}</b></div></div>
-          <div class="stat"><svg viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="1.8"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M6 9h4M6 12h2"/><path d="M16 11h2v2h-2z"/></svg><div><small>Total del pedido</small><b>$${total} MXN</b></div></div>
+          <div class="stat"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M6 9h4"/></svg><div><small>Costo producto -10%</small><b>$${totalConDescuento} MXN</b> <small style="text-decoration:line-through">$${totalReal} MXN</small></div></div>
         </div>
       </div>
       <div class="card-center"></div>
       <div class="card-right">
-        <div class="prod-head"><b><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg> Productos</b><div style="text-align:right"><div id="num">${num}</div><small>${hora}</small></div></div>
+        <div class="prod-head"><b><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg> Productos</b><div style="text-align:right"><div id="num">${numPedido}</div><small>${horaReal}</small></div></div>
         <div class="prod-list">
-          ${productos.length>0 ? productos.map(pr=>`<div class="prod-item"><span><b>${pr.cantidad||pr.qty||1}x</b> &nbsp; ${pr.nombre||pr.name||pr.titulo}</span><span>$${pr.precio||pr.price||0}</span></div>`).join('') : `<div class="prod-item"><span><b>1x</b> Pedido DoloYa</span><span>$${total}</span></div>`}
+          ${productos.length>0 ? productos.map(pr=>{
+            const cant = pr.cantidad||pr.qty||1;
+            const prec = parseFloat(pr.precio||pr.price||0);
+            const precDesc = calcularConDescuento(prec);
+            return `<div class="prod-item"><span><b>${cant}x</b> &nbsp; ${pr.nombre||pr.name||pr.titulo||'Producto'}</span><span><span class="precio-desc">$${precDesc}</span> <span style="text-decoration:line-through;font-size:10px">$${prec}</span></span></div>`
+          }).join('') : `<div class="prod-item"><span>Sin productos</span></div>`}
         </div>
         <div class="obs"><b>Observaciones:</b><p>${obs}</p></div>
         <div class="actions">
-          <button class="btn btn-rojo" onclick="cambiarEstado('${p.id}','aceptado')" ${estado!=='nuevo'?'disabled':''}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M5 17a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM15 17a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/></svg> Hacer pedido</button>
-          <button class="btn btn-naranja" onclick="cambiarEstado('${p.id}','en_preparacion')" ${estado==='listo'?'disabled':''}><svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M6 13c0-3 2-5 6-5s6 2 6 5v6H6v-6zM8 8c0-2 1.5-4 4-4s4 2 4 4"/></svg> Preparando</button>
-          <button class="btn btn-gris" onclick="cambiarEstado('${p.id}','listo')"><svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zm-1.2 14.5L7 12.7l1.4-1.4 2.4 2.4 4.8-4.8L17 10.3 10.8 16.5z"/></svg> Listo</button>
+          <button class="btn btn-verde" onclick="cambiarEstado('${p.id}','aceptado')"><svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zm-1.2 14.5L7 12.7l1.4-1.4 2.4 2.4 4.8-4.8L17 10.3 10.8 16.5z"/></svg> Aceptado</button>
+          <button class="btn btn-amarillo" onclick="cambiarEstado('${p.id}','en_preparacion')"><svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M6 13c0-3 2-5 6-5s6 2 6 5v6H6v-6zM8 8c0-2 1.5-4 4-4s4 2 4 4"/></svg> Preparando</button>
+          <button class="btn btn-verde" onclick="cambiarEstado('${p.id}','listo')"><svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zm-1.2 14.5L7 12.7l1.4-1.4 2.4 2.4 4.8-4.8L17 10.3 10.8 16.5z"/></svg> Listo</button>
         </div>
       </div>
     `;
@@ -209,32 +230,29 @@ function render(lista){
 }
 
 function actualizarContadores(lista){
-  const todos = lista.length;
-  const nuevo = lista.filter(p=>(p.estado||'nuevo')==='nuevo').length;
-  const aceptado = lista.filter(p=>p.estado==='aceptado').length;
-  const prep = lista.filter(p=>p.estado==='en_preparacion').length;
-  const listo = lista.filter(p=>p.estado==='listo').length;
-  document.getElementById('c-todos').textContent=todos;
-  document.getElementById('c-nuevo').textContent=nuevo;
-  document.getElementById('c-aceptado').textContent=aceptado;
-  document.getElementById('c-prep').textContent=prep;
-  document.getElementById('c-listo').textContent=listo;
+  document.getElementById('c-todos').textContent=lista.length;
+  document.getElementById('c-nuevo').textContent=lista.filter(p=>(p.estado||'nuevo')==='nuevo').length;
+  document.getElementById('c-aceptado').textContent=lista.filter(p=>p.estado==='aceptado').length;
+  document.getElementById('c-prep').textContent=lista.filter(p=>p.estado==='en_preparacion').length;
+  document.getElementById('c-listo').textContent=lista.filter(p=>p.estado==='listo').length;
 }
 
-// ESCUCHA FIRESTORE EN TIEMPO REAL
 onSnapshot(collection(db, "pedidos"), (snap)=>{
   let lista=[];
   snap.forEach(d=>{
     const data=d.data();
     const cat = (data.restaurante?.cat||'').toLowerCase();
-    if(sesion?.rol==='administrador' || cat===catBuscada){
+    if(sesion?.rol==='administrador' || cat===catBuscada || !cat){
       lista.push({id:d.id, ...data, estado: data.estado||'nuevo'});
-      if(!restName.textContent || restName.textContent==='Mi restaurante'){
-        if(data.restaurante?.nombre) restName.textContent=data.restaurante.nombre;
-      }
+      if(data.restaurante?.nombre) restName.textContent=data.restaurante.nombre;
     }
   });
-  lista.sort((a,b)=> (b.fecha?.seconds||0)-(a.fecha?.seconds||0));
+  // ORDEN COMO LLEGA EN FIREBASE - NUEVOS AL FINAL
+  lista.sort((a,b)=>{
+    const ta = a.creadoEn?.seconds || a.fecha?.seconds || a.timestamp?.seconds || 0;
+    const tb = b.creadoEn?.seconds || b.fecha?.seconds || b.timestamp?.seconds || 0;
+    return ta - tb;
+  });
   pedidosCache=lista;
   actualizarContadores(lista);
   render(lista);
@@ -246,7 +264,7 @@ onSnapshot(collection(db, "pedidos"), (snap)=>{
 window.cambiarEstado = async (id, nuevoEstado)=>{
   try{
     await updateDoc(doc(db, "pedidos", id), { estado: nuevoEstado, actualizadoEn: new Date() });
-  }catch(e){ alert('Error al actualizar: '+e.message); }
+  }catch(e){ alert('Error: '+e.message); }
 }
 </script>
 </body>
