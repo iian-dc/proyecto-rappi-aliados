@@ -130,8 +130,6 @@ body{background:#fff;display:flex;min-height:100vh}
         <rect x="115" y="105" width="40" height="25" rx="2" fill="#B70A1A"/><text x="132" y="122" font-size="14" font-weight="900" fill="white" text-anchor="middle">D</text>
         <circle cx="180" cy="75" r="12" fill="#B70A1A"/><path d="M176 75 L184 75 M180 71 L180 79 M176 71 L176 75 M184 71 L184 75" stroke="white" stroke-width="1.5"/>
         <path d="M190 60 L192 56 L194 60 L198 60 L195 63 L196 67 L192 64 L188 67 L189 63 L186 60 Z" fill="#B70A1A"/>
-        <text x="200" y="55" font-size="10" fill="#B70A1A">+</text>
-        <text x="60" y="95" font-size="12" fill="#B70A1A">+</text>
       </svg>
     </div>
     <h2>Hola Administrador</h2>
@@ -160,22 +158,54 @@ const bellCount = document.getElementById('bellCount');
 let ultimoTotal = 0;
 let primerCarga = true;
 
-function sonar(){
-  bell.classList.add('vibrar'); setTimeout(()=>bell.classList.remove('vibrar'),3000);
+// SONIDO + VIBRACIÓN DE CAMPANITA VINCULADA
+function sonarAlerta(){
+  // Vibrar campanita 3D
+  bell.classList.add('vibrar');
+  setTimeout(()=>bell.classList.remove('vibrar'),3500);
+  
+  // Sonido fuerte tipo notificación
+  try{
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type='sine';
+    osc.frequency.value=950;
+    gain.gain.setValueAtTime(0.9, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime+0.6);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(); osc.stop(ctx.currentTime+0.6);
+    setTimeout(()=>{
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.frequency.value=1200;
+      gain2.gain.setValueAtTime(0.9, ctx.currentTime);
+      gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime+0.6);
+      osc2.connect(gain2); gain2.connect(ctx.destination);
+      osc2.start(); osc2.stop(ctx.currentTime+0.6);
+    },250);
+  }catch(e){}
+
+  // Voz
   try{
     window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance("Pedido listo para repartidor");
+    const u = new SpeechSynthesisUtterance("Nuevo pedido listo para repartidor");
     u.lang='es-MX'; u.rate=1.1; window.speechSynthesis.speak(u);
   }catch{}
 }
 
+// ESCUCHA EN TIEMPO REAL PEDIDOS QUE VIENEN DEL RESTAURANTE
 onSnapshot(query(collection(db,"pedidos"), where("estado","in",["listo","listo_para_admin","en_camino"])), (snap)=>{
   const total = snap.size;
+  // SIEMPRE MOSTRAR CIRCULO ROJO CON CANTIDAD - NO SE ESCONDE
   countEl.textContent = total;
   bellCount.textContent = total;
-  bellCount.style.display = total>0 ? 'flex':'none';
-  countEl.style.display = total>0 ? 'flex':'none';
-  if(!primerCarga && total>ultimoTotal) sonar();
+  countEl.style.display = 'flex';
+  bellCount.style.display = 'flex';
+  
+  if(!primerCarga && total>ultimoTotal){
+    sonarAlerta();
+  }
   ultimoTotal = total;
   primerCarga = false;
 });
