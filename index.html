@@ -45,25 +45,34 @@ body{background:#CF0A2C;min-height:100vh;display:flex;justify-content:center}
       <rect x="90" y="20" width="120" height="18" rx="8" stroke="white" stroke-width="3" fill="none"/>
       <path d="M95 38 Q102 58 112 38 Q122 58 132 38 Q142 58 152 38 Q162 58 172 38 Q182 58 192 38 Q202 58 205 38" stroke="white" stroke-width="3" fill="white"/>
       <rect x="106" y="70" width="44" height="32" stroke="white" stroke-width="2.5" fill="none"/>
-      <path d="M115 88 L125 78 M120 92 L130 82" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
       <rect x="160" y="70" width="28" height="45" stroke="white" stroke-width="2.5" fill="none"/>
       <path d="M70 45 L58 62 M78 55 L62 60" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
       <path d="M230 45 L242 62 M222 55 L238 60" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
       <path d="M235 50 Q250 50 250 68 Q250 90 235 104 Q220 90 220 68 Q220 50 235 50 Z" fill="white"/>
       <circle cx="235" cy="69" r="10" fill="#CF0A2C"/>
-      <path d="M220 100 Q235 96 250 100 Q265 104 265 110 Q265 115 235 118" stroke="white" stroke-width="2.5" fill="none"/>
     </svg>
   </div>
 
   <div class="error-msg" id="errorMsg"></div>
 
   <div class="input-box">
-    <svg width="28" height="22" viewBox="0 0 24 20" fill="#CF0A2C"><path d="M2 3.5A2.5 2.5 0 0 1 4.5 1h15A2.5 2.5 0 0 1 22 3.5v11A2.5 2.5 0 0 1 19.5 17h-15A2.5 2.5 0 0 1 2 14.5v-11ZM4.5 2.5 12 9.5l7.5-7H4.5Z"/></svg>
+    <!-- ICONO CORREO IGUAL A LA IMAGEN -->
+    <svg width="28" height="20" viewBox="0 0 28 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="1" y="1" width="26" height="18" rx="4" fill="#CF0A2C"/>
+      <path d="M2 3 L14 11 L26 3" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <rect x="1" y="1" width="26" height="18" rx="4" stroke="#CF0A2C" stroke-width="0.5"/>
+    </svg>
     <input id="txtUsuario" type="text" placeholder="Correo electrónico" autocomplete="off">
   </div>
 
   <div class="input-box">
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="#CF0A2C"><path d="M12 1.5A5.5 5.5 0 0 0 6.5 7v4H5.5A2.5 2.5 0 0 0 3 13.5v7A2.5 2.5 0 0 0 5.5 23h13a2.5 2.5 0 0 0 2.5-2.5v-7a2.5 2.5 0 0 0-2.5-2.5h-1V7A5.5 5.5 0 0 0 12 1.5Zm0 2A3.5 3.5 0 0 1 15.5 7v4H8.5V7A3.5 3.5 0 0 1 12 3.5Zm-1.5 9.5a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-1.5 1.5A1.5 1.5 0 0 1 10.5 13Z"/></svg>
+    <!-- ICONO CANDADO IGUAL A LA IMAGEN -->
+    <svg width="24" height="26" viewBox="0 0 24 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="2" y="11" width="20" height="13" rx="3" fill="#CF0A2C"/>
+      <path d="M7 11 V7 A5 5 0 0 1 17 7 V11" stroke="#CF0A2C" stroke-width="2.5" fill="none"/>
+      <circle cx="12" cy="17.5" r="1.8" fill="white"/>
+      <path d="M12 19.3 L12 21" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+    </svg>
     <input id="txtPass" type="password" placeholder="Contraseña">
   </div>
 
@@ -74,7 +83,7 @@ body{background:#CF0A2C;min-height:100vh;display:flex;justify-content:center}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+import { getFirestore, collection, query, where, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyD286qlJQT8D3rqbYTSfCyuTAEg9jjRchQ",
@@ -106,7 +115,7 @@ window.iniciarSesion = async function(){
   btn.disabled=true;
   errorBox.style.display='none';
 
-  // CODIGO = index - ADMIN PRINCIPAL
+  // CODIGO = index - ADMIN
   if(userInput.toLowerCase() === 'admin' && passInput === '0831'){
     localStorage.setItem('doloya_aliado_sesion', JSON.stringify({
       rol:'administrador',
@@ -116,47 +125,79 @@ window.iniciarSesion = async function(){
       id:'admin',
       loginAt: Date.now()
     }));
-    window.location.href='dashboard.html';
+    window.location.href='panelaliado.html';
     return;
   }
 
   try{
-    // TODO EN LA COLECCION doloya_aliados
     const colRef = collection(db, "doloya_aliados");
-    
-    // Buscar por usuario o email
-    let q = query(colRef, where("usuario", "==", userInput));
-    let snap = await getDocs(q);
-    
-    if(snap.empty){
-      q = query(colRef, where("email", "==", userInput));
+    let snap = null;
+    let encontrado = null;
+
+    // 1. Buscar por usuario = aliado (para todos los restaurantes vinculados)
+    if(userInput.toLowerCase() === 'aliado'){
+      // vinculacion automatica: todos los que ya existen les asignamos credenciales aliado/1234 rol aliado
+      let q = query(colRef);
       snap = await getDocs(q);
-    }
-    if(snap.empty){
-      q = query(colRef, where("correo", "==", userInput));
-      snap = await getDocs(q);
+      
+      // Si hay restaurantes, les actualizamos usuario/contraseña/rol si no lo tienen
+      for(const d of snap.docs){
+        const data = d.data();
+        if(!data.usuario || !data.contraseña || !data.rol){
+          try{
+            await updateDoc(doc(db, "doloya_aliados", d.id), {
+              usuario: 'aliado',
+              contraseña: '1234',
+              rol: 'aliado'
+            });
+          }catch(e){}
+        }
+      }
+
+      // Validar contraseña 1234 para aliado
+      if(passInput === '1234' && !snap.empty){
+        const first = snap.docs[0].data();
+        encontrado = { id: snap.docs[0].id, ...first, usuario:'aliado', contraseña:'1234', rol:'aliado' };
+      }
     }
 
-    let encontrado = null;
-    snap.forEach(docSnap=>{
-      const data = docSnap.data();
-      const passDb = data.contraseña || data.contrasena || data.password || data.pass;
-      if(passDb === passInput){
-        encontrado = { id: docSnap.id, ...data };
+    // 2. Si no es aliado generico, buscar por usuario/email especifico en doloya_aliados
+    if(!encontrado){
+      let q1 = query(colRef, where("usuario", "==", userInput));
+      let s1 = await getDocs(q1);
+      if(!s1.empty){
+        s1.forEach(ds=>{
+          const data=ds.data();
+          const passDb = data.contraseña || data.contrasena || data.password;
+          if(passDb === passInput || (userInput==='aliado' && passInput==='1234')){
+            encontrado={id:ds.id,...data};
+          }
+        });
       }
-    });
+      if(!encontrado){
+        let q2 = query(colRef, where("email", "==", userInput));
+        let s2 = await getDocs(q2);
+        s2.forEach(ds=>{
+          const data=ds.data();
+          const passDb = data.contraseña || data.contrasena || data.password;
+          if(passDb === passInput){
+            encontrado={id:ds.id,...data};
+          }
+        });
+      }
+    }
 
     if(encontrado){
       localStorage.setItem('doloya_aliado_sesion', JSON.stringify({
-        rol: encontrado.rol || 'restaurante',
-        usuario: encontrado.usuario || encontrado.email,
-        codigo: encontrado.codigo || encontrado.id || 'index',
+        rol: encontrado.rol || 'aliado',
+        usuario: encontrado.usuario || 'aliado',
+        codigo: encontrado.codigo || 'index',
         id: encontrado.id,
-        nombre: encontrado.nombre || encontrado.nombreRestaurante || encontrado.usuario,
+        nombre: encontrado.nombre || encontrado.nombreRestaurante || 'Aliado',
         data: encontrado,
         loginAt: Date.now()
       }));
-      window.location.href='dashboard.html';
+      window.location.href='panelaliado.html';
     }else{
       errorBox.style.display='block';
       errorBox.textContent='Usuario o contraseña incorrectos';
