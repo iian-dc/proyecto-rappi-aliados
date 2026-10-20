@@ -16,7 +16,7 @@ body{background:#f8f8f9;min-height:100vh}
 .h-right{display:flex;align-items:center;gap:14px}
 .bell{position:relative;width:32px;height:32px;display:flex;align-items:center;justify-content:center;perspective:100px}
 .bell.vibrar{animation:bell3d 0.15s infinite}
-@keyframes bell3d{0%{transform:rotate(-12deg) scale(1.1) translateY(-2px) rotateX(10deg)}25%{transform:rotate(12deg) scale(1.25) translateY(2px) rotateY(15deg)}50%{transform:rotate(-10deg) scale(1.15) rotateX(-10deg)}75%{transform:rotate(10deg) scale(1.25) rotateY(-15deg)}100%{transform:rotate(-12deg) scale(1.1)}}
+@keyframes bell3d{0%{transform:rotate(-12deg) scale(1.1)}25%{transform:rotate(12deg) scale(1.25)}50%{transform:rotate(-10deg) scale(1.15)}75%{transform:rotate(10deg) scale(1.25)}100%{transform:rotate(-12deg) scale(1.1)}}
 .chip-rest{background:white;border:1px solid #e5e7eb;border-radius:999px;padding:6px 14px;display:flex;align-items:center;gap:8px}
 .tabs{display:flex;gap:12px;padding:18px 20px;flex-wrap:wrap}
 .tab{border-radius:999px;padding:8px 18px;font-size:13px;font-weight:600;border:1px solid #e5e7eb;background:#f1f2f4;color:#6b7280;cursor:pointer;display:flex;align-items:center;gap:8px}
@@ -33,7 +33,6 @@ body{background:#f8f8f9;min-height:100vh}
 .badge-nuevo{background:var(--rojo);color:white;border-radius:999px;padding:6px 14px;font-size:11px;font-weight:900;display:inline-flex;align-items:center;gap:6px;width:fit-content;text-transform:uppercase;letter-spacing:0.5px}
 .badge-nuevo.verde{background:#16a34a}
 .badge-nuevo.amarillo{background:#111;color:#FFEB3B}
-.badge-nuevo.azul{background:#0EA5E9;color:white}
 .dot{width:8px;height:8px;background:white;border-radius:50%;display:inline-block}
 .cliente-line{font-size:14px;font-weight:700;color:#111}
 .cliente-line span{font-weight:800}
@@ -43,7 +42,13 @@ body{background:#f8f8f9;min-height:100vh}
 .prod-head{display:flex;justify-content:space-between;align-items:flex-start}
 .fecha-hora{display:flex;align-items:center;gap:8px;font-size:11px;color:#6b7280;flex-wrap:wrap}
 .fecha-hora b{color:#111;font-size:11px}
-.tiempo-real{background:#16a34a;color:white;border-radius:999px;padding:3px 10px;font-size:11px;font-weight:900;box-shadow:0 0 10px rgba(22,163,74,0.5)}
+.tiempo-real{border-radius:999px;padding:4px 12px;font-size:11px;font-weight:900;transition:.3s;display:inline-flex;align-items:center;gap:4px}
+.tiempo-verde{background:#16a34a;color:white;box-shadow:0 0 12px rgba(22,163,74,0.6);text-shadow:0 0 6px rgba(255,255,255,0.8)}
+.tiempo-amarillo{background:#EAB308;color:white;box-shadow:0 0 12px rgba(234,179,8,0.7)}
+.tiempo-rojo{background:#EF4444;color:white;box-shadow:0 0 14px rgba(239,68,68,0.8);animation:pulseRojo 1s infinite}
+.tiempo-negro{background:#111;color:white;box-shadow:0 0 14px rgba(0,0,0,0.8);animation:pulseNegro 0.6s infinite}
+@keyframes pulseRojo{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+@keyframes pulseNegro{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
 .codigo-pedido{font-size:20px;font-weight:900;letter-spacing:1px;color:#111}
 .prod-list{margin:8px 0;border-bottom:1px solid #f0f0f0;padding-bottom:10px}
 .prod-item{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:6px;color:#111}
@@ -111,8 +116,7 @@ const bell = document.getElementById('bellIcon');
 let primerCarga=true, ultimoTotal=0, pedidosCache=[], filtroActual='todos';
 
 function sonarDoloYa(){
-  bell.classList.add('vibrar');
-  setTimeout(()=>bell.classList.remove('vibrar'),3000);
+  bell.classList.add('vibrar'); setTimeout(()=>bell.classList.remove('vibrar'),3000);
   try{
     window.speechSynthesis.cancel();
     const utter = new SpeechSynthesisUtterance("¡DoloYa! ¡DoloYa! ¡DoloYa! ¡Pedido! ¡Pedido! ¡Pedido!");
@@ -132,12 +136,21 @@ document.body.addEventListener('click', ()=>{ try{ new (window.AudioContext||win
 document.querySelectorAll('.tab').forEach(t=>{ t.addEventListener('click', ()=>{ document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active')); t.classList.add('active'); filtroActual=t.dataset.f; render(pedidosCache); }); });
 
 function calcularTiempoReal(sec){
-  if(!sec) return '0m';
-  const diff=Math.floor((Date.now()/1000 - sec)/60);
-  if(diff<1) return 'Ahora';
-  if(diff<60) return diff+'m';
-  const h=Math.floor(diff/60), m=diff%60;
-  return h+'h '+m+'m';
+  if(!sec) return {texto:'0s', clase:'tiempo-verde', icono:''};
+  const diffSeg = Math.floor(Date.now()/1000 - sec);
+  const min = Math.floor(diffSeg/60);
+  const seg = diffSeg % 60;
+  let texto='';
+  if(diffSeg < 60) texto = diffSeg + 's';
+  else if(diffSeg < 3600) texto = min + 'm ' + seg + 's';
+  else { const h=Math.floor(min/60); const m=min%60; texto = h+'h '+m+'m'; }
+
+  let clase='', icono='';
+  if(diffSeg < 960){ clase='tiempo-verde'; } // 15:59
+  else if(diffSeg < 2160){ clase='tiempo-amarillo'; } // 35:59
+  else if(diffSeg < 3000){ clase='tiempo-rojo'; } // 49:59
+  else { clase='tiempo-negro'; icono='🚨 '; }
+  return {texto: icono + texto, clase, icono};
 }
 
 function render(lista){
@@ -165,6 +178,8 @@ function render(lista){
     if(p.timestamp?.seconds){ tsSec=p.timestamp.seconds; const d=new Date(tsSec*1000); fechaStr=d.toLocaleDateString('es-MX',{day:'2-digit',month:'2-digit',year:'2-digit'}); horaStr=d.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit',hour12:true}); }
     else if(p.fecha){ const d=new Date(p.fecha); tsSec=Math.floor(d.getTime()/1000); fechaStr=d.toLocaleDateString('es-MX',{day:'2-digit',month:'2-digit',year:'2-digit'}); horaStr=d.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit',hour12:true}); }
 
+    const tiempo = calcularTiempoReal(tsSec);
+
     const div=document.createElement('div');
     div.className=`card ${claseEstado}`;
     div.dataset.ts=tsSec;
@@ -191,7 +206,7 @@ function render(lista){
       <div class="card-center"></div>
       <div class="card-right">
         <div class="prod-head">
-          <div class="fecha-hora"><b>${fechaStr}</b> ${horaStr} <span class="tiempo-real" data-ts="${tsSec}">${calcularTiempoReal(tsSec)}</span></div>
+          <div class="fecha-hora"><b>${fechaStr}</b> ${horaStr} <span class="tiempo-real ${tiempo.clase}" data-ts="${tsSec}">${tiempo.texto}</span></div>
           <div class="codigo-pedido">${codigoReal}</div>
         </div>
         <div class="prod-list">
@@ -225,9 +240,13 @@ function actualizarContadores(lista){
 setInterval(()=>{
   document.querySelectorAll('.tiempo-real').forEach(el=>{
     const ts=parseInt(el.dataset.ts||0);
-    if(ts) el.textContent=calcularTiempoReal(ts);
+    if(ts){
+      const t=calcularTiempoReal(ts);
+      el.textContent=t.texto;
+      el.className='tiempo-real '+t.clase;
+    }
   });
-},30000);
+},1000);
 
 onSnapshot(collection(db, "pedidos"), (snap)=>{
   let lista=[];
