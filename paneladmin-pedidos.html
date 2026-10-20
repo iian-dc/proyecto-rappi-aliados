@@ -102,8 +102,10 @@ body{background:#FAFAFA;min-height:100vh}
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
 import { getFirestore, collection, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js";
 
-const config = {
+// --- FIREBASE ADMIN (pedidos_admin) ---
+const configAdmin = {
   apiKey: "AIzaSyDLKngPyi_SWAXEQwdrHO5h8L8OufulAR4",
   authDomain: "doloya-confirmacion.firebaseapp.com",
   projectId: "doloya-confirmacion",
@@ -111,18 +113,56 @@ const config = {
   messagingSenderId: "832228761099",
   appId: "1:832228761099:web:ddd4b6a0ee0d7f0494b10e"
 };
-const app = initializeApp(config);
-const db = getFirestore(app);
+const appAdmin = initializeApp(configAdmin);
+const db = getFirestore(appAdmin);
+
+// --- FIREBASE REPARTIDORES (tu segundo archivo) ---
+const configRepartidores = {
+  apiKey: "AIzaSyCYdy62kQCPEhz1d-Ln9H-sup2iOTYJPwU",
+  authDomain: "doloya-repartidores.firebaseapp.com",
+  projectId: "doloya-repartidores",
+  storageBucket: "doloya-repartidores.firebasestorage.app",
+  messagingSenderId: "308893983803",
+  appId: "1:308893983803:web:fe2b85c80f3a203de9a81e",
+  measurementId: "G-4Z5RHMCNC4",
+  databaseURL: "https://doloya-repartidores-default-rtdb.firebaseio.com"
+};
+const appRep = initializeApp(configRepartidores, "repartidores");
+const dbRep = getDatabase(appRep);
 
 const lista = document.getElementById('listaPedidos');
 const bell = document.getElementById('bellIcon');
 const bellCount = document.getElementById('bellCount');
 let pedidosCache = []; let filtro='todos'; let primerCarga=true; let ultimoTotal=0;
+
+// CACHE REAL DE REPARTIDORES DESDE FIREBASE REPARTIDORES
 let cacheRepartidores=[
-  {id:'rep1', nombre:'Carlos', foto:'', estado:'disponible'},
-  {id:'rep2', nombre:'Luis', foto:'', estado:'ocupado'},
-  {id:'rep3', nombre:'Jorge', foto:'', estado:'disponible'}
+  {id:'Jose', nombre:'Jose', foto:'', estado:'disponible', conectado:true}
 ];
+
+// === ESCUCHA REPARTIDORES REALES EN TIEMPO REAL ===
+try{
+  const repRef = ref(dbRep, 'repartidores');
+  onValue(repRef, (snap)=>{
+    const data = snap.val();
+    if(data){
+      const arr = Object.entries(data).map(([key,val])=>{
+        return {
+          id: key,
+          nombre: val.nombre || val.usuario || key,
+          foto: val.foto || '',
+          estado: val.conectado ? 'disponible' : (val.estado || 'ocupado'),
+          conectado: !!val.conectado
+        }
+      });
+      if(arr.length>0) cacheRepartidores = arr;
+      // Si solo existe Jose en RTDB como nodo directo
+      if(arr.length===0 && data.Jose){
+        cacheRepartidores = [{id:'Jose', nombre:data.Jose.nombre||'Jose', foto:'', estado:data.Jose.conectado?'disponible':'ocupado', conectado:!!data.Jose.conectado}];
+      }
+    }
+  });
+}catch(e){ console.log("Repartidores RTDB no disponible, usando por defecto Jose"); }
 
 function sonar(){ bell.classList.add('vibrar'); setTimeout(()=>bell.classList.remove('vibrar'),3500);
   try{ const ctx=new (window.AudioContext||window.webkitAudioContext)(); const o=ctx.createOscillator(); const g=ctx.createGain(); o.frequency.value=950; g.gain.setValueAtTime(0.9,ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.01,ctx.currentTime+0.6); o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime+0.6);}catch{}
@@ -165,11 +205,11 @@ function render(){
 
   lista.innerHTML = filtrados.map(p=>{
     const id=p.codigo||p.id.slice(0,4).toUpperCase();
-    const cliente=p.nombre||p.detalles?.nombre||'Cliente';
-    const tel=p.telefono||p.detalles?.telefono||'+52 477 123 4567';
+    const cliente=p.nombre||p.detalles?.nombre||p.cliente?.nombre||'Cliente';
+    const tel=p.telefono||p.detalles?.telefono||p.cliente?.celular||'+52 477 123 4567';
     const rest=p.restaurante?.nombre||'La Esquina del Sabor';
     const dirRec=p.restaurante?.direccion||'Calle Independencia #124';
-    const dirEnt=p.detalles?.direccion||'Av. Hidalgo #256';
+    const dirEnt=p.detalles?.direccion||p.cliente?.direccion||'Av. Hidalgo #256';
     const productos=p.productos||[];
     let htmlProd=productos.map(it=>`<div class="product-item"><span>${it.nombre||it.name}</span><span>x${it.cantidad||1}</span><span>$${it.precio||0}</span></div>`).join('')||'<div class="product-item"><span>Producto</span><span>x1</span><span>$65</span></div>';
     const totalProd=p.totales?.costoProductos||95; const envio=p.totales?.costoEnvio||30; const total=p.totales?.total||125;
@@ -210,7 +250,7 @@ function render(){
       <div class="card-overlay" id="overlay-reps-${p.id}">
         <div class="overlay-box">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b style="font-size:12px">Seleccionar repartidor para #${id}</b><button class="btn-borde" onclick="cerrarOverlay('overlay-reps-${p.id}')">✕</button></div>
-          <div class="reps-row">
+          <div class="reps-row" id="reps-row-${p.id}">
             ${cacheRepartidores.map(r=>{
               const disp=r.estado==='disponible';
               return `<div class="rep-card"><div class="rep-img"><svg width="24" height="24" viewBox="0 0 24 24" fill="#94a3b8"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></div><div class="rep-name">${r.nombre}</div><span class="rep-est ${disp?'disponible':'ocupado'}">${disp?'Disponible':'Ocupado'}</span><button class="btn-enviar-rep" ${!disp?'disabled':''} onclick="asignarRepartidor('${p.id}','${r.id}','${r.nombre}')">Enviar</button></div>`;
@@ -258,6 +298,14 @@ onSnapshot(collection(db,"pedidos_admin"), (snap)=>{
 window.toggleRepartidores = (pedidoId)=>{
   const p=pedidosCache.find(x=>x.id===pedidoId);
   if(p && !['nuevo','listo_para_admin','listo','sin_enviar'].includes(p.estado)) return;
+  // Actualiza lista real de repartidores en el overlay
+  const row = document.getElementById('reps-row-'+pedidoId);
+  if(row){
+    row.innerHTML = cacheRepartidores.map(r=>{
+      const disp=r.estado==='disponible';
+      return `<div class="rep-card"><div class="rep-img"><svg width="24" height="24" viewBox="0 0 24 24" fill="#94a3b8"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></div><div class="rep-name">${r.nombre}</div><span class="rep-est ${disp?'disponible':'ocupado'}">${disp?'Disponible':'Ocupado'}${r.conectado?' • Conectado':''}</span><button class="btn-enviar-rep" ${!disp?'disabled':''} onclick="asignarRepartidor('${pedidoId}','${r.id}','${r.nombre}')">Enviar</button></div>`;
+    }).join('');
+  }
   document.getElementById('overlay-reps-'+pedidoId)?.classList.add('open');
 }
 window.cerrarOverlay = (id)=>{ document.getElementById(id)?.classList.remove('open'); }
@@ -265,11 +313,13 @@ window.verDetalles = (id)=>{ document.getElementById('overlay-det-'+id)?.classLi
 
 window.asignarRepartidor = async (pedidoId, repId, repNombre)=>{
   try{
+    // ESTO ES LO QUE VINCULA CON EL PANEL DE REPARTIDOR (pedidos.html)
     await updateDoc(doc(db,"pedidos_admin",pedidoId),{
       estado:'enviado_a_repartidor',
       repartidorId: repId,
       repartidorNombre: repNombre,
-      enviadoARepartidorEn: new Date()
+      enviadoARepartidorEn: new Date(),
+      timestampEnvio: new Date()
     });
     cerrarOverlay('overlay-reps-'+pedidoId);
   }catch(e){ alert(e.message); }
