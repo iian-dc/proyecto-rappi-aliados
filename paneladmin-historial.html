@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Historial - Doloya</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -9,14 +9,12 @@
 body{background:#fff;font-family:'Inter',Helvetica,Arial,sans-serif;color:#0f172a}
 .header{max-width:1280px;margin:0 auto;padding:10px 18px 8px;display:flex;align-items:center;border-bottom:1px solid #eef2f7}
 .header-left{display:flex;align-items:center;gap:8px;cursor:pointer}
-.icon-x{width:28px;height:28px;background:#E30613;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.header h1{font-size:18px;font-weight:800;letter-spacing:-0.2px}
-.controls{max-width:1280px;margin:10px auto 0;padding:0 18px;display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.icon-x{width:28px;height:28px;background:#E30613;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.header h1{font-size:18px;font-weight:800}
+.controls{max-width:1280px;margin:10px auto 0;padding:0 18px;display:flex;gap:8px;justify-content:space-between;flex-wrap:wrap}
 .tabs{display:flex;gap:6px;flex-wrap:wrap}
-.tab{border:1.2px solid #e5eaf0;background:white;border-radius:999px;padding:5px 12px;font-size:10.5px;font-weight:700;display:flex;align-items:center;gap:5px;cursor:pointer;color:#334155}
+.tab{border:1.2px solid #e5eaf0;background:white;border-radius:999px;padding:5px 12px;font-size:10.5px;font-weight:700;cursor:pointer}
 .tab.active{background:#E30613;border-color:#E30613;color:white}
-.tab .ic{width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center}
-.ic-green{background:#22c55e}.ic-red{background:#E30613}.ic-gray{background:#475569}
 .search{position:relative;min-width:280px;flex:1;max-width:380px}
 .search input{width:100%;border:1.2px solid #e5eaf0;border-radius:9px;padding:7px 10px 7px 30px;font-size:11px;outline:none}
 .search svg{position:absolute;left:9px;top:50%;transform:translateY(-50%)}
@@ -24,56 +22,44 @@ body{background:#fff;font-family:'Inter',Helvetica,Arial,sans-serif;color:#0f172
 .card{display:grid;grid-template-columns:170px 1px 1fr 1px 210px 115px;gap:0;background:white;border:1px solid #eef2f7;border-radius:10px;padding:8px 12px;align-items:center;min-height:68px}
 .card.entregado{background:#f6fbf6;border-color:#d9ecd9}
 .card.cancelado{background:#fff7f7;border-color:#ffd6d6}
-.card.proceso{background:#fcfcff}
 .badge{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:2px 7px;font-size:9px;font-weight:800;margin-bottom:3px}
 .badge.entregado{background:#22c55e;color:white}
 .badge.cancelado{background:#fecaca;color:#7f1d1d}
-.badge.proceso{background:#475569;color:white}
-.badge .s{width:12px;height:12px;border-radius:50%;background:white;display:flex;align-items:center;justify-content:center}
 .num{font-weight:800;font-size:11.5px}
-.fecha{font-size:9px;color:#64748b;display:flex;gap:3px;margin:1px 0 3px}
-.cliente{font-size:9.5px;color:#334155;display:flex;align-items:center;gap:3px;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fecha{font-size:9px;color:#64748b;margin:1px 0 3px}
+.cliente{font-size:9.5px;color:#334155;display:flex;gap:3px;margin-top:1px}
 .sep{width:1px;background:#eef2f7;height:52px}
 .col-recogida{display:flex;flex-direction:column;gap:6px;padding:0 12px}
 .item{display:flex;gap:6px}
-.item .icon-r{width:16px;height:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .item b{font-size:9.5px;display:block}
-.item span{font-size:9px;color:#64748b;line-height:1.2;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px}
+.item span{font-size:9px;color:#64748b;line-height:1.2}
 .col-precios{padding:0 10px;display:flex;flex-direction:column;gap:4px}
 .precio-row{display:flex;gap:6px;align-items:center}
-.precio-row b{font-size:10px}
 .precio-row span{font-size:8.5px;color:#64748b;display:block}
 .precio-row .val{font-weight:800;font-size:10.5px}
-.total{border-top:1px solid #e2e8f0;padding-top:4px;margin-top:1px;display:flex;justify-content:space-between;align-items:center}
+.total{border-top:1px solid #e2e8f0;padding-top:4px;display:flex;justify-content:space-between}
 .total b{font-size:8.5px;color:#64748b}
 .total .val{font-size:11px;font-weight:900}
-.btn-det{border:1.2px solid #E30613;color:#0f172a;background:white;border-radius:999px;padding:5px 10px;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:4px;cursor:pointer;width:100%}
-.btn-det:hover{background:#E30613;color:white}
-@media(max-width:1024px){.card{grid-template-columns:1fr;gap:8px;min-height:auto}.sep{display:none}}
-
-/* MODAL FULL */
+.btn-det{border:1.2px solid #E30613;background:white;border-radius:999px;padding:5px 10px;font-size:10px;font-weight:800;cursor:pointer;width:100%}
+@media(max-width:1024px){.card{grid-template-columns:1fr;gap:8px}.sep{display:none}}
 .modal{position:fixed;inset:0;background:#fff;display:none;flex-direction:column;z-index:9999;overflow:auto}
 .modal.active{display:flex}
-.modal-top{position:sticky;top:0;background:white;border-bottom:1px solid #eef2f7;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;z-index:2}
+.modal-top{position:sticky;top:0;background:white;border-bottom:1px solid #eef2f7;padding:10px 16px;display:flex;justify-content:space-between;align-items:center}
 .modal-top h2{font-size:14px;font-weight:900}
 .btn-close{background:#111;color:white;border:none;border-radius:999px;padding:6px 12px;font-size:11px;font-weight:800;cursor:pointer}
 .modal-body{max-width:980px;margin:0 auto;padding:14px 16px 40px;width:100%;display:grid;grid-template-columns:1fr 1fr;gap:12px}
 @media(max-width:800px){.modal-body{grid-template-columns:1fr}}
-.box{border:1px solid #eef2f7;border-radius:10px;padding:10px 12px;background:#fff}
-.box h4{font-size:10px;font-weight:800;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.4px;color:#0f172a;border-bottom:1px solid #f1f5f9;padding-bottom:5px}
+.box{border:1px solid #eef2f7;border-radius:10px;padding:10px 12px}
+.box h4{font-size:10px;font-weight:800;margin-bottom:6px;text-transform:uppercase;border-bottom:1px solid #f1f5f9;padding-bottom:5px}
 .row-s{display:flex;justify-content:space-between;padding:3px 0;font-size:10px}
 .row-s b{color:#475569;font-weight:600}
 .row-s span{font-weight:700;text-align:right;max-width:62%;word-break:break-word}
-.timeline-d{display:flex;flex-direction:column;gap:5px}
 .t-item{display:flex;gap:6px;align-items:center;font-size:10px;padding:4px 7px;border-radius:7px;background:#f8fafc}
 .t-item.ok{background:#f0fdf4;border:1px solid #bbf7d0}
 .t-item.bad{background:#fef2f2;border:1px solid #fecaca}
-.t-item .dot{width:14px;height:14px;border-radius:50%;background:#e2e8f0;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:8px}
 .presupuesto{grid-column:1/-1}
 .pres-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed #eef2f7;font-size:10.5px}
-.pres-row.total-final{font-weight:900;font-size:12px;border-bottom:none;background:#f8fafc;padding:8px;border-radius:8px;margin-top:5px}
-.badge-mini{font-size:8px;padding:1px 5px;border-radius:999px;background:#eef2f7}
-.loading{text-align:center;padding:30px;font-size:12px;color:#64748b}
+.pres-row.total-final{font-weight:900;font-size:12px;background:#f8fafc;padding:8px;border-radius:8px;border:none}
 </style>
 </head>
 <body>
@@ -88,23 +74,19 @@ body{background:#fff;font-family:'Inter',Helvetica,Arial,sans-serif;color:#0f172
 <div class="controls">
   <div class="tabs">
     <button class="tab active" data-f="todos">Todos</button>
-    <button class="tab" data-f="entregado"><span class="ic ic-green"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span>Entregados</button>
-    <button class="tab" data-f="cancelado"><span class="ic ic-red"><svg width="7" height="7" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>Cancelados</button>
-    <button class="tab" data-f="proceso"><span class="ic ic-gray"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>En proceso</button>
+    <button class="tab" data-f="entregado">Entregados</button>
+    <button class="tab" data-f="cancelado">Cancelados</button>
   </div>
   <div class="search">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2"><circle cx="11" cy="11" r="6"/><line x1="16.5" y1="16.5" x2="22" y2="22"/></svg>
-    <input id="buscador" placeholder="Buscar por número, cliente o fecha...">
+    <input id="buscador" placeholder="Buscar por número, cliente...">
   </div>
 </div>
 
-<div class="list" id="lista"><div class="loading">Cargando pedidos de doloya-historial...</div></div>
+<div class="list" id="lista"><div style="text-align:center;padding:30px;font-size:12px;color:#64748b">Cargando de doloya-historial...</div></div>
 
 <div class="modal" id="modal">
-  <div class="modal-top">
-    <h2 id="modalTitle">Detalles del pedido</h2>
-    <button class="btn-close" onclick="document.getElementById('modal').classList.remove('active')">Cerrar X</button>
-  </div>
+  <div class="modal-top"><h2 id="modalTitle">Detalles</h2><button class="btn-close" onclick="document.getElementById('modal').classList.remove('active')">Cerrar X</button></div>
   <div class="modal-body" id="modalBody"></div>
 </div>
 
@@ -118,8 +100,7 @@ const firebaseConfig = {
   projectId: "doloya-historial",
   storageBucket: "doloya-historial.firebasestorage.app",
   messagingSenderId: "41258055121",
-  appId: "1:41258055121:web:19a443786320e04ebd9cf0",
-  measurementId: "G-ENELTJ1X6R"
+  appId: "1:41258055121:web:19a443786320e04ebd9cf0"
 };
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
@@ -129,53 +110,37 @@ let filtro = "todos";
 
 function toHora(ts){
   if(!ts) return '-';
-  try{
-    const d = ts.toDate ? ts.toDate() : new Date(ts);
-    if(isNaN(d.getTime())) return typeof ts === 'string' ? ts : '-';
-    return d.toLocaleString('es-MX',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
-  }catch{ return typeof ts === 'string' ? ts : '-'; }
+  try{ const d = ts.toDate ? ts.toDate() : new Date(ts); return isNaN(d.getTime()) ? (typeof ts==='string'?ts:'-') : d.toLocaleString('es-MX',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}); }catch{ return typeof ts==='string'?ts:'-'; }
 }
 
-function parseFirebaseDoc(docSnap){
+function parseDoc(docSnap){
   const data = docSnap.data();
   const id = docSnap.id;
   const fechaBase = data.fechaCancelacion || data.fechaEntrega || data.fechaFinalizado || data.enviadoAHistorialEn || data.timestamp || data.createdAt || new Date().toISOString();
   const f = fechaBase?.toDate ? fechaBase.toDate() : new Date(fechaBase);
-  
-  const estadoRaw = String(data.estado || data.estadoOriginal || data.estadoVisual || '').toLowerCase();
-  let estadoVisual='proceso', label='En proceso';
-  if(estadoRaw.includes('cancel')){ estadoVisual='cancelado'; label='Cancelado'; }
-  else if(estadoRaw.includes('entreg') || estadoRaw.includes('final')){ estadoVisual='entregado'; label='Entregado'; }
+  const estadoRaw = String(data.estado || data.estadoOriginal || '').toLowerCase();
+  let estadoVisual = estadoRaw.includes('cancel') ? 'cancelado' : 'entregado';
+  let label = estadoVisual==='cancelado' ? 'Cancelado' : 'Entregado';
 
-  // VALORES REALES DE TU FIREBASE - NO INVENTADOS
-  const prod = Number(data.totales?.subtotal ?? data.totales?.producto ?? data.producto ?? data.valorProducto ?? data.subtotal ?? 0);
-  const envio = Number(data.totales?.envio ?? data.tarifaEnvio ?? data.envio ?? data.costoEnvio ?? 0);
-  const servicio = Number(data.totales?.servicio ?? data.tarifaServicio ?? data.servicio ?? 0);
+  const prod = Number(data.totales?.subtotal ?? data.producto ?? data.valorProducto ?? 0);
+  const envio = Number(data.totales?.envio ?? data.tarifaEnvio ?? data.envio ?? 0);
+  const servicio = Number(data.totales?.servicio ?? data.servicio ?? 0);
   const total = Number(data.totales?.total ?? data.total ?? (prod+envio+servicio) ?? 0);
 
   return {
-    id,
-    codigo: String(data.codigo || data.idOriginal || id).replace('#','').replace('ST-',''),
-    cliente: data.nombre || data.cliente?.nombre || data.datosCliente?.nombre || 'Cliente',
-    telefono: data.telefono || data.cliente?.telefono || data.cliente?.celular || data.datosCliente?.telefono || '-',
-    coloniaEntrega: data.coloniaEntrega || data.cliente?.colonia || data.direccionEntrega || 'Col. Centro',
-    tienda: data.restaurante?.nombre || data.tienda || data.nombreRestaurante || 'Tienda',
-    colTienda: data.restaurante?.colonia || data.colTienda || 'Col. Centro',
-    direccion: data.direccionEntrega || data.cliente?.direccion || data.direccion || '-',
-    gps: data.gps || data.ubicacionCompleta?.gpsActualCliente || data.cliente?.gps || {lat: data.cliente?.lat||null, lng: data.cliente?.lng||null},
-    producto: prod,
-    envio: envio,
-    servicio: servicio,
-    total: total,
+    id, codigo: String(data.codigo || id).replace('#','').replace('ST-',''),
+    cliente: data.nombre || data.cliente?.nombre || 'Cliente',
+    telefono: data.telefono || data.cliente?.telefono || '-',
+    coloniaEntrega: data.coloniaEntrega || data.cliente?.colonia || 'Col. Centro',
+    tienda: data.restaurante?.nombre || data.tienda || 'Tienda',
+    colTienda: data.restaurante?.colonia || 'Col. Centro',
+    direccion: data.direccionEntrega || data.cliente?.direccion || '-',
+    gps: data.gps || {lat: data.cliente?.lat||null, lng: data.cliente?.lng||null},
+    producto: prod, envio, servicio, total,
     fechaStr: isNaN(f.getTime()) ? '-' : f.toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'numeric'}),
     horaStr: isNaN(f.getTime()) ? '-' : f.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'}),
-    estadoVisual, estadoLabel: label,
-    raw: data,
-    timestamps: data.timestamps || data.tiempos || data.historialEstados || {},
-    acciones: data.acciones || data.logs || data.interacciones || {},
-    repartidor: data.repartidorNombre || data.repartidor?.nombre || data.canceladoPorNombre || '-',
-    motivo: data.motivoCancelacion || data.detalleCancelacion || data.motivo || '-',
-    _fechaObj: f
+    estadoVisual, estadoLabel: label, raw: data, timestamps: data.timestamps||{}, acciones: data.acciones||{},
+    repartidor: data.repartidorNombre || data.canceladoPorNombre || '-', motivo: data.motivoCancelacion || data.detalleCancelacion || '-', _fechaObj: f
   };
 }
 
@@ -183,147 +148,98 @@ function renderLista(data){
   const q = document.getElementById('buscador').value.toLowerCase().trim();
   let filtrados = data.filter(p=>{
     if(filtro!=='todos' && p.estadoVisual!==filtro) return false;
-    if(q){
-      return p.codigo.toLowerCase().includes(q) || 
-             String('#'+p.codigo).toLowerCase().includes(q) ||
-             p.cliente.toLowerCase().includes(q) ||
-             p.telefono.toLowerCase().includes(q) ||
-             p.fechaStr.toLowerCase().includes(q);
-    }
+    if(q){ return p.codigo.toLowerCase().includes(q) || p.cliente.toLowerCase().includes(q) || p.telefono.toLowerCase().includes(q); }
     return true;
-  });
-  filtrados.sort((a,b)=> b._fechaObj - a._fechaObj);
+  }).sort((a,b)=> b._fechaObj - a._fechaObj);
   
   document.getElementById('lista').innerHTML = filtrados.map(p=>`
     <div class="card ${p.estadoVisual}">
       <div>
-        <div class="badge ${p.estadoVisual}"><span class="s">${p.estadoVisual==='entregado'?`<svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>`:p.estadoVisual==='cancelado'?`<svg width="7" height="7" viewBox="0 0 24 24" fill="none" stroke="#E30613" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`:`<svg width="7" height="7" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>`}</span>${p.estadoLabel}</div>
-        <div class="num">#${p.codigo}</div>
+        <div class="badge ${p.estadoVisual}">${p.estadoLabel}</div>
+        <div style="font-weight:800;font-size:11.5px">#${p.codigo}</div>
         <div class="fecha">${p.fechaStr} • ${p.horaStr}</div>
-        <div class="cliente"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#334155" stroke-width="2"><circle cx="12" cy="8" r="3"/><path d="M4 20c0-4 3.5-6 8-6s8 2 8 6"/></svg> ${p.cliente}</div>
-        <div class="cliente"><svg width="9" height="9" viewBox="0 0 24 24" fill="#0f172a"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg> ${p.coloniaEntrega}</div>
+        <div class="cliente">${p.cliente}</div>
+        <div class="cliente" style="font-size:9px">${p.coloniaEntrega}</div>
       </div>
       <div class="sep"></div>
       <div class="col-recogida">
-        <div class="item"><div class="icon-r"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#E30613" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></div><div><b>Recogida</b><span>${p.tienda}<br>${p.colTienda}</span></div></div>
-        <div class="item"><div class="icon-r"><svg width="13" height="13" viewBox="0 0 24 24" fill="#E30613"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg></div><div><b>Entrega</b><span>${p.direccion}<br>${p.coloniaEntrega}</span></div></div>
+        <div class="item"><b>Recogida</b><span> ${p.tienda} - ${p.colTienda}</span></div>
+        <div class="item"><b>Entrega</b><span> ${p.direccion}</span></div>
       </div>
       <div class="sep"></div>
       <div class="col-precios">
-        <div class="precio-row"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#334155" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg><div><span>Producto / Servicio</span><b class="val">$${p.producto.toFixed(2)}</b></div></div>
-        <div class="precio-row"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#334155" stroke-width="2"><path d="M1 8h15v8H1z"/><path d="M16 11h4l3 3v3h-7V11z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg><div><span>Tarifa de envío</span><b class="val">$${p.envio.toFixed(2)}</b></div></div>
+        <div class="precio-row"><span>Producto</span><b class="val">$${p.producto.toFixed(2)}</b></div>
+        <div class="precio-row"><span>Envío</span><b class="val">$${p.envio.toFixed(2)}</b></div>
         <div class="total"><b>Total</b><div class="val">$${p.total.toFixed(2)}</div></div>
       </div>
       <div style="padding-left:8px"><button class="btn-det" onclick="abrirDetalle('${p.id}')">Ver detalles</button></div>
     </div>
-  `).join('') || '<div class="loading">No hay pedidos con ese número / filtro</div>';
+  `).join('') || '<div style="text-align:center;padding:30px;font-size:12px;color:#64748b">Sin pedidos</div>';
 }
 
-function escucharColeccion(nombre){
-  try{
-    onSnapshot(collection(db, nombre), (snap)=>{
-      const nuevos = snap.docs.map(parseFirebaseDoc);
-      // merge sin duplicados por id
-      const map = new Map();
-      [...todosPedidos, ...nuevos].forEach(p=> map.set(p.id, p));
-      todosPedidos = Array.from(map.values());
-      renderLista(todosPedidos);
-    }, (err)=>{ console.log('Error',nombre,err); });
-  }catch(e){ console.log(e); }
+function escuchar(nombre){
+  onSnapshot(collection(db, nombre), (snap)=>{
+    const nuevos = snap.docs.map(parseDoc);
+    const map = new Map(); [...todosPedidos, ...nuevos].forEach(p=> map.set(p.id, p));
+    todosPedidos = Array.from(map.values());
+    renderLista(todosPedidos);
+  });
 }
 
-// Escucha todas tus colecciones reales de doloya-historial
-escucharColeccion("pedidos_cancelados");
-escucharColeccion("pedidos_historial");
-escucharColeccion("pedidos_entregados");
-escucharColeccion("clientes_reportados_no_recibe");
-escucharColeccion("pedidos");
+escuchar("pedidos_cancelados");
+escuchar("pedidos_entregados");
 
 document.querySelectorAll('.tab').forEach(t=>{
   t.addEventListener('click',()=>{
     document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
-    t.classList.add('active');
-    filtro=t.dataset.f;
-    renderLista(todosPedidos);
+    t.classList.add('active'); filtro=t.dataset.f; renderLista(todosPedidos);
   });
 });
 document.getElementById('buscador').addEventListener('input',()=>renderLista(todosPedidos));
 
 window.abrirDetalle = (id)=>{
-  const p = todosPedidos.find(x=>x.id===id);
-  if(!p) return;
-  const raw = p.raw;
-  const prod = p.producto||0;
-  const envio = p.envio||0;
-  const serv = p.servicio||0;
-  const total = p.total||0;
-  const comisionRest = prod*0.10;
-  const pagaRest = prod - comisionRest;
-  const pagaRepa = envio*0.80;
-  const ganancia = comisionRest + (envio - pagaRepa) + serv;
-
-  document.getElementById('modalTitle').textContent = `#${p.codigo} - ${p.estadoLabel}`;
-  document.getElementById('modalBody').innerHTML = `
-    <div class="box">
-      <h4>Datos del cliente</h4>
+  const p = todosPedidos.find(x=>x.id===id); if(!p) return;
+  const raw = p.raw; const prod=p.producto||0, envio=p.envio||0, serv=p.servicio||0, total=p.total||0;
+  const comision=prod*0.10, pagaRest=prod-comision, pagaRepa=envio*0.80, ganancia=comision+(envio-pagaRepa)+serv;
+  document.getElementById('modalTitle').textContent=`#${p.codigo} - ${p.estadoLabel}`;
+  document.getElementById('modalBody').innerHTML=`
+    <div class="box"><h4>Cliente</h4>
       <div class="row-s"><b>Nombre</b><span>${p.cliente}</span></div>
-      <div class="row-s"><b>Teléfono</b><span>${p.telefono}</span></div>
-      <div class="row-s"><b>Dirección</b><span>${p.direccion}</span></div>
-      <div class="row-s"><b>Colonia</b><span>${p.coloniaEntrega}</span></div>
-      <div class="row-s"><b>GPS Lat</b><span>${p.gps?.lat||raw.cliente?.lat||'-'}</span></div>
-      <div class="row-s"><b>GPS Lng</b><span>${p.gps?.lng||raw.cliente?.lng||'-'}</span></div>
-      <div class="row-s"><b>ID</b><span>${p.id}</span></div>
+      <div class="row-s"><b>Tel</b><span>${p.telefono}</span></div>
+      <div class="row-s"><b>Dir</b><span>${p.direccion}</span></div>
+      <div class="row-s"><b>GPS</b><span>${p.gps?.lat||''}, ${p.gps?.lng||''}</span></div>
     </div>
-    <div class="box">
-      <h4>Datos restaurante</h4>
+    <div class="box"><h4>Restaurante</h4>
       <div class="row-s"><b>Nombre</b><span>${p.tienda}</span></div>
-      <div class="row-s"><b>Colonia</b><span>${p.colTienda}</span></div>
-      <div class="row-s"><b>Dirección</b><span>${raw.restaurante?.direccion||'-'}</span></div>
-      <div class="row-s"><b>Tel</b><span>${raw.restaurante?.telefono||'-'}</span></div>
+      <div class="row-s"><b>Dir</b><span>${raw.restaurante?.direccion||'-'}</span></div>
     </div>
-    <div class="box">
-      <h4>Tiempos - Restaurante</h4>
-      <div class="timeline-d">
-        <div class="t-item ${raw.timestamps?.nuevo||raw.createdAt?'ok':''}"><div class="dot">●</div><b>Nuevo:</b> ${toHora(raw.timestamps?.nuevo||raw.createdAt||raw.timestamp)}</div>
-        <div class="t-item ${raw.timestamps?.aceptado?'ok':''}"><div class="dot">✓</div><b>Aceptado:</b> ${toHora(raw.timestamps?.aceptado)||raw.timestamps?.aceptado||'-'}</div>
-        <div class="t-item ${raw.timestamps?.preparando||raw.timestamps?.en_preparacion?'ok':''}"><div class="dot">◷</div><b>Preparando:</b> ${toHora(raw.timestamps?.preparando||raw.timestamps?.en_preparacion)||'-'}</div>
-        <div class="t-item ${raw.timestamps?.listo||raw.timestamps?.listo_para_admin?'ok':''}"><div class="dot">★</div><b>Listo:</b> ${toHora(raw.timestamps?.listo||raw.timestamps?.listo_para_admin)||'-'}</div>
-        <div class="t-item ${raw.timestamps?.enviado_a_repartidor?'ok':''}"><div class="dot">→</div><b>Enviado a repartidor:</b> ${toHora(raw.timestamps?.enviado_a_repartidor)||'-'}</div>
-      </div>
+    <div class="box"><h4>Tiempos Restaurante</h4>
+      <div class="t-item ${raw.timestamps?.aceptado?'ok':''}">Aceptado: ${toHora(raw.timestamps?.aceptado)}</div>
+      <div class="t-item ${raw.timestamps?.preparando?'ok':''}">Preparando: ${toHora(raw.timestamps?.preparando)}</div>
+      <div class="t-item ${raw.timestamps?.listo?'ok':''}">Listo: ${toHora(raw.timestamps?.listo)}</div>
     </div>
-    <div class="box">
-      <h4>Tiempos - Repartidor</h4>
-      <div class="timeline-d">
-        <div class="row-s"><b>Repartidor</b><span>${p.repartidor}</span></div>
-        <div class="t-item ${raw.timestamps?.ir_a_recoger?'ok':''}"><div class="dot">◷</div><b>Ir a recoger:</b> ${toHora(raw.timestamps?.ir_a_recoger)||'-'}</div>
-        <div class="t-item ${raw.timestamps?.recogido?'ok':''}"><div class="dot">✓</div><b>Recogido:</b> ${toHora(raw.timestamps?.recogido)||'-'}</div>
-        <div class="t-item ${raw.timestamps?.ir_a_entregar||raw.timestamps?.en_camino?'ok':''}"><div class="dot">→</div><b>En camino / Ir a entregar:</b> ${toHora(raw.timestamps?.ir_a_entregar||raw.timestamps?.en_camino)||'-'}</div>
-        <div class="t-item ${raw.timestamps?.finalizado||raw.timestamps?.entregado?'ok':''}"><div class="dot">★</div><b>Finalizado:</b> ${toHora(raw.timestamps?.finalizado||raw.timestamps?.entregado)||'-'}</div>
-        <div class="t-item ${p.estadoVisual==='cancelado'?'bad':''}"><div class="dot">X</div><b>Cancelado:</b> ${p.motivo} - ${toHora(raw.timestamps?.cancelado)||''}</div>
-      </div>
+    <div class="box"><h4>Tiempos Repartidor</h4>
+      <div class="t-item ${raw.timestamps?.ir_a_recoger?'ok':''}">Ir a recoger: ${toHora(raw.timestamps?.ir_a_recoger)}</div>
+      <div class="t-item ${raw.timestamps?.recogido?'ok':''}">Recogido: ${toHora(raw.timestamps?.recogido)}</div>
+      <div class="t-item ${raw.timestamps?.en_camino?'ok':''}">En camino: ${toHora(raw.timestamps?.en_camino)}</div>
+      <div class="t-item ${raw.timestamps?.finalizado?'ok':''}">Finalizado: ${toHora(raw.timestamps?.finalizado)}</div>
+      <div class="t-item ${p.estadoVisual==='cancelado'?'bad':''}">Cancelado: ${p.motivo} - ${toHora(raw.timestamps?.cancelado)}</div>
     </div>
-    <div class="box">
-      <h4>Interacciones</h4>
-      <div class="row-s"><b>Llamar cliente</b><span>${raw.acciones?.llamar_cliente||raw.acciones?.click_llamar||p.raw.acciones?.llamar||'-'}</span></div>
-      <div class="row-s"><b>Llamar restaurante</b><span>${raw.acciones?.llamar_restaurante||'-'}</span></div>
-      <div class="row-s"><b>Click Mapa</b><span>${raw.acciones?.click_mapa||raw.acciones?.ver_mapa||'-'}</span></div>
-      <div class="row-s"><b>UserAgent</b><span style="font-size:8px">${raw.userAgent||'-'}</span></div>
+    <div class="box"><h4>Interacciones</h4>
+      <div class="row-s"><b>Llamar cliente</b><span>${raw.acciones?.llamar_cliente||'-'}</span></div>
+      <div class="row-s"><b>Mapa</b><span>${raw.acciones?.click_mapa||'-'}</span></div>
     </div>
-    <div class="box">
-      <h4>Productos del pedido</h4>
-      ${(raw.productos||raw.items||[]).map(pr=>`<div class="row-s"><b>${pr.nombre||pr.name||'Producto'}</b><span>x${pr.cantidad||pr.qty||1} - $${pr.precio||pr.price||0}</span></div>`).join('') || `<div class="row-s"><b>Producto</b><span>$${p.producto.toFixed(2)}</span></div>`}
+    <div class="box"><h4>Productos</h4>
+      ${(raw.productos||[]).map(pr=>`<div class="row-s"><b>${pr.nombre||'Prod'}</b><span>x${pr.cantidad||1} $${pr.precio||0}</span></div>`).join('')||`$${prod.toFixed(2)}`}
     </div>
-    <div class="box presupuesto">
-      <h4>Presupuesto y desglose real Firebase</h4>
-      <div class="pres-row"><span>Valor productos</span><b>$${prod.toFixed(2)}</b></div>
-      <div class="pres-row"><span>Tarifa de envío</span><b>$${envio.toFixed(2)}</b></div>
-      <div class="pres-row"><span>Tarifa de servicio</span><b>$${serv.toFixed(2)}</b></div>
-      <div class="pres-row total-final"><span>Total pagado</span><b>$${total.toFixed(2)}</b></div>
-      <div style="height:8px"></div>
-      <div class="pres-row"><span>Restaurante recibe (-10%)</span><b>$${pagaRest.toFixed(2)} <span class="badge-mini">-${comisionRest.toFixed(2)}</span></b></div>
-      <div class="pres-row"><span>Repartidor gana (80% envío)</span><b>$${pagaRepa.toFixed(2)}</b></div>
-      <div class="pres-row"><span>Plataforma gana</span><b>$${ganancia.toFixed(2)}</b></div>
-      <div class="pres-row"><span>Motivo cancelación</span><b>${p.motivo}</b></div>
+    <div class="box presupuesto"><h4>Desglose</h4>
+      <div class="pres-row"><span>Producto</span><b>$${prod.toFixed(2)}</b></div>
+      <div class="pres-row"><span>Envío</span><b>$${envio.toFixed(2)}</b></div>
+      <div class="pres-row"><span>Servicio</span><b>$${serv.toFixed(2)}</b></div>
+      <div class="pres-row total-final"><span>Total</span><b>$${total.toFixed(2)}</b></div>
+      <div class="pres-row"><span>Rest (-10%)</span><b>$${pagaRest.toFixed(2)}</b></div>
+      <div class="pres-row"><span>Repartidor (80% envío)</span><b>$${pagaRepa.toFixed(2)}</b></div>
+      <div class="pres-row"><span>Plataforma</span><b>$${ganancia.toFixed(2)}</b></div>
     </div>
   `;
   document.getElementById('modal').classList.add('active');
