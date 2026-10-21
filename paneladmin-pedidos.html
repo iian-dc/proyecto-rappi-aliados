@@ -73,12 +73,16 @@ body{background:#FAFAFA;min-height:100vh}
 .rep-est.ocupado{background:#fee2e2;color:#ef4444}
 .btn-enviar-rep{background:#B70A1A;color:white;border:none;border-radius:8px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;width:100%}
 .btn-enviar-rep:disabled{background:#94a3b8}
-.hist-box{width:360px}
+.hist-box{width:380px}
 .hist-title{font-size:14px;font-weight:800;color:#111;margin-bottom:6px}
 .hist-sub{font-size:11px;color:#64748b;margin-bottom:14px}
 .hist-actions{display:flex;gap:10px;justify-content:center}
 .btn-si{background:#16a34a;color:white;border:none;border-radius:10px;padding:10px 18px;font-size:12px;font-weight:800;cursor:pointer;flex:1;box-shadow:0 3px 10px rgba(22,163,74,.3)}
 .btn-no{background:white;color:#475569;border:1px solid #e2e8f0;border-radius:10px;padding:10px 18px;font-size:12px;font-weight:700;cursor:pointer;flex:1}
+.btn-cancelado-rojo{width:100%;background:#E30613;color:white;border:none;border-radius:10px;padding:11px 14px;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;box-shadow:0 3px 10px rgba(227,6,19,.25)}
+.cancel-info-box{text-align:left;background:#fff1f2;border:1px solid #fecaca;border-radius:10px;padding:10px;margin-top:10px}
+.cancel-info-box b{font-size:11px;color:#E30613}
+.cancel-info-box p{font-size:11px;color:#334155;margin-top:4px}
 </style>
 </head>
 <body>
@@ -111,7 +115,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebas
 import { getFirestore, collection, onSnapshot, doc, updateDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js";
 
-// BASE 1 - DONDE SE ELIMINA (confirmacion)
 const configAdmin = {
   apiKey: "AIzaSyDLKngPyi_SWAXEQwdrHO5h8L8OufulAR4",
   authDomain: "doloya-confirmacion.firebaseapp.com",
@@ -123,7 +126,6 @@ const configAdmin = {
 const appAdmin = initializeApp(configAdmin);
 const db = getFirestore(appAdmin);
 
-// BASE 2 - DONDE SE GUARDA (historial - la que me enviaste)
 const configHistorial = {
   apiKey: "AIzaSyCRx4B7mO444s0yU-WTnsqMjBHDWX4IRv8",
   authDomain: "doloya-historial.firebaseapp.com",
@@ -231,6 +233,20 @@ function render(){
     let step=0; if(p.estado==='recogido') step=1; if(p.estado==='en_camino') step=2; if(['finalizado','entregado'].includes(p.estado)) step=3;
     const yaEnviado = !['nuevo','listo_para_admin','listo','sin_enviar'].includes(p.estado);
     const esFinalizado = ['finalizado','entregado'].includes(p.estado);
+    const esCancelado = p.estado==='cancelado';
+
+    let accionesHtml = '';
+    if(esCancelado){
+      accionesHtml = `
+        <button class="btn-cancelado-rojo" onclick="verCancelado('${p.id}')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          Pedido fue cancelado - ${p.motivoCancelacion||'Sin motivo'}
+        </button>`;
+    }else{
+      accionesHtml = `
+        <button class="btn-rojo" ${yaEnviado?'disabled':''} onclick="toggleRepartidores('${p.id}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> ${yaEnviado?'Enviado a '+(p.repartidorNombre||'repartidor'):'Enviar a repartidor'}</button>
+        <button class="${esFinalizado ? 'btn-verde' : 'btn-gris'}" ${esFinalizado ? '' : 'disabled'} onclick="confirmarHistorial('${p.id}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Enviar a historial</button>`;
+    }
 
     return `
     <div class="card" id="card-${p.id}">
@@ -260,8 +276,7 @@ function render(){
         </div>
       </div>
       <div class="acciones">
-        <button class="btn-rojo" ${yaEnviado?'disabled':''} onclick="toggleRepartidores('${p.id}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> ${yaEnviado?'Enviado a '+(p.repartidorNombre||'repartidor'):'Enviar a repartidor'}</button>
-        <button class="${esFinalizado ? 'btn-verde' : 'btn-gris'}" ${esFinalizado ? '' : 'disabled'} onclick="confirmarHistorial('${p.id}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Enviar a historial</button>
+        ${accionesHtml}
       </div>
 
       <div class="card-overlay" id="overlay-reps-${p.id}">
@@ -297,6 +312,22 @@ function render(){
           <div class="hist-actions">
             <button class="btn-no" onclick="cerrarOverlay('overlay-hist-${p.id}')">No</button>
             <button class="btn-si" onclick="siEnviarHistorial('${p.id}')">Sí, enviar</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-overlay" id="overlay-cancelado-${p.id}">
+        <div class="overlay-box hist-box" style="text-align:left">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><b style="font-size:13px;color:#E30613">Pedido cancelado #${id}</b><button class="btn-borde" onclick="cerrarOverlay('overlay-cancelado-${p.id}')">✕</button></div>
+          <div class="cancel-info-box">
+            <b>Motivo:</b><p>${p.motivoCancelacion||'No especificado'}</p>
+            ${p.detalleCancelacion ? `<b style="margin-top:8px;display:block">Detalle:</b><p>${p.detalleCancelacion}</p>` : ''}
+            <b style="margin-top:8px;display:block">Cancelado por:</b><p>${p.canceladoPorNombre||p.canceladoPor||'Repartidor'} - ${p.canceladoEn ? new Date(p.canceladoEn.seconds ? p.canceladoEn.seconds*1000 : p.canceladoEn).toLocaleString('es-MX') : ''}</p>
+            <b style="margin-top:8px;display:block">Cliente:</b><p>${cliente} - ${tel}</p>
+          </div>
+          <div class="hist-actions" style="margin-top:14px">
+            <button class="btn-no" onclick="cerrarOverlay('overlay-cancelado-${p.id}')">Cerrar</button>
+            <button class="btn-si" style="background:#E30613" onclick="siEnviarCanceladoHistorial('${p.id}')">Enviar a historial</button>
           </div>
         </div>
       </div>
@@ -338,6 +369,7 @@ window.toggleRepartidores = (pedidoId)=>{
 window.cerrarOverlay = (id)=>{ document.getElementById(id)?.classList.remove('open'); }
 window.verDetalles = (id)=>{ document.getElementById('overlay-det-'+id)?.classList.add('open'); }
 window.confirmarHistorial = (id)=>{ document.getElementById('overlay-hist-'+id)?.classList.add('open'); }
+window.verCancelado = (id)=>{ document.getElementById('overlay-cancelado-'+id)?.classList.add('open'); }
 
 window.asignarRepartidor = async (pedidoId, repId, repNombre)=>{
   try{
@@ -355,16 +387,10 @@ window.asignarRepartidor = async (pedidoId, repId, repNombre)=>{
 window.siEnviarHistorial = async (id)=>{
   const pedido = pedidosCache.find(p=>p.id===id);
   if(!pedido){ alert('Pedido no encontrado'); return; }
-  
-  // 1. QUITAR VISUAL AL INSTANTE
-  const cardEl = document.getElementById('card-'+id);
-  if(cardEl){ cardEl.style.opacity='0'; cardEl.style.transform='scale(0.95)'; }
   const copiaPedidos = [...pedidosCache];
   pedidosCache = pedidosCache.filter(p=>p.id!==id);
   render();
-
   try{
-    // 2. GUARDAR EN doloya-historial / pedidos_entregados
     await setDoc(doc(dbHistorial, "pedidos_entregados", id), {
       ...pedido,
       estado: 'historial',
@@ -373,13 +399,32 @@ window.siEnviarHistorial = async (id)=>{
       fechaEntrega: new Date(),
       guardadoDesde: 'doloya-confirmacion'
     });
-
-    // 3. ELIMINAR DE doloya-confirmacion / pedidos_admin
     await deleteDoc(doc(db, "pedidos_admin", id));
-
   }catch(e){
-    console.error('Error historial:', e);
-    alert('Error al enviar a historial: '+e.message);
+    console.error(e);
+    alert('Error: '+e.message);
+    pedidosCache = copiaPedidos;
+    render();
+  }
+}
+
+window.siEnviarCanceladoHistorial = async (id)=>{
+  const pedido = pedidosCache.find(p=>p.id===id);
+  if(!pedido){ alert('Pedido no encontrado'); return; }
+  const copiaPedidos = [...pedidosCache];
+  pedidosCache = pedidosCache.filter(p=>p.id!==id);
+  render();
+  try{
+    await setDoc(doc(dbHistorial, "pedidos_cancelados", id), {
+      ...pedido,
+      estado: 'cancelado_historial',
+      enviadoAHistorialEn: new Date(),
+      guardadoDesde: 'doloya-confirmacion'
+    });
+    await deleteDoc(doc(db, "pedidos_admin", id));
+  }catch(e){
+    console.error(e);
+    alert('Error: '+e.message);
     pedidosCache = copiaPedidos;
     render();
   }
