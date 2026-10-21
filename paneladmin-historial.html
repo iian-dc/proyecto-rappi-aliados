@@ -32,7 +32,6 @@ body{background:#fff;font-family:'Inter',Helvetica,Arial,sans-serif;color:#0f172
 .badge.entregado{background:#22c55e;color:white}
 .badge.cancelado{background:#fecaca;color:#7f1d1d}
 .badge .s{width:12px;height:12px;border-radius:50%;background:white;display:flex;align-items:center;justify-content:center}
-.num{font-weight:800;font-size:11.5px}
 .fecha{font-size:9px;color:#64748b;margin:1px 0 3px}
 .cliente{font-size:9.5px;color:#334155;display:flex;gap:3px;margin-top:1px}
 .sep{width:1px;background:#eef2f7;height:52px}
@@ -86,7 +85,7 @@ body{background:#fff;font-family:'Inter',Helvetica,Arial,sans-serif;color:#0f172
   </div>
   <div class="search">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2"><circle cx="11" cy="11" r="6"/><line x1="16.5" y1="16.5" x2="22" y2="22"/></svg>
-    <input id="buscador" placeholder="Buscar por número de pedido...">
+    <input id="buscador" placeholder="Filtrar por número de pedido...">
   </div>
 </div>
 
@@ -121,17 +120,18 @@ const db = getFirestore(app);
 
 let todosPedidos = [];
 let filtro = "todos";
-let filtroMes = "", filtroDia = "", filtroCliente = "";
+let filtroMes = "", filtroDia = "";
 
-function toHora(ts){ if(!ts) return '-'; try{ const d = ts.toDate ? ts.toDate() : new Date(ts); return isNaN(d.getTime()) ? (typeof ts==='string'?ts:'-') : d.toLocaleString('es-MX',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}); }catch{ return typeof ts==='string'?ts:'-'; } }
+function normalize(t){ return String(t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim(); }
+function toHoraFull(ts){ if(!ts) return '-'; try{ const d = ts.toDate ? ts.toDate() : new Date(ts); if(isNaN(d.getTime())) return typeof ts==='string'?ts:'-'; return d.toLocaleString('es-MX',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}); }catch{ return '-'; } }
+function toSoloHora(ts){ if(!ts) return '-'; try{ const d = ts.toDate ? ts.toDate() : new Date(ts); if(isNaN(d.getTime())){ if(typeof ts==='string' && ts.includes(':')) return ts; return '-'; } return d.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit',hour12:true}); }catch{ return '-'; } }
 function num(v){ if(v==null) return 0; if(typeof v==='number') return v; let s=String(v).replace(/[^0-9.,-]/g,'').replace(',','.'); let n=parseFloat(s); return isNaN(n)?0:n; }
-
-function buscarTiempo(raw, palabras){
+function buscar(raw, palabras){
   if(!raw || typeof raw!=='object') return null;
   for(let k in raw){
     let kl = k.toLowerCase();
     for(let p of palabras){ if(kl.includes(p)) return raw[k]; }
-    if(typeof raw[k]==='object'){ let r=buscarTiempo(raw[k], palabras); if(r) return r; }
+    if(typeof raw[k]==='object'){ let r=buscar(raw[k], palabras); if(r && r!=='-' && r!=='') return r; }
   }
   return null;
 }
@@ -143,31 +143,34 @@ function parseDoc(docSnap){
   const estadoRaw = String(data.estado || data.estadoOriginal || '').toLowerCase();
   let estadoVisual = estadoRaw.includes('cancel') ? 'cancelado' : 'entregado';
   let label = estadoVisual==='cancelado' ? 'Cancelado' : 'Entregado';
-
   let prod = 0, envio = 0, servicio = 0, total = 0;
-  if(data.totales){ prod = num(data.totales.subtotal || data.totales.producto || data.totales.productos || data.totales.valorProducto); envio = num(data.totales.envio || data.totales.tarifaEnvio || data.totales.costoEnvio); servicio = num(data.totales.servicio || data.totales.tarifaServicio); total = num(data.totales.total); }
-  if(!prod) prod = num(data.producto || data.valorProducto || data.subtotal || data.productosTotal);
-  if(!envio) envio = num(data.envio || data.tarifaEnvio || data.costoEnvio || data.valorEnvio);
+  if(data.totales){ prod = num(data.totales.subtotal || data.totales.producto); envio = num(data.totales.envio || data.totales.tarifaEnvio || data.totales.costoEnvio); servicio = num(data.totales.servicio || data.totales.tarifaServicio); total = num(data.totales.total); }
+  if(!prod) prod = num(data.producto || data.valorProducto || data.subtotal);
+  if(!envio) envio = num(data.envio || data.tarifaEnvio || data.costoEnvio);
   if(!servicio) servicio = num(data.servicio || data.tarifaServicio);
-  if(!total) total = num(data.total || data.valorTotal || data.totalPagar);
-  if(!prod && Array.isArray(data.productos)){ prod = data.productos.reduce((a,p)=> a + num(p.precio||p.price||p.valor||0) * num(p.cantidad||p.qty||1), 0); }
-  if(!prod && Array.isArray(data.items)){ prod = data.items.reduce((a,p)=> a + num(p.precio||0)*num(p.cantidad||1), 0); }
-  if(!total) total = prod + envio + servicio;
+  if(!total) total = num(data.total || data.valorTotal);
+  if(!prod && Array.isArray(data.productos)){ prod = data.productos.reduce((a,p)=> a + num(p.precio||p.price||0)*num(p.cantidad||p.qty||1),0); }
+  if(!total) total = prod+envio+servicio;
 
   return {
     id, codigo: String(data.codigo || data.idOriginal || data.numeroPedido || id).replace('#','').replace('ST-',''),
-    cliente: data.nombre || data.cliente?.nombre || data.datosCliente?.nombre || 'Cliente',
+    cliente: data.nombre || data.cliente?.nombre || data.datosCliente?.nombre || data.clienteNombre || 'Cliente',
     telefono: data.telefono || data.cliente?.telefono || '-',
     coloniaEntrega: data.coloniaEntrega || data.cliente?.colonia || 'Col. Centro',
-    tienda: data.restaurante?.nombre || data.tienda || 'Tienda',
-    colTienda: data.restaurante?.colonia || 'Col. Centro',
-    direccion: data.direccionEntrega || data.cliente?.direccion || '-',
-    gps: data.gps || {lat: data.cliente?.lat||null, lng: data.cliente?.lng||null},
+    tienda: data.restaurante?.nombre || data.tienda || data.restauranteNombre || 'Tienda',
+    colTienda: data.restaurante?.colonia || data.coloniaTienda || 'Col. Centro',
+    direccion: data.direccionEntrega || data.cliente?.direccion || data.direccion || '-',
+    gps: data.gps || data.ubicacionCompleta || {lat: data.cliente?.lat||data.lat||null, lng: data.cliente?.lng||data.lng||null},
+    ip: data.ip || data.ipCliente || data.cliente?.ip || data.datosCliente?.ip || '-',
+    ipEstado: data.ipBloqueada ? 'Bloqueado' : data.ipEstado || data.estadoIP || (data.bloqueado ? 'Bloqueado' : 'Activo'),
+    restDireccion: data.restaurante?.direccion || data.direccionRestaurante || '-',
+    restTelefono: data.restaurante?.telefono || data.telefonoRestaurante || '-',
+    restHorario: data.restaurante?.horario || data.horarioRestaurante || data.horario || '-',
     producto: prod, envio, servicio, total,
     fechaStr: isNaN(f.getTime()) ? '-' : f.toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'numeric'}),
     horaStr: isNaN(f.getTime()) ? '-' : f.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'}),
     estadoVisual, estadoLabel: label, raw: data,
-    repartidor: data.repartidorNombre || data.canceladoPorNombre || data.repartidor?.nombre || '-', 
+    repartidor: data.repartidorNombre || data.canceladoPorNombre || data.repartidor?.nombre || '-',
     motivo: data.motivoCancelacion || data.detalleCancelacion || data.motivo || '-',
     _fechaObj: f,
     _mes: isNaN(f.getTime()) ? '' : `${f.getFullYear()}-${String(f.getMonth()+1).padStart(2,'0')}`,
@@ -185,19 +188,27 @@ function actualizarConteos(){
 }
 
 function renderLista(){
-  const q = document.getElementById('buscador').value.toLowerCase().trim().replace('#','');
-  const cliQ = document.getElementById('fCliente').value.toLowerCase().trim();
+  const qRaw = document.getElementById('buscador').value.trim();
+  const q = normalize(qRaw).replace('#','');
+  const qNum = qRaw.replace(/\D/g,''); // solo numeros
+  const cliQ = normalize(document.getElementById('fCliente').value);
+  
   let filtrados = todosPedidos.filter(p=>{
     if(filtro!=='todos' && p.estadoVisual!==filtro) return false;
     if(filtroMes && p._mes !== filtroMes) return false;
     if(filtroDia && p._dia !== filtroDia) return false;
-    if(cliQ && !p.cliente.toLowerCase().includes(cliQ)) return false;
-    if(filtroCliente && !p.cliente.toLowerCase().includes(filtroCliente.toLowerCase())) return false;
+    if(cliQ){
+      if(!normalize(p.cliente).includes(cliQ)) return false;
+    }
     if(q){
-      const codigoLimpio = p.codigo.toLowerCase();
-      const idLimpio = p.id.toLowerCase();
-      const soloNumeros = codigoLimpio.replace(/[^0-9a-z]/g,'');
-      return codigoLimpio.includes(q) || idLimpio.includes(q) || soloNumeros.includes(q) || p.cliente.toLowerCase().includes(q) || p.telefono.toLowerCase().includes(q);
+      const codNorm = normalize(p.codigo);
+      const idNorm = normalize(p.id);
+      const codNumeros = codNorm.replace(/\D/g,'');
+      const matchCodigo = codNorm.includes(q);
+      const matchId = idNorm.includes(q);
+      const matchNumero = qNum && (codNumeros.includes(qNum) || codNorm.includes(qNum));
+      const matchClientePorBuscador = normalize(p.cliente).includes(q);
+      if(!(matchCodigo || matchId || matchNumero || matchClientePorBuscador)) return false;
     }
     return true;
   }).sort((a,b)=> b._fechaObj - a._fechaObj);
@@ -237,7 +248,6 @@ function escuchar(nombre){
     renderLista();
   });
 }
-
 escuchar("pedidos_cancelados");
 escuchar("pedidos_entregados");
 
@@ -248,7 +258,6 @@ document.querySelectorAll('.tab').forEach(t=>{
   });
 });
 
-// FILTROS EN VIVO EFICACES
 document.getElementById('buscador').addEventListener('input',()=>renderLista());
 document.getElementById('fCliente').addEventListener('input',()=>renderLista());
 document.getElementById('fMes').addEventListener('change',()=>{ filtroMes = document.getElementById('fMes').value; renderLista(); });
@@ -257,59 +266,68 @@ document.getElementById('fDia').addEventListener('change',()=>{ filtroDia = docu
 document.getElementById('btnBuscar').addEventListener('click',()=>{
   filtroMes = document.getElementById('fMes').value;
   filtroDia = document.getElementById('fDia').value;
-  filtroCliente = document.getElementById('fCliente').value.trim();
   renderLista();
 });
 document.getElementById('btnLimpiar').addEventListener('click',()=>{
   document.getElementById('fMes').value=''; document.getElementById('fDia').value=''; document.getElementById('fCliente').value=''; document.getElementById('buscador').value='';
-  filtroMes=''; filtroDia=''; filtroCliente=''; renderLista();
+  filtroMes=''; filtroDia=''; renderLista();
 });
 
 window.abrirDetalle = (id)=>{
   const p = todosPedidos.find(x=>x.id===id); if(!p) return;
   const raw = p.raw;
-  const tAceptado = buscarTiempo(raw, ['aceptado','acepta']) || raw.timestamps?.aceptado;
-  const tPreparando = buscarTiempo(raw, ['preparando','preparacion','en_prepar']) || raw.timestamps?.preparando;
-  const tListo = buscarTiempo(raw, ['listo','listo_para']) || raw.timestamps?.listo;
-  const tRecoger = buscarTiempo(raw, ['ir_a_recoger','a_recoger','recoger']) || raw.timestamps?.ir_a_recoger;
-  const tRecogido = buscarTiempo(raw, ['recogido','tiene_pedido']) || raw.timestamps?.recogido;
-  const tCamino = buscarTiempo(raw, ['en_camino','ir_a_entregar','en_curso','camino']) || raw.timestamps?.en_camino;
-  const tFinal = buscarTiempo(raw, ['finalizado','entregado','entrega_final']) || raw.timestamps?.finalizado;
-  const tCanc = buscarTiempo(raw, ['cancelado','cancel']) || raw.timestamps?.cancelado;
+  const tAceptado = buscar(raw, ['aceptado','acepta']);
+  const tPreparando = buscar(raw, ['preparando','preparacion','en_prepar']);
+  const tListo = buscar(raw, ['listo','listo_para']);
+  const tRecoger = buscar(raw, ['ir_a_recoger','a_recoger']);
+  const tRecogido = buscar(raw, ['recogido','tiene_pedido']);
+  const tCamino = buscar(raw, ['en_camino','ir_a_entregar','camino']);
+  const tFinal = buscar(raw, ['finalizado','entregado_final']);
+  const tCanc = buscar(raw, ['cancelado']);
 
   const prod=p.producto||0, envio=p.envio||0, serv=p.servicio||0, total=p.total||0;
   const comision=prod*0.10, pagaRest=prod-comision, pagaRepa=envio*0.80, ganancia=comision+(envio-pagaRepa)+serv;
+
   document.getElementById('modalTitle').textContent=`#${p.codigo} - ${p.estadoLabel}`;
   document.getElementById('modalBody').innerHTML=`
-    <div class="box"><h4>Cliente</h4>
+    <div class="box"><h4>Datos Cliente</h4>
       <div class="row-s"><b>Nombre</b><span>${p.cliente}</span></div>
-      <div class="row-s"><b>Tel</b><span>${p.telefono}</span></div>
-      <div class="row-s"><b>Dir</b><span>${p.direccion}</span></div>
+      <div class="row-s"><b>Teléfono</b><span>${p.telefono}</span></div>
+      <div class="row-s"><b>Dirección</b><span>${p.direccion}</span></div>
       <div class="row-s"><b>Colonia</b><span>${p.coloniaEntrega}</span></div>
-      <div class="row-s"><b>GPS</b><span>${p.gps?.lat||''}, ${p.gps?.lng||''}</span></div>
+      <div class="row-s"><b>GPS Lat</b><span>${p.gps?.lat || buscar(raw,['lat']) || '-'}</span></div>
+      <div class="row-s"><b>GPS Lng</b><span>${p.gps?.lng || buscar(raw,['lng','longitud']) || '-'}</span></div>
+      <div class="row-s"><b>IP</b><span>${p.ip}</span></div>
+      <div class="row-s"><b>Estado IP</b><span style="color:${p.ipEstado==='Bloqueado'?'#E30613':'#22c55e'};font-weight:900">${p.ipEstado}</span></div>
     </div>
-    <div class="box"><h4>Restaurante</h4><div class="row-s"><b>Nombre</b><span>${p.tienda}</span></div><div class="row-s"><b>ID Doc</b><span style="font-size:8px">${p.id}</span></div></div>
-    <div class="box"><h4>Tiempos Restaurante</h4>
-      <div class="t-item ${tAceptado?'ok':''}">Aceptado: ${toHora(tAceptado)||'-'}</div>
-      <div class="t-item ${tPreparando?'ok':''}">Preparando: ${toHora(tPreparando)||'-'}</div>
-      <div class="t-item ${tListo?'ok':''}">Listo: ${toHora(tListo)||'-'}</div>
+    <div class="box"><h4>Datos Restaurante</h4>
+      <div class="row-s"><b>Nombre</b><span>${p.tienda}</span></div>
+      <div class="row-s"><b>Dirección</b><span>${p.restDireccion}</span></div>
+      <div class="row-s"><b>Teléfono</b><span>${p.restTelefono}</span></div>
+      <div class="row-s"><b>Horario</b><span>${p.restHorario}</span></div>
+      <div class="row-s"><b>ID Doc</b><span style="font-size:8px">${p.id}</span></div>
     </div>
-    <div class="box"><h4>Tiempos Repartidor</h4>
-      <div class="t-item ${tRecoger?'ok':''}">Ir a recoger: ${toHora(tRecoger)||'-'}</div>
-      <div class="t-item ${tRecogido?'ok':''}">Recogido: ${toHora(tRecogido)||'-'}</div>
-      <div class="t-item ${tCamino?'ok':''}">En camino: ${toHora(tCamino)||'-'}</div>
-      <div class="t-item ${tFinal?'ok':''}">Finalizado: ${toHora(tFinal)||'-'}</div>
-      <div class="t-item ${tCanc?'bad':''}">Cancelado: ${p.motivo} - ${toHora(tCanc)||'-'}</div>
+    <div class="box"><h4>Tiempos Restaurante (solo hora)</h4>
+      <div class="t-item ${tAceptado?'ok':''}">Aceptado: ${toSoloHora(tAceptado)}</div>
+      <div class="t-item ${tPreparando?'ok':''}">Preparando: ${toSoloHora(tPreparando)}</div>
+      <div class="t-item ${tListo?'ok':''}">Listo: ${toSoloHora(tListo)}</div>
     </div>
-    <div class="box"><h4>Interacciones</h4><div class="row-s"><b>Llamar cliente</b><span>${buscarTiempo(raw,['llamar_cliente','click_llamar'])||'-'}</span></div><div class="row-s"><b>Click Mapa</b><span>${buscarTiempo(raw,['click_mapa','ver_mapa','mapa'])||'-'}</span></div><div class="row-s"><b>Repartidor</b><span>${p.repartidor}</span></div></div>
+    <div class="box"><h4>Tiempos Repartidor (solo hora)</h4>
+      <div class="t-item ${tRecoger?'ok':''}">Ir a recoger: ${toSoloHora(tRecoger)}</div>
+      <div class="t-item ${tRecogido?'ok':''}">Recogido: ${toSoloHora(tRecogido)}</div>
+      <div class="t-item ${tCamino?'ok':''}">En camino: ${toSoloHora(tCamino)}</div>
+      <div class="t-item ${tFinal?'ok':''}">Finalizado: ${toSoloHora(tFinal)}</div>
+      <div class="t-item ${tCanc?'bad':''}">Cancelado: ${p.motivo} - ${toSoloHora(tCanc)}</div>
+    </div>
+    <div class="box"><h4>Interacciones</h4><div class="row-s"><b>Llamar cliente</b><span>${buscar(raw,['llamar_cliente','click_llamar'])||'-'}</span></div><div class="row-s"><b>Click Mapa</b><span>${buscar(raw,['click_mapa','ver_mapa'])||'-'}</span></div><div class="row-s"><b>Repartidor</b><span>${p.repartidor}</span></div></div>
     <div class="box"><h4>Productos</h4>${(raw.productos||raw.items||[]).map(pr=>`<div class="row-s"><b>${pr.nombre||pr.name||'Prod'}</b><span>x${pr.cantidad||1} $${pr.precio||pr.price||0}</span></div>`).join('')||`$${prod.toFixed(2)}`}</div>
-    <div class="box presupuesto"><h4>Desglose REAL</h4>
+    <div class="box presupuesto"><h4>Desglose</h4>
       <div class="pres-row"><span>Producto</span><b>$${prod.toFixed(2)}</b></div>
       <div class="pres-row"><span>Envío</span><b>$${envio.toFixed(2)}</b></div>
       <div class="pres-row"><span>Servicio</span><b>$${serv.toFixed(2)}</b></div>
       <div class="pres-row total-final"><span>Total</span><b>$${total.toFixed(2)}</b></div>
       <div class="pres-row"><span>Rest (-10%)</span><b>$${pagaRest.toFixed(2)}</b></div>
-      <div class="pres-row"><span>Repartidor (80% envío)</span><b>$${pagaRepa.toFixed(2)}</b></div>
+      <div class="pres-row"><span>Repartidor (80%)</span><b>$${pagaRepa.toFixed(2)}</b></div>
       <div class="pres-row"><span>Plataforma</span><b>$${ganancia.toFixed(2)}</b></div>
       <div class="pres-row"><span>Motivo</span><b>${p.motivo}</b></div>
     </div>
