@@ -45,7 +45,8 @@ body{background:#FAFAFA;min-height:100vh}
 .acciones{display:flex;gap:8px;padding-top:6px;flex-wrap:wrap}
 .btn-rojo{background:#16a34a;color:white;border:none;border-radius:10px;padding:9px 14px;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;flex:1;min-width:140px}
 .btn-rojo:disabled{background:#94a3b8;cursor:not-allowed;opacity:0.6}
-.btn-gris{background:#7A8A9A;color:white;border:none;border-radius:10px;padding:9px 14px;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;flex:1;min-width:140px}
+.btn-gris{background:#94a3b8;color:white;border:none;border-radius:10px;padding:9px 14px;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;flex:1;min-width:140px;opacity:.6;pointer-events:none}
+.btn-verde{background:#16a34a;color:white;border:none;border-radius:10px;padding:9px 14px;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;flex:1;min-width:140px;box-shadow:0 3px 12px rgba(22,163,74,.35)}
 .btn-borde{background:white;border:1px solid #d1d5db;border-radius:999px;padding:6px 14px;font-size:11px;font-weight:600;color:#475569;display:flex;align-items:center;gap:5px;cursor:pointer}
 .vacio{text-align:center;padding:40px;color:#94a3b8}
 .tiempo-real{border-radius:999px;padding:3px 10px;font-size:10px;font-weight:900;display:inline-flex;align-items:center;gap:4px}
@@ -104,7 +105,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebas
 import { getFirestore, collection, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js";
 
-// --- FIREBASE ADMIN (pedidos_admin) ---
 const configAdmin = {
   apiKey: "AIzaSyDLKngPyi_SWAXEQwdrHO5h8L8OufulAR4",
   authDomain: "doloya-confirmacion.firebaseapp.com",
@@ -116,7 +116,6 @@ const configAdmin = {
 const appAdmin = initializeApp(configAdmin);
 const db = getFirestore(appAdmin);
 
-// --- FIREBASE REPARTIDORES (tu segundo archivo) ---
 const configRepartidores = {
   apiKey: "AIzaSyCYdy62kQCPEhz1d-Ln9H-sup2iOTYJPwU",
   authDomain: "doloya-repartidores.firebaseapp.com",
@@ -135,12 +134,10 @@ const bell = document.getElementById('bellIcon');
 const bellCount = document.getElementById('bellCount');
 let pedidosCache = []; let filtro='todos'; let primerCarga=true; let ultimoTotal=0;
 
-// CACHE REAL DE REPARTIDORES DESDE FIREBASE REPARTIDORES
 let cacheRepartidores=[
   {id:'Jose', nombre:'Jose', foto:'', estado:'disponible', conectado:true}
 ];
 
-// === ESCUCHA REPARTIDORES REALES EN TIEMPO REAL ===
 try{
   const repRef = ref(dbRep, 'repartidores');
   onValue(repRef, (snap)=>{
@@ -156,13 +153,12 @@ try{
         }
       });
       if(arr.length>0) cacheRepartidores = arr;
-      // Si solo existe Jose en RTDB como nodo directo
       if(arr.length===0 && data.Jose){
         cacheRepartidores = [{id:'Jose', nombre:data.Jose.nombre||'Jose', foto:'', estado:data.Jose.conectado?'disponible':'ocupado', conectado:!!data.Jose.conectado}];
       }
     }
   });
-}catch(e){ console.log("Repartidores RTDB no disponible, usando por defecto Jose"); }
+}catch(e){}
 
 function sonar(){ bell.classList.add('vibrar'); setTimeout(()=>bell.classList.remove('vibrar'),3500);
   try{ const ctx=new (window.AudioContext||window.webkitAudioContext)(); const o=ctx.createOscillator(); const g=ctx.createGain(); o.frequency.value=950; g.gain.setValueAtTime(0.9,ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.01,ctx.currentTime+0.6); o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime+0.6);}catch{}
@@ -219,6 +215,7 @@ function render(){
     const tiempo=calcularTiempoReal(tsSec, p.estado);
     let step=0; if(p.estado==='recogido') step=1; if(p.estado==='en_camino') step=2; if(['finalizado','entregado'].includes(p.estado)) step=3;
     const yaEnviado = !['nuevo','listo_para_admin','listo','sin_enviar'].includes(p.estado);
+    const esFinalizado = ['finalizado','entregado'].includes(p.estado);
 
     return `
     <div class="card" id="card-${p.id}">
@@ -244,7 +241,7 @@ function render(){
       </div>
       <div class="acciones">
         <button class="btn-rojo" ${yaEnviado?'disabled':''} onclick="toggleRepartidores('${p.id}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> ${yaEnviado?'Enviado a '+(p.repartidorNombre||'repartidor'):'Enviar a repartidor'}</button>
-        <button class="btn-gris" onclick="enviarHistorial('${p.id}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Enviar a historial</button>
+        <button class="${esFinalizado ? 'btn-verde' : 'btn-gris'}" ${esFinalizado ? '' : 'disabled'} onclick="enviarHistorial('${p.id}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Enviar a historial</button>
       </div>
 
       <div class="card-overlay" id="overlay-reps-${p.id}">
@@ -298,7 +295,6 @@ onSnapshot(collection(db,"pedidos_admin"), (snap)=>{
 window.toggleRepartidores = (pedidoId)=>{
   const p=pedidosCache.find(x=>x.id===pedidoId);
   if(p && !['nuevo','listo_para_admin','listo','sin_enviar'].includes(p.estado)) return;
-  // Actualiza lista real de repartidores en el overlay
   const row = document.getElementById('reps-row-'+pedidoId);
   if(row){
     row.innerHTML = cacheRepartidores.map(r=>{
@@ -313,7 +309,6 @@ window.verDetalles = (id)=>{ document.getElementById('overlay-det-'+id)?.classLi
 
 window.asignarRepartidor = async (pedidoId, repId, repNombre)=>{
   try{
-    // ESTO ES LO QUE VINCULA CON EL PANEL DE REPARTIDOR (pedidos.html)
     await updateDoc(doc(db,"pedidos_admin",pedidoId),{
       estado:'enviado_a_repartidor',
       repartidorId: repId,
