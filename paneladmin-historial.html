@@ -1,121 +1,115 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Historial - Doloya</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#fff;font-family:'Inter',Helvetica,Arial,sans-serif;color:#0f172a}
-.header{max-width:1280px;margin:0 auto;padding:18px 20px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #eef2f7}
-.header-left{display:flex;align-items:center;gap:12px;margin-left:0}
-.icon-x{width:42px;height:42px;background:#E30613;border-radius:50%;display:flex;align-items:center;justify-content:center}
-.header h1{font-size:28px;font-weight:800;letter-spacing:-0.3px}
-.header-right{display:flex;align-items:center;gap:14px}
-.bell{position:relative;width:36px;height:36px;display:flex;align-items:center;justify-content:center}
-.bell-dot{position:absolute;top:4px;right:4px;width:8px;height:8px;background:#E30613;border-radius:50%}
-.avatar{width:36px;height:36px;background:#e8eef6;border-radius:50%;display:flex;align-items:center;justify-content:center}
-
-.controls{max-width:1280px;margin:16px auto 0;padding:0 20px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
-.tabs{display:flex;gap:10px;flex-wrap:wrap}
-.tab{border:1.5px solid #e5eaf0;background:white;border-radius:999px;padding:8px 18px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px;cursor:pointer;color:#334155;transition:.2s}
+.header{max-width:1280px;margin:0 auto;padding:14px 20px 10px;display:flex;align-items:center;border-bottom:1px solid #eef2f7}
+.header-left{display:flex;align-items:center;gap:10px;margin-left:0}
+.icon-x{width:36px;height:36px;background:#E30613;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.header h1{font-size:24px;font-weight:800;letter-spacing:-0.3px}
+.controls{max-width:1280px;margin:12px auto 0;padding:0 20px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.tabs{display:flex;gap:8px;flex-wrap:wrap}
+.tab{border:1.3px solid #e5eaf0;background:white;border-radius:999px;padding:6px 14px;font-size:11.5px;font-weight:700;display:flex;align-items:center;gap:6px;cursor:pointer;color:#334155}
 .tab.active{background:#E30613;border-color:#E30613;color:white}
-.tab .ic{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center}
-.tab.active .ic{background:rgba(255,255,255,.2)}
+.tab .ic{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center}
 .ic-green{background:#22c55e}.ic-red{background:#E30613}.ic-gray{background:#475569}
-.tab.active .ic-green,.tab.active .ic-red,.tab.active .ic-gray{background:white}
-
-.search{position:relative;min-width:320px;flex:1;max-width:420px}
-.search input{width:100%;border:1.5px solid #e5eaf0;border-radius:12px;padding:10px 14px 10px 38px;font-size:13px;outline:none}
-.search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%)}
-
-.list{max-width:1280px;margin:18px auto;padding:0 20px 40px;display:flex;flex-direction:column;gap:12px}
-
-.card{display:grid;grid-template-columns:220px 1px 1fr 1px 280px 160px;gap:0;background:white;border:1.5px solid #eef2f7;border-radius:14px;padding:16px 18px;align-items:center}
-.card.entregado{background:#f3fbf3;border-color:#d8f0d8}
-.card.cancelado{background:#fff5f5;border-color:#ffd6d6}
-.card.proceso{background:#fcfcff;border-color:#eef2f7}
-
-.card-left{display:flex;gap:12px}
-.logo-d{width:52px;height:52px;background:#E30613;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.badge{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 10px;font-size:12px;font-weight:800;margin-bottom:6px}
+.search{position:relative;min-width:300px;flex:1;max-width:400px}
+.search input{width:100%;border:1.3px solid #e5eaf0;border-radius:10px;padding:8px 12px 8px 34px;font-size:12px;outline:none}
+.search svg{position:absolute;left:10px;top:50%;transform:translateY(-50%)}
+.list{max-width:1280px;margin:14px auto;padding:0 20px 40px;display:flex;flex-direction:column;gap:8px}
+.card{display:grid;grid-template-columns:190px 1px 1fr 1px 240px 130px;gap:0;background:white;border:1.2px solid #eef2f7;border-radius:12px;padding:10px 14px;align-items:center}
+.card.entregado{background:#f5fbf5;border-color:#d9ecd9}
+.card.cancelado{background:#fff6f6;border-color:#ffd4d4}
+.card.proceso{background:#fcfcff}
+.badge{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:3px 8px;font-size:10px;font-weight:800;margin-bottom:4px}
 .badge.entregado{background:#22c55e;color:white}
 .badge.cancelado{background:#fecaca;color:#7f1d1d}
 .badge.proceso{background:#475569;color:white}
-.badge .s{width:18px;height:18px;border-radius:50%;background:white;display:flex;align-items:center;justify-content:center}
-.num{font-weight:900;font-size:14px}
-.fecha{font-size:11px;color:#64748b;display:flex;gap:6px;align-items:center;margin:2px 0 6px}
-.cliente{font-size:12px;color:#334155;display:flex;align-items:center;gap:5px;margin-top:3px}
-.sep{width:1px;background:#eef2f7;height:80px}
-.col-recogida{display:flex;flex-direction:column;gap:14px;padding:0 22px}
-.item{display:flex;gap:10px}
-.item .icon-r{width:28px;height:28px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.item b{font-size:12px;display:block}
-.item span{font-size:11px;color:#64748b}
-.col-precios{padding:0 20px;display:flex;flex-direction:column;gap:10px}
-.precio-row{display:flex;gap:10px;align-items:flex-start}
-.precio-row b{font-size:13px}
-.precio-row span{font-size:11px;color:#64748b;display:block}
-.precio-row .val{font-weight:800;font-size:13px}
-.total{border-top:1px solid #e2e8f0;padding-top:8px;margin-top:2px}
-.total b{font-size:11px;color:#64748b}
-.total .val{font-size:15px;font-weight:900}
-.btn-det{border:1.8px solid #E30613;color:#0f172a;background:white;border-radius:999px;padding:10px 16px;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;width:100%;transition:.2s}
+.badge .s{width:14px;height:14px;border-radius:50%;background:white;display:flex;align-items:center;justify-content:center}
+.num{font-weight:800;font-size:12.5px}
+.fecha{font-size:10px;color:#64748b;display:flex;gap:4px;margin:2px 0 4px}
+.cliente{font-size:10.5px;color:#334155;display:flex;align-items:center;gap:4px;margin-top:2px}
+.sep{width:1px;background:#eef2f7;height:60px}
+.col-recogida{display:flex;flex-direction:column;gap:8px;padding:0 16px}
+.item{display:flex;gap:8px}
+.item .icon-r{width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.item b{font-size:10.5px;display:block}
+.item span{font-size:10px;color:#64748b;line-height:1.2}
+.col-precios{padding:0 14px;display:flex;flex-direction:column;gap:6px}
+.precio-row{display:flex;gap:8px;align-items:flex-start}
+.precio-row b{font-size:11px}
+.precio-row span{font-size:9.5px;color:#64748b;display:block}
+.precio-row .val{font-weight:800;font-size:11.5px}
+.total{border-top:1px solid #e2e8f0;padding-top:5px;margin-top:1px;display:flex;justify-content:space-between;align-items:center}
+.total b{font-size:9.5px;color:#64748b}
+.total .val{font-size:12.5px;font-weight:900}
+.btn-det{border:1.5px solid #E30613;color:#0f172a;background:white;border-radius:999px;padding:7px 12px;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;width:100%}
 .btn-det:hover{background:#E30613;color:white}
+@media(max-width:1024px){.card{grid-template-columns:1fr;gap:10px}.sep{display:none}}
 
-@media(max-width:1024px){
-.card{grid-template-columns:1fr;gap:14px}
-.sep{display:none}
-}
-
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:999;padding:20px}
+/* MODAL DETALLES FULLSCREEN */
+.modal{position:fixed;inset:0;background:#fff;display:none;flex-direction:column;z-index:9999;overflow:auto}
 .modal.active{display:flex}
-.modal-box{background:white;border-radius:18px;max-width:480px;width:100%;padding:22px;max-height:90vh;overflow:auto}
+.modal-top{position:sticky;top:0;background:white;border-bottom:1px solid #eef2f7;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;z-index:2}
+.modal-top h2{font-size:16px;font-weight:900}
+.btn-close{background:#111;color:white;border:none;border-radius:999px;padding:8px 14px;font-size:12px;font-weight:800;cursor:pointer}
+.modal-body{max-width:980px;margin:0 auto;padding:18px 20px 40px;width:100%;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:800px){.modal-body{grid-template-columns:1fr}}
+.box{border:1px solid #eef2f7;border-radius:12px;padding:12px 14px;background:#fff}
+.box h4{font-size:11.5px;font-weight:800;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;color:#0f172a;border-bottom:1px solid #f1f5f9;padding-bottom:6px}
+.row-s{display:flex;justify-content:space-between;padding:4px 0;font-size:11px}
+.row-s b{color:#334155;font-weight:600}
+.row-s span{font-weight:700;text-align:right;max-width:60%;word-break:break-word}
+.timeline-d{display:flex;flex-direction:column;gap:6px}
+.t-item{display:flex;gap:8px;align-items:center;font-size:11px;padding:5px 8px;border-radius:8px;background:#f8fafc}
+.t-item.ok{background:#f0fdf4;border:1px solid #bbf7d0}
+.t-item.bad{background:#fef2f2;border:1px solid #fecaca}
+.t-item .dot{width:18px;height:18px;border-radius:50%;background:#e2e8f0;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.presupuesto{grid-column:1/-1}
+.pres-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed #eef2f7;font-size:11.5px}
+.pres-row.total-final{font-weight:900;font-size:13px;border-bottom:none;background:#f8fafc;padding:10px;border-radius:8px;margin-top:6px}
+.badge-mini{font-size:9px;padding:2px 6px;border-radius:999px;background:#eef2f7}
 </style>
 </head>
 <body>
 
 <div class="header">
   <div class="header-left">
-    <div class="icon-x">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-    </div>
+    <div class="icon-x"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
     <h1>Historial</h1>
-  </div>
-  <div class="header-right">
-    <div class="bell">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#334155" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-6 9-6 9h18s-6-2-6-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-      <div class="bell-dot"></div>
-    </div>
-    <div class="avatar">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="#94a3b8"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10zM12 14c-5 0-9 2.5-9 5.5V21h18v-1.5c0-3-4-5.5-9-5.5z"/></svg>
-    </div>
   </div>
 </div>
 
 <div class="controls">
   <div class="tabs">
-    <button class="tab active" data-f="todos"><span>Todos</span></button>
-    <button class="tab" data-f="entregado"><span class="ic ic-green"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span>Entregados</button>
-    <button class="tab" data-f="cancelado"><span class="ic ic-red"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>Cancelados</button>
-    <button class="tab" data-f="proceso"><span class="ic ic-gray"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>En proceso</button>
+    <button class="tab active" data-f="todos">Todos</button>
+    <button class="tab" data-f="entregado"><span class="ic ic-green"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span>Entregados</button>
+    <button class="tab" data-f="cancelado"><span class="ic ic-red"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>Cancelados</button>
+    <button class="tab" data-f="proceso"><span class="ic ic-gray"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>En proceso</button>
   </div>
   <div class="search">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2"><circle cx="11" cy="11" r="6"/><line x1="16.5" y1="16.5" x2="22" y2="22"/></svg>
-    <input id="buscador" placeholder="Buscar por número de pedido, cliente o fecha...">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2"><circle cx="11" cy="11" r="6"/><line x1="16.5" y1="16.5" x2="22" y2="22"/></svg>
+    <input id="buscador" placeholder="Buscar por número, cliente o fecha...">
   </div>
 </div>
 
 <div class="list" id="lista"></div>
 
 <div class="modal" id="modal">
-  <div class="modal-box" id="modalBox"></div>
+  <div class="modal-top">
+    <h2 id="modalTitle">Detalles del pedido</h2>
+    <button class="btn-close" onclick="document.getElementById('modal').classList.remove('active')">Cerrar X</button>
+  </div>
+  <div class="modal-body" id="modalBody"></div>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-import { getFirestore, collection, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
 const configHistorial = {
   apiKey: "AIzaSyCRx4B7mO444s0yU-WTnsqMjBHDWX4IRv8",
@@ -131,127 +125,197 @@ const db = getFirestore(appHist);
 let todosPedidos = [];
 let filtro = "todos";
 
-function renderLista(data){
-  const cont = document.getElementById('lista');
-  const q = document.getElementById('buscador').value.toLowerCase();
-  let filtrados = data.filter(p=>{
-    if(filtro!=='todos' && p.estadoVisual!==filtro) return false;
-    if(q && !(p.codigo?.toLowerCase().includes(q) || p.cliente?.toLowerCase().includes(q) || p.fechaStr?.toLowerCase().includes(q))) return false;
-    return true;
-  });
-  cont.innerHTML = filtrados.map(p=>`
-    <div class="card ${p.estadoVisual}">
-      <div class="card-left">
-        <div class="logo-d">
-          <svg width="30" height="30" viewBox="0 0 100 100" fill="white"><path d="M20 15 L75 15 Q85 15 85 35 L85 55 Q85 85 55 85 L20 85 Z M35 30 L35 70 L55 70 Q70 70 70 50 Q70 30 55 30 Z" /></svg>
-        </div>
-        <div>
-          <div class="badge ${p.estadoVisual}">
-            <span class="s">${p.estadoVisual==='entregado'?`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>`:p.estadoVisual==='cancelado'?`<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#E30613" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`:`<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>`}</span>
-            ${p.estadoLabel}
-          </div>
-          <div class="num">#${p.codigo}</div>
-          <div class="fecha">${p.fechaStr} <span>•</span> ${p.horaStr}</div>
-          <div class="cliente"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#334155" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.5-7 8-7s8 3 8 7"/></svg> ${p.cliente}</div>
-          <div class="cliente"><svg width="12" height="12" viewBox="0 0 24 24" fill="#0f172a"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg> ${p.coloniaEntrega}</div>
-        </div>
-      </div>
-      <div class="sep"></div>
-      <div class="col-recogida">
-        <div class="item">
-          <div class="icon-r"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#E30613" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.3 7L12 12l8.7-5"/><path d="M12 22V12"/></svg></div>
-          <div><b>Recogida</b><span>${p.tienda}<br>${p.colTienda}</span></div>
-        </div>
-        <div class="item">
-          <div class="icon-r"><svg width="20" height="20" viewBox="0 0 24 24" fill="#E30613"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg></div>
-          <div><b>Entrega</b><span>${p.direccion}<br>${p.coloniaEntrega}</span></div>
-        </div>
-      </div>
-      <div class="sep"></div>
-      <div class="col-precios">
-        <div class="precio-row"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#334155" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.3 7L12 12l8.7-5"/><path d="M12 22V12"/></svg><div><span>Producto / Servicio</span><b class="val">$${p.producto}</b></div></div>
-        <div class="precio-row"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#334155" stroke-width="2"><path d="M1 8h15v8H1z"/><path d="M16 11h4l3 3v3h-7V11z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg><div><span>Tarifa de envío</span><b class="val">$${p.envio}</b></div></div>
-        <div class="total"><b>Total del servicio</b><div class="val">$${p.total}</div></div>
-      </div>
-      <div style="padding-left:18px"><button class="btn-det" onclick='verDetalles(${JSON.stringify(p).replace(/'/g,"&#39;")})'>Ver detalles <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg></button></div>
-    </div>
-  `).join('') || '<p style="text-align:center;color:#64748b;padding:30px">Sin pedidos</p>';
+function toHora(ts){
+  if(!ts) return '-';
+  try{
+    const d = ts.toDate ? ts.toDate() : new Date(ts);
+    return d.toLocaleString('es-MX',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  }catch{ return '-'; }
 }
 
 function mapDoc(d){
   const data = d.data();
-  const fecha = data.fechaCancelacion || data.fechaEntrega || data.enviadoAHistorialEn || data.timestamp || new Date().toISOString();
-  const f = new Date(fecha);
-  const estado = (data.estado || data.estadoOriginal || '').toLowerCase();
+  const ts = data.fechaCancelacion || data.fechaEntrega || data.createdAt || data.timestamp || data.enviadoAHistorialEn || new Date().toISOString();
+  const f = ts.toDate ? ts.toDate() : new Date(ts);
+  const estadoRaw = (data.estado || data.estadoOriginal || data.estadoVisual || '').toLowerCase();
   let estadoVisual='proceso', label='En proceso';
-  if(estado.includes('cancelado') || estado.includes('no_recibe') || estado.includes('bloque')){ estadoVisual='cancelado'; label='Cancelado'; }
-  else if(estado.includes('entregado') || estado.includes('finalizado')){ estadoVisual='entregado'; label='Entregado'; }
-  
+  if(estadoRaw.includes('cancelado') || estadoRaw.includes('no_recibe')){ estadoVisual='cancelado'; label='Cancelado'; }
+  else if(estadoRaw.includes('entregado') || estadoRaw.includes('finalizado')){ estadoVisual='entregado'; label='Entregado'; }
+
+  // VALORES REALES FIREBASE
+  const prod = Number(data.totales?.subtotal ?? data.productosTotal ?? data.producto ?? 0);
+  const envio = Number(data.totales?.envio ?? data.tarifaEnvio ?? data.envio ?? 0);
+  const servicio = Number(data.totales?.servicio ?? data.tarifaServicio ?? data.servicio ?? 0);
+  const total = Number(data.totales?.total ?? (prod+envio+servicio) ?? 0);
+
   return {
-    codigo: (data.codigo||data.idOriginal||d.id).replace('ST-','').replace('#',''),
+    id: d.id,
+    codigo: String(data.codigo||data.idOriginal||d.id).replace('#','').replace('ST-',''),
     cliente: data.nombre||data.cliente?.nombre||'Cliente',
-    coloniaEntrega: data.ubicacionCompleta?.cliente?.colonia || data.colonia || data.cliente?.colonia || 'Col. Centro',
+    telefono: data.telefono||data.cliente?.telefono||data.cliente?.celular||'-',
+    coloniaEntrega: data.coloniaEntrega || data.cliente?.colonia || data.ubicacionCompleta?.cliente?.colonia || 'Col. Centro',
     tienda: data.restaurante?.nombre || data.tienda || 'Tienda',
-    colTienda: data.restaurante?.colonia || 'Col. Centro',
-    direccion: data.direccionEntrega || data.cliente?.direccion || 'Dirección',
-    producto: data.totales?.subtotal || data.producto || '120.00',
-    envio: data.totales?.envio || data.envio || '35.00',
-    total: data.totales?.total || data.total || '155.00',
+    colTienda: data.restaurante?.colonia || data.colTienda || 'Col. Centro',
+    direccion: data.direccionEntrega || data.cliente?.direccion || '-',
+    gps: data.gps || data.ubicacionCompleta?.gpsActualCliente || data.cliente?.gps || null,
+    producto: prod.toFixed(2),
+    envio: envio.toFixed(2),
+    servicio: servicio.toFixed(2),
+    total: total.toFixed(2),
     fechaStr: f.toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'numeric'}),
     horaStr: f.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'}),
-    estadoVisual,
-    estadoLabel: label,
-    raw: data
+    estadoVisual, estadoLabel: label,
+    raw: data,
+    timestamps: data.timestamps || data.tiempos || {},
+    acciones: data.acciones || data.logs || {},
+    repartidor: data.repartidor || data.repartidorNombre || data.canceladoPorNombre || '-',
+    motivo: data.motivoCancelacion || data.detalleCancelacion || '-',
+    _fechaObj: f
   };
 }
 
-// EJEMPLO VISUAL SI NO HAY DATOS AUN
-const demo = [
-  {codigo:'0015',cliente:'Ana López',coloniaEntrega:'Col. Centro',tienda:'Tienda El Centro',colTienda:'Col. Centro',direccion:'Av. Hidalgo 123',producto:'120.00',envio:'35.00',total:'155.00',fechaStr:'21 abr 2025',horaStr:'14:32',estadoVisual:'entregado',estadoLabel:'Entregado'},
-  {codigo:'0014',cliente:'Carlos Ruiz',coloniaEntrega:'Col. La Estación',tienda:'Tienda La Estación',colTienda:'Col. La Estación',direccion:'Calle Reforma 45',producto:'80.00',envio:'30.00',total:'110.00',fechaStr:'20 abr 2025',horaStr:'17:10',estadoVisual:'cancelado',estadoLabel:'Cancelado'},
-  {codigo:'0013',cliente:'Mariana Torres',coloniaEntrega:'Col. San José',tienda:'Super Abarrotes',colTienda:'Col. San José',direccion:'Calle Juárez 78',producto:'200.00',envio:'40.00',total:'240.00',fechaStr:'19 abr 2025',horaStr:'11:27',estadoVisual:'entregado',estadoLabel:'Entregado'},
-  {codigo:'0012',cliente:'Luis Martínez',coloniaEntrega:'Col. Obregón',tienda:'Farmacia del Ahorro',colTienda:'Col. Obregón',direccion:'Av. Reforma 210',producto:'150.00',envio:'35.00',total:'185.00',fechaStr:'18 abr 2025',horaStr:'16:45',estadoVisual:'proceso',estadoLabel:'En proceso'},
-  {codigo:'0011',cliente:'Sofia Ramirez',coloniaEntrega:'Col. Alameda',tienda:'Restaurante El Sabor',colTienda:'Col. Alameda',direccion:'Calle Morelos 56',producto:'90.00',envio:'35.00',total:'120.00',fechaStr:'17 abr 2025',horaStr:'10:03',estadoVisual:'entregado',estadoLabel:'Entregado'},
+function renderLista(data){
+  const q = document.getElementById('buscador').value.toLowerCase().trim();
+  let filtrados = data.filter(p=>{
+    if(filtro!=='todos' && p.estadoVisual!==filtro) return false;
+    if(q){
+      const codigoMatch = p.codigo.toLowerCase().includes(q) || ('#'+p.codigo).toLowerCase().includes(q);
+      const clienteMatch = p.cliente.toLowerCase().includes(q);
+      const fechaMatch = p.fechaStr.toLowerCase().includes(q);
+      const telMatch = p.telefono.toLowerCase().includes(q);
+      return codigoMatch || clienteMatch || fechaMatch || telMatch;
+    }
+    return true;
+  });
+  document.getElementById('lista').innerHTML = filtrados.map(p=>`
+    <div class="card ${p.estadoVisual}">
+      <div>
+        <div class="badge ${p.estadoVisual}"><span class="s">${p.estadoVisual==='entregado'?`<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>`:p.estadoVisual==='cancelado'?`<svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#E30613" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`:`<svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>`}</span>${p.estadoLabel}</div>
+        <div class="num">#${p.codigo}</div>
+        <div class="fecha">${p.fechaStr} • ${p.horaStr}</div>
+        <div class="cliente"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#334155" stroke-width="2"><circle cx="12" cy="8" r="3"/><path d="M4 20c0-4 3.5-6 8-6s8 2 8 6"/></svg> ${p.cliente}</div>
+        <div class="cliente"><svg width="10" height="10" viewBox="0 0 24 24" fill="#0f172a"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg> ${p.coloniaEntrega}</div>
+      </div>
+      <div class="sep"></div>
+      <div class="col-recogida">
+        <div class="item"><div class="icon-r"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E30613" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></div><div><b>Recogida</b><span>${p.tienda}<br>${p.colTienda}</span></div></div>
+        <div class="item"><div class="icon-r"><svg width="16" height="16" viewBox="0 0 24 24" fill="#E30613"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg></div><div><b>Entrega</b><span>${p.direccion}<br>${p.coloniaEntrega}</span></div></div>
+      </div>
+      <div class="sep"></div>
+      <div class="col-precios">
+        <div class="precio-row"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#334155" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg><div><span>Producto / Servicio</span><b class="val">$${p.producto}</b></div></div>
+        <div class="precio-row"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#334155" stroke-width="2"><path d="M1 8h15v8H1z"/><path d="M16 11h4l3 3v3h-7V11z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg><div><span>Tarifa de envío</span><b class="val">$${p.envio}</b></div></div>
+        <div class="total"><b>Total del servicio</b><div class="val">$${p.total}</div></div>
+      </div>
+      <div style="padding-left:10px"><button class="btn-det" onclick="abrirDetalle('${p.id}')">Ver detalles <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg></button></div>
+    </div>
+  `).join('') || '<p style="text-align:center;color:#64748b;padding:30px;font-size:12px">Sin pedidos con ese filtro</p>';
+}
+
+let demoBase = [
+  {id:'demo15',codigo:'0015',cliente:'Ana López',coloniaEntrega:'Col. Centro',tienda:'Tienda El Centro',colTienda:'Col. Centro',direccion:'Av. Hidalgo 123',producto:'120.00',envio:'35.00',servicio:'0.00',total:'155.00',fechaStr:'21 abr 2025',horaStr:'14:32',estadoVisual:'entregado',estadoLabel:'Entregado',telefono:'5512345678',gps:{lat:19.43,lng:-99.13},repartidor:'Juan Pérez',motivo:'-',timestamps:{nuevo:'21 abr 14:00',aceptado:'14:05',preparando:'14:10',listo:'14:20',ir_a_recoger:'14:22',recogido:'14:30',en_camino:'14:32',finalizado:'14:50'},acciones:{llamar_cliente:'14:35',click_mapa:'14:31'},raw:{totales:{subtotal:120,envio:35,total:155}}},
+  {id:'demo14',codigo:'0014',cliente:'Carlos Ruiz',coloniaEntrega:'Col. La Estación',tienda:'Tienda La Estación',colTienda:'Col. La Estación',direccion:'Calle Reforma 45',producto:'80.00',envio:'30.00',servicio:'0.00',total:'110.00',fechaStr:'20 abr 2025',horaStr:'17:10',estadoVisual:'cancelado',estadoLabel:'Cancelado',telefono:'5523456789',gps:{lat:19.43,lng:-99.13},repartidor:'Pedro Gómez',motivo:'Cliente no contestó / no recibió',timestamps:{nuevo:'20 abr 16:50',cancelado:'17:10'},acciones:{llamar_cliente:'17:00 x3',click_mapa:'17:01'},raw:{totales:{subtotal:80,envio:30,total:110},motivoCancelacion:'No recibió'}},
 ];
 
-todosPedidos = demo;
+todosPedidos = demoBase;
 renderLista(todosPedidos);
 
-// FIREBASE REAL - CUANDO TENGAS DATOS, DESCOMENTA
 try{
-  onSnapshot(collection(db,"pedidos_cancelados"), (snap)=>{
-    const reales = snap.docs.map(mapDoc);
-    if(reales.length>0){ todosPedidos = [...reales, ...demo]; renderLista(todosPedidos); }
-  });
-  onSnapshot(collection(db,"pedidos_historial"), (snap)=>{
-    const reales = snap.docs.map(mapDoc);
-    if(reales.length>0){ todosPedidos = [...reales, ...todosPedidos]; renderLista(todosPedidos); }
-  });
-}catch(e){}
+  onSnapshot(collection(db,"pedidos_cancelados"), snap=>{ const r=snap.docs.map(mapDoc); if(r.length){ todosPedidos=[...r,...demoBase]; renderLista(todosPedidos);} });
+  onSnapshot(collection(db,"pedidos_historial"), snap=>{ const r=snap.docs.map(mapDoc); if(r.length){ todosPedidos=[...r,...todosPedidos]; renderLista(todosPedidos);} });
+  onSnapshot(collection(db,"pedidos_entregados"), snap=>{ const r=snap.docs.map(mapDoc); if(r.length){ todosPedidos=[...r,...todosPedidos]; renderLista(todosPedidos);} });
+  onSnapshot(collection(db,"pedidos_en_proceso"), snap=>{ const r=snap.docs.map(mapDoc); if(r.length){ todosPedidos=[...r,...todosPedidos]; renderLista(todosPedidos);} });
+}catch(e){ console.log(e); }
 
 document.querySelectorAll('.tab').forEach(t=>{
   t.addEventListener('click',()=>{
     document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
     t.classList.add('active');
-    filtro = t.dataset.f;
+    filtro=t.dataset.f;
     renderLista(todosPedidos);
   });
 });
 document.getElementById('buscador').addEventListener('input',()=>renderLista(todosPedidos));
 
-window.verDetalles = (p)=>{
-  document.getElementById('modalBox').innerHTML=`
-    <h3 style="font-weight:900;margin-bottom:10px">#${p.codigo} - ${p.estadoLabel}</h3>
-    <p><b>Cliente:</b> ${p.cliente}</p>
-    <p><b>Dirección:</b> ${p.direccion} - ${p.coloniaEntrega}</p>
-    <p><b>Tienda:</b> ${p.tienda}</p>
-    <p><b>Total:</b> $${p.total}</p>
-    <p style="margin-top:12px;font-size:12px;color:#64748b;white-space:pre-wrap">${JSON.stringify(p.raw||p,null,2)}</p>
-    <button onclick="document.getElementById('modal').classList.remove('active')" style="margin-top:16px;width:100%;padding:12px;border-radius:999px;background:#111;color:white;font-weight:800;border:none">Cerrar</button>
+window.abrirDetalle = (id)=>{
+  const p = todosPedidos.find(x=>x.id===id);
+  if(!p) return;
+  const raw = p.raw;
+  const prod = parseFloat(p.producto)||0;
+  const envio = parseFloat(p.envio)||0;
+  const serv = parseFloat(p.servicio)||0;
+  const total = parseFloat(p.total)||0;
+  const comisionRest = prod*0.10;
+  const pagaRest = prod - comisionRest;
+  const pagaRepa = envio*0.80;
+  const gananciaPlataforma = comisionRest + (envio - pagaRepa) + serv;
+
+  document.getElementById('modalTitle').textContent = `#${p.codigo} - ${p.estadoLabel}`;
+  document.getElementById('modalBody').innerHTML = `
+    <div class="box">
+      <h4>Datos del cliente</h4>
+      <div class="row-s"><b>Nombre</b><span>${p.cliente}</span></div>
+      <div class="row-s"><b>Teléfono</b><span>${p.telefono}</span></div>
+      <div class="row-s"><b>Dirección entrega</b><span>${p.direccion}</span></div>
+      <div class="row-s"><b>Colonia</b><span>${p.coloniaEntrega}</span></div>
+      <div class="row-s"><b>GPS Lat/Lng</b><span>${p.gps?`${p.gps.lat}, ${p.gps.lng}`:'-'}</span></div>
+      <div class="row-s"><b>ID pedido</b><span>${p.id}</span></div>
+    </div>
+    <div class="box">
+      <h4>Datos del restaurante / tienda</h4>
+      <div class="row-s"><b>Nombre</b><span>${p.tienda}</span></div>
+      <div class="row-s"><b>Colonia</b><span>${p.colTienda}</span></div>
+      <div class="row-s"><b>Dirección restaurante</b><span>${raw.restaurante?.direccion||'-'}</span></div>
+      <div class="row-s"><b>Tel restaurante</b><span>${raw.restaurante?.telefono||'-'}</span></div>
+    </div>
+    <div class="box">
+      <h4>Control de tiempos - Restaurante</h4>
+      <div class="timeline-d">
+        <div class="t-item ${p.timestamps.nuevo||raw.createdAt?'ok':''}"><div class="dot"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg></div><b>Nuevo pedido:</b> ${toHora(p.timestamps.nuevo||raw.createdAt||raw.timestamp)}</div>
+        <div class="t-item ${p.timestamps.aceptado?'ok':''}"><div class="dot">✓</div><b>Aceptado:</b> ${toHora(p.timestamps.aceptado)||p.timestamps.aceptado||'-'}</div>
+        <div class="t-item ${p.timestamps.preparando?'ok':''}"><div class="dot">◷</div><b>Preparando / en preparación:</b> ${toHora(p.timestamps.preparando)||p.timestamps.preparando||'-'}</div>
+        <div class="t-item ${p.timestamps.listo||p.timestamps.listo_para_admin?'ok':''}"><div class="dot">●</div><b>Listo:</b> ${toHora(p.timestamps.listo||p.timestamps.listo_para_admin)||p.timestamps.listo||'-'}</div>
+        <div class="t-item ${p.timestamps.enviado_a_repartidor?'ok':''}"><div class="dot">→</div><b>Enviado a repartidor:</b> ${toHora(p.timestamps.enviado_a_repartidor)||'-'}</div>
+      </div>
+    </div>
+    <div class="box">
+      <h4>Control de tiempos - Repartidor</h4>
+      <div class="timeline-d">
+        <div class="row-s"><b>Repartidor</b><span>${p.repartidor}</span></div>
+        <div class="t-item ${p.timestamps.ir_a_recoger?'ok':''}"><div class="dot">◷</div><b>Ir a recoger:</b> ${toHora(p.timestamps.ir_a_recoger)||p.timestamps.ir_a_recoger||'-'}</div>
+        <div class="t-item ${p.timestamps.recogido?'ok':''}"><div class="dot">✓</div><b>Recogido / tiene pedido:</b> ${toHora(p.timestamps.recogido)||'-'}</div>
+        <div class="t-item ${p.timestamps.ir_a_entregar||p.timestamps.en_camino?'ok':''}"><div class="dot">→</div><b>Ir a entregar / En camino:</b> ${toHora(p.timestamps.ir_a_entregar||p.timestamps.en_camino)||'-'}</div>
+        <div class="t-item ${p.timestamps.finalizado||p.timestamps.entregado?'ok':''}"><div class="dot">★</div><b>Finalizado / Entregado:</b> ${toHora(p.timestamps.finalizado||p.timestamps.entregado)||'-'}</div>
+        <div class="t-item ${p.estadoVisual==='cancelado'?'bad':''}"><div class="dot">X</div><b>Cancelado:</b> ${p.motivo||'-'} - ${toHora(p.timestamps.cancelado)||p.timestamps.cancelado||''}</div>
+      </div>
+    </div>
+    <div class="box">
+      <h4>Interacciones y mapa</h4>
+      <div class="row-s"><b>Click Llamar cliente</b><span>${p.acciones.llamar_cliente||p.acciones.click_llamar||'-'}</span></div>
+      <div class="row-s"><b>Click Llamar restaurante</b><span>${p.acciones.llamar_restaurante||'-'}</span></div>
+      <div class="row-s"><b>Click Mapa / Ver ubicación</b><span>${p.acciones.click_mapa||p.acciones.ver_mapa||'-'}</span></div>
+      <div class="row-s"><b>GPS entrega</b><span>${p.gps?`${p.gps.lat}, ${p.gps.lng}`:'-'}</span></div>
+      <div class="row-s"><b>UserAgent</b><span style="font-size:9px">${raw.userAgent||'-'}</span></div>
+    </div>
+    <div class="box">
+      <h4>Productos</h4>
+      ${(raw.productos||[]).map(pr=>`<div class="row-s"><b>${pr.nombre||pr.name||'Producto'}</b><span>x${pr.cantidad||1} - $${pr.precio||pr.price||''}</span></div>`).join('') || `<div class="row-s"><b>Producto</b><span>$${p.producto}</span></div>`}
+    </div>
+    <div class="box presupuesto">
+      <h4>Presupuesto y desglose</h4>
+      <div class="pres-row"><span>Valor productos / servicio</span><b>$${p.producto}</b></div>
+      <div class="pres-row"><span>Tarifa de envío (cliente paga)</span><b>$${p.envio}</b></div>
+      <div class="pres-row"><span>Tarifa de servicio</span><b>$${p.servicio}</b></div>
+      <div class="pres-row total-final"><span>Total pagado cliente</span><b>$${p.total}</b></div>
+      <div style="margin-top:12px"></div>
+      <div class="pres-row"><span>Restaurante recibe ( -10% comisión )</span><b>$${pagaRest.toFixed(2)} <span class="badge-mini">-10% $${comisionRest.toFixed(2)}</span></b></div>
+      <div class="pres-row"><span>Repartidor gana (80% envío)</span><b>$${pagaRepa.toFixed(2)}</b></div>
+      <div class="pres-row"><span>Plataforma gana (10% rest + 20% envío + servicio)</span><b>$${gananciaPlataforma.toFixed(2)}</b></div>
+      <div class="pres-row"><span>Motivo cancelación</span><b>${p.motivo}</b></div>
+    </div>
   `;
   document.getElementById('modal').classList.add('active');
 }
-document.getElementById('modal').addEventListener('click',(e)=>{ if(e.target.id==='modal') e.target.classList.remove('active') });
 </script>
 </body>
 </html>
