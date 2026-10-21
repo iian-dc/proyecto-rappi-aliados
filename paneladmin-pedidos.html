@@ -73,6 +73,13 @@ body{background:#FAFAFA;min-height:100vh}
 .rep-est.ocupado{background:#fee2e2;color:#ef4444}
 .btn-enviar-rep{background:#B70A1A;color:white;border:none;border-radius:8px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;width:100%}
 .btn-enviar-rep:disabled{background:#94a3b8}
+/* NUEVO - CONFIRMAR HISTORIAL */
+.hist-box{width:360px}
+.hist-title{font-size:14px;font-weight:800;color:#111;margin-bottom:6px}
+.hist-sub{font-size:11px;color:#64748b;margin-bottom:14px}
+.hist-actions{display:flex;gap:10px;justify-content:center}
+.btn-si{background:#16a34a;color:white;border:none;border-radius:10px;padding:10px 18px;font-size:12px;font-weight:800;cursor:pointer;flex:1;box-shadow:0 3px 10px rgba(22,163,74,.3)}
+.btn-no{background:white;color:#475569;border:1px solid #e2e8f0;border-radius:10px;padding:10px 18px;font-size:12px;font-weight:700;cursor:pointer;flex:1}
 </style>
 </head>
 <body>
@@ -102,7 +109,7 @@ body{background:#FAFAFA;min-height:100vh}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-import { getFirestore, collection, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+import { getFirestore, collection, onSnapshot, doc, updateDoc, setDoc, deleteDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js";
 
 const configAdmin = {
@@ -208,7 +215,14 @@ function render(){
     const dirEnt=p.detalles?.direccion||p.cliente?.direccion||'Av. Hidalgo #256';
     const productos=p.productos||[];
     let htmlProd=productos.map(it=>`<div class="product-item"><span>${it.nombre||it.name}</span><span>x${it.cantidad||1}</span><span>$${it.precio||0}</span></div>`).join('')||'<div class="product-item"><span>Producto</span><span>x1</span><span>$65</span></div>';
-    const totalProd=p.totales?.costoProductos||95; const envio=p.totales?.costoEnvio||30; const total=p.totales?.total||125;
+
+    // === CORREGIDO: INCLUYE TARIFA DE SERVICIO ===
+    const costoProdBase = Number(p.totales?.costoProductos ?? p.totales?.totalProductos ?? p.totales?.subtotal ?? 0);
+    const tarifaServicio = Number(p.totales?.tarifaServicio ?? p.totales?.tarifa ?? p.totales?.servicio ?? p.totales?.comision ?? 0);
+    const totalProdConTarifa = costoProdBase + tarifaServicio;
+    const envio = Number(p.totales?.costoEnvio ?? p.totales?.envio ?? 30);
+    const totalFinal = totalProdConTarifa + envio;
+
     let hora='12:34'; let tsSec=0;
     if(p.timestampAdmin?.seconds){ tsSec=p.timestampAdmin.seconds; hora=new Date(tsSec*1000).toLocaleString('es-MX',{hour:'2-digit',minute:'2-digit'}); }
     else if(p.timestamp?.seconds){ tsSec=p.timestamp.seconds; hora=new Date(tsSec*1000).toLocaleString('es-MX',{hour:'2-digit',minute:'2-digit'}); }
@@ -228,7 +242,12 @@ function render(){
       </div>
       <div class="card-bottom">
         <div><div class="label">Productos</div>${htmlProd}</div>
-        <div class="total-box"><div class="line"><span>Total productos</span><span>$${totalProd}</span></div><div class="line"><span>Envío</span><span>$${envio}</span></div><div class="total-final">Total<br><b>$${total} MXN</b></div></div>
+        <div class="total-box">
+          <div class="line"><span>Total productos</span><span>$${costoProdBase.toFixed(1)}</span></div>
+          <div class="line"><span>Tarifa servicio</span><span>$${tarifaServicio.toFixed(1)}</span></div>
+          <div class="line"><span>Envío</span><span>$${envio.toFixed(1)}</span></div>
+          <div class="total-final">Total<br><b>$${totalFinal.toFixed(1)} MXN</b></div>
+        </div>
         <div><div class="label">Datos del restaurante</div><div class="value" style="font-size:11px"><div class="icon-row"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#334155" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> ${rest}</div><div class="icon-row" style="color:#10b981"><span style="width:6px;height:6px;background:#10b981;border-radius:50%;display:inline-block"></span> Listo</div></div></div>
         <div>
           <div class="tracking">
@@ -241,7 +260,7 @@ function render(){
       </div>
       <div class="acciones">
         <button class="btn-rojo" ${yaEnviado?'disabled':''} onclick="toggleRepartidores('${p.id}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> ${yaEnviado?'Enviado a '+(p.repartidorNombre||'repartidor'):'Enviar a repartidor'}</button>
-        <button class="${esFinalizado ? 'btn-verde' : 'btn-gris'}" ${esFinalizado ? '' : 'disabled'} onclick="enviarHistorial('${p.id}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Enviar a historial</button>
+        <button class="${esFinalizado ? 'btn-verde' : 'btn-gris'}" ${esFinalizado ? '' : 'disabled'} onclick="confirmarHistorial('${p.id}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Enviar a historial</button>
       </div>
 
       <div class="card-overlay" id="overlay-reps-${p.id}">
@@ -266,6 +285,18 @@ function render(){
             <div class="track-item ${step>=1?'active':''}"><div class="track-icon"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="${step>=1?'#16a34a':'#94a3b8'}" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/></svg></div> Recogido</div>
             <div class="track-item ${step>=2?'active':''}"><div class="track-icon"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="${step>=2?'#16a34a':'#94a3b8'}" stroke-width="2"><circle cx="5.5" cy="17.5" r="3.5"/></svg></div> En camino a entregar</div>
             <div class="track-item ${step>=3?'active':''}"><div class="track-icon"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="${step>=3?'#16a34a':'#94a3b8'}" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></div> Finalizado</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- NUEVO: CONFIRMAR ENVIAR A HISTORIAL ENCIMA DE LA MISMA TARJETA -->
+      <div class="card-overlay" id="overlay-hist-${p.id}">
+        <div class="overlay-box hist-box">
+          <div class="hist-title">¿Deseas enviar este pedido a historial?</div>
+          <div class="hist-sub">Pedido #${id} de ${cliente}<br>Se guardará en <b>pedidos_entregados</b> y se eliminará de aquí</div>
+          <div class="hist-actions">
+            <button class="btn-no" onclick="cerrarOverlay('overlay-hist-${p.id}')">No</button>
+            <button class="btn-si" onclick="siEnviarHistorial('${p.id}')">Sí, enviar</button>
           </div>
         </div>
       </div>
@@ -306,6 +337,7 @@ window.toggleRepartidores = (pedidoId)=>{
 }
 window.cerrarOverlay = (id)=>{ document.getElementById(id)?.classList.remove('open'); }
 window.verDetalles = (id)=>{ document.getElementById('overlay-det-'+id)?.classList.add('open'); }
+window.confirmarHistorial = (id)=>{ document.getElementById('overlay-hist-'+id)?.classList.add('open'); }
 
 window.asignarRepartidor = async (pedidoId, repId, repNombre)=>{
   try{
@@ -319,8 +351,35 @@ window.asignarRepartidor = async (pedidoId, repId, repNombre)=>{
     cerrarOverlay('overlay-reps-'+pedidoId);
   }catch(e){ alert(e.message); }
 }
-window.enviarHistorial=async(id)=>{
-  try{ await updateDoc(doc(db,"pedidos_admin",id),{estado:'finalizado', finalizadoEn:new Date()}); }catch(e){ alert(e.message); }
+
+// === NUEVO: SI -> GUARDA EN pedidos_entregados Y ELIMINA DE pedidos_admin ===
+window.siEnviarHistorial = async (id)=>{
+  try{
+    const pedido = pedidosCache.find(p=>p.id===id);
+    if(!pedido){ alert('Pedido no encontrado'); return; }
+    
+    // Guarda en nueva colección pedidos_entregados
+    await setDoc(doc(db, "pedidos_entregados", id), {
+      ...pedido,
+      estado: 'historial',
+      estadoOriginal: pedido.estado,
+      enviadoAHistorialEn: new Date(),
+      historialEn: new Date(),
+      fechaEntrega: new Date()
+    });
+
+    // Intenta borrar también de pedidos (cliente)
+    try{
+      const refCliente = doc(db, "pedidos", id);
+      const snapCliente = await getDoc(refCliente);
+      if(snapCliente.exists()) await deleteDoc(refCliente);
+    }catch{}
+
+    // Borra de pedidos_admin para que quede solo en historial
+    await deleteDoc(doc(db, "pedidos_admin", id));
+    
+    cerrarOverlay('overlay-hist-'+id);
+  }catch(e){ alert('Error al enviar a historial: '+e.message); }
 }
 </script>
 </body>
