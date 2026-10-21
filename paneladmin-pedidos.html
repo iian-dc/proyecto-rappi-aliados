@@ -27,9 +27,12 @@ body{background:#FAFAFA;min-height:100vh}
 .tab.active .tab-count{background:white;color:#B70A1A}
 .container{padding:12px 18px 30px}
 .card{position:relative;background:white;border:1px solid #eef0f3;border-radius:14px;padding:10px 14px;box-shadow:0 2px 8px rgba(0,0,0,.03);margin-bottom:12px;overflow:hidden;transition:all .3s}
+.card.is-cancelado{border:2px solid #ff1744 !important;background:linear-gradient(135deg,#fff5f5 0%, #ffe3e3 100%) !important;box-shadow:0 0 0 3px rgba(255,23,68,.12), 0 0 22px rgba(255,23,68,.38), 0 4px 16px rgba(0,0,0,.06) !important;animation:neonPulse 1.8s infinite}
+@keyframes neonPulse{0%{box-shadow:0 0 0 3px rgba(255,23,68,.12), 0 0 22px rgba(255,23,68,.38)}50%{box-shadow:0 0 0 5px rgba(255,23,68,.18), 0 0 32px rgba(255,23,68,.55)}100%{box-shadow:0 0 0 3px rgba(255,23,68,.12), 0 0 22px rgba(255,23,68,.38)}}
 .card-top{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
 .card-id{display:flex;align-items:center;gap:8px}
 .id-badge{background:#B70A1A;color:white;padding:5px 14px;border-radius:999px;font-weight:800;font-size:12px}
+.card.is-cancelado .id-badge{background:#ff1744 !important;box-shadow:0 0 10px rgba(255,23,68,.7)}
 .card-date{display:flex;align-items:center;gap:10px;font-size:11px;color:#334155}
 .card-grid{display:grid;grid-template-columns:1fr 1fr 1.3fr 1fr;gap:10px;padding:10px 0 8px;border-bottom:1px solid #f1f5f9}
 @media(max-width:900px){.card-grid{grid-template-columns:1fr 1fr}}
@@ -48,6 +51,8 @@ body{background:#FAFAFA;min-height:100vh}
 .btn-gris{background:#94a3b8;color:white;border:none;border-radius:10px;padding:9px 14px;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;flex:1;min-width:140px;opacity:.6;pointer-events:none}
 .btn-verde{background:#16a34a;color:white;border:none;border-radius:10px;padding:9px 14px;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;flex:1;min-width:140px;box-shadow:0 3px 12px rgba(22,163,74,.35)}
 .btn-borde{background:white;border:1px solid #d1d5db;border-radius:999px;padding:6px 14px;font-size:11px;font-weight:600;color:#475569;display:flex;align-items:center;gap:5px;cursor:pointer}
+.btn-cancelado-rojo-claro{width:100%;background:#ff8a8a !important;color:white;border:none;border-radius:10px;padding:12px 14px;font-size:12.5px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;box-shadow:0 4px 14px rgba(255,123,123,.5);transition:all .2s}
+.btn-cancelado-rojo-claro:hover{background:#ff6b6b !important;transform:translateY(-1px);box-shadow:0 6px 20px rgba(255,123,123,.7)}
 .vacio{text-align:center;padding:40px;color:#94a3b8}
 .tiempo-real{border-radius:999px;padding:3px 10px;font-size:10px;font-weight:900;display:inline-flex;align-items:center;gap:4px}
 .tiempo-verde{background:#16a34a;color:white}
@@ -73,16 +78,12 @@ body{background:#FAFAFA;min-height:100vh}
 .rep-est.ocupado{background:#fee2e2;color:#ef4444}
 .btn-enviar-rep{background:#B70A1A;color:white;border:none;border-radius:8px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;width:100%}
 .btn-enviar-rep:disabled{background:#94a3b8}
-.hist-box{width:380px}
+.hist-box{width:360px}
 .hist-title{font-size:14px;font-weight:800;color:#111;margin-bottom:6px}
 .hist-sub{font-size:11px;color:#64748b;margin-bottom:14px}
 .hist-actions{display:flex;gap:10px;justify-content:center}
 .btn-si{background:#16a34a;color:white;border:none;border-radius:10px;padding:10px 18px;font-size:12px;font-weight:800;cursor:pointer;flex:1;box-shadow:0 3px 10px rgba(22,163,74,.3)}
 .btn-no{background:white;color:#475569;border:1px solid #e2e8f0;border-radius:10px;padding:10px 18px;font-size:12px;font-weight:700;cursor:pointer;flex:1}
-.btn-cancelado-rojo{width:100%;background:#E30613;color:white;border:none;border-radius:10px;padding:11px 14px;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;box-shadow:0 3px 10px rgba(227,6,19,.25)}
-.cancel-info-box{text-align:left;background:#fff1f2;border:1px solid #fecaca;border-radius:10px;padding:10px;margin-top:10px}
-.cancel-info-box b{font-size:11px;color:#E30613}
-.cancel-info-box p{font-size:11px;color:#334155;margin-top:4px}
 </style>
 </head>
 <body>
@@ -155,7 +156,6 @@ const lista = document.getElementById('listaPedidos');
 const bell = document.getElementById('bellIcon');
 const bellCount = document.getElementById('bellCount');
 let pedidosCache = []; let filtro='todos'; let primerCarga=true; let ultimoTotal=0;
-
 let cacheRepartidores=[ {id:'Jose', nombre:'Jose', foto:'', estado:'disponible', conectado:true} ];
 
 try{
@@ -237,19 +237,14 @@ function render(){
 
     let accionesHtml = '';
     if(esCancelado){
-      accionesHtml = `
-        <button class="btn-cancelado-rojo" onclick="verCancelado('${p.id}')">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          Pedido fue cancelado - ${p.motivoCancelacion||'Sin motivo'}
-        </button>`;
+      accionesHtml = `<button class="btn-cancelado-rojo-claro" onclick="siEnviarCanceladoHistorial('${p.id}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Pedido fue cancelado - ${p.motivoCancelacion||'Sin motivo'} - CLICK PARA HISTORIAL</button>`;
     }else{
-      accionesHtml = `
-        <button class="btn-rojo" ${yaEnviado?'disabled':''} onclick="toggleRepartidores('${p.id}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> ${yaEnviado?'Enviado a '+(p.repartidorNombre||'repartidor'):'Enviar a repartidor'}</button>
+      accionesHtml = `<button class="btn-rojo" ${yaEnviado?'disabled':''} onclick="toggleRepartidores('${p.id}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> ${yaEnviado?'Enviado a '+(p.repartidorNombre||'repartidor'):'Enviar a repartidor'}</button>
         <button class="${esFinalizado ? 'btn-verde' : 'btn-gris'}" ${esFinalizado ? '' : 'disabled'} onclick="confirmarHistorial('${p.id}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Enviar a historial</button>`;
     }
 
     return `
-    <div class="card" id="card-${p.id}">
+    <div class="${esCancelado ? 'card is-cancelado' : 'card'}" id="card-${p.id}">
       <div class="card-top"><div class="card-id"><span class="id-badge">#${id}</span></div><div class="card-date"><span style="display:flex;align-items:center;gap:6px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#334155" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> ${hora}</span><span class="tiempo-real ${tiempo.clase}" data-ts="${tsSec}" data-estado="${p.estado}">${tiempo.texto}</span></div></div>
       <div class="card-grid">
         <div><div class="label">Cliente:</div><div class="value">${cliente}<small>${tel}</small></div></div>
@@ -275,19 +270,12 @@ function render(){
           <div class="acciones" style="margin-top:8px"><button class="btn-borde" style="width:100%" onclick="verDetalles('${p.id}')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> Ver detalles</button></div>
         </div>
       </div>
-      <div class="acciones">
-        ${accionesHtml}
-      </div>
+      <div class="acciones">${accionesHtml}</div>
 
       <div class="card-overlay" id="overlay-reps-${p.id}">
         <div class="overlay-box">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b style="font-size:12px">Seleccionar repartidor para #${id}</b><button class="btn-borde" onclick="cerrarOverlay('overlay-reps-${p.id}')">✕</button></div>
-          <div class="reps-row" id="reps-row-${p.id}">
-            ${cacheRepartidores.map(r=>{
-              const disp=r.estado==='disponible';
-              return `<div class="rep-card"><div class="rep-img"><svg width="24" height="24" viewBox="0 0 24 24" fill="#94a3b8"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></div><div class="rep-name">${r.nombre}</div><span class="rep-est ${disp?'disponible':'ocupado'}">${disp?'Disponible':'Ocupado'}</span><button class="btn-enviar-rep" ${!disp?'disabled':''} onclick="asignarRepartidor('${p.id}','${r.id}','${r.nombre}')">Enviar</button></div>`;
-            }).join('')}
-          </div>
+          <div class="reps-row" id="reps-row-${p.id}">${cacheRepartidores.map(r=>{const disp=r.estado==='disponible';return `<div class="rep-card"><div class="rep-img"><svg width="24" height="24" viewBox="0 0 24 24" fill="#94a3b8"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></div><div class="rep-name">${r.nombre}</div><span class="rep-est ${disp?'disponible':'ocupado'}">${disp?'Disponible':'Ocupado'}</span><button class="btn-enviar-rep" ${!disp?'disabled':''} onclick="asignarRepartidor('${p.id}','${r.id}','${r.nombre}')">Enviar</button></div>`;}).join('')}</div>
         </div>
       </div>
 
@@ -296,10 +284,10 @@ function render(){
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><b style="font-size:13px">Seguimiento #${id}</b><button class="btn-borde" onclick="cerrarOverlay('overlay-det-${p.id}')">✕</button></div>
           <div style="font-size:11px;color:#64748b;margin-bottom:10px">Repartidor: <b style="color:#0f172a">${p.repartidorNombre||'Por asignar'}</b></div>
           <div class="tracking">
-            <div class="track-item ${step>=0?'active':''}"><div class="track-icon"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></div> Sin enviar - Listo en restaurante</div>
+            <div class="track-item ${step>=0?'active':''}"><div class="track-icon"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></div> Sin enviar - Listo</div>
             <div class="track-item ${yaEnviado?'active':''}"><div class="track-icon"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/></svg></div> Enviado a repartidor</div>
             <div class="track-item ${step>=1?'active':''}"><div class="track-icon"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="${step>=1?'#16a34a':'#94a3b8'}" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/></svg></div> Recogido</div>
-            <div class="track-item ${step>=2?'active':''}"><div class="track-icon"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="${step>=2?'#16a34a':'#94a3b8'}" stroke-width="2"><circle cx="5.5" cy="17.5" r="3.5"/></svg></div> En camino a entregar</div>
+            <div class="track-item ${step>=2?'active':''}"><div class="track-icon"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="${step>=2?'#16a34a':'#94a3b8'}" stroke-width="2"><circle cx="5.5" cy="17.5" r="3.5"/></svg></div> En camino</div>
             <div class="track-item ${step>=3?'active':''}"><div class="track-icon"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="${step>=3?'#16a34a':'#94a3b8'}" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></div> Finalizado</div>
           </div>
         </div>
@@ -312,22 +300,6 @@ function render(){
           <div class="hist-actions">
             <button class="btn-no" onclick="cerrarOverlay('overlay-hist-${p.id}')">No</button>
             <button class="btn-si" onclick="siEnviarHistorial('${p.id}')">Sí, enviar</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="card-overlay" id="overlay-cancelado-${p.id}">
-        <div class="overlay-box hist-box" style="text-align:left">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><b style="font-size:13px;color:#E30613">Pedido cancelado #${id}</b><button class="btn-borde" onclick="cerrarOverlay('overlay-cancelado-${p.id}')">✕</button></div>
-          <div class="cancel-info-box">
-            <b>Motivo:</b><p>${p.motivoCancelacion||'No especificado'}</p>
-            ${p.detalleCancelacion ? `<b style="margin-top:8px;display:block">Detalle:</b><p>${p.detalleCancelacion}</p>` : ''}
-            <b style="margin-top:8px;display:block">Cancelado por:</b><p>${p.canceladoPorNombre||p.canceladoPor||'Repartidor'} - ${p.canceladoEn ? new Date(p.canceladoEn.seconds ? p.canceladoEn.seconds*1000 : p.canceladoEn).toLocaleString('es-MX') : ''}</p>
-            <b style="margin-top:8px;display:block">Cliente:</b><p>${cliente} - ${tel}</p>
-          </div>
-          <div class="hist-actions" style="margin-top:14px">
-            <button class="btn-no" onclick="cerrarOverlay('overlay-cancelado-${p.id}')">Cerrar</button>
-            <button class="btn-si" style="background:#E30613" onclick="siEnviarCanceladoHistorial('${p.id}')">Enviar a historial</button>
           </div>
         </div>
       </div>
@@ -369,7 +341,6 @@ window.toggleRepartidores = (pedidoId)=>{
 window.cerrarOverlay = (id)=>{ document.getElementById(id)?.classList.remove('open'); }
 window.verDetalles = (id)=>{ document.getElementById('overlay-det-'+id)?.classList.add('open'); }
 window.confirmarHistorial = (id)=>{ document.getElementById('overlay-hist-'+id)?.classList.add('open'); }
-window.verCancelado = (id)=>{ document.getElementById('overlay-cancelado-'+id)?.classList.add('open'); }
 
 window.asignarRepartidor = async (pedidoId, repId, repNombre)=>{
   try{
@@ -408,23 +379,58 @@ window.siEnviarHistorial = async (id)=>{
   }
 }
 
+// FUNCIÓN NUEVA - CANCELADO AUTOMÁTICO AL CLIC
 window.siEnviarCanceladoHistorial = async (id)=>{
   const pedido = pedidosCache.find(p=>p.id===id);
   if(!pedido){ alert('Pedido no encontrado'); return; }
+  
+  const cardEl = document.getElementById('card-'+id);
+  if(cardEl){ 
+    cardEl.style.transition='all .35s ease';
+    cardEl.style.transform='scale(0.88) rotateX(10deg)';
+    cardEl.style.opacity='0';
+    cardEl.style.filter='blur(6px)';
+  }
   const copiaPedidos = [...pedidosCache];
-  pedidosCache = pedidosCache.filter(p=>p.id!==id);
-  render();
+  setTimeout(()=>{ pedidosCache = pedidosCache.filter(p=>p.id!==id); render(); },320);
+
   try{
+    // ALOJAR TODO EN pedidos_cancelados - NUEVA CARPETA
     await setDoc(doc(dbHistorial, "pedidos_cancelados", id), {
-      ...pedido,
+      ...pedido, // TODO EL PEDIDO: nombre, direccion, celular, productos, totales, IP, ubicacion, etc
+      idOriginal: pedido.id,
+      codigo: pedido.codigo || pedido.id,
+      cliente: pedido.cliente || {nombre: pedido.nombre, celular: pedido.telefono, direccion: pedido.detalles?.direccion},
+      restaurante: pedido.restaurante,
+      productos: pedido.productos,
+      totales: pedido.totales,
+      direccionEntrega: pedido.direccionEntrega || pedido.detalles?.direccion,
+      direccionRecogida: pedido.restaurante?.direccion,
+      telefono: pedido.telefono || pedido.detalles?.telefono || pedido.cliente?.celular,
+      motivoCancelacion: pedido.motivoCancelacion,
+      detalleCancelacion: pedido.detalleCancelacion,
+      canceladoPor: pedido.canceladoPor,
+      canceladoPorNombre: pedido.canceladoPorNombre,
+      canceladoEn: pedido.canceladoEn || new Date(),
       estado: 'cancelado_historial',
       enviadoAHistorialEn: new Date(),
-      guardadoDesde: 'doloya-confirmacion'
+      fechaCancelacion: new Date(),
+      guardadoDesde: 'doloya-confirmacion',
+      ip: pedido.ip || null,
+      ubicacionCompleta: {
+        cliente: pedido.cliente,
+        restaurante: pedido.restaurante,
+        coordenadas: pedido.coordenadas || null
+      }
     });
+
+    // ELIMINAR DE pedidos_admin
     await deleteDoc(doc(db, "pedidos_admin", id));
+    console.log('Cancelado movido a pedidos_cancelados');
+
   }catch(e){
     console.error(e);
-    alert('Error: '+e.message);
+    alert('Error al mover cancelado: '+e.message);
     pedidosCache = copiaPedidos;
     render();
   }
