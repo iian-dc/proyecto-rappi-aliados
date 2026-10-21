@@ -51,8 +51,7 @@ body{background:#FAFAFA;min-height:100vh}
 .btn-gris{background:#94a3b8;color:white;border:none;border-radius:10px;padding:9px 14px;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;flex:1;min-width:140px;opacity:.6;pointer-events:none}
 .btn-verde{background:#16a34a;color:white;border:none;border-radius:10px;padding:9px 14px;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;flex:1;min-width:140px;box-shadow:0 3px 12px rgba(22,163,74,.35)}
 .btn-borde{background:white;border:1px solid #d1d5db;border-radius:999px;padding:6px 14px;font-size:11px;font-weight:600;color:#475569;display:flex;align-items:center;gap:5px;cursor:pointer}
-.btn-cancelado-rojo-claro{width:100%;background:#ff8a8a !important;color:white;border:none;border-radius:10px;padding:12px 14px;font-size:12.5px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;box-shadow:0 4px 14px rgba(255,123,123,.5);transition:all .2s}
-.btn-cancelado-rojo-claro:hover{background:#ff6b6b !important;transform:translateY(-1px);box-shadow:0 6px 20px rgba(255,123,123,.7)}
+.btn-cancelado-rojo-claro{width:100%;background:#ff8a8a !important;color:white;border:none;border-radius:10px;padding:12px 14px;font-size:12.5px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;box-shadow:0 4px 14px rgba(255,123,123,.5)}
 .vacio{text-align:center;padding:40px;color:#94a3b8}
 .tiempo-real{border-radius:999px;padding:3px 10px;font-size:10px;font-weight:900;display:inline-flex;align-items:center;gap:4px}
 .tiempo-verde{background:#16a34a;color:white}
@@ -82,12 +81,11 @@ body{background:#FAFAFA;min-height:100vh}
 .hist-title{font-size:14px;font-weight:800;color:#111;margin-bottom:6px}
 .hist-sub{font-size:11px;color:#64748b;margin-bottom:14px}
 .hist-actions{display:flex;gap:10px;justify-content:center}
-.btn-si{background:#16a34a;color:white;border:none;border-radius:10px;padding:10px 18px;font-size:12px;font-weight:800;cursor:pointer;flex:1;box-shadow:0 3px 10px rgba(22,163,74,.3)}
+.btn-si{background:#16a34a;color:white;border:none;border-radius:10px;padding:10px 18px;font-size:12px;font-weight:800;cursor:pointer;flex:1}
 .btn-no{background:white;color:#475569;border:1px solid #e2e8f0;border-radius:10px;padding:10px 18px;font-size:12px;font-weight:700;cursor:pointer;flex:1}
 </style>
 </head>
 <body>
-
 <div class="header">
   <div class="h-left">
     <button class="btn-x" onclick="window.location.href='paneladmin.html'"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
@@ -98,7 +96,6 @@ body{background:#FAFAFA;min-height:100vh}
     <div class="admin-chip"><div class="admin-avatar"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></div><div style="line-height:1.1"><b style="font-size:12px;display:block">Administrador</b><small style="font-size:11px;color:#6b7280">DoloYa</small></div></div>
   </div>
 </div>
-
 <div class="tabs">
   <div class="tab active" data-f="todos">Todos <span class="tab-count" id="c-todos">0</span></div>
   <div class="tab" data-f="sin_enviar">Sin enviar a repartidor <span class="tab-count" id="c-sin">0</span></div>
@@ -108,7 +105,6 @@ body{background:#FAFAFA;min-height:100vh}
   <div class="tab" data-f="finalizado">Finalizado <span class="tab-count" id="c-fin">0</span></div>
   <div class="tab" data-f="cancelado">Cancelado <span class="tab-count" id="c-cancel">0</span></div>
 </div>
-
 <div class="container" id="listaPedidos"><div class="vacio">Esperando pedidos del restaurante...</div></div>
 
 <script type="module">
@@ -219,13 +215,11 @@ function render(){
     const dirEnt=p.detalles?.direccion||p.cliente?.direccion||'Av. Hidalgo #256';
     const productos=p.productos||[];
     let htmlProd=productos.map(it=>`<div class="product-item"><span>${it.nombre||it.name}</span><span>x${it.cantidad||1}</span><span>$${it.precio||0}</span></div>`).join('')||'<div class="product-item"><span>Producto</span><span>x1</span><span>$65</span></div>';
-
     const costoProdBase = Number(p.totales?.costoProductos ?? p.totales?.totalProductos ?? p.totales?.subtotal ?? 0);
     const tarifaServicio = Number(p.totales?.tarifaServicio ?? p.totales?.tarifa ?? p.totales?.servicio ?? p.totales?.comision ?? 0);
     const totalProdConTarifa = costoProdBase + tarifaServicio;
     const envio = Number(p.totales?.costoEnvio ?? p.totales?.envio ?? 30);
     const totalFinal = totalProdConTarifa + envio;
-
     let hora='12:34'; let tsSec=0;
     if(p.timestampAdmin?.seconds){ tsSec=p.timestampAdmin.seconds; hora=new Date(tsSec*1000).toLocaleString('es-MX',{hour:'2-digit',minute:'2-digit'}); }
     else if(p.timestamp?.seconds){ tsSec=p.timestamp.seconds; hora=new Date(tsSec*1000).toLocaleString('es-MX',{hour:'2-digit',minute:'2-digit'}); }
@@ -237,7 +231,7 @@ function render(){
 
     let accionesHtml = '';
     if(esCancelado){
-      accionesHtml = `<button class="btn-cancelado-rojo-claro" onclick="siEnviarCanceladoHistorial('${p.id}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Pedido fue cancelado - ${p.motivoCancelacion||'Sin motivo'} - CLICK PARA HISTORIAL</button>`;
+      accionesHtml = `<button class="btn-cancelado-rojo-claro" onclick="siEnviarCanceladoHistorial('${p.id}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Pedido fue cancelado - ${p.motivoCancelacion||'Sin motivo'}</button>`;
     }else{
       accionesHtml = `<button class="btn-rojo" ${yaEnviado?'disabled':''} onclick="toggleRepartidores('${p.id}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> ${yaEnviado?'Enviado a '+(p.repartidorNombre||'repartidor'):'Enviar a repartidor'}</button>
         <button class="${esFinalizado ? 'btn-verde' : 'btn-gris'}" ${esFinalizado ? '' : 'disabled'} onclick="confirmarHistorial('${p.id}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Enviar a historial</button>`;
@@ -271,14 +265,12 @@ function render(){
         </div>
       </div>
       <div class="acciones">${accionesHtml}</div>
-
       <div class="card-overlay" id="overlay-reps-${p.id}">
         <div class="overlay-box">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b style="font-size:12px">Seleccionar repartidor para #${id}</b><button class="btn-borde" onclick="cerrarOverlay('overlay-reps-${p.id}')">✕</button></div>
           <div class="reps-row" id="reps-row-${p.id}">${cacheRepartidores.map(r=>{const disp=r.estado==='disponible';return `<div class="rep-card"><div class="rep-img"><svg width="24" height="24" viewBox="0 0 24 24" fill="#94a3b8"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></div><div class="rep-name">${r.nombre}</div><span class="rep-est ${disp?'disponible':'ocupado'}">${disp?'Disponible':'Ocupado'}</span><button class="btn-enviar-rep" ${!disp?'disabled':''} onclick="asignarRepartidor('${p.id}','${r.id}','${r.nombre}')">Enviar</button></div>`;}).join('')}</div>
         </div>
       </div>
-
       <div class="card-overlay" id="overlay-det-${p.id}">
         <div class="overlay-box" style="text-align:left">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><b style="font-size:13px">Seguimiento #${id}</b><button class="btn-borde" onclick="cerrarOverlay('overlay-det-${p.id}')">✕</button></div>
@@ -292,7 +284,6 @@ function render(){
           </div>
         </div>
       </div>
-
       <div class="card-overlay" id="overlay-hist-${p.id}">
         <div class="overlay-box hist-box">
           <div class="hist-title">¿Deseas enviar este pedido a historial?</div>
@@ -303,7 +294,6 @@ function render(){
           </div>
         </div>
       </div>
-
     </div>`;
   }).join('');
 }
@@ -366,8 +356,8 @@ window.siEnviarHistorial = async (id)=>{
       ...pedido,
       estado: 'historial',
       estadoOriginal: pedido.estado,
-      enviadoAHistorialEn: new Date(),
-      fechaEntrega: new Date(),
+      enviadoAHistorialEn: new Date().toISOString(),
+      fechaEntrega: new Date().toISOString(),
       guardadoDesde: 'doloya-confirmacion'
     });
     await deleteDoc(doc(db, "pedidos_admin", id));
@@ -379,7 +369,6 @@ window.siEnviarHistorial = async (id)=>{
   }
 }
 
-// FUNCIÓN NUEVA - CANCELADO AUTOMÁTICO AL CLIC
 window.siEnviarCanceladoHistorial = async (id)=>{
   const pedido = pedidosCache.find(p=>p.id===id);
   if(!pedido){ alert('Pedido no encontrado'); return; }
@@ -387,52 +376,48 @@ window.siEnviarCanceladoHistorial = async (id)=>{
   const cardEl = document.getElementById('card-'+id);
   if(cardEl){ 
     cardEl.style.transition='all .35s ease';
-    cardEl.style.transform='scale(0.88) rotateX(10deg)';
-    cardEl.style.opacity='0';
-    cardEl.style.filter='blur(6px)';
+    cardEl.style.transform='scale(0.88)';
+    cardEl.style.opacity='0.5';
   }
-  const copiaPedidos = [...pedidosCache];
-  setTimeout(()=>{ pedidosCache = pedidosCache.filter(p=>p.id!==id); render(); },320);
 
   try{
-    // ALOJAR TODO EN pedidos_cancelados - NUEVA CARPETA
-    await setDoc(doc(dbHistorial, "pedidos_cancelados", id), {
-      ...pedido, // TODO EL PEDIDO: nombre, direccion, celular, productos, totales, IP, ubicacion, etc
+    // 1. GUARDAR EN doloya-historial / pedidos_cancelados - CREA LA CARPETA AUTOMATICAMENTE
+    const datosCompletos = {
+      ...pedido,
       idOriginal: pedido.id,
       codigo: pedido.codigo || pedido.id,
-      cliente: pedido.cliente || {nombre: pedido.nombre, celular: pedido.telefono, direccion: pedido.detalles?.direccion},
-      restaurante: pedido.restaurante,
-      productos: pedido.productos,
-      totales: pedido.totales,
-      direccionEntrega: pedido.direccionEntrega || pedido.detalles?.direccion,
-      direccionRecogida: pedido.restaurante?.direccion,
-      telefono: pedido.telefono || pedido.detalles?.telefono || pedido.cliente?.celular,
-      motivoCancelacion: pedido.motivoCancelacion,
-      detalleCancelacion: pedido.detalleCancelacion,
+      estado: 'cancelado_historial',
+      estadoOriginal: pedido.estado,
+      cliente: pedido.cliente || { nombre: pedido.nombre, celular: pedido.telefono },
+      telefono: pedido.telefono || pedido.cliente?.celular || pedido.detalles?.telefono,
+      direccionEntrega: pedido.direccionEntrega || pedido.detalles?.direccion || pedido.cliente?.direccion,
+      motivoCancelacion: pedido.motivoCancelacion || 'Sin motivo',
+      detalleCancelacion: pedido.detalleCancelacion || '',
       canceladoPor: pedido.canceladoPor,
       canceladoPorNombre: pedido.canceladoPorNombre,
-      canceladoEn: pedido.canceladoEn || new Date(),
-      estado: 'cancelado_historial',
-      enviadoAHistorialEn: new Date(),
-      fechaCancelacion: new Date(),
+      canceladoEn: pedido.canceladoEn ? (pedido.canceladoEn.seconds ? new Date(pedido.canceladoEn.seconds*1000).toISOString() : pedido.canceladoEn) : new Date().toISOString(),
+      enviadoAHistorialEn: new Date().toISOString(),
+      fechaCancelacion: new Date().toISOString(),
       guardadoDesde: 'doloya-confirmacion',
-      ip: pedido.ip || null,
-      ubicacionCompleta: {
-        cliente: pedido.cliente,
-        restaurante: pedido.restaurante,
-        coordenadas: pedido.coordenadas || null
-      }
-    });
+      datosCompletosOriginales: pedido
+    };
 
-    // ELIMINAR DE pedidos_admin
+    console.log('Guardando en pedidos_cancelados...', id);
+    await setDoc(doc(dbHistorial, "pedidos_cancelados", id), datosCompletos);
+    console.log('Guardado OK en pedidos_cancelados');
+
+    // 2. BORRAR DE pedidos_admin
     await deleteDoc(doc(db, "pedidos_admin", id));
-    console.log('Cancelado movido a pedidos_cancelados');
+    console.log('Eliminado de pedidos_admin');
+
+    // 3. QUITAR DE VISTA
+    pedidosCache = pedidosCache.filter(p=>p.id!==id);
+    render();
 
   }catch(e){
-    console.error(e);
-    alert('Error al mover cancelado: '+e.message);
-    pedidosCache = copiaPedidos;
-    render();
+    console.error('ERROR CANCELADO:', e);
+    alert('Error al mover a historial:\n'+e.message+'\n\nRevisa reglas de Firestore en doloya-historial, pon allow read,write if true temporalmente');
+    if(cardEl){ cardEl.style.transform='scale(1)'; cardEl.style.opacity='1'; }
   }
 }
 </script>
