@@ -61,6 +61,7 @@ body{background:#F5F5F7;min-height:100vh}
 .btn-cambiar{background:var(--negro);color:white;border:none;border-radius:8px;padding:8px 12px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px}
 .label{font-size:11.5px;font-weight:700;color:#374151;margin-bottom:6px;display:block;margin-top:12px}
 .input{width:100%;border:1.5px solid #E5E7EB;border-radius:8px;height:38px;padding:0 12px;font-size:13px;outline:none}
+.textarea{width:100%;border:1.5px solid #E5E7EB;border-radius:8px;padding:10px 12px;font-size:13px;outline:none;resize:none;min-height:62px}
 .row2{display:flex;gap:10px;flex-wrap:nowrap}
 .promo-head{display:flex;align-items:center;justify-content:space-between;margin-top:14px;flex-wrap:nowrap;gap:10px}
 .promo-head b{font-size:12px;white-space:nowrap;display:flex;align-items:center;gap:6px}
@@ -86,9 +87,8 @@ body{background:#F5F5F7;min-height:100vh}
 </style>
 </head>
 <body>
-<div id="toastOverlay"><div class="toast-card" id="toastCard"><h4 id="toastTitle">Guardado</h4><p id="toastMsg" style="font-size:12px;color:#6b7280;margin-top:4px">Producto actualizado</p></div></div>
+<div id="toastOverlay"><div class="toast-card"><h4 id="toastTitle">Guardado</h4><p id="toastMsg" style="font-size:12px;color:#6b7280;margin-top:4px">Producto actualizado</p></div></div>
 <div id="confirmOverlay"><div class="confirm-card"><h4 style="font-size:15px;font-weight:800">¿Deseas eliminar este producto?</h4><p id="confirmText" style="font-size:12.5px;color:#6b7280;margin-top:8px">Esta acción no se puede deshacer.</p><div class="confirm-btns"><button class="btn-cancel" onclick="cerrarConfirm()">Cancelar</button><button class="btn-confirm" onclick="confirmarEliminar()">Eliminar</button></div></div></div>
-
 <div class="top-header">
   <div class="top-left">
     <button class="btn-x" onclick="history.back()"><svg viewBox="0 0 24 24" fill="none" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg></button>
@@ -114,6 +114,7 @@ body{background:#F5F5F7;min-height:100vh}
     <div class="edit-body">
       <div class="img-row"><div class="img-preview"><img id="editImg" src=""></div><input type="file" id="inputFileImg" accept="image/*" style="display:none"><button class="btn-cambiar" onclick="document.getElementById('inputFileImg').click()">Cambiar imagen</button></div>
       <label class="label">Nombre del producto</label><input id="editNombre" class="input">
+      <label class="label">Descripción del producto "Opcional"</label><textarea id="editDescripcion" class="textarea" placeholder="Ej: Incluye papas, bebida, salsa especial..."></textarea>
       <label class="label">Categoría</label><select id="editCat" class="input"></select>
       <label class="label">Precio</label><div class="discount-box"><span>$</span><input id="editPrecio" type="number"></div>
       <div class="promo-head"><b>Promoción / Descuento</b><div class="switch-red on" id="switchPromo"></div></div>
@@ -126,7 +127,6 @@ body{background:#F5F5F7;min-height:100vh}
     </div>
   </div>
 </div>
-
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
 import { getDatabase, ref, onValue, get, update, remove } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js";
@@ -143,7 +143,6 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const sesion = JSON.parse(localStorage.getItem('doloya_aliado_sesion')||'null');
 let categoriaReal='alitas', idReal='alitas_factory', productos=[], productoEdit=null, productoAEliminar=null, categoriasReales=[], categoriasExtra=[];
-
 function toast(t,m){
   document.getElementById('toastTitle').textContent=t;
   document.getElementById('toastMsg').textContent=m;
@@ -239,13 +238,12 @@ function renderProductos(){
     });
   });
 }
-
 function editar(id){
   const p=productos.find(x=>x.id==id); if(!p) return;
   productoEdit=p;
-  // AQUI SI TRAE TODO INCLUYENDO IMAGEN
   document.getElementById('editImg').src = p.imagen||p.img||'';
   document.getElementById('editNombre').value=p.nombre||'';
+  document.getElementById('editDescripcion').value=p.descripcion||p.Descripcion||'';
   document.getElementById('editPrecio').value=p.precio||'';
   document.getElementById('editCat').value=(p.categoria||'').toLowerCase();
   document.getElementById('editTipoPromo').value=p.tipoPromo||'descuento';
@@ -268,6 +266,8 @@ function guardarTiempoReal(silent=false){
     const path=`doloya_aliados/${categoriaReal}/${idReal}/menu/${productoEdit.id}`;
     update(ref(db,path),{
       nombre: document.getElementById('editNombre').value,
+      descripcion: document.getElementById('editDescripcion').value,
+      Descripcion: document.getElementById('editDescripcion').value,
       precio: parseFloat(document.getElementById('editPrecio').value)||0,
       categoria: document.getElementById('editCat').value,
       tipoPromo: document.getElementById('editTipoPromo').value,
@@ -281,16 +281,16 @@ function guardarTiempoReal(silent=false){
     if(!silent) toast('Guardando...','Actualización en tiempo real');
   },400);
 }
-['editNombre','editPrecio','editCat','editTipoPromo','editPorc'].forEach(id=>{
+['editNombre','editDescripcion','editPrecio','editCat','editTipoPromo','editPorc'].forEach(id=>{
   document.getElementById(id).addEventListener('input',()=>{ calcularDesc(); guardarTiempoReal(true); });
 });
 document.getElementById('switchPromo').addEventListener('click',function(){ this.classList.toggle('on'); guardarTiempoReal(); });
 document.getElementById('switchEstadoProd').addEventListener('click',function(){ this.classList.toggle('on'); guardarTiempoReal(); toast(this.classList.contains('on')?'Disponible':'Agotado', this.classList.contains('on')?'Visible en menú':'Oculto del menú'); });
-
 function limpiarEditar(){
   productoEdit=null;
   document.getElementById('editImg').src='';
   document.getElementById('editNombre').value='';
+  document.getElementById('editDescripcion').value='';
   document.getElementById('editPrecio').value='';
   document.getElementById('editPorc').value=10;
   document.getElementById('editPrecioDesc').value='';
@@ -298,7 +298,6 @@ function limpiarEditar(){
   document.getElementById('switchPromo').className='switch-red on';
   document.getElementById('switchEstadoProd').className='switch-mini on';
 }
-
 window.guardarProducto=function(){
   if(!productoEdit){ toast('Error','Selecciona un producto'); return; }
   guardarTiempoReal();
@@ -318,7 +317,6 @@ window.confirmarEliminar=function(){
   document.getElementById('confirmOverlay').classList.remove('show');
   toast('Eliminado','Producto eliminado');
   productoAEliminar=null;
-  if(productoEdit && productoEdit.id===productoAEliminar){ limpiarEditar(); }
 }
 document.getElementById('inputFileImg').addEventListener('change', e=>{
   const file=e.target.files[0]; if(!file) return;
