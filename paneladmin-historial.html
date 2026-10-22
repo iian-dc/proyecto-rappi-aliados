@@ -62,15 +62,15 @@ body{background:#fff;font-family:'Inter',Helvetica,Arial,sans-serif;color:#0f172
 @media(max-width:800px){.modal-body{grid-template-columns:1fr}}
 .box{border:1px solid #eef2f7;border-radius:10px;padding:10px 12px}
 .box h4{font-size:10px;font-weight:800;margin-bottom:6px;text-transform:uppercase;border-bottom:1px solid #f1f5f9;padding-bottom:5px}
-.row-s{display:flex;justify-content:space-between;padding:3px 0;font-size:10px}
+.row-s{display:flex;justify-content:space-between;padding:4px 0;font-size:10px;border-bottom:1px dashed #f1f5f9}
+.row-s:last-child{border-bottom:none}
 .row-s b{color:#475569;font-weight:600}
 .row-s span{font-weight:700;text-align:right;max-width:62%;word-break:break-word}
-.t-item{display:flex;gap:6px;align-items:center;font-size:10px;padding:4px 7px;border-radius:7px;background:#f8fafc;margin-bottom:3px}
-.t-item.ok{background:#f0fdf4;border:1px solid #bbf7d0}
-.t-item.bad{background:#fef2f2;border:1px solid #fecaca}
 .presupuesto{grid-column:1/-1}
 .pres-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed #eef2f7;font-size:10.5px}
 .pres-row.total-final{font-weight:900;font-size:12px;background:#f8fafc;padding:8px;border-radius:8px;border:none}
+.pres-row.sub{font-weight:800;background:#f1f5f9;padding:6px 8px;border-radius:6px;border:none}
+.pres-row.green{color:#15803d;background:#f0fdf4;padding:8px;border-radius:8px;border:1px solid #bbf7d0;font-weight:900;font-size:12px}
 </style>
 </head>
 <body>
@@ -139,7 +139,6 @@ function toHora(ts){
     return d.toLocaleString('es-MX',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit',hour12:true});
   }catch{ return typeof ts==='string'?ts:'-'; }
 }
-function toSoloHora(ts){ if(!ts) return '-'; let full=toHora(ts); if(full==='-') return '-'; let parts=full.split(','); return parts.length>1?parts[1].trim():full; }
 function num(v){ if(v==null) return 0; if(typeof v==='number') return v; let s=String(v).replace(/[^0-9.,-]/g,'').replace(',','.'); let n=parseFloat(s); return isNaN(n)?0:n; }
 function buscar(raw, palabras){
   if(!raw || typeof raw!=='object') return null;
@@ -322,15 +321,16 @@ window.abrirDetalle = (id)=>{
   const tRecoger = buscar(raw, ['ir_a_recoger','a_recoger','recoger']);
   const tRecogido = buscar(raw, ['recogido','tiene_pedido','recogida']);
   const tCamino = buscar(raw, ['en_camino','ir_a_entregar','camino','en_curso']);
-  const tFinal = buscar(raw, ['finalizado','entregado_final','entrega_final']);
-  const tCanc = buscar(raw, ['cancelado','cancel']);
+  const tFinal = buscar(raw, ['finalizado','entregado_final']);
+  const tCanc = buscar(raw, ['cancelado']);
 
   const prod=p.producto||0, envio=p.envio||0, serv=p.servicio||0, total=p.total||0;
   const comision = prod*0.10;
-  const pagoRestaurante = prod - comision;
-  const pagoRepartidor = envio*0.80;
-  const descuentoRepa = envio - pagoRepartidor;
-  const ganancia = comision + descuentoRepa + serv;
+  const pagoRest = prod - comision;
+  const pagoRepa = envio*0.80;
+  const subtotalPagos = pagoRest + pagoRepa;
+  const desc10 = comision;
+  const desc20 = envio - pagoRepa;
 
   document.getElementById('modalTitle').textContent=`#${p.codigo} - ${p.estadoLabel}`;
   document.getElementById('modalBody').innerHTML=`
@@ -343,7 +343,7 @@ window.abrirDetalle = (id)=>{
       <div class="row-s"><b>GPS Lat</b><span>${p.gps?.lat || buscar(raw,['lat']) || '-'}</span></div>
       <div class="row-s"><b>GPS Lng</b><span>${p.gps?.lng || buscar(raw,['lng','longitud']) || '-'}</span></div>
       <div class="row-s"><b>IP Cliente</b><span>${p.ip}</span></div>
-      <div class="row-s"><b>Código IP</b><span>${buscar(raw,['codigo_ip','ip_code','ip_id']) || p.ip}</span></div>
+      <div class="row-s"><b>Código IP</b><span>${buscar(raw,['codigo_ip','ip_code']) || p.ip}</span></div>
       <div class="row-s"><b>Estado IP</b><span style="color:${p.ipEstado==='Bloqueado'?'#E30613':'#22c55e'};font-weight:900">${p.ipEstado}</span></div>
       <div class="row-s"><b>Tipo ingreso</b><span>${p.dispositivo}</span></div>
     </div>
@@ -354,31 +354,32 @@ window.abrirDetalle = (id)=>{
       <div class="row-s"><b>Horario atención</b><span>${p.restHorario}</span></div>
       <div class="row-s"><b>Colonia</b><span>${p.colTienda}</span></div>
     </div>
-    <div class="box"><h4>Tiempos Restaurante - hora click</h4>
-      <div class="t-item ${tAceptado?'ok':''}">Aceptado: ${toHora(tAceptado)}</div>
-      <div class="t-item ${tPreparando?'ok':''}">Preparando: ${toHora(tPreparando)}</div>
-      <div class="t-item ${tListo?'ok':''}">Listo: ${toHora(tListo)}</div>
+    <div class="box"><h4>Tiempos Restaurante</h4>
+      <div class="row-s"><b>Aceptado</b><span>${toHora(tAceptado)}</span></div>
+      <div class="row-s"><b>Preparando</b><span>${toHora(tPreparando)}</span></div>
+      <div class="row-s"><b>Listo</b><span>${toHora(tListo)}</span></div>
     </div>
-    <div class="box"><h4>Tiempos Repartidor - hora click</h4>
-      <div class="t-item ${tRecoger?'ok':''}">Ir a recoger: ${toHora(tRecoger)}</div>
-      <div class="t-item ${tRecogido?'ok':''}">Recogido: ${toHora(tRecogido)}</div>
-      <div class="t-item ${tCamino?'ok':''}">En camino: ${toHora(tCamino)}</div>
-      <div class="t-item ${tFinal?'ok':''}">Finalizado: ${toHora(tFinal)}</div>
-      <div class="t-item ${tCanc?'bad':''}">Cancelado: ${p.motivo} - ${toHora(tCanc)}</div>
+    <div class="box"><h4>Tiempos Repartidor</h4>
+      <div class="row-s"><b>Ir a recoger</b><span>${toHora(tRecoger)}</span></div>
+      <div class="row-s"><b>Recogido</b><span>${toHora(tRecogido)}</span></div>
+      <div class="row-s"><b>En camino</b><span>${toHora(tCamino)}</span></div>
+      <div class="row-s"><b>Finalizado</b><span>${toHora(tFinal)}</span></div>
+      <div class="row-s"><b>Cancelado</b><span>${p.motivo} - ${toHora(tCanc)}</span></div>
     </div>
     <div class="box"><h4>Interacciones</h4><div class="row-s"><b>Llamar cliente</b><span>${buscar(raw,['llamar_cliente','click_llamar'])||'-'}</span></div><div class="row-s"><b>Click Mapa</b><span>${buscar(raw,['click_mapa','ver_mapa'])||'-'}</span></div><div class="row-s"><b>Repartidor</b><span>${p.repartidor}</span></div></div>
-    <div class="box"><h4>Productos</h4>${(raw.productos||raw.items||[]).map(pr=>`<div class="row-s"><b>${pr.nombre||pr.name||'Prod'}</b><span>x${pr.cantidad||1} $${pr.precio||pr.price||0}</span></div>`).join('')||`$${prod.toFixed(2)}`}</div>
-    <div class="box presupuesto"><h4>Desglose REAL con descuentos</h4>
+    <div class="box"><h4>Productos</h4>${(raw.productos||raw.items||[]).map(pr=>`<div class="row-s"><b>${pr.nombre||pr.name||'Prod'}</b><span>x${pr.cantidad||1} $${pr.precio||pr.price||0}</span></div>`).join('')||`<div class="row-s"><b>Producto</b><span>$${prod.toFixed(2)}</span></div>`}</div>
+    <div class="box presupuesto"><h4>Desglose REAL</h4>
       <div class="pres-row"><span>Producto</span><b>$${prod.toFixed(2)}</b></div>
       <div class="pres-row"><span>Envío</span><b>$${envio.toFixed(2)}</b></div>
       <div class="pres-row"><span>Tarifa Servicio</span><b>$${serv.toFixed(2)}</b></div>
       <div class="pres-row total-final"><span>Total pagado</span><b>$${total.toFixed(2)}</b></div>
-      <div class="pres-row"><span>Descuento 10% plataforma (sobre producto)</span><b>-$${comision.toFixed(2)}</b></div>
-      <div class="pres-row"><span>Pago a Restaurante (producto - 10%)</span><b>$${pagoRestaurante.toFixed(2)}</b></div>
-      <div class="pres-row"><span>Pago a Repartidor (80% envío)</span><b>$${pagoRepartidor.toFixed(2)}</b></div>
-      <div class="pres-row"><span>Descuento Repartidor (20% envío para plataforma)</span><b>$${descuentoRepa.toFixed(2)}</b></div>
-      <div class="pres-row"><span>Ganancia Plataforma (10% + 20% envío + servicio)</span><b style="color:#22c55e">$${ganancia.toFixed(2)}</b></div>
-      <div class="pres-row"><span>Motivo</span><b>${p.motivo}</b></div>
+      <div class="pres-row"><span>Pago a restaurante (producto - 10%)</span><b>$${pagoRest.toFixed(2)}</b></div>
+      <div class="pres-row"><span>Pago a repartidor (80% envío)</span><b>$${pagoRepa.toFixed(2)}</b></div>
+      <div class="pres-row sub"><span>Subtotal pagos</span><b>$${subtotalPagos.toFixed(2)}</b></div>
+      <div class="pres-row"><span>Descuento 10% plataforma sobre producto</span><b>$${desc10.toFixed(2)}</b></div>
+      <div class="pres-row"><span>Descuento repartidor 20% del envío</span><b>$${desc20.toFixed(2)}</b></div>
+      <div class="pres-row"><span>Tarifa de servicio</span><b>$${serv.toFixed(2)}</b></div>
+      <div class="pres-row green"><span>Total ganancia plataforma</span><b>$${(desc10+desc20+serv).toFixed(2)}</b></div>
     </div>
   `;
   document.getElementById('modal').classList.add('active');
