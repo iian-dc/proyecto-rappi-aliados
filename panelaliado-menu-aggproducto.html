@@ -37,8 +37,10 @@ body{background:#fff;min-height:100vh}
 .select-wrap svg{position:absolute;right:12px;top:50%;transform:translateY(-50%);width:18px;height:18px;stroke:#6B7280;pointer-events:none}
 .full-row{grid-column:1 / -1}
 .textarea-wrap{position:relative}
-.textarea{width:100%;min-height:140px;border:1.5px solid #E5E9F0;border-radius:8px;padding:12px;font-size:13.5px;outline:none;resize:none;color:#111}
+.textarea{width:100%;min-height:120px;border:1.5px solid #E5E9F0;border-radius:8px;padding:12px;font-size:13.5px;outline:none;resize:none;color:#111}
 .textarea::placeholder{color:#9CA3AF}
+.input-text{width:100%;height:44px;border:1.5px solid #E5E9F0;border-radius:8px;padding:0 12px;font-size:13.5px;outline:none;color:#111}
+.input-text::placeholder{color:#9CA3AF}
 .char-count{position:absolute;right:10px;bottom:8px;font-size:11px;color:#6B7280}
 .input-price{width:100%;height:44px;border:1.5px solid #E5E9F0;border-radius:8px;padding:0 12px;font-size:13.5px;outline:none;color:#111}
 .input-price::placeholder{color:#9CA3AF}
@@ -50,11 +52,12 @@ body{background:#fff;min-height:100vh}
 .btn-save:disabled{opacity:0.6;cursor:not-allowed}
 #toastOverlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9999;display:none;align-items:center;justify-content:center}
 #toastOverlay.show{display:flex}
-.toast-card{background:white;border-radius:16px;padding:20px 24px;min-width:280px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,0.25);border-top:4px solid #22C55E}
+.toast-card{background:white;border-radius:16px;padding:20px 24px;min-width:280px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,0.25);border-top:4px solid #E30613}
+.toast-card.error{border-top-color:#E30613}
 </style>
 </head>
 <body>
-<div id="toastOverlay"><div class="toast-card"><h4 id="toastTitle">Guardado</h4><p id="toastMsg" style="font-size:12px;color:#6b7280;margin-top:4px">Producto agregado</p></div></div>
+<div id="toastOverlay"><div class="toast-card" id="toastCard"><h4 id="toastTitle">Guardado</h4><p id="toastMsg" style="font-size:12px;color:#6b7280;margin-top:4px">Producto agregado</p></div></div>
 
 <div class="top-header">
   <button class="btn-x" onclick="window.location.href='panelaliado-menu.html'"><svg viewBox="0 0 24 24"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg></button>
@@ -68,7 +71,7 @@ body{background:#fff;min-height:100vh}
       <div>
         <div class="label-row">
           <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 14l2-2 3 3"/><circle cx="9" cy="8" r="1.5"/></svg>
-          <b>Imagen del producto</b>
+          <b>Imagen del producto *</b>
         </div>
         <input type="file" id="inputImg" accept="image/png,image/jpeg,image/webp" style="display:none">
         <div class="upload-box" id="uploadBox" onclick="document.getElementById('inputImg').click()">
@@ -84,18 +87,25 @@ body{background:#fff;min-height:100vh}
       <div>
         <div class="label-row">
           <svg viewBox="0 0 24 24"><path d="M12 2l8 5v5c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V7l8-5z"/><path d="M9 12l2 2 4-4"/></svg>
-          <b>Categoría <span>*</span></b>
+          <b>Categoría *</b>
         </div>
         <div class="select-wrap">
           <select id="selectCat" class="input-select"><option value="">Selecciona una categoría</option></select>
           <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+        </div>
+        <div style="margin-top:18px">
+          <div class="label-row">
+            <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <b>Nombre del producto *</b>
+          </div>
+          <input id="txtNombre" class="input-text" placeholder="Ej. Alitas BBQ x10">
         </div>
       </div>
 
       <div class="full-row">
         <div class="label-row">
           <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="3.5" cy="6" r="1"/><circle cx="3.5" cy="12" r="1"/><circle cx="3.5" cy="18" r="1"/></svg>
-          <b>Descripción del producto <span>*</span></b>
+          <b>Descripción del producto *</b>
         </div>
         <div class="textarea-wrap">
           <textarea id="txtDesc" class="textarea" placeholder="Describe brevemente el producto..." maxlength="500"></textarea>
@@ -106,7 +116,7 @@ body{background:#fff;min-height:100vh}
       <div class="full-row">
         <div class="label-row">
           <svg viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6"/><path d="M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg>
-          <b>Precio del producto <span>*</span></b>
+          <b>Precio del producto *</b>
         </div>
         <input id="txtPrecio" class="input-price" type="number" step="0.01" placeholder="Ej. $65.00">
       </div>
@@ -140,13 +150,14 @@ const db = getDatabase(app);
 const sesion = JSON.parse(localStorage.getItem('doloya_aliado_sesion')||'null');
 let categoriaReal='alitas', idReal='alitas_factory';
 let imagenBase64 = '';
-let categoriasExtra=[];
+let categoriasLista=[];
 
-function toast(t,m){
+function toast(t,m,error=false){
   document.getElementById('toastTitle').textContent=t;
   document.getElementById('toastMsg').textContent=m;
+  document.getElementById('toastCard').className='toast-card'+(error?' error':'');
   document.getElementById('toastOverlay').classList.add('show');
-  setTimeout(()=>document.getElementById('toastOverlay').classList.remove('show'),2000);
+  setTimeout(()=>document.getElementById('toastOverlay').classList.remove('show'),2500);
 }
 function getId(){ return sesion?.id || sesion?.negocio || 'alitas_factory'; }
 
@@ -165,35 +176,50 @@ async function detectarRestaurante(){
   }
 }
 
+function renderSelect(){
+  const sel=document.getElementById('selectCat');
+  const uniq=[...new Set(categoriasLista.map(c=>c.toLowerCase()).filter(Boolean))];
+  if(uniq.length===0){
+    sel.innerHTML='<option value="">No hay categorías, crea una primero</option>';
+  }else{
+    sel.innerHTML='<option value="">Selecciona una categoría</option>'+uniq.map(c=>`<option value="${c}">${c.charAt(0).toUpperCase()+c.slice(1)}</option>`).join('');
+  }
+}
+
 function cargarCategorias(){
   const pathCat=`doloya_aliados/${categoriaReal}/${idReal}/categorias`;
   const pathMenu=`doloya_aliados/${categoriaReal}/${idReal}/menu`;
+  
   onValue(ref(db,pathCat), s=>{
+    let cats=[];
     if(s.exists()){
       const val=s.val();
-      categoriasExtra = Object.keys(val).map(k=>val[k]).filter(c=>c.activa!==false);
+      cats = Object.values(val).map(v=> (v.nombre||v.name||'').toLowerCase()).filter(Boolean);
     }
+    categoriasLista = [...new Set([...categoriasLista, ...cats])];
     renderSelect();
   });
+
   onValue(ref(db,pathMenu), s=>{
     if(s.exists()){
       const val=s.val();
-      const catsDeProd = [...new Set(Object.values(val).map(p=> (p.categoria||'').toLowerCase()).filter(Boolean))];
-      const catsDeFirebase = categoriasExtra.map(c=> (c.nombre||'').toLowerCase());
-      const todas = [...new Set([...catsDeProd, ...catsDeFirebase])];
-      if(todas.length>0 && categoriasExtra.length===0){
-        categoriasExtra = todas.map(n=>({nombre:n}));
+      const catsProd = Object.values(val).map(p=> (p.categoria||'').toLowerCase()).filter(Boolean);
+      categoriasLista = [...new Set([...categoriasLista, ...catsProd])];
+      renderSelect();
+    }
+  });
+
+  // fallback: también buscar en todas las categorías del mismo negocio
+  get(ref(db,`doloya_aliados/${categoriaReal}/${idReal}`)).then(snap=>{
+    if(snap.exists()){
+      const data=snap.val();
+      if(data.categorias){
+        const cats = Object.values(data.categorias).map(v=> (v.nombre||'').toLowerCase()).filter(Boolean);
+        categoriasLista = [...new Set([...categoriasLista, ...cats])];
+        renderSelect();
       }
     }
-    renderSelect();
   });
-}
-
-function renderSelect(){
-  const sel=document.getElementById('selectCat');
-  const actuales = categoriasExtra.map(c=> (c.nombre||'').toLowerCase()).filter(Boolean);
-  const uniq = [...new Set(actuales)];
-  sel.innerHTML='<option value="">Selecciona una categoría</option>'+uniq.map(c=>`<option value="${c}">${c.charAt(0).toUpperCase()+c.slice(1)}</option>`).join('');
 }
 
 document.getElementById('txtDesc').addEventListener('input', e=>{
@@ -203,7 +229,7 @@ document.getElementById('txtDesc').addEventListener('input', e=>{
 document.getElementById('inputImg').addEventListener('change', e=>{
   const file=e.target.files[0];
   if(!file) return;
-  if(file.size>2*1024*1024){ toast('Error','Imagen muy pesada, máx 2 MB'); return; }
+  if(file.size>2*1024*1024){ toast('Error','Imagen muy pesada, máx 2 MB',true); return; }
   const reader=new FileReader();
   reader.onload=ev=>{
     const img=new Image();
@@ -229,26 +255,29 @@ document.getElementById('inputImg').addEventListener('change', e=>{
 });
 
 window.guardarProducto=async function(){
+  const nombre=document.getElementById('txtNombre').value.trim();
   const categoria=document.getElementById('selectCat').value.trim().toLowerCase();
   const descripcion=document.getElementById('txtDesc').value.trim();
-  const precio=parseFloat(document.getElementById('txtPrecio').value);
-  if(!categoria){ toast('Falta categoría','Selecciona una categoría'); return; }
-  if(!descripcion){ toast('Falta descripción','Describe el producto'); return; }
-  if(!precio || precio<=0){ toast('Falta precio','Ingresa el precio'); return; }
-  if(!imagenBase64){ toast('Falta imagen','Sube una imagen'); return; }
+  const precioVal=document.getElementById('txtPrecio').value.trim();
+  const precio=parseFloat(precioVal);
+
+  // VALIDACION COMPLETA - NO DEJA GUARDAR SI FALTA ALGO
+  if(!imagenBase64){ toast('Falta imagen','Sube la imagen del producto',true); return; }
+  if(!categoria){ toast('Falta categoría','Selecciona una categoría',true); return; }
+  if(!nombre){ toast('Falta nombre','Escribe el nombre del producto',true); return; }
+  if(!descripcion){ toast('Falta descripción','Describe el producto',true); return; }
+  if(!precioVal || isNaN(precio) || precio<=0){ toast('Falta precio','Ingresa el precio del producto',true); return; }
 
   const btn=document.getElementById('btnGuardar');
   btn.disabled=true;
   btn.textContent='Guardando...';
 
   const nuevoRef = push(ref(db,`doloya_aliados/${categoriaReal}/${idReal}/menu`));
-  const idProducto = nuevoRef.key;
-  const nombreProd = descripcion.split(' ').slice(0,4).join(' ') || 'Producto';
 
   await set(nuevoRef,{
-    id:idProducto,
-    nombre:nombreProd,
-    Nombre:nombreProd,
+    id:nuevoRef.key,
+    nombre:nombre,
+    Nombre:nombre,
     descripcion:descripcion,
     Descripcion:descripcion,
     precio:precio,
@@ -267,7 +296,7 @@ window.guardarProducto=async function(){
     fecha:Date.now()
   });
 
-  toast('Producto guardado', nombreProd+' registrado');
+  toast('Producto guardado', nombre+' registrado');
   setTimeout(()=>{ window.location.href='panelaliado-menu.html'; },1200);
 }
 
