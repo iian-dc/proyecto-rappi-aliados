@@ -55,8 +55,10 @@ body{background:#F5F5F7;min-height:100vh}
 .edit-header h3{font-size:15px;font-weight:800}
 .btn-guardar{background:var(--rojo2);color:white;border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:6px}
 .edit-body{padding:14px;overflow-y:auto;flex:1}
-.img-preview{width:120px;height:96px;border-radius:10px;overflow:hidden;background:#111}
-.img-preview img{width:100%;height:100%;object-fit:cover}
+.img-preview{width:120px;height:96px;border-radius:10px;overflow:hidden;background:#F3F4F6;border:1.5px dashed #D1D5DB;display:flex;align-items:center;justify-content:center}
+.img-preview img{width:100%;height:100%;object-fit:cover;display:none}
+.img-preview img.has-img{display:block}
+.img-preview.vacia::after{content:'Sin imagen';font-size:11px;color:#9AA0A6;font-weight:600}
 .img-row{display:flex;gap:12px;align-items:center;margin-bottom:14px}
 .btn-cambiar{background:var(--negro);color:white;border:none;border-radius:8px;padding:8px 12px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px}
 .label{font-size:11.5px;font-weight:700;color:#374151;margin-bottom:6px;display:block;margin-top:12px}
@@ -112,12 +114,11 @@ body{background:#F5F5F7;min-height:100vh}
   <div class="edit-side">
     <div class="edit-header"><h3>Editar producto</h3><button class="btn-guardar" onclick="guardarProducto()">Guardar</button></div>
     <div class="edit-body">
-      <div class="img-row"><div class="img-preview"><img id="editImg" src=""></div><input type="file" id="inputFileImg" accept="image/*" style="display:none"><button class="btn-cambiar" onclick="document.getElementById('inputFileImg').click()">Cambiar imagen</button></div>
+      <div class="img-row"><div class="img-preview vacia" id="previewWrap"><img id="editImg" src=""></div><input type="file" id="inputFileImg" accept="image/*" style="display:none"><button class="btn-cambiar" onclick="document.getElementById('inputFileImg').click()">Cambiar imagen</button></div>
       <label class="label">Nombre del producto</label><input id="editNombre" class="input">
       <label class="label">Categoría</label><select id="editCat" class="input"></select>
       <label class="label">Precio</label><div class="discount-box"><span>$</span><input id="editPrecio" type="number"></div>
       
-      <!-- PROMOCION EN UNA SOLA LINEA ALINEADA -->
       <div class="promo-head"><b>Promoción / Descuento</b><div class="switch-red on" id="switchPromo"></div></div>
       <div class="promo-line">
         <div><label class="small-label">Tipo de promoción</label><select id="editTipoPromo" class="input"><option value="descuento">Descuento</option><option value="2x1">2x1</option><option value="promo">Promo</option></select></div>
@@ -148,7 +149,7 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
 const sesion = JSON.parse(localStorage.getItem('doloya_aliado_sesion')||'null');
-let categoriaReal='alitas', idReal='alitas_factory', productos=[], productoEdit=null, productoAEliminar=null, categoriasReales=[];
+let categoriaReal='alitas', idReal='alitas_factory', productos=[], productoEdit=null, productoAEliminar=null, categoriasReales=[], categoriasExtra=[], nuevaImagenSeleccionada=null, imagenOriginalProducto='';
 
 function toast(t,m){
   document.getElementById('toastTitle').textContent=t;
@@ -177,9 +178,10 @@ async function detectarRestaurante(){
 function renderCategorias(){
   const bar=document.getElementById('catBar');
   const selectEdit=document.getElementById('editCat');
-  const cats = [...new Set(productos.map(p=> (p.categoria||'').toLowerCase()).filter(Boolean))];
-  categoriasReales = cats.length? cats : ['alitas'];
-  // SOLO TEXTO, SIN ICONOS
+  const catsDeProductos = [...new Set(productos.map(p=> (p.categoria||'').toLowerCase()).filter(Boolean))];
+  const catsDeFirebase = categoriasExtra.map(c=> (c.nombre||'').toLowerCase());
+  const todasCats = [...new Set([...catsDeProductos, ...catsDeFirebase])];
+  categoriasReales = todasCats.length? todasCats : ['alitas'];
   bar.innerHTML = `<div class="cat-pill active" data-cat="todas">Todas</div>` + categoriasReales.map(c=>`<div class="cat-pill" data-cat="${c}">${c.charAt(0).toUpperCase()+c.slice(1)}</div>`).join('');
   selectEdit.innerHTML = categoriasReales.map(c=>`<option value="${c}">${c}</option>`).join('');
   bar.querySelectorAll('.cat-pill').forEach(el=>{
@@ -192,6 +194,8 @@ function renderCategorias(){
 
 function escucharProductos(){
   const path=`doloya_aliados/${categoriaReal}/${idReal}/menu`;
+  const pathCat=`doloya_aliados/${categoriaReal}/${idReal}/categorias`;
+  
   onValue(ref(db,path), s=>{
     if(s.exists()){
       const val=s.val();
@@ -199,8 +203,21 @@ function escucharProductos(){
       renderCategorias();
       renderProductos();
     } else {
-      document.getElementById('gridProductos').innerHTML='<p style="padding:20px;color:#6b7280">No hay productos en menu aún</p>';
+      productos=[];
+      renderCategorias();
+      document.getElementById('gridProductos').innerHTML='<p style="padding:20px;color:#6b7280">No hay productos en menu aún, pero ya puedes usar tu nueva categoría: '+categoriasExtra.map(c=>c.nombre).join(', ')+'</p>';
     }
+  });
+
+  // VINCULACION TIEMPO REAL CATEGORIAS
+  onValue(ref(db,pathCat), s=>{
+    if(s.exists()){
+      const val=s.val();
+      categoriasExtra = Object.keys(val).map(k=>({id:k,...val[k]})).filter(c=>c.activa!==false);
+    }else{
+      categoriasExtra=[];
+    }
+    renderCategorias();
   });
 }
 
@@ -240,12 +257,20 @@ function renderProductos(){
 function editar(id){
   const p=productos.find(x=>x.id==id); if(!p) return;
   productoEdit=p;
+  imagenOriginalProducto = p.imagen||p.img||'';
+  nuevaImagenSeleccionada = null;
+  // IMAGEN EN BLANCO POR DEFECTO
+  const imgEl = document.getElementById('editImg');
+  const wrap = document.getElementById('previewWrap');
+  imgEl.src='';
+  imgEl.classList.remove('has-img');
+  wrap.classList.add('vacia');
+
   document.getElementById('editNombre').value=p.nombre||'';
   document.getElementById('editPrecio').value=p.precio||'';
   document.getElementById('editCat').value=(p.categoria||'').toLowerCase();
   document.getElementById('editTipoPromo').value=p.tipoPromo||'descuento';
   document.getElementById('editPorc').value=p.porcentaje||10;
-  document.getElementById('editImg').src=p.imagen||p.img||'';
   document.getElementById('switchPromo').className='switch-red '+(p.promoActiva!==false?'on':'');
   document.getElementById('switchEstadoProd').className='switch-mini '+(p.activo!==false?'on':'');
   calcularDesc();
@@ -262,6 +287,7 @@ function guardarTiempoReal(){
   clearTimeout(timeoutReal);
   timeoutReal=setTimeout(()=>{
     const path=`doloya_aliados/${categoriaReal}/${idReal}/menu/${productoEdit.id}`;
+    const imagenFinal = nuevaImagenSeleccionada ? nuevaImagenSeleccionada : imagenOriginalProducto;
     update(ref(db,path),{
       nombre: document.getElementById('editNombre').value,
       precio: parseFloat(document.getElementById('editPrecio').value)||0,
@@ -272,7 +298,7 @@ function guardarTiempoReal(){
       activo: document.getElementById('switchEstadoProd').classList.contains('on'),
       precioDescuento: parseFloat(document.getElementById('editPrecioDesc').value)||0,
       promo: document.getElementById('switchPromo').classList.contains('on') ? (document.getElementById('editTipoPromo').value==='descuento'? `-${document.getElementById('editPorc').value}%` : document.getElementById('editTipoPromo').value) : '',
-      imagen: document.getElementById('editImg').src
+      imagen: imagenFinal
     });
   },400);
 }
@@ -304,9 +330,14 @@ document.getElementById('inputFileImg').addEventListener('change', e=>{
   const file=e.target.files[0]; if(!file) return;
   const reader=new FileReader();
   reader.onload=ev=>{
-    document.getElementById('editImg').src=ev.target.result;
+    nuevaImagenSeleccionada = ev.target.result;
+    const imgEl = document.getElementById('editImg');
+    const wrap = document.getElementById('previewWrap');
+    imgEl.src=ev.target.result;
+    imgEl.classList.add('has-img');
+    wrap.classList.remove('vacia');
     guardarTiempoReal();
-    toast('Imagen','Imagen convertida a URL y guardada');
+    toast('Imagen','Imagen seleccionada y guardada');
   };
   reader.readAsDataURL(file);
 });
