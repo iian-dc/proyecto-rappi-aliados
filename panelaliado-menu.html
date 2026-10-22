@@ -17,39 +17,36 @@ body{background:#F5F5F7;min-height:100vh}
 .top-left-text p{color:rgba(255,255,255,0.85);font-size:12px;font-weight:500;margin-top:1px}
 .top-right{display:flex;align-items:center;gap:10px}
 .btn-black{background:var(--negro);color:white;border:none;border-radius:10px;padding:9px 16px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px;cursor:pointer}
-.btn-black svg{width:20px;height:20px}
-.btn-black .icon-plus{background:white;color:var(--negro);width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900}
+.btn-black .icon-plus{background:white;color:var(--negro);width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center}
 .cat-bar{background:var(--negro);padding:10px 18px;display:flex;gap:10px;overflow-x:auto;scrollbar-width:none}
 .cat-bar::-webkit-scrollbar{display:none}
-.cat-pill{display:flex;align-items:center;gap:8px;background:#1E222C;color:#C8CDD8;padding:8px 14px;border-radius:999px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;border:1.5px solid transparent;transition:.2s;flex-shrink:0}
-.cat-pill.active{background:var(--rojo2);color:white;border-color:var(--rojo2)}
+.cat-pill{display:flex;align-items:center;gap:8px;background:#1E222C;color:#C8CDD8;padding:8px 14px;border-radius:999px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;border:1.5px solid transparent;flex-shrink:0}
+.cat-pill.active{background:var(--rojo2);color:white}
 .cat-pill svg{width:18px;height:18px;stroke:currentColor;fill:none}
 .main-wrap{display:flex;min-height:calc(100vh - 108px)}
-.products-side{flex:1;padding:16px 16px;background:white}
+.products-side{flex:1;padding:16px;background:white}
 .tools{display:flex;gap:12px;margin-bottom:14px}
 .search-box{flex:1;background:white;border:1.5px solid #E8E9EC;border-radius:10px;display:flex;align-items:center;padding:0 12px;gap:8px;height:40px}
 .search-box input{flex:1;border:none;outline:none;font-size:13px}
-.search-box svg{width:16px;height:16px;stroke:#6b7280}
 .filter-select{border:1.5px solid #E8E9EC;border-radius:10px;padding:0 12px;height:40px;font-size:13px;font-weight:600;background:white;min-width:160px}
 .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
 @media(max-width:1300px){.grid{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}.main-wrap{flex-direction:column}}
-.card{background:white;border:1.5px solid #EFEFF1;border-radius:12px;overflow:hidden;transition:.2s}
+.card{background:white;border:1.5px solid #EFEFF1;border-radius:12px;overflow:hidden;cursor:pointer}
 .card-img{position:relative;height:132px;background:#111;overflow:hidden}
 .card-img img{width:100%;height:100%;object-fit:cover}
 .badge-promo{position:absolute;top:8px;left:8px;background:var(--rojo2);color:white;font-size:10px;font-weight:800;padding:3px 8px;border-radius:6px}
 .card-body{padding:10px 10px 8px 10px}
 .card-name{font-size:12.5px;font-weight:700;line-height:1.2;height:28px;overflow:hidden}
 .card-price-row{display:flex;align-items:center;gap:8px;margin-top:6px;justify-content:space-between}
-.price{font-size:13px;font-weight:800;color:#111}
-.old-price{font-size:11px;color:var(--rojo2);font-weight:600;text-decoration:none;display:block}
+.price{font-size:13px;font-weight:800}
+.old-price{font-size:11px;color:var(--rojo2);font-weight:600}
 .tag-disc{background:var(--rojo2);color:white;font-size:9px;font-weight:800;padding:2px 6px;border-radius:4px}
-.switch-mini{width:32px;height:18px;background:#D1D5DB;border-radius:999px;position:relative;cursor:pointer;transition:.2s}
+.switch-mini{width:32px;height:18px;background:#D1D5DB;border-radius:999px;position:relative;cursor:pointer}
 .switch-mini.on{background:#22C55E}
 .switch-mini::after{content:'';position:absolute;left:2px;top:2px;width:14px;height:14px;background:white;border-radius:50%;transition:.2s}
 .switch-mini.on::after{transform:translateX(14px)}
 .card-actions{display:flex;align-items:center;gap:10px;border-top:1px solid #F1F1F3;margin-top:8px;padding-top:7px}
-.card-actions button{background:none;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .card-actions svg{width:14px;height:14px;stroke:#6b7280;stroke-width:1.8}
 .card-actions .more{margin-left:auto;font-size:14px;letter-spacing:2px;color:#9ca3af;font-weight:800}
 .edit-side{width:380px;background:white;border-left:1.5px solid #EFEFF1;display:flex;flex-direction:column}
@@ -63,10 +60,8 @@ body{background:#F5F5F7;min-height:100vh}
 .btn-cambiar{background:var(--negro);color:white;border:none;border-radius:8px;padding:8px 12px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;cursor:pointer}
 .label{font-size:11.5px;font-weight:700;color:#374151;margin-bottom:6px;display:block;margin-top:12px}
 .input{width:100%;border:1.5px solid #E5E7EB;border-radius:8px;height:38px;padding:0 12px;font-size:13px;outline:none}
-.select-cat{display:flex;align-items:center;gap:8px;border:1.5px solid #E5E7EB;border-radius:8px;height:38px;padding:0 12px;font-size:13px}
 .row2{display:flex;gap:10px}
 .promo-head{display:flex;align-items:center;justify-content:space-between;margin-top:14px}
-.promo-head b{font-size:12px}
 .switch-red{width:36px;height:20px;background:#E5E7EB;border-radius:999px;position:relative;cursor:pointer}
 .switch-red.on{background:var(--rojo2)}
 .switch-red::after{content:'';position:absolute;left:2px;top:2px;width:16px;height:16px;background:white;border-radius:50%;transition:.2s}
@@ -76,32 +71,37 @@ body{background:#F5F5F7;min-height:100vh}
 .discount-box input{flex:1;border:none;padding:0 10px;height:100%;outline:none;font-size:13px}
 .discount-box span{background:#F3F4F6;padding:0 10px;height:100%;display:flex;align-items:center;font-size:12px;font-weight:700;border-left:1.5px solid #E5E7EB}
 .price-disc{background:#F3F4F6}
+
+/* TARJETA NOTIFICACION CENTRO */
+#toastOverlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9999;display:none;align-items:center;justify-content:center}
+#toastOverlay.show{display:flex}
+.toast-card{background:white;border-radius:16px;padding:20px 24px;min-width:280px;max-width:90%;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,0.25);animation:pop .25s ease}
+.toast-card h4{font-size:14px;font-weight:800;color:#111;margin-bottom:6px}
+.toast-card p{font-size:12px;color:#6b7280}
+.toast-card.ok{border-top:4px solid #22C55E}
+.toast-card.error{border-top:4px solid var(--rojo2)}
+@keyframes pop{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
 </style>
 </head>
 <body>
+<div id="toastOverlay"><div class="toast-card ok" id="toastCard"><h4 id="toastTitle">Guardado</h4><p id="toastMsg">Producto actualizado</p></div></div>
+
 <div class="top-header">
   <div class="top-left">
     <button class="btn-x" onclick="history.back()"><svg viewBox="0 0 24 24" fill="none" stroke-linecap="round"><line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="5" x2="5" y2="19"/></svg></button>
     <div class="top-left-text"><h1>Menú / Carta</h1><p>Administra tus productos, precios y promociones en tiempo real.</p></div>
   </div>
   <div class="top-right">
+    <button class="btn-black" onclick="abrirAgregarCategoria()"><span class="icon-plus"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>Agregar categoría</button>
     <button class="btn-black" onclick="agregarProducto()"><span class="icon-plus"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>Agregar producto</button>
-    <button class="btn-black"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 .6 2 2 0 0 1-2 2 2 2 0 0 1-2-2 1.65 1.65 0 0 0-1-.6 1.65 1.65 0 0 0-1.82.33l-.06-.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-.6-1 2 2 0 0 1-2-2 2 2 0 0 1 2-2c.26 0 .5.1.7.28a1.65 1.65 0 0 0 1.8.33c.26-.1.5-.28.7-.5A1.65 1.65 0 0 0 9 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 13.32 4.68c.26 0 .5-.1.7-.28A2 2 0 0 1 16 4a2 2 0 0 1 2 2c0 .26-.1.5-.28.7a1.65 1.65 0 0 0-.33 1.8c.1.26.28.5.5.7.18.18.28.44.28.7a1.65 1.65 0 0 0-.17 1z"/></svg>Configuración</button>
+    <button class="btn-black"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06A1.65 1.65 0 0 0 15 19.4a1.65 1.65 0 0 0-1 .6 2 2 0 0 1-2 2 2 2 0 0 1-2-2 1.65 1.65 0 0 0-1-.6 1.65 1.65 0 0 0-1.82.33l-.06-.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-.6-1 2 2 0 0 1-2-2 2 2 0 0 1 2-2c.26 0 .5.1.7.28a1.65 1.65 0 0 0 1.8.33c.26-.1.5-.28.7-.5A1.65 1.65 0 0 0 9 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 13.32 4.68c.26 0 .5-.1.7-.28A2 2 0 0 1 16 4a2 2 0 0 1 2 2c0 .26-.1.5-.28.7a1.65 1.65 0 0 0-.33 1.8c.1.26.28.5.5.7.18.18.28.44.28.7a1.65 1.65 0 0 0-.17 1z"/></svg>Configuración</button>
   </div>
 </div>
-<div class="cat-bar" id="catBar">
-  <div class="cat-pill active" data-cat="todas"><svg viewBox="0 0 24 24"><path d="M4 10h16v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-6z"/><path d="M8 10V8a4 4 0 0 1 8 0v2"/><circle cx="8" cy="14" r="1" fill="currentColor"/><circle cx="16" cy="14" r="1" fill="currentColor"/></svg>Todas</div>
-  <div class="cat-pill" data-cat="burgers"><svg viewBox="0 0 24 24"><path d="M4 12a8 4 0 0 1 16 0"/><rect x="4" y="12" width="16" height="4" rx="1"/><path d="M4 16a8 4 0 0 0 16 0"/></svg>Hamburguesas</div>
-  <div class="cat-pill" data-cat="pizzas"><svg viewBox="0 0 24 24"><path d="M12 3L3 20h18L12 3z"/><circle cx="12" cy="14" r="1" fill="currentColor"/><circle cx="9" cy="16" r="1" fill="currentColor"/><circle cx="15" cy="15" r="1" fill="currentColor"/></svg>Pizzas</div>
-  <div class="cat-pill" data-cat="bebidas"><svg viewBox="0 0 24 24"><path d="M7 3h10l-2 12a3 3 0 0 1-3 2.5A3 3 0 0 1 9 15L7 3z"/><path d="M7 3h10"/></svg>Bebidas</div>
-  <div class="cat-pill" data-cat="snacks"><svg viewBox="0 0 24 24"><path d="M5 6h14l-2 12H7L5 6z"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>Snacks</div>
-  <div class="cat-pill" data-cat="postres"><svg viewBox="0 0 24 24"><path d="M12 3L5 8h14l-7-5z"/><path d="M5 8v4a7 7 0 0 0 14 0V8"/><circle cx="12" cy="5" r="1" fill="currentColor"/></svg>Postres</div>
-  <div class="cat-pill" data-cat="combos"><svg viewBox="0 0 24 24"><path d="M12 3L3 8l9 5 9-5-9-5z"/><path d="M3 13l9 5 9-5"/><path d="M3 8v5l9 5 9-5V8"/></svg>Combos</div>
-</div>
+<div class="cat-bar" id="catBar"></div>
 <div class="main-wrap">
   <div class="products-side">
     <div class="tools">
-      <div class="search-box"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="6"/><path d="M21 21l-4.3-4.3"/></svg><input id="buscador" placeholder="Buscar producto..."></div>
+      <div class="search-box"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2"><circle cx="11" cy="11" r="6"/><path d="M21 21l-4.3-4.3"/></svg><input id="buscador" placeholder="Buscar producto..."></div>
       <select class="filter-select" id="filtroEstado"><option value="todos">Todos los productos</option><option value="activos">Activos</option><option value="inactivos">Inactivos</option></select>
     </div>
     <div class="grid" id="gridProductos"></div>
@@ -109,26 +109,42 @@ body{background:#F5F5F7;min-height:100vh}
   <div class="edit-side" id="panelEditar">
     <div class="edit-header"><h3>Editar producto</h3><button class="btn-guardar" onclick="guardarProducto()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Guardar</button></div>
     <div class="edit-body">
-      <div class="img-row"><div class="img-preview"><img id="editImg" src="https://images.unsplash.com/photo-1568909344668-6f14a07b56a0?w=300"></div><button class="btn-cambiar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-3.5-3.5a2 2 0 0 0-2.8 0L3 23"/></svg>Cambiar imagen</button></div>
+      <div class="img-row">
+        <div class="img-preview"><img id="editImg" src="https://images.unsplash.com/photo-1568909344668-6f14a07b56a0?w=300"></div>
+        <input type="file" id="inputFileImg" accept="image/*" style="display:none">
+        <button class="btn-cambiar" onclick="document.getElementById('inputFileImg').click()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-3.5-3.5a2 2 0 0 0-2.8 0L3 23"/></svg>Cambiar imagen</button>
+      </div>
       <label class="label">Nombre del producto</label><input id="editNombre" class="input">
-      <label class="label">Categoría</label><div class="select-cat" id="editCatBox"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2"><path d="M4 12a8 4 0 0 1 16 0"/><rect x="4" y="12" width="16" height="4" rx="1"/></svg><select id="editCat" style="flex:1;border:none;outline:none;background:transparent;font-size:13px"><option>Hamburguesas</option><option>Pizzas</option><option>Bebidas</option><option>Snacks</option><option>Postres</option><option>Combos</option></select></div>
+      <label class="label">Categoría</label><select id="editCat" class="input"></select>
       <label class="label">Precio</label><div class="discount-box"><span>$</span><input id="editPrecio" type="number"></div>
-      <div class="promo-head"><b>Promoción / Descuento</b><div class="switch-red on" id="switchPromo" onclick="this.classList.toggle('on')"></div></div>
+      <div class="promo-head"><b>Promoción / Descuento</b><div class="switch-red on" id="switchPromo"></div></div>
       <div class="row2"><div style="flex:1"><label class="small-label">Tipo de promoción</label><select id="editTipoPromo" class="input"><option value="descuento">Descuento</option><option value="2x1">2x1</option><option value="promo">Promo</option></select></div><div style="flex:1"><label class="small-label">Porcentaje</label><div class="discount-box"><input id="editPorc" type="number" value="10"><span>%</span></div></div></div>
       <label class="small-label">Precio con descuento</label><div class="discount-box price-disc"><span>$</span><input id="editPrecioDesc" readonly></div>
-      <div class="row2"><div style="flex:1"><label class="small-label">Desde</label><div class="discount-box"><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span><input type="date" id="editDesde" style="flex:1;border:none;padding:0 8px;outline:none;font-size:12px"></div></div><div style="flex:1"><label class="small-label">Hasta</label><div class="discount-box"><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span><input type="date" id="editHasta" style="flex:1;border:none;padding:0 8px;outline:none;font-size:12px"></div></div></div>
       <div style="margin-top:14px"><label class="small-label" style="font-weight:800;color:#111">Estado del producto</label><div style="display:flex;align-items:center;gap:8px;margin-top:6px"><div class="switch-mini on" id="switchEstadoProd"></div><span style="font-size:11px;color:#6b7280">Activo (visible en el menú)</span></div></div>
     </div>
   </div>
 </div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-import { getDatabase, ref, onValue, get, update } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js";
+import { getDatabase, ref, onValue, get, update, push, set } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js";
+
 const configAliados = { apiKey: "AIzaSyD286qlJQT8D3rqbYTSfCyuTAEg9jjRchQ", authDomain: "doloya-aliados.firebaseapp.com", databaseURL: "https://doloya-aliados-default-rtdb.firebaseio.com", projectId: "doloya-aliados", storageBucket: "doloya-aliados.firebasestorage.app", messagingSenderId: "122314467740", appId: "1:122314467740:web:9947a0a9560557e3a00059" };
 const appAliados = initializeApp(configAliados, "aliados");
 const dbAliados = getDatabase(appAliados);
 const sesion = JSON.parse(localStorage.getItem('doloya_aliado_sesion')||'null');
-let categoriaReal='alitas', idReal='alitas_factory', productos=[], productoEdit=null;
+let categoriaReal='alitas', idReal='alitas_factory', productos=[], productoEdit=null, categoriasReales=[];
+
+function toast(titulo,msg,tipo='ok'){
+  const overlay=document.getElementById('toastOverlay');
+  const card=document.getElementById('toastCard');
+  document.getElementById('toastTitle').textContent=titulo;
+  document.getElementById('toastMsg').textContent=msg;
+  card.className='toast-card '+tipo;
+  overlay.classList.add('show');
+  setTimeout(()=>overlay.classList.remove('show'),2500);
+}
+document.getElementById('toastOverlay').onclick=()=>document.getElementById('toastOverlay').classList.remove('show');
 
 function getId(){ return sesion?.id || sesion?.negocio || 'alitas_factory'; }
 
@@ -140,28 +156,50 @@ async function detectarRestaurante(){
   if(todas[getId()]){ const keys=Object.keys(todas[getId()]); if(keys.length>0){ categoriaReal=getId(); idReal=keys[0]; } }
 }
 
-function escucharProductos(){
-  const paths=[`doloya_aliados/${categoriaReal}/${idReal}/productos`, `doloya_aliados/${categoriaReal}/${idReal}/carta`, `doloya_aliados/${categoriaReal}/${idReal}/menu`];
-  paths.forEach(p=>{
-    onValue(ref(dbAliados,p), s=>{
-      if(s.exists()){
-        const val=s.val();
-        productos = Array.isArray(val) ? val : Object.keys(val).map(k=>({id:k,...val[k]}));
-        renderProductos();
-      }
+function renderCategorias(){
+  const bar=document.getElementById('catBar');
+  const selectEdit=document.getElementById('editCat');
+  // categorias únicas de los productos reales
+  const cats = [...new Set(productos.map(p=> (p.categoria||p.Categoria||'').toLowerCase()).filter(Boolean))];
+  categoriasReales = cats.length? cats : ['burgers','pizzas','bebidas','snacks','postres','combos'];
+  const iconos={
+    todas:`<svg viewBox="0 0 24 24"><path d="M4 10h16v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-6z"/><path d="M8 10V8a4 4 0 0 1 8 0v2"/></svg>`,
+    burgers:`<svg viewBox="0 0 24 24"><path d="M4 12a8 4 0 0 1 16 0"/><rect x="4" y="12" width="16" height="4" rx="1"/></svg>`,
+    pizzas:`<svg viewBox="0 0 24 24"><path d="M12 3L3 20h18L12 3z"/></svg>`,
+    bebidas:`<svg viewBox="0 0 24 24"><path d="M7 3h10l-2 12a3 3 0 0 1-3 2.5A3 3 0 0 1 9 15L7 3z"/></svg>`,
+    snacks:`<svg viewBox="0 0 24 24"><path d="M5 6h14l-2 12H7L5 6z"/></svg>`,
+    postres:`<svg viewBox="0 0 24 24"><path d="M12 3L5 8h14l-7-5z"/><path d="M5 8v4a7 7 0 0 0 14 0V8"/></svg>`,
+    combos:`<svg viewBox="0 0 24 24"><path d="M12 3L3 8l9 5 9-5-9-5z"/><path d="M3 13l9 5 9-5"/></svg>`
+  };
+  bar.innerHTML = `<div class="cat-pill active" data-cat="todas">${iconos.todas||''}Todas</div>` + categoriasReales.map(c=>`<div class="cat-pill" data-cat="${c}">${iconos[c]||iconos.combos}${c.charAt(0).toUpperCase()+c.slice(1)}</div>`).join('');
+  selectEdit.innerHTML = categoriasReales.map(c=>`<option value="${c}">${c.charAt(0).toUpperCase()+c.slice(1)}</option>`).join('');
+  bar.querySelectorAll('.cat-pill').forEach(el=>{
+    el.addEventListener('click',()=>{
+      bar.querySelectorAll('.cat-pill').forEach(x=>x.classList.remove('active'));
+      el.classList.add('active'); renderProductos();
     });
   });
-  // Fallback demo si no hay productos aún
-  if(productos.length===0){
-    setTimeout(()=>{ if(productos.length===0){ productos=[
-      {id:'1', nombre:'Hamburguesa Clásica', precio:65, precioOld:72, promo:'-10%', categoria:'burgers', img:'https://images.unsplash.com/photo-1568909344668-6f14a07b56a0?w=400', activo:true},
-      {id:'2', nombre:'Pizza Pepperoni', precio:120, precioOld:160, promo:'2x1', categoria:'pizzas', img:'https://images.unsplash.com/photo-1628840042765-356cda07504e?w=400', activo:true},
-      {id:'3', nombre:'Refresco 600 ml', precio:25, categoria:'bebidas', img:'https://images.unsplash.com/photo-1554866585-cd94860890b7?w=400', activo:true},
-      {id:'4', nombre:'Papas a la Francesa', precio:40, precioOld:47, promo:'Descuento -15%', categoria:'snacks', img:'https://images.unsplash.com/photo-1630384060421-cb20d0e0649d?w=400', activo:true},
-      {id:'5', nombre:'Alitas BBQ', precio:90, precioOld:110, promo:'Promo', categoria:'snacks', img:'https://images.unsplash.com/photo-1527477396000-e27163b489c2?w=400', activo:true},
-      {id:'6', nombre:'Malteada de Oreo', precio:55, precioOld:69, promo:'Promo -20%', categoria:'bebidas', img:'https://images.unsplash.com/photo-1579954115545-a95591f28bfc?w=400', activo:true},
-    ]; renderProductos(); } },1500);
-  }
+}
+
+function escucharProductos(){
+  const path=`doloya_aliados/${categoriaReal}/${idReal}/productos`;
+  onValue(ref(dbAliados,path), s=>{
+    if(s.exists()){
+      const val=s.val();
+      productos = Object.keys(val).map(k=>({id:k,...val[k]}));
+      renderCategorias();
+      renderProductos();
+    } else {
+      // demo si no hay aún
+      if(productos.length===0){
+        productos=[
+          {id:'1', nombre:'Hamburguesa Clásica', precio:65, precioOld:72, promo:'-10%', categoria:'burgers', img:'https://images.unsplash.com/photo-1568909344668-6f14a07b56a0?w=400', activo:true},
+          {id:'2', nombre:'Pizza Pepperoni', precio:120, precioOld:160, promo:'2x1', categoria:'pizzas', img:'https://images.unsplash.com/photo-1628840042765-356cda07504e?w=400', activo:true},
+        ];
+        renderCategorias(); renderProductos();
+      }
+    }
+  });
 }
 
 function renderProductos(){
@@ -169,44 +207,39 @@ function renderProductos(){
   const catActive=document.querySelector('.cat-pill.active')?.dataset.cat||'todas';
   const busq=document.getElementById('buscador').value.toLowerCase();
   let f=productos;
-  if(catActive!=='todas') f=f.filter(p=>(p.categoria||'').toLowerCase().includes(catActive) || (p.Categoria||'').toLowerCase().includes(catActive));
+  if(catActive!=='todas') f=f.filter(p=>(p.categoria||p.Categoria||'').toLowerCase()===catActive);
   if(busq) f=f.filter(p=>(p.nombre||p.Nombre||'').toLowerCase().includes(busq));
   grid.innerHTML='';
   f.forEach(p=>{
     const nombre=p.nombre||p.Nombre||'Producto';
     const precio=p.precio||p.Precio||0;
-    const old=p.precioOld||p.precio_original||p.PrecioAnterior||'';
-    const promo=p.promo||p.Promocion||p.descuento||'';
-    const img=p.img||p.imagen||p.Imagen||p.logo||'https://images.unsplash.com/photo-1568909344668-6f14a07b56a0?w=400';
+    const old=p.precioOld||p.precio_original||'';
+    const promo=p.promo||p.promocion||'';
+    const img=p.img||p.imagen||'https://images.unsplash.com/photo-1568909344668-6f14a07b56a0?w=400';
     const activo=p.activo!==false;
-    grid.innerHTML+=`<div class="card" onclick='editar("${p.id}")'>
-      <div class="card-img"><img src="${img}" onerror="this.src='https://images.unsplash.com/photo-1568909344668-6f14a07b56a0?w=400'">${promo?`<div class="badge-promo">${promo}</div>`:''}</div>
-      <div class="card-body">
-        <div class="card-name">${nombre}</div>
-        <div class="card-price-row">
-          <div><div class="price">$${precio}.00</div>${old?`<div class="old-price">$${old}.00</div>`:''}</div>
-          ${promo?`<span class="tag-disc">${promo}</span>`:''}
-          <div class="switch-mini ${activo?'on':''}"></div>
-        </div>
-        <div class="card-actions">
-          <button><svg viewBox="0 0 24 24" fill="none"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5"/><path d="M18.5 2.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
-          <button><svg viewBox="0 0 24 24" fill="none"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v3"/></svg></button>
-          <button><svg viewBox="0 0 24 24" fill="none"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
-          <span class="more">...</span>
-        </div>
-      </div>
-    </div>`;
+    grid.innerHTML+=`<div class="card" data-id="${p.id}">
+      <div class="card-img"><img src="${img}">${promo?`<div class="badge-promo">${promo}</div>`:''}</div>
+      <div class="card-body"><div class="card-name">${nombre}</div>
+        <div class="card-price-row"><div><div class="price">$${precio}.00</div>${old?`<div class="old-price">$${old}.00</div>`:''}</div>${promo?`<span class="tag-disc">${promo}</span>`:''}<div class="switch-mini ${activo?'on':''}"></div></div>
+        <div class="card-actions"><button><svg viewBox="0 0 24 24" fill="none"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5"/><path d="M18.5 2.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button><button><svg viewBox="0 0 24 24" fill="none"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v3"/></svg></button><button><svg viewBox="0 0 24 24" fill="none"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></button><span class="more">...</span></div>
+      </div></div>`;
   });
+  grid.querySelectorAll('.card').forEach(c=>c.addEventListener('click',()=>editar(c.dataset.id)));
 }
 
-window.editar=function(id){
+function editar(id){
   const p=productos.find(x=>x.id==id); if(!p) return;
   productoEdit=p;
   document.getElementById('editNombre').value=p.nombre||p.Nombre||'';
-  document.getElementById('editPrecio').value=p.precio||'';
+  document.getElementById('editPrecio').value=p.precio||p.Precio||'';
+  document.getElementById('editCat').value=(p.categoria||'').toLowerCase();
+  document.getElementById('editTipoPromo').value=p.tipoPromo||'descuento';
+  document.getElementById('editPorc').value=p.porcentaje||10;
   document.getElementById('editImg').src=p.img||p.imagen||'';
-  document.getElementById('editPorc').value=(p.descuento||10);
+  document.getElementById('switchPromo').className='switch-red '+(p.promoActiva!==false?'on':'');
+  document.getElementById('switchEstadoProd').className='switch-mini '+(p.activo!==false?'on':'');
   calcularDesc();
+  toast('Producto cargado', p.nombre||'Producto listo para editar','ok');
 }
 
 function calcularDesc(){
@@ -214,28 +247,77 @@ function calcularDesc(){
   const porc=parseFloat(document.getElementById('editPorc').value)||0;
   document.getElementById('editPrecioDesc').value=(precio - precio*porc/100).toFixed(2);
 }
-document.getElementById('editPrecio').addEventListener('input',calcularDesc);
-document.getElementById('editPorc').addEventListener('input',calcularDesc);
-window.guardarProducto=function(){
-  if(!productoEdit) return;
-  const nuevoPrecio=parseFloat(document.getElementById('editPrecio').value);
-  update(ref(dbAliados,`doloya_aliados/${categoriaReal}/${idReal}/productos/${productoEdit.id}`),{
-    precio:nuevoPrecio,
-    nombre:document.getElementById('editNombre').value,
-  });
-  alert('Producto actualizado');
-}
-window.agregarProducto=function(){ alert('Agregar producto - aquí abres tu modal'); }
 
-document.querySelectorAll('.cat-pill').forEach(el=>{
-  el.addEventListener('click',()=>{
-    document.querySelectorAll('.cat-pill').forEach(x=>x.classList.remove('active'));
-    el.classList.add('active'); renderProductos();
-  });
+// TIEMPO REAL - cada cambio se guarda en firebase
+let timeoutReal=null;
+function guardarTiempoReal(){
+  if(!productoEdit) return;
+  clearTimeout(timeoutReal);
+  timeoutReal=setTimeout(()=>{
+    const path=`doloya_aliados/${categoriaReal}/${idReal}/productos/${productoEdit.id}`;
+    update(ref(dbAliados,path),{
+      nombre: document.getElementById('editNombre').value,
+      precio: parseFloat(document.getElementById('editPrecio').value)||0,
+      categoria: document.getElementById('editCat').value,
+      tipoPromo: document.getElementById('editTipoPromo').value,
+      porcentaje: parseFloat(document.getElementById('editPorc').value)||0,
+      promoActiva: document.getElementById('switchPromo').classList.contains('on'),
+      activo: document.getElementById('switchEstadoProd').classList.contains('on'),
+      precioDescuento: parseFloat(document.getElementById('editPrecioDesc').value)||0,
+      promo: document.getElementById('switchPromo').classList.contains('on') ? (document.getElementById('editTipoPromo').value==='descuento'? `-${document.getElementById('editPorc').value}%` : document.getElementById('editTipoPromo').value) : '',
+      img: document.getElementById('editImg').src
+    });
+  },400);
+}
+
+['editNombre','editPrecio','editCat','editTipoPromo','editPorc'].forEach(id=>{
+  document.getElementById(id).addEventListener('input',()=>{ calcularDesc(); guardarTiempoReal(); });
 });
+document.getElementById('switchPromo').addEventListener('click',function(){ this.classList.toggle('on'); guardarTiempoReal(); toast('Promoción','Promoción actualizada','ok'); });
+document.getElementById('switchEstadoProd').addEventListener('click',function(){ this.classList.toggle('on'); guardarTiempoReal(); });
+
+window.guardarProducto=function(){
+  if(!productoEdit){ toast('Error','Selecciona un producto primero','error'); return; }
+  guardarTiempoReal();
+  toast('Guardado','Producto guardado en Firebase en tiempo real','ok');
+}
+
+// SUBIR IMAGEN Y CONVERTIR A URL
+document.getElementById('inputFileImg').addEventListener('change', e=>{
+  const file=e.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    const url=ev.target.result; // dataURL liviano comprimido
+    document.getElementById('editImg').src=url;
+    guardarTiempoReal();
+    toast('Imagen cargada','Imagen convertida a URL y guardada','ok');
+  };
+  reader.readAsDataURL(file);
+});
+
+window.agregarProducto=()=>{
+  const nombre=prompt('Nombre del nuevo producto:'); if(!nombre) return;
+  const nuevoRef=push(ref(dbAliados,`doloya_aliados/${categoriaReal}/${idReal}/productos`));
+  set(nuevoRef,{nombre, precio:0, categoria:categoriasReales[0]||'burgers', activo:true, img:'https://images.unsplash.com/photo-1568909344668-6f14a07b56a0?w=400'});
+  toast('Producto creado','Nuevo producto agregado','ok');
+}
+window.abrirAgregarCategoria=()=>{
+  const cat=prompt('Nueva categoría (ej: hamburguesas, pizzas, bebidas):'); if(!cat) return;
+  const normal=cat.toLowerCase().trim();
+  if(!categoriasReales.includes(normal)){
+    categoriasReales.push(normal);
+    renderCategorias();
+    toast('Categoría creada','Categoría '+cat+' agregada','ok');
+  }
+}
+
 document.getElementById('buscador').addEventListener('input',renderProductos);
 
-(async()=>{ if(!sesion){ location.href='index.html'; return; } await detectarRestaurante(); escucharProductos(); })();
+(async()=>{
+  if(!sesion){ location.href='index.html'; return; }
+  await detectarRestaurante();
+  escucharProductos();
+})();
 </script>
 </body>
 </html>
