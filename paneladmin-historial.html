@@ -65,7 +65,7 @@ body{background:#fff;font-family:'Inter',Helvetica,Arial,sans-serif;color:#0f172
 .row-s{display:flex;justify-content:space-between;padding:3px 0;font-size:10px}
 .row-s b{color:#475569;font-weight:600}
 .row-s span{font-weight:700;text-align:right;max-width:62%;word-break:break-word}
-.t-item{display:flex;gap:6px;align-items:center;font-size:10px;padding:4px 7px;border-radius:7px;background:#f8fafc}
+.t-item{display:flex;gap:6px;align-items:center;font-size:10px;padding:4px 7px;border-radius:7px;background:#f8fafc;margin-bottom:3px}
 .t-item.ok{background:#f0fdf4;border:1px solid #bbf7d0}
 .t-item.bad{background:#fef2f2;border:1px solid #fecaca}
 .presupuesto{grid-column:1/-1}
@@ -128,14 +128,25 @@ let filtro = "todos";
 let filtroMes = "", filtroDia = "";
 
 function normalize(t){ return String(t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim(); }
-function toSoloHora(ts){ if(!ts) return '-'; try{ const d = ts.toDate ? ts.toDate() : new Date(ts); if(isNaN(d.getTime())){ if(typeof ts==='string' && ts.includes(':')) return ts; return '-'; } return d.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit',hour12:true}); }catch{ return '-'; } }
+function toHora(ts){
+  if(!ts) return '-';
+  try{
+    const d = ts.toDate ? ts.toDate() : new Date(ts);
+    if(isNaN(d.getTime())){
+      if(typeof ts==='string' && ts.match(/\d/)) return ts;
+      return '-';
+    }
+    return d.toLocaleString('es-MX',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit',hour12:true});
+  }catch{ return typeof ts==='string'?ts:'-'; }
+}
+function toSoloHora(ts){ if(!ts) return '-'; let full=toHora(ts); if(full==='-') return '-'; let parts=full.split(','); return parts.length>1?parts[1].trim():full; }
 function num(v){ if(v==null) return 0; if(typeof v==='number') return v; let s=String(v).replace(/[^0-9.,-]/g,'').replace(',','.'); let n=parseFloat(s); return isNaN(n)?0:n; }
 function buscar(raw, palabras){
   if(!raw || typeof raw!=='object') return null;
   for(let k in raw){
     let kl = k.toLowerCase();
     for(let p of palabras){ if(kl.includes(p)) return raw[k]; }
-    if(typeof raw[k]==='object'){ let r=buscar(raw[k], palabras); if(r && r!=='-' && r!=='') return r; }
+    if(typeof raw[k]==='object'){ let r=buscar(raw[k], palabras); if(r && r!=='-' && r!=='' ) return r; }
   }
   return null;
 }
@@ -148,35 +159,36 @@ function parseDoc(docSnap){
   let estadoVisual = estadoRaw.includes('cancel') ? 'cancelado' : 'entregado';
   let label = estadoVisual==='cancelado' ? 'Cancelado' : 'Entregado';
 
-  // PARSER CORREGIDO ENVIO NO EN CERO
   let prod = 0, envio = 0, servicio = 0, total = 0;
   if(data.totales){
-    prod = num(data.totales.subtotal || data.totales.producto || data.totales.productos || data.totales.valorProducto || data.totales.costoProducto);
-    envio = num(data.totales.envio || data.totales.tarifaEnvio || data.totales.costoEnvio || data.totales.valorEnvio || data.totales.precioEnvio);
-    servicio = num(data.totales.servicio || data.totales.tarifaServicio || data.totales.costoServicio || data.totales.comision);
-    total = num(data.totales.total || data.totales.totalPagar || data.totales.montoTotal);
+    prod = num(data.totales.subtotal || data.totales.producto || data.totales.productos || data.totales.valorProducto);
+    envio = num(data.totales.envio || data.totales.tarifaEnvio || data.totales.costoEnvio || data.totales.valorEnvio);
+    servicio = num(data.totales.servicio || data.totales.tarifaServicio || data.totales.costoServicio);
+    total = num(data.totales.total || data.totales.totalPagar);
   }
-  if(!prod) prod = num(data.producto || data.valorProducto || data.subtotal || data.costoProducto || data.productosTotal);
-  if(!envio) envio = num(data.envio || data.tarifaEnvio || data.costoEnvio || data.valorEnvio || data.precioEnvio || data.costoDeEnvio);
-  if(!servicio) servicio = num(data.servicio || data.tarifaServicio || data.costoServicio);
-  if(!total) total = num(data.total || data.valorTotal || data.totalPagar || data.montoTotal);
-  if(!prod && Array.isArray(data.productos)){ prod = data.productos.reduce((a,p)=> a + num(p.precio||p.price||p.valor||p.total||0)*num(p.cantidad||p.qty||1),0); }
+  if(!prod) prod = num(data.producto || data.valorProducto || data.subtotal);
+  if(!envio) envio = num(data.envio || data.tarifaEnvio || data.costoEnvio || data.valorEnvio || data.precioEnvio);
+  if(!servicio) servicio = num(data.servicio || data.tarifaServicio);
+  if(!total) total = num(data.total || data.valorTotal);
+  if(!prod && Array.isArray(data.productos)){ prod = data.productos.reduce((a,p)=> a + num(p.precio||p.price||0)*num(p.cantidad||p.qty||1),0); }
   if(!total) total = prod+envio+servicio;
 
   return {
     id, codigo: String(data.codigo || data.idOriginal || data.numeroPedido || id).replace('#','').replace('ST-',''),
     cliente: data.nombre || data.cliente?.nombre || data.datosCliente?.nombre || 'Cliente',
-    tienda: data.restaurante?.nombre || data.tienda || data.restauranteNombre || data.negocio || data.nombreRestaurante || 'Tienda',
+    tienda: data.restaurante?.nombre || data.tienda || data.restauranteNombre || data.negocio || 'Tienda',
     telefono: data.telefono || data.cliente?.telefono || '-',
     coloniaEntrega: data.coloniaEntrega || data.cliente?.colonia || 'Col. Centro',
     colTienda: data.restaurante?.colonia || 'Col. Centro',
-    direccion: data.direccionEntrega || data.cliente?.direccion || '-',
+    direccion: data.direccionEntrega || data.cliente?.direccion || data.direccion || '-',
     gps: data.gps || data.ubicacionCompleta || {lat: data.cliente?.lat||data.lat||null, lng: data.cliente?.lng||data.lng||null},
-    ip: data.ip || data.ipCliente || data.cliente?.ip || data.datosCliente?.ip || data.ubicacionCompleta?.ip || '-',
+    ip: data.ip || data.ipCliente || data.cliente?.ip || data.datosCliente?.ip || data.ubicacionCompleta?.ip || data.ipAddress || '-',
     ipEstado: data.ipBloqueada ? 'Bloqueado' : (data.ipEstado || data.estadoIP || (data.bloqueado ? 'Bloqueado' : 'Activo')),
-    restDireccion: data.restaurante?.direccion || data.direccionRestaurante || '-',
-    restTelefono: data.restaurante?.telefono || data.telefonoRestaurante || '-',
-    restHorario: data.restaurante?.horario || data.horarioRestaurante || data.horario || '-',
+    ciudad: data.ciudad || data.cliente?.ciudad || data.datosCliente?.ciudad || data.municipio || data.ubicacionCompleta?.ciudad || '-',
+    dispositivo: data.dispositivo || data.tipoDispositivo || data.tipoIngreso || data.plataforma || data.device || data.userAgent || data.os || '-',
+    restDireccion: data.restaurante?.direccion || data.direccionRestaurante || data.restauranteDireccion || '-',
+    restTelefono: data.restaurante?.telefono || data.telefonoRestaurante || data.restauranteTelefono || '-',
+    restHorario: data.restaurante?.horario || data.horarioRestaurante || data.restaurante?.horarioAtencion || data.horario || '-',
     producto: prod, envio, servicio, total,
     fechaStr: isNaN(f.getTime()) ? '-' : f.toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'numeric'}),
     horaStr: isNaN(f.getTime()) ? '-' : f.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'}),
@@ -202,15 +214,13 @@ function renderLista(){
   const qRaw = document.getElementById('buscador').value.trim();
   const q = normalize(qRaw).replace('#','');
   const qNum = qRaw.replace(/\D/g,'');
-  const restoQ = normalize(document.getElementById('fCliente').value); // AHORA ES RESTAURANTE
+  const restoQ = normalize(document.getElementById('fCliente').value);
   
   let filtrados = todosPedidos.filter(p=>{
     if(filtro!=='todos' && p.estadoVisual!==filtro) return false;
     if(filtroMes && p._mes !== filtroMes) return false;
     if(filtroDia && p._dia !== filtroDia) return false;
-    if(restoQ){
-      if(!normalize(p.tienda).includes(restoQ)) return false;
-    }
+    if(restoQ){ if(!normalize(p.tienda).includes(restoQ)) return false; }
     if(q){
       const codNorm = normalize(p.codigo);
       const idNorm = normalize(p.id);
@@ -307,48 +317,68 @@ window.abrirDetalle = (id)=>{
   const p = todosPedidos.find(x=>x.id===id); if(!p) return;
   const raw = p.raw;
   const tAceptado = buscar(raw, ['aceptado','acepta']);
-  const tPreparando = buscar(raw, ['preparando','preparacion']);
-  const tListo = buscar(raw, ['listo']);
-  const tRecoger = buscar(raw, ['ir_a_recoger','a_recoger']);
-  const tRecogido = buscar(raw, ['recogido']);
-  const tCamino = buscar(raw, ['en_camino','ir_a_entregar','camino']);
-  const tFinal = buscar(raw, ['finalizado']);
-  const tCanc = buscar(raw, ['cancelado']);
+  const tPreparando = buscar(raw, ['preparando','preparacion','en_prepar']);
+  const tListo = buscar(raw, ['listo','listo_para']);
+  const tRecoger = buscar(raw, ['ir_a_recoger','a_recoger','recoger']);
+  const tRecogido = buscar(raw, ['recogido','tiene_pedido','recogida']);
+  const tCamino = buscar(raw, ['en_camino','ir_a_entregar','camino','en_curso']);
+  const tFinal = buscar(raw, ['finalizado','entregado_final','entrega_final']);
+  const tCanc = buscar(raw, ['cancelado','cancel']);
+
   const prod=p.producto||0, envio=p.envio||0, serv=p.servicio||0, total=p.total||0;
+  const comision = prod*0.10;
+  const pagoRestaurante = prod - comision;
+  const pagoRepartidor = envio*0.80;
+  const descuentoRepa = envio - pagoRepartidor;
+  const ganancia = comision + descuentoRepa + serv;
 
   document.getElementById('modalTitle').textContent=`#${p.codigo} - ${p.estadoLabel}`;
   document.getElementById('modalBody').innerHTML=`
     <div class="box"><h4>Datos Cliente Final</h4>
       <div class="row-s"><b>Nombre</b><span>${p.cliente}</span></div>
+      <div class="row-s"><b>Teléfono</b><span>${p.telefono}</span></div>
+      <div class="row-s"><b>Ciudad</b><span>${p.ciudad}</span></div>
+      <div class="row-s"><b>Dirección</b><span>${p.direccion}</span></div>
+      <div class="row-s"><b>Colonia</b><span>${p.coloniaEntrega}</span></div>
       <div class="row-s"><b>GPS Lat</b><span>${p.gps?.lat || buscar(raw,['lat']) || '-'}</span></div>
       <div class="row-s"><b>GPS Lng</b><span>${p.gps?.lng || buscar(raw,['lng','longitud']) || '-'}</span></div>
       <div class="row-s"><b>IP Cliente</b><span>${p.ip}</span></div>
+      <div class="row-s"><b>Código IP</b><span>${buscar(raw,['codigo_ip','ip_code','ip_id']) || p.ip}</span></div>
       <div class="row-s"><b>Estado IP</b><span style="color:${p.ipEstado==='Bloqueado'?'#E30613':'#22c55e'};font-weight:900">${p.ipEstado}</span></div>
+      <div class="row-s"><b>Tipo ingreso</b><span>${p.dispositivo}</span></div>
     </div>
     <div class="box"><h4>Datos Restaurante / Negocio</h4>
       <div class="row-s"><b>Nombre</b><span>${p.tienda}</span></div>
       <div class="row-s"><b>Dirección</b><span>${p.restDireccion}</span></div>
       <div class="row-s"><b>Teléfono</b><span>${p.restTelefono}</span></div>
-      <div class="row-s"><b>Horario</b><span>${p.restHorario}</span></div>
+      <div class="row-s"><b>Horario atención</b><span>${p.restHorario}</span></div>
+      <div class="row-s"><b>Colonia</b><span>${p.colTienda}</span></div>
     </div>
-    <div class="box"><h4>Tiempos Restaurante</h4>
-      <div class="t-item ${tAceptado?'ok':''}">Aceptado: ${toSoloHora(tAceptado)}</div>
-      <div class="t-item ${tPreparando?'ok':''}">Preparando: ${toSoloHora(tPreparando)}</div>
-      <div class="t-item ${tListo?'ok':''}">Listo: ${toSoloHora(tListo)}</div>
+    <div class="box"><h4>Tiempos Restaurante - hora click</h4>
+      <div class="t-item ${tAceptado?'ok':''}">Aceptado: ${toHora(tAceptado)}</div>
+      <div class="t-item ${tPreparando?'ok':''}">Preparando: ${toHora(tPreparando)}</div>
+      <div class="t-item ${tListo?'ok':''}">Listo: ${toHora(tListo)}</div>
     </div>
-    <div class="box"><h4>Tiempos Repartidor</h4>
-      <div class="t-item ${tRecoger?'ok':''}">Ir a recoger: ${toSoloHora(tRecoger)}</div>
-      <div class="t-item ${tRecogido?'ok':''}">Recogido: ${toSoloHora(tRecogido)}</div>
-      <div class="t-item ${tCamino?'ok':''}">En camino: ${toSoloHora(tCamino)}</div>
-      <div class="t-item ${tFinal?'ok':''}">Finalizado: ${toSoloHora(tFinal)}</div>
-      <div class="t-item ${tCanc?'bad':''}">Cancelado: ${p.motivo} - ${toSoloHora(tCanc)}</div>
+    <div class="box"><h4>Tiempos Repartidor - hora click</h4>
+      <div class="t-item ${tRecoger?'ok':''}">Ir a recoger: ${toHora(tRecoger)}</div>
+      <div class="t-item ${tRecogido?'ok':''}">Recogido: ${toHora(tRecogido)}</div>
+      <div class="t-item ${tCamino?'ok':''}">En camino: ${toHora(tCamino)}</div>
+      <div class="t-item ${tFinal?'ok':''}">Finalizado: ${toHora(tFinal)}</div>
+      <div class="t-item ${tCanc?'bad':''}">Cancelado: ${p.motivo} - ${toHora(tCanc)}</div>
     </div>
+    <div class="box"><h4>Interacciones</h4><div class="row-s"><b>Llamar cliente</b><span>${buscar(raw,['llamar_cliente','click_llamar'])||'-'}</span></div><div class="row-s"><b>Click Mapa</b><span>${buscar(raw,['click_mapa','ver_mapa'])||'-'}</span></div><div class="row-s"><b>Repartidor</b><span>${p.repartidor}</span></div></div>
     <div class="box"><h4>Productos</h4>${(raw.productos||raw.items||[]).map(pr=>`<div class="row-s"><b>${pr.nombre||pr.name||'Prod'}</b><span>x${pr.cantidad||1} $${pr.precio||pr.price||0}</span></div>`).join('')||`$${prod.toFixed(2)}`}</div>
-    <div class="box presupuesto"><h4>Desglose REAL</h4>
+    <div class="box presupuesto"><h4>Desglose REAL con descuentos</h4>
       <div class="pres-row"><span>Producto</span><b>$${prod.toFixed(2)}</b></div>
       <div class="pres-row"><span>Envío</span><b>$${envio.toFixed(2)}</b></div>
-      <div class="pres-row"><span>Servicio</span><b>$${serv.toFixed(2)}</b></div>
-      <div class="pres-row total-final"><span>Total</span><b>$${total.toFixed(2)}</b></div>
+      <div class="pres-row"><span>Tarifa Servicio</span><b>$${serv.toFixed(2)}</b></div>
+      <div class="pres-row total-final"><span>Total pagado</span><b>$${total.toFixed(2)}</b></div>
+      <div class="pres-row"><span>Descuento 10% plataforma (sobre producto)</span><b>-$${comision.toFixed(2)}</b></div>
+      <div class="pres-row"><span>Pago a Restaurante (producto - 10%)</span><b>$${pagoRestaurante.toFixed(2)}</b></div>
+      <div class="pres-row"><span>Pago a Repartidor (80% envío)</span><b>$${pagoRepartidor.toFixed(2)}</b></div>
+      <div class="pres-row"><span>Descuento Repartidor (20% envío para plataforma)</span><b>$${descuentoRepa.toFixed(2)}</b></div>
+      <div class="pres-row"><span>Ganancia Plataforma (10% + 20% envío + servicio)</span><b style="color:#22c55e">$${ganancia.toFixed(2)}</b></div>
+      <div class="pres-row"><span>Motivo</span><b>${p.motivo}</b></div>
     </div>
   `;
   document.getElementById('modal').classList.add('active');
