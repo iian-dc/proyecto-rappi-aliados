@@ -97,7 +97,7 @@ body{background:#fff;font-family:'Inter',Helvetica,Arial,sans-serif;color:#0f172
 <div class="filters">
   <div><label>Filtrar por mes</label><input type="month" id="fMes"></div>
   <div><label>Filtrar por día</label><input type="date" id="fDia"></div>
-  <div class="f-client-wrap"><label>Filtrar por cliente</label><input type="text" id="fCliente" placeholder="Escribe cliente..." autocomplete="off"><div class="suggest" id="suggest"></div></div>
+  <div class="f-client-wrap"><label>Filtrar por restaurante / negocio</label><input type="text" id="fCliente" placeholder="Escribe restaurante..." autocomplete="off"><div class="suggest" id="suggest"></div></div>
   <div><button class="btn-search" id="btnBuscar">Buscar</button> <button class="btn-search" style="background:#e2e8f0;color:#0f172a" id="btnLimpiar">Limpiar</button></div>
 </div>
 
@@ -147,21 +147,28 @@ function parseDoc(docSnap){
   const estadoRaw = String(data.estado || data.estadoOriginal || '').toLowerCase();
   let estadoVisual = estadoRaw.includes('cancel') ? 'cancelado' : 'entregado';
   let label = estadoVisual==='cancelado' ? 'Cancelado' : 'Entregado';
+
+  // PARSER CORREGIDO ENVIO NO EN CERO
   let prod = 0, envio = 0, servicio = 0, total = 0;
-  if(data.totales){ prod = num(data.totales.subtotal || data.totales.producto); envio = num(data.totales.envio || data.totales.tarifaEnvio); servicio = num(data.totales.servicio || data.totales.tarifaServicio); total = num(data.totales.total); }
-  if(!prod) prod = num(data.producto || data.valorProducto || data.subtotal);
-  if(!envio) envio = num(data.envio || data.tarifaEnvio || data.costoEnvio);
-  if(!servicio) servicio = num(data.servicio || data.tarifaServicio);
-  if(!total) total = num(data.total || data.valorTotal);
-  if(!prod && Array.isArray(data.productos)){ prod = data.productos.reduce((a,p)=> a + num(p.precio||p.price||0)*num(p.cantidad||p.qty||1),0); }
+  if(data.totales){
+    prod = num(data.totales.subtotal || data.totales.producto || data.totales.productos || data.totales.valorProducto || data.totales.costoProducto);
+    envio = num(data.totales.envio || data.totales.tarifaEnvio || data.totales.costoEnvio || data.totales.valorEnvio || data.totales.precioEnvio);
+    servicio = num(data.totales.servicio || data.totales.tarifaServicio || data.totales.costoServicio || data.totales.comision);
+    total = num(data.totales.total || data.totales.totalPagar || data.totales.montoTotal);
+  }
+  if(!prod) prod = num(data.producto || data.valorProducto || data.subtotal || data.costoProducto || data.productosTotal);
+  if(!envio) envio = num(data.envio || data.tarifaEnvio || data.costoEnvio || data.valorEnvio || data.precioEnvio || data.costoDeEnvio);
+  if(!servicio) servicio = num(data.servicio || data.tarifaServicio || data.costoServicio);
+  if(!total) total = num(data.total || data.valorTotal || data.totalPagar || data.montoTotal);
+  if(!prod && Array.isArray(data.productos)){ prod = data.productos.reduce((a,p)=> a + num(p.precio||p.price||p.valor||p.total||0)*num(p.cantidad||p.qty||1),0); }
   if(!total) total = prod+envio+servicio;
 
   return {
     id, codigo: String(data.codigo || data.idOriginal || data.numeroPedido || id).replace('#','').replace('ST-',''),
-    cliente: data.nombre || data.cliente?.nombre || data.datosCliente?.nombre || data.clienteNombre || 'Cliente',
+    cliente: data.nombre || data.cliente?.nombre || data.datosCliente?.nombre || 'Cliente',
+    tienda: data.restaurante?.nombre || data.tienda || data.restauranteNombre || data.negocio || data.nombreRestaurante || 'Tienda',
     telefono: data.telefono || data.cliente?.telefono || '-',
     coloniaEntrega: data.coloniaEntrega || data.cliente?.colonia || 'Col. Centro',
-    tienda: data.restaurante?.nombre || data.tienda || 'Tienda',
     colTienda: data.restaurante?.colonia || 'Col. Centro',
     direccion: data.direccionEntrega || data.cliente?.direccion || '-',
     gps: data.gps || data.ubicacionCompleta || {lat: data.cliente?.lat||data.lat||null, lng: data.cliente?.lng||data.lng||null},
@@ -195,14 +202,14 @@ function renderLista(){
   const qRaw = document.getElementById('buscador').value.trim();
   const q = normalize(qRaw).replace('#','');
   const qNum = qRaw.replace(/\D/g,'');
-  const cliQ = normalize(document.getElementById('fCliente').value);
+  const restoQ = normalize(document.getElementById('fCliente').value); // AHORA ES RESTAURANTE
   
   let filtrados = todosPedidos.filter(p=>{
     if(filtro!=='todos' && p.estadoVisual!==filtro) return false;
     if(filtroMes && p._mes !== filtroMes) return false;
     if(filtroDia && p._dia !== filtroDia) return false;
-    if(cliQ){
-      if(!normalize(p.cliente).includes(cliQ)) return false;
+    if(restoQ){
+      if(!normalize(p.tienda).includes(restoQ)) return false;
     }
     if(q){
       const codNorm = normalize(p.codigo);
@@ -223,7 +230,7 @@ function renderLista(){
         <div class="badge ${p.estadoVisual}"><span class="s">${p.estadoVisual==='entregado'?`<svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>`:`<svg width="7" height="7" viewBox="0 0 24 24" fill="none" stroke="#E30613" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`}</span>${p.estadoLabel}</div>
         <div style="font-weight:800;font-size:11.5px">#${p.codigo}</div>
         <div class="fecha">${p.fechaStr} • ${p.horaStr}</div>
-        <div class="cliente">${p.cliente}</div>
+        <div class="cliente">${p.tienda}</div>
         <div class="cliente" style="font-size:9px">${p.coloniaEntrega}</div>
       </div>
       <div class="sep"></div>
@@ -248,7 +255,7 @@ function renderSuggest(){
   const box = document.getElementById('suggest');
   const q = normalize(input.value);
   if(!q){ box.classList.remove('active'); return; }
-  const unicos = [...new Set(todosPedidos.map(p=>p.cliente))];
+  const unicos = [...new Set(todosPedidos.map(p=>p.tienda))].filter(Boolean);
   const coincidencias = unicos.filter(n=> normalize(n).includes(q)).slice(0,8);
   if(coincidencias.length===0){ box.classList.remove('active'); return; }
   box.innerHTML = coincidencias.map(n=>`<div data-name="${n}">${n}</div>`).join('');
@@ -300,29 +307,25 @@ window.abrirDetalle = (id)=>{
   const p = todosPedidos.find(x=>x.id===id); if(!p) return;
   const raw = p.raw;
   const tAceptado = buscar(raw, ['aceptado','acepta']);
-  const tPreparando = buscar(raw, ['preparando','preparacion','en_prepar']);
-  const tListo = buscar(raw, ['listo','listo_para']);
+  const tPreparando = buscar(raw, ['preparando','preparacion']);
+  const tListo = buscar(raw, ['listo']);
   const tRecoger = buscar(raw, ['ir_a_recoger','a_recoger']);
-  const tRecogido = buscar(raw, ['recogido','tiene_pedido']);
+  const tRecogido = buscar(raw, ['recogido']);
   const tCamino = buscar(raw, ['en_camino','ir_a_entregar','camino']);
-  const tFinal = buscar(raw, ['finalizado','entregado_final']);
+  const tFinal = buscar(raw, ['finalizado']);
   const tCanc = buscar(raw, ['cancelado']);
   const prod=p.producto||0, envio=p.envio||0, serv=p.servicio||0, total=p.total||0;
-  const comision=prod*0.10, pagaRest=prod-comision, pagaRepa=envio*0.80, ganancia=comision+(envio-pagaRepa)+serv;
 
   document.getElementById('modalTitle').textContent=`#${p.codigo} - ${p.estadoLabel}`;
   document.getElementById('modalBody').innerHTML=`
-    <div class="box"><h4>Datos Cliente</h4>
+    <div class="box"><h4>Datos Cliente Final</h4>
       <div class="row-s"><b>Nombre</b><span>${p.cliente}</span></div>
-      <div class="row-s"><b>Teléfono</b><span>${p.telefono}</span></div>
-      <div class="row-s"><b>Dirección</b><span>${p.direccion}</span></div>
-      <div class="row-s"><b>Colonia</b><span>${p.coloniaEntrega}</span></div>
       <div class="row-s"><b>GPS Lat</b><span>${p.gps?.lat || buscar(raw,['lat']) || '-'}</span></div>
       <div class="row-s"><b>GPS Lng</b><span>${p.gps?.lng || buscar(raw,['lng','longitud']) || '-'}</span></div>
       <div class="row-s"><b>IP Cliente</b><span>${p.ip}</span></div>
       <div class="row-s"><b>Estado IP</b><span style="color:${p.ipEstado==='Bloqueado'?'#E30613':'#22c55e'};font-weight:900">${p.ipEstado}</span></div>
     </div>
-    <div class="box"><h4>Datos Restaurante</h4>
+    <div class="box"><h4>Datos Restaurante / Negocio</h4>
       <div class="row-s"><b>Nombre</b><span>${p.tienda}</span></div>
       <div class="row-s"><b>Dirección</b><span>${p.restDireccion}</span></div>
       <div class="row-s"><b>Teléfono</b><span>${p.restTelefono}</span></div>
@@ -340,9 +343,8 @@ window.abrirDetalle = (id)=>{
       <div class="t-item ${tFinal?'ok':''}">Finalizado: ${toSoloHora(tFinal)}</div>
       <div class="t-item ${tCanc?'bad':''}">Cancelado: ${p.motivo} - ${toSoloHora(tCanc)}</div>
     </div>
-    <div class="box"><h4>Interacciones</h4><div class="row-s"><b>Llamar cliente</b><span>${buscar(raw,['llamar_cliente','click_llamar'])||'-'}</span></div><div class="row-s"><b>Click Mapa</b><span>${buscar(raw,['click_mapa','ver_mapa'])||'-'}</span></div></div>
     <div class="box"><h4>Productos</h4>${(raw.productos||raw.items||[]).map(pr=>`<div class="row-s"><b>${pr.nombre||pr.name||'Prod'}</b><span>x${pr.cantidad||1} $${pr.precio||pr.price||0}</span></div>`).join('')||`$${prod.toFixed(2)}`}</div>
-    <div class="box presupuesto"><h4>Desglose</h4>
+    <div class="box presupuesto"><h4>Desglose REAL</h4>
       <div class="pres-row"><span>Producto</span><b>$${prod.toFixed(2)}</b></div>
       <div class="pres-row"><span>Envío</span><b>$${envio.toFixed(2)}</b></div>
       <div class="pres-row"><span>Servicio</span><b>$${serv.toFixed(2)}</b></div>
