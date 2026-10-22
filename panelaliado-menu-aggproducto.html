@@ -32,7 +32,7 @@ body{background:#fff;min-height:100vh}
 .upload-icon svg{width:44px;height:44px;stroke:#9AA0B6;stroke-width:1.6;fill:none}
 .upload-box p.main-t{font-size:13px;color:#6B7280;font-weight:500}
 .upload-box p.sub-t{font-size:11.5px;color:#6B7280;margin-top:6px}
-.input-select{width:100%;height:44px;border:1.5px solid #E5E9F0;border-radius:8px;padding:0 36px 0 12px;font-size:13.5px;color:#6B7280;outline:none;background:white;appearance:none}
+.input-select{width:100%;height:44px;border:1.5px solid #E5E9F0;border-radius:8px;padding:0 36px 0 12px;font-size:13.5px;color:#111827;outline:none;background:white;appearance:none}
 .select-wrap{position:relative}
 .select-wrap svg{position:absolute;right:12px;top:50%;transform:translateY(-50%);width:18px;height:18px;stroke:#6B7280;pointer-events:none}
 .full-row{grid-column:1 / -1}
@@ -53,7 +53,6 @@ body{background:#fff;min-height:100vh}
 #toastOverlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9999;display:none;align-items:center;justify-content:center}
 #toastOverlay.show{display:flex}
 .toast-card{background:white;border-radius:16px;padding:20px 24px;min-width:280px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,0.25);border-top:4px solid #E30613}
-.toast-card.error{border-top-color:#E30613}
 </style>
 </head>
 <body>
@@ -90,7 +89,7 @@ body{background:#fff;min-height:100vh}
           <b>Categoría *</b>
         </div>
         <div class="select-wrap">
-          <select id="selectCat" class="input-select"><option value="">Selecciona una categoría</option></select>
+          <select id="selectCat" class="input-select"><option value="">Cargando categorías...</option></select>
           <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
         </div>
         <div style="margin-top:18px">
@@ -150,12 +149,10 @@ const db = getDatabase(app);
 const sesion = JSON.parse(localStorage.getItem('doloya_aliado_sesion')||'null');
 let categoriaReal='alitas', idReal='alitas_factory';
 let imagenBase64 = '';
-let categoriasLista=[];
 
-function toast(t,m,error=false){
+function toast(t,m){
   document.getElementById('toastTitle').textContent=t;
   document.getElementById('toastMsg').textContent=m;
-  document.getElementById('toastCard').className='toast-card'+(error?' error':'');
   document.getElementById('toastOverlay').classList.add('show');
   setTimeout(()=>document.getElementById('toastOverlay').classList.remove('show'),2500);
 }
@@ -174,13 +171,18 @@ async function detectarRestaurante(){
     const keys=Object.keys(todas[getId()]);
     if(keys.length>0){ categoriaReal=getId(); idReal=keys[0]; }
   }
+  // Según tu foto: alitas / alitas_factory
+  if(todas['alitas'] && todas['alitas']['alitas_factory']){
+    categoriaReal='alitas';
+    idReal='alitas_factory';
+  }
 }
 
-function renderSelect(){
+function renderCategorias(lista){
   const sel=document.getElementById('selectCat');
-  const uniq=[...new Set(categoriasLista.map(c=>c.toLowerCase()).filter(Boolean))];
+  const uniq=[...new Set(lista.map(c=>c.toLowerCase()).filter(Boolean))];
   if(uniq.length===0){
-    sel.innerHTML='<option value="">No hay categorías, crea una primero</option>';
+    sel.innerHTML='<option value="">No hay categorías</option>';
   }else{
     sel.innerHTML='<option value="">Selecciona una categoría</option>'+uniq.map(c=>`<option value="${c}">${c.charAt(0).toUpperCase()+c.slice(1)}</option>`).join('');
   }
@@ -188,37 +190,18 @@ function renderSelect(){
 
 function cargarCategorias(){
   const pathCat=`doloya_aliados/${categoriaReal}/${idReal}/categorias`;
-  const pathMenu=`doloya_aliados/${categoriaReal}/${idReal}/menu`;
-  
   onValue(ref(db,pathCat), s=>{
+    if(!s.exists()){ renderCategorias([]); return; }
+    const val=s.val();
+    // Puede venir como {boneles:true, salchipapas:true} o {boneles:{nombre:"boneles"}}
     let cats=[];
-    if(s.exists()){
-      const val=s.val();
-      cats = Object.values(val).map(v=> (v.nombre||v.name||'').toLowerCase()).filter(Boolean);
-    }
-    categoriasLista = [...new Set([...categoriasLista, ...cats])];
-    renderSelect();
-  });
-
-  onValue(ref(db,pathMenu), s=>{
-    if(s.exists()){
-      const val=s.val();
-      const catsProd = Object.values(val).map(p=> (p.categoria||'').toLowerCase()).filter(Boolean);
-      categoriasLista = [...new Set([...categoriasLista, ...catsProd])];
-      renderSelect();
-    }
-  });
-
-  // fallback: también buscar en todas las categorías del mismo negocio
-  get(ref(db,`doloya_aliados/${categoriaReal}/${idReal}`)).then(snap=>{
-    if(snap.exists()){
-      const data=snap.val();
-      if(data.categorias){
-        const cats = Object.values(data.categorias).map(v=> (v.nombre||'').toLowerCase()).filter(Boolean);
-        categoriasLista = [...new Set([...categoriasLista, ...cats])];
-        renderSelect();
-      }
-    }
+    Object.keys(val).forEach(k=>{
+      const v=val[k];
+      if(typeof v==='string') cats.push(v);
+      else if(v && typeof v==='object' && v.nombre) cats.push(v.nombre);
+      else cats.push(k); // el key es el nombre: boneles
+    });
+    renderCategorias(cats);
   });
 }
 
@@ -229,7 +212,7 @@ document.getElementById('txtDesc').addEventListener('input', e=>{
 document.getElementById('inputImg').addEventListener('change', e=>{
   const file=e.target.files[0];
   if(!file) return;
-  if(file.size>2*1024*1024){ toast('Error','Imagen muy pesada, máx 2 MB',true); return; }
+  if(file.size>2*1024*1024){ toast('Error','Imagen muy pesada, máx 2 MB'); return; }
   const reader=new FileReader();
   reader.onload=ev=>{
     const img=new Image();
@@ -261,12 +244,11 @@ window.guardarProducto=async function(){
   const precioVal=document.getElementById('txtPrecio').value.trim();
   const precio=parseFloat(precioVal);
 
-  // VALIDACION COMPLETA - NO DEJA GUARDAR SI FALTA ALGO
-  if(!imagenBase64){ toast('Falta imagen','Sube la imagen del producto',true); return; }
-  if(!categoria){ toast('Falta categoría','Selecciona una categoría',true); return; }
-  if(!nombre){ toast('Falta nombre','Escribe el nombre del producto',true); return; }
-  if(!descripcion){ toast('Falta descripción','Describe el producto',true); return; }
-  if(!precioVal || isNaN(precio) || precio<=0){ toast('Falta precio','Ingresa el precio del producto',true); return; }
+  if(!imagenBase64){ toast('Falta imagen','Sube la imagen del producto'); return; }
+  if(!categoria){ toast('Falta categoría','Selecciona una categoría'); return; }
+  if(!nombre){ toast('Falta nombre','Escribe el nombre del producto'); return; }
+  if(!descripcion){ toast('Falta descripción','Describe el producto'); return; }
+  if(!precioVal || isNaN(precio) || precio<=0){ toast('Falta precio','Ingresa el precio del producto'); return; }
 
   const btn=document.getElementById('btnGuardar');
   btn.disabled=true;
