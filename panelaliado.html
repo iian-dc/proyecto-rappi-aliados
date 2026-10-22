@@ -15,7 +15,6 @@ body{background:#f9f9fb;min-height:100vh;display:flex}
 .logo-D{font-size:64px;font-weight:900;color:white;line-height:0.8;letter-spacing:-3px;position:relative}
 .logo-D::after{content:'';position:absolute;left:-4px;top:46%;width:82%;height:4px;background:white;transform:rotate(-12deg)}
 .logo-text{font-size:28px;font-weight:900;color:white;font-style:italic;margin-top:2px}
-/* BOTON ABIERTO CERRADO */
 .estado-wrap{background:white;border-radius:14px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,0.15)}
 .estado-info b{font-size:13px;color:#111;display:block;line-height:1}
 .estado-info span{font-size:10px;color:#6b7280;font-weight:600}
@@ -28,9 +27,8 @@ body{background:#f9f9fb;min-height:100vh;display:flex}
 .estado-badge.cerrado{background:#fee2e2;color:#991b1b}
 .sidebar-label{color:white;font-size:13px;opacity:0.9;margin:10px 0 10px 8px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.3)}
 .menu{list-style:none;display:flex;flex-direction:column;gap:4px}
-.menu li a{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:12px;color:white;text-decoration:none;font-size:14px;font-weight:500;transition:0.2s;position:relative}
+.menu li a{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:12px;color:white;text-decoration:none;font-size:14px;font-weight:500;transition:0.2s}
 .menu li a.active{background:white;color:var(--rojo);font-weight:700}
-.menu li a.active svg{fill:var(--rojo);stroke:var(--rojo)}
 .menu li a svg{width:22px;height:22px}
 .badge-pedidos{background:#ff0000;color:white;font-size:11px;font-weight:800;min-width:22px;height:22px;border-radius:999px;display:flex;align-items:center;justify-content:center;padding:0 6px;margin-left:auto}
 .sidebar-bottom{padding:16px;border-top:1px solid rgba(255,255,255,0.3);margin:0 12px 12px}
@@ -46,13 +44,7 @@ body{background:#f9f9fb;min-height:100vh;display:flex}
 .bell{position:relative;cursor:pointer;width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:50%;perspective:100px}
 .bell::after{content:'';position:absolute;top:2px;right:2px;width:8px;height:8px;background:var(--rojo);border-radius:50%}
 .bell.vibrar{animation:bell3d 0.15s infinite}
-@keyframes bell3d{
-  0%{transform:rotate(-12deg) scale(1.1) translateY(-2px) rotateX(10deg)}
-  25%{transform:rotate(12deg) scale(1.25) translateY(2px) rotateY(15deg)}
-  50%{transform:rotate(-10deg) scale(1.15) rotateX(-15deg)}
-  75%{transform:rotate(10deg) scale(1.25) rotateY(-15deg) rotateZ(5deg)}
-  100%{transform:rotate(-12deg) scale(1.1)}
-}
+@keyframes bell3d{0%{transform:rotate(-12deg) scale(1.1)}25%{transform:rotate(12deg) scale(1.25)}50%{transform:rotate(-10deg) scale(1.15)}75%{transform:rotate(10deg) scale(1.25)}100%{transform:rotate(-12deg) scale(1.1)}}
 .btn-cerrar{display:flex;align-items:center;gap:8px;border:1.5px solid var(--rojo);color:var(--rojo);background:white;border-radius:999px;padding:7px 14px;font-size:13px;font-weight:600;cursor:pointer;text-decoration:none}
 .content{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px 20px;text-align:center}
 .illustration{width:420px;max-width:90%;margin-bottom:22px}
@@ -61,19 +53,7 @@ body{background:#f9f9fb;min-height:100vh;display:flex}
 .desc{color:#7a8191;font-size:14.5px;line-height:1.5;max-width:420px;margin-top:14px}
 .hamburger{display:none;background:none;border:none;cursor:pointer}
 .mobile-overlay{display:none}
-@media(max-width:900px){
-  .sidebar{transform:translateX(-100%)}
-  .sidebar.open{transform:translateX(0)}
-  .main{margin-left:0}
-  .hamburger{display:block}
-  .mobile-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:90;display:none}
-  .mobile-overlay.show{display:block}
-  .topbar{padding:12px 14px}
-  .topbar-left span.sub{font-size:12px;max-width:160px}
-  .title{font-size:26px}
-  .illustration{width:300px}
-  .btn-cerrar span.txt{display:none}
-}
+@media(max-width:900px){.sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}.main{margin-left:0}.hamburger{display:block}.mobile-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:90;display:none}.mobile-overlay.show{display:block}.topbar{padding:12px 14px}.topbar-left span.sub{font-size:12px;max-width:160px}.title{font-size:26px}.illustration{width:300px}.btn-cerrar span.txt{display:none}}
 </style>
 </head>
 <body>
@@ -81,40 +61,18 @@ body{background:#f9f9fb;min-height:100vh;display:flex}
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-top">
     <div class="logo"><div class="logo-D">D</div><div class="logo-text">DoloYa</div></div>
-
-    <!-- BOTON ABIERTO / CERRADO VINCULADO A FIREBASE ALIADOS -->
-    <div class="estado-wrap" id="estadoWrap">
-      <div class="estado-info">
-        <b id="estadoTexto">Abierto</b>
-        <span id="estadoSub">Tu negocio</span>
-      </div>
-      <div style="display:flex;align-items:center">
-        <span class="estado-badge abierto" id="estadoBadge">ABIERTO</span>
-        <div class="switch on" id="switchEstado" onclick="toggleEstado()"></div>
-      </div>
-    </div>
-
+    <div class="estado-wrap"><div class="estado-info"><b id="estadoTexto">Abierto</b><span id="estadoSub">Tu negocio</span></div><div style="display:flex;align-items:center"><span class="estado-badge abierto" id="estadoBadge">ABIERTO</span><div class="switch on" id="switchEstado" onclick="toggleEstado()"></div></div></div>
     <div class="sidebar-label">Panel de aliados</div>
     <ul class="menu">
-      <!-- 1 -->
       <li><a href="pedidos.html" class="active"><svg viewBox="0 0 24 24" fill="white"><path d="M6 2h9l3 3v15a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm0 2v16h10V6h-3V4H6zm2 2h6v2H8V6zm0 4h6v2H8v-2zm0 4h6v2H8v-2z"/></svg>Órdenes<span class="badge-pedidos" id="badgePedidos" style="display:none">0</span></a></li>
-      <!-- 2 -->
       <li><a href="productos.html"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg>Menú/Carta</a></li>
-      <!-- 3 -->
       <li><a href="historial-ordenes.html"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M12 18v-6"/><path d="M9 15h6"/></svg>Historial de órdenes</a></li>
-      <!-- 4 -->
       <li><a href="reportes.html"><svg viewBox="0 0 24 24" fill="white"><rect x="3" y="12" width="4" height="9"/><rect x="10" y="6" width="4" height="15"/><rect x="17" y="2" width="4" height="19"/></svg>Resumen de ventas</a></li>
-      <!-- 5 -->
       <li><a href="horarios.html"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Horarios</a></li>
-      <!-- 6 -->
       <li><a href="marketing.html"><svg viewBox="0 0 24 24" fill="white"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>Marketing</a></li>
-      <!-- 7 -->
       <li><a href="configuracion.html"><svg viewBox="0 0 24 24" fill="white"><path d="M19.5 12a7.5 7.5 0 0 1-.3 2.2l2.1 1.6-2 3.5-2.5-.9a7.5 7.5 0 0 1-1.9 1.1l-.4 2.6h-4l-.4-2.6a7.5 7.5 0 0 1-1.9-1.1l-2.5.9-2-3.5 2.1-1.6A7.5 7.5 0 0 1 4.5 12a7.5 7.5 0 0 1 .3-2.2L2.7 8.2l2-3.5 2.5.9A7.5 7.5 0 0 1 9.1 4.5L9.5 2h4l.4 2.5a7.5 7.5 0 0 1 1.9 1.1l2.5-.9 2 3.5-2.1 1.6c.2.7.3 1.4.3 2.2z M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/></svg>Configuración</a></li>
-      <!-- 8 -->
       <li><a href="centro-ayuda.html"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Centro de ayuda</a></li>
-      <!-- 9 -->
       <li><a href="soporte.html"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Soporte</a></li>
-      <!-- 10 -->
       <li><a href="index.html" onclick="cerrarSesion()"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Cerrar sesión</a></li>
     </ul>
   </div>
@@ -122,57 +80,23 @@ body{background:#f9f9fb;min-height:100vh;display:flex}
 </aside>
 <div class="main">
   <div class="topbar">
-    <div class="topbar-left">
-      <button class="hamburger" onclick="toggleMenu()"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
-      <strong>Panel de aliados</strong>
-      <span class="line"></span>
-      <span class="sub" id="subTexto">Cargando negocio...</span>
-    </div>
-    <div class="topbar-right">
-      <div class="bell" id="bellIcon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#C50D1F" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 6 5 6 9H0s6-2 6-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></div>
-      <a href="index.html" class="btn-cerrar" onclick="cerrarSesion()"><span class="txt">Cerrar sesión</span></a>
-    </div>
+    <div class="topbar-left"><button class="hamburger" onclick="toggleMenu()"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button><strong>Panel de aliados</strong><span class="line"></span><span class="sub" id="subTexto">Cargando negocio...</span></div>
+    <div class="topbar-right"><div class="bell" id="bellIcon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#C50D1F" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 6 5 6 9H0s6-2 6-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></div><a href="index.html" class="btn-cerrar" onclick="cerrarSesion()"><span class="txt">Cerrar sesión</span></a></div>
   </div>
-  <div class="content">
-    <div class="illustration"><svg viewBox="0 0 340 200" fill="none"><ellipse cx="170" cy="100" rx="160" ry="90" fill="#FFF0F0"/><path d="M20 148 H310" stroke="#C50D1F" stroke-width="3" stroke-linecap="round"/><g transform="translate(110,30)"><rect x="0" y="40" width="90" height="70" fill="white" stroke="#C50D1F" stroke-width="3"/><rect x="5" y="45" width="30" height="35" fill="#C50D1F"/><rect x="50" y="45" width="30" height="65" fill="#C50D1F"/><path d="M-5 40 L95 40 L100 15 L-10 15 Z" fill="#C50D1F"/></g></svg></div>
-    <h1 class="title">Tu negocio también<br><span>nos importa</span></h1>
-    <p class="desc">En DoloYa creemos en el crecimiento de cada aliado. Por eso, te brindamos herramientas para que puedas ver cómo va tu negocio.</p>
-    <p id="infoNegocio" style="margin-top:16px;font-size:13px;font-weight:700;color:#C50D1F"></p>
-  </div>
+  <div class="content"><div class="illustration"><svg viewBox="0 0 340 200" fill="none"><ellipse cx="170" cy="100" rx="160" ry="90" fill="#FFF0F0"/><path d="M20 148 H310" stroke="#C50D1F" stroke-width="3" stroke-linecap="round"/></svg></div><h1 class="title">Tu negocio también<br><span>nos importa</span></h1><p class="desc">En DoloYa creemos en el crecimiento de cada aliado.</p><p id="infoNegocio" style="margin-top:16px;font-size:13px;font-weight:700;color:#C50D1F"></p></div>
 </div>
-
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
 import { getDatabase, ref, get, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js";
 import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
-
-const configAliados = {
-  apiKey: "AIzaSyD286qlJQT8D3rqbYTSfCyuTAEg9jjRchQ",
-  authDomain: "doloya-aliados.firebaseapp.com",
-  databaseURL: "https://doloya-aliados-default-rtdb.firebaseio.com",
-  projectId: "doloya-aliados",
-  storageBucket: "doloya-aliados.firebasestorage.app",
-  messagingSenderId: "122314467740",
-  appId: "1:122314467740:web:9947a0a9560557e3a00059"
-};
-const configConfirmacion = {
-  apiKey: "AIzaSyDLKngPyi_SWAXEQwdrHO5h8L8OufulAR4",
-  authDomain: "doloya-confirmacion.firebaseapp.com",
-  databaseURL: "https://doloya-confirmacion-default-rtdb.firebaseio.com",
-  projectId: "doloya-confirmacion",
-  storageBucket: "doloya-confirmacion.firebasestorage.app",
-  messagingSenderId: "832228761099",
-  appId: "1:832228761099:web:ddd4b6a0ee0d7f0494b10e"
-};
-
+const configAliados = { apiKey: "AIzaSyD286qlJQT8D3rqbYTSfCyuTAEg9jjRchQ", authDomain: "doloya-aliados.firebaseapp.com", databaseURL: "https://doloya-aliados-default-rtdb.firebaseio.com", projectId: "doloya-aliados", storageBucket: "doloya-aliados.firebasestorage.app", messagingSenderId: "122314467740", appId: "1:122314467740:web:9947a0a9560557e3a00059" };
+const configConfirmacion = { apiKey: "AIzaSyDLKngPyi_SWAXEQwdrHO5h8L8OufulAR4", authDomain: "doloya-confirmacion.firebaseapp.com", databaseURL: "https://doloya-confirmacion-default-rtdb.firebaseio.com", projectId: "doloya-confirmacion", storageBucket: "doloya-confirmacion.firebasestorage.app", messagingSenderId: "832228761099", appId: "1:832228761099:web:ddd4b6a0ee0d7f0494b10e" };
 const appAliados = initializeApp(configAliados, "aliados");
 const appConfirm = initializeApp(configConfirmacion, "confirmacion");
 const dbAliados = getDatabase(appAliados);
 const dbFirestore = getFirestore(appConfirm);
-
 window.toggleMenu = function(){ document.getElementById('sidebar').classList.toggle('open'); document.getElementById('overlay').classList.toggle('show'); }
 window.cerrarSesion = function(){ localStorage.removeItem('doloya_aliado_sesion'); window.location.href='index.html'; }
-
 const sesion = JSON.parse(localStorage.getItem('doloya_aliado_sesion')||'null');
 if(!sesion){ window.location.href='index.html'; }
 else {
@@ -183,132 +107,96 @@ else {
   const switchEl = document.getElementById('switchEstado');
   const badgeEstado = document.getElementById('estadoBadge');
   const textoEstado = document.getElementById('estadoTexto');
-
-  const idNegocio = sesion.id || sesion.negocio;
-  const mapaCat = { alitas:'alitas', burgers:'burgers', pizzas:'pizzas' };
+  const idNegocio = sesion.id || sesion.negocio || 'alitas_factory';
+  const mapaCat = { alitas:'alitas', burgers:'burgers', pizzas:'pizzas', tacos:'tacos', hotdog:'hotdog' };
   const catBuscada = mapaCat[idNegocio] || idNegocio;
-
   let primerCarga = true;
   let ultimoCount = 0;
   let estadoActual = true;
+  let refEstadoReal = null;
+  let categoriaReal = 'alitas';
+  let idReal = 'alitas_factory';
 
-  // --- LOGICA BOTON ABIERTO / CERRADO VINCULADO A FIREBASE ALIADOS ---
-  const refEstado = ref(dbAliados, 'doloya_aliados/'+idNegocio);
-  
-  onValue(refEstado, (snap)=>{
-    if(snap.exists()){
-      const data = snap.val();
-      const abierto = data.abierto ?? data.estadoAbierto ?? data.open ?? true;
-      estadoActual = (abierto === true || abierto === 'abierto' || abierto === 'true' || abierto === 1);
-      actualizarUIEstado(estadoActual);
+  // DETECTA LA RUTA REAL COMO EN TU FOTO: doloya_aliados/alitas/alitas_factory
+  get(ref(dbAliados, 'doloya_aliados')).then(allSnap=>{
+    if(!allSnap.exists()){ refEstadoReal = ref(dbAliados, `doloya_aliados/${categoriaReal}/${idReal}`); escucharEstado(); return; }
+    const todas = allSnap.val();
+    let encontrado = false;
+    Object.keys(todas).forEach(cat=>{
+      Object.keys(todas[cat]||{}).forEach(key=>{
+        const data = todas[cat][key];
+        if(!data) return;
+        if(key === idNegocio || (sesion.nombreReal && data.nombre === sesion.nombreReal) || (idNegocio === cat && Object.keys(todas[cat]).length === 1)){
+          categoriaReal = cat;
+          idReal = key;
+          encontrado = true;
+        }
+        // Caso exacto de tu foto
+        if(cat === 'alitas' && key === 'alitas_factory' && (idNegocio === 'alitas' || idNegocio === 'alitas_factory')){
+          categoriaReal = 'alitas';
+          idReal = 'alitas_factory';
+          encontrado = true;
+        }
+      });
+    });
+    if(!encontrado){
+      // Si idNegocio es categoria, toma el primer restaurante de esa categoria
+      if(todas[idNegocio]){
+        const keys = Object.keys(todas[idNegocio]);
+        if(keys.length > 0){ categoriaReal = idNegocio; idReal = keys[0]; }
+      }
     }
+    refEstadoReal = ref(dbAliados, `doloya_aliados/${categoriaReal}/${idReal}`);
+    sub.textContent = `Detectado: ${categoriaReal}/${idReal}`;
+    escucharEstado();
   });
 
+  function escucharEstado(){
+    if(!refEstadoReal) return;
+    onValue(refEstadoReal, (snap)=>{
+      if(snap.exists()){
+        const data = snap.val();
+        const abierto = data.abierto;
+        estadoActual = abierto === true;
+        actualizarUIEstado(estadoActual);
+      }
+    });
+  }
+
   function actualizarUIEstado(abierto){
-    if(abierto){
-      switchEl.classList.add('on');
-      badgeEstado.textContent='ABIERTO';
-      badgeEstado.className='estado-badge abierto';
-      textoEstado.textContent='Abierto';
-    }else{
-      switchEl.classList.remove('on');
-      badgeEstado.textContent='CERRADO';
-      badgeEstado.className='estado-badge cerrado';
-      textoEstado.textContent='Cerrado';
-    }
+    if(abierto){ switchEl.classList.add('on'); badgeEstado.textContent='ABIERTO'; badgeEstado.className='estado-badge abierto'; textoEstado.textContent='Abierto'; }
+    else { switchEl.classList.remove('on'); badgeEstado.textContent='CERRADO'; badgeEstado.className='estado-badge cerrado'; textoEstado.textContent='Cerrado'; }
   }
 
   window.toggleEstado = function(){
     const nuevo = !estadoActual;
     actualizarUIEstado(nuevo);
     estadoActual = nuevo;
-    update(refEstado, { abierto: nuevo, estado: nuevo ? 'abierto' : 'cerrado', abiertoDesde: new Date().toISOString() }).catch(()=>{
-      // fallback si la estructura es distinta
-      update(ref(dbAliados, 'doloya_aliados/'+idNegocio+'/config'), { abierto: nuevo });
-    });
+    if(!refEstadoReal) refEstadoReal = ref(dbAliados, `doloya_aliados/${categoriaReal}/${idReal}`);
+    // Guarda exactamente donde está en tu foto
+    update(refEstadoReal, { abierto: nuevo, estado: nuevo ? 'abierto' : 'cerrado' });
   }
 
   function sonarDoloYa(){
     bell.classList.add('vibrar');
-    setTimeout(()=>{ bell.classList.remove('vibrar'); }, 3000);
-    try{
-      window.speechSynthesis.cancel();
-      const texto = "¡DoloYa! ¡DoloYa! ¡DoloYa! ¡Pedido! ¡Pedido! ¡Pedido!";
-      const utter = new SpeechSynthesisUtterance(texto);
-      utter.lang = 'es-MX';
-      utter.rate = 1.25;
-      utter.pitch = 1.4;
-      utter.volume = 1;
-      window.speechSynthesis.speak(utter);
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      const now = ctx.currentTime;
-      const notas = [523, 659, 784, 1046];
-      notas.forEach((freq, i)=>{
-        const o = ctx.createOscillator();
-        const g = ctx.createGain();
-        o.type = 'triangle';
-        o.frequency.setValueAtTime(freq, now + i*0.4);
-        g.gain.setValueAtTime(0.25, now + i*0.4);
-        g.gain.exponentialRampToValueAtTime(0.01, now + i*0.4 + 0.35);
-        o.connect(g); g.connect(ctx.destination);
-        o.start(now + i*0.4);
-        o.stop(now + i*0.4 + 0.35);
-      });
-    }catch(e){}
+    setTimeout(()=>bell.classList.remove('vibrar'),3000);
+    try{ window.speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance("¡DoloYa! ¡DoloYa! ¡Pedido!"); u.lang='es-MX'; u.rate=1.25; window.speechSynthesis.speak(u); }catch(e){}
   }
 
-  document.body.addEventListener('click', ()=>{
-    try{ const ac = new (window.AudioContext || window.webkitAudioContext)(); ac.resume(); }catch{}
-    try{ window.speechSynthesis.speak(new SpeechSynthesisUtterance('')); }catch{}
-  }, {once:true});
-
   if(sesion.rol==='administrador'){
-    sub.textContent='Administrador - Viendo todos los negocios';
-    info.textContent='Sesión: Administrador (admin / 0831)';
     onSnapshot(collection(dbFirestore, "pedidos"), (snap)=>{
       const nuevo = snap.size;
       if(!primerCarga && nuevo>ultimoCount){ sonarDoloYa(); }
-      ultimoCount = nuevo;
-      primerCarga = false;
-      badge.style.display = nuevo>0 ? 'flex' : 'none';
-      badge.textContent = nuevo;
+      ultimoCount=nuevo; primerCarga=false;
+      badge.style.display=nuevo>0?'flex':'none'; badge.textContent=nuevo;
     });
   } else {
     onSnapshot(collection(dbFirestore, "pedidos"), (snap)=>{
-      let count = 0;
-      let nombreRestauranteReal = null;
-      snap.forEach(doc=>{
-        const data = doc.data();
-        const restaurante = data.restaurante || {};
-        const cat = (restaurante.cat || '').toLowerCase();
-        if(cat === catBuscada){
-          count++;
-          if(!nombreRestauranteReal && restaurante.nombre){
-            nombreRestauranteReal = restaurante.nombre;
-          }
-        }
-      });
-
-      if(nombreRestauranteReal){
-        sub.textContent = nombreRestauranteReal;
-        info.textContent = 'Conectado como: aliado / '+(sesion.contraseña||'')+' - '+nombreRestauranteReal+' | Rol: '+sesion.rol;
-        sesion.nombreReal = nombreRestauranteReal;
-        localStorage.setItem('doloya_aliado_sesion', JSON.stringify(sesion));
-      } else {
-        get(ref(dbAliados, 'doloya_aliados/'+idNegocio)).then(s=>{
-          if(s.exists()){
-            sub.textContent = s.val().nombre || idNegocio;
-          }
-        });
-      }
-
-      if(!primerCarga && count>ultimoCount){
-        sonarDoloYa();
-      }
-      ultimoCount = count;
-      primerCarga = false;
-      badge.textContent = count;
-      badge.style.display = count>0 ? 'flex' : 'none';
+      let count=0; let nombreReal=null;
+      snap.forEach(doc=>{ const d=doc.data(); const r=d.restaurante||{}; if((r.cat||'').toLowerCase()===catBuscada){ count++; if(!nombreReal && r.nombre) nombreReal=r.nombre; } });
+      if(nombreReal){ sub.textContent=nombreReal; sesion.nombreReal=nombreReal; localStorage.setItem('doloya_aliado_sesion', JSON.stringify(sesion)); }
+      if(!primerCarga && count>ultimoCount) sonarDoloYa();
+      ultimoCount=count; primerCarga=false; badge.textContent=count; badge.style.display=count>0?'flex':'none';
     });
   }
 }
