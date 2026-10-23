@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agregar Aliado - DoloYa</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
+body{background:#f7f7f8}
+.topbar{background:#C50D1F;padding:12px 18px;display:flex;align-items:center;gap:14px}
+.btn-x{width:44px;height:44px;border-radius:50%;border:2.5px solid white;background:transparent;color:white;font-size:26px;font-weight:800;display:flex;align-items:center;justify-content:center;text-decoration:none}
+.topbar h1{color:white;font-size:22px;font-weight:800}
+.container{max-width:700px;margin:20px auto;padding:20px;background:white;border-radius:14px;border:1px solid #eee}
+label{font-size:13px;font-weight:600;margin-top:14px;display:block}
+input{width:100%;padding:11px 14px;border:1px solid #e5e7eb;border-radius:10px;margin-top:6px;font-size:14px;outline:none}
+.btn-guardar{width:100%;background:#C50D1F;color:white;border:none;border-radius:999px;padding:14px;font-size:15px;font-weight:800;margin-top:20px;cursor:pointer}
+.section{margin-top:20px;padding-top:14px;border-top:1px solid #f1f1f1}
+.section b{font-size:14px}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="paneladmin-aliados.html" class="btn-x">✕</a>
+  <h1>Agregar aliado</h1>
+</div>
+<div class="container">
+  <div class="section"><b>Info del restaurante</b></div>
+  <label>Nombre restaurante (ID)</label>
+  <input id="idRest" placeholder="ej: saltillos">
+  <label>Nombre completo</label>
+  <input id="nombre" placeholder="ej: Saltillos">
+  <label>Dirección</label>
+  <input id="direccion">
+  <label>Teléfono</label>
+  <input id="telefono">
+  <label>Correo</label>
+  <input id="correo">
+  <label>Usuario</label>
+  <input id="usuario">
+  <label>Contraseña</label>
+  <input id="contraseña">
+  <label>Categoría</label>
+  <input id="categoria" placeholder="tacos, burgers, pizzas...">
+
+  <div class="section"><b>Disponibilidad</b></div>
+  <label>Estado (activo / desactivo)</label>
+  <input id="estado" value="activo">
+
+  <button class="btn-guardar" onclick="guardarAliado()">Guardar aliado independiente</button>
+  <p id="msg" style="margin-top:12px;font-size:13px;font-weight:600;text-align:center"></p>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js";
+
+const config = { apiKey: "AIzaSyD286qlJQT8D3rqbYTSfCyuTAEg9jjRchQ", authDomain: "doloya-aliados.firebaseapp.com", databaseURL: "https://doloya-aliados-default-rtdb.firebaseio.com", projectId: "doloya-aliados", storageBucket: "doloya-aliados.firebasestorage.app", messagingSenderId: "122314467740", appId: "1:122314467740:web:9947a0a9560557e3a00059" };
+const app = initializeApp(config);
+const db = getDatabase(app);
+
+window.guardarAliado = async function(){
+  const id = document.getElementById('idRest').value.trim().toLowerCase().replace(/\s+/g,'_');
+  if(!id){ alert('Pon ID'); return; }
+  
+  const info = {
+    id: id,
+    nombre: document.getElementById('nombre').value.trim(),
+    direccion: document.getElementById('direccion').value.trim(),
+    telefono: document.getElementById('telefono').value.trim(),
+    correo: document.getElementById('correo').value.trim(),
+    usuario: document.getElementById('usuario').value.trim().toLowerCase(),
+    contraseña: document.getElementById('contraseña').value.trim(),
+    password: document.getElementById('contraseña').value.trim(),
+    rol: 'aliado',
+    categoria: document.getElementById('categoria').value.trim().toLowerCase()
+  };
+
+  await set(ref(db, `doloya_aliados/${id}/info`), info);
+  await set(ref(db, `doloya_aliados/${id}/disponibilidad`), {
+    abierto: true,
+    estado: document.getElementById('estado').value.trim().toLowerCase() || 'activo',
+    horarioApertura: '09:00',
+    horarioCierre: '22:00'
+  });
+  await set(ref(db, `doloya_aliados/${id}/perfil`), {
+    imagenPerfil: '',
+    imagenPortada: '',
+    reseñas: 0
+  });
+  await set(ref(db, `doloya_aliados/${id}/categorias`), {
+    placeholder: true
+  });
+
+  document.getElementById('msg').textContent = `Aliado ${info.nombre} creado independiente en ${id}`;
+  document.getElementById('msg').style.color = '#15803d';
+}
+</script>
+</body>
+</html>
