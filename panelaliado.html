@@ -109,6 +109,7 @@ const dbFirestore = getFirestore(appConfirm);
 window.toggleMenu = function(){ document.getElementById('sidebar').classList.toggle('open'); document.getElementById('overlay').classList.toggle('show'); }
 window.cerrarSesion = function(){ localStorage.removeItem('doloya_aliado_sesion'); window.location.href='index.html'; }
 function formatearNombreBonito(str){ if(!str) return ''; return str.replace(/[_\/-]+/g,' ').replace(/\s+/g,' ').trim().split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1).toLowerCase()).join(' '); }
+function normalize(t){ return String(t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim(); }
 const sesion = JSON.parse(localStorage.getItem('doloya_aliado_sesion')||'null');
 if(!sesion){ window.location.href='index.html'; }
 else {
@@ -119,23 +120,68 @@ else {
   const switchEl = document.getElementById('switchEstado');
   const badgeEstado = document.getElementById('estadoBadge');
   const textoEstado = document.getElementById('estadoTexto');
-  const idNegocio = sesion.id || sesion.negocio || 'alitas_factory';
-  const mapaCat = { alitas:'alitas', burgers:'burgers', pizzas:'pizzas', tacos:'tacos', hotdog:'hotdog' };
-  const catBuscada = mapaCat[idNegocio] || idNegocio;
-  let primerCarga = true; let ultimoCount = 0; let estadoActual = true; let refEstadoReal = null; let categoriaReal = 'alitas'; let idReal = 'alitas_factory';
+  const infoNegocio = document.getElementById('infoNegocio');
+  // ID INDEPENDIENTE - AHORA SI RESPETA CADA RESTAURANTE
+  const idNegocio = (sesion.id || sesion.negocio || 'alitas_factory').toLowerCase();
+  const nombreSesion = (sesion.nombre || idNegocio).toLowerCase();
+
+  function getCategoriaReal(id){
+    const n = normalize(id);
+    if(n.includes('alitas')) return 'alitas';
+    if(n.includes('burger')) return 'burgers';
+    if(n.includes('pizza')) return 'pizzas';
+    if(n.includes('taco')) return 'tacos';
+    if(n.includes('hotdog') || n.includes('hot_dog')) return 'hotdog';
+    return n.split('_')[0].split('-')[0];
+  }
+  const catBuscada = getCategoriaReal(idNegocio);
+
+  let primerCarga = true; let ultimoCount = 0; let estadoActual = true; let refEstadoReal = null; let categoriaReal = catBuscada; let idReal = idNegocio;
+
+  // Mostrar nombre correcto arriba desde el inicio
+  sub.textContent = formatearNombreBonito(sesion.nombre || idNegocio);
+  infoNegocio.textContent = `Conectado como: ${formatearNombreBonito(sesion.nombre || idNegocio)} (${idNegocio})`;
+
   get(ref(dbAliados, 'doloya_aliados')).then(allSnap=>{
-    if(!allSnap.exists()){ refEstadoReal = ref(dbAliados, `doloya_aliados/${categoriaReal}/${idReal}`); escucharEstado(); return; }
-    const todas = allSnap.val(); let encontrado = false;
-    Object.keys(todas).forEach(cat=>{ Object.keys(todas[cat]||{}).forEach(key=>{
-      const data = todas[cat][key]; if(!data) return;
-      if(key === idNegocio || (sesion.nombreReal && data.nombre === sesion.nombreReal) || (idNegocio === cat && Object.keys(todas[cat]).length === 1)){ categoriaReal = cat; idReal = key; encontrado = true; }
-      if(cat === 'alitas' && key === 'alitas_factory' && (idNegocio === 'alitas' || idNegocio === 'alitas_factory')){ categoriaReal = 'alitas'; idReal = 'alitas_factory'; encontrado = true; }
-    }); });
-    if(!encontrado){ if(todas[idNegocio]){ const keys = Object.keys(todas[idNegocio]); if(keys.length > 0){ categoriaReal = idNegocio; idReal = keys[0]; } } }
+    if(!allSnap.exists()){
+      refEstadoReal = ref(dbAliados, `doloya_aliados/${categoriaReal}/${idReal}`);
+      escucharEstado(); 
+      return;
+    }
+    const todas = allSnap.val();
+    let encontrado = false;
+    // Buscar coincidencia exacta de cada restaurante independiente
+    Object.keys(todas).forEach(cat=>{
+      const nivel = todas[cat];
+      if(typeof nivel !== 'object') return;
+      Object.keys(nivel).forEach(key=>{
+        const data = nivel[key];
+        if(!data) return;
+        const keyNorm = normalize(key);
+        const catNorm = normalize(cat);
+        // Coincidencia exacta por id independiente
+        if(keyNorm === normalize(idNegocio) || catNorm === normalize(idNegocio) || keyNorm === normalize(nombreSesion)){
+          categoriaReal = cat;
+          idReal = key;
+          encontrado = true;
+        }
+        // Soporte para estructura antigua alitas/alitas_factory
+        if(normalize(idNegocio).includes(keyNorm) || keyNorm.includes(normalize(idNegocio))){
+          categoriaReal = cat;
+          idReal = key;
+        }
+      });
+    });
+    if(!encontrado){
+      // Si no encuentra, usa la categoria deducida
+      categoriaReal = catBuscada;
+      idReal = idNegocio;
+    }
     refEstadoReal = ref(dbAliados, `doloya_aliados/${categoriaReal}/${idReal}`);
-    sub.textContent = formatearNombreBonito(idReal);
+    sub.textContent = formatearNombreBonito(sesion.nombre || idReal);
     escucharEstado();
   });
+
   function escucharEstado(){ if(!refEstadoReal) return; onValue(refEstadoReal, (snap)=>{ if(snap.exists()){ const data = snap.val(); estadoActual = data.abierto === true; actualizarUIEstado(estadoActual); } }); }
   function actualizarUIEstado(abierto){ if(abierto){ switchEl.classList.add('on'); badgeEstado.textContent='ABIERTO'; badgeEstado.className='estado-badge abierto'; textoEstado.textContent='Abierto'; } else { switchEl.classList.remove('on'); badgeEstado.textContent='CERRADO'; badgeEstado.className='estado-badge cerrado'; textoEstado.textContent='Cerrado'; } }
   window.toggleEstado = function(){ const nuevo = !estadoActual; actualizarUIEstado(nuevo); estadoActual = nuevo; if(!refEstadoReal) refEstadoReal = ref(dbAliados, `doloya_aliados/${categoriaReal}/${idReal}`); update(refEstadoReal, { abierto: nuevo, estado: nuevo ? 'abierto' : 'cerrado' }); }
@@ -144,6 +190,22 @@ else {
     badge.style.display='flex'; badge.textContent=count;
     bellBadge.style.display='flex'; bellBadge.textContent=count;
   }
+
+  function esPedidoDeEsteRestaurante(d){
+    const r = d.restaurante || {};
+    const cat = normalize(r.cat || r.categoria || '');
+    const idR = normalize(r.id || r.restauranteId || r.negocio || '');
+    const nombreR = normalize(r.nombre || r.restauranteNombre || r.tienda || '');
+    const targetCat = normalize(catBuscada);
+    const targetId = normalize(idNegocio);
+    const targetNombre = normalize(nombreSesion);
+    if(cat && cat === targetCat) return true;
+    if(idR && (idR === targetId || idR.includes(targetCat) || targetId.includes(idR))) return true;
+    if(nombreR && (nombreR.includes(targetCat) || nombreR.includes(targetNombre) || targetNombre.includes(nombreR))) return true;
+    if(cat.includes(targetCat) || targetCat.includes(cat)) return true;
+    return false;
+  }
+
   if(sesion.rol==='administrador'){
     onSnapshot(collection(dbFirestore, "pedidos"), (snap)=>{
       const nuevo = snap.size;
@@ -154,8 +216,18 @@ else {
   } else {
     onSnapshot(collection(dbFirestore, "pedidos"), (snap)=>{
       let count=0; let nombreReal=null;
-      snap.forEach(doc=>{ const d=doc.data(); const r=d.restaurante||{}; if((r.cat||'').toLowerCase()===catBuscada){ count++; if(!nombreReal && r.nombre) nombreReal=r.nombre; } });
-      if(nombreReal){ sub.textContent=formatearNombreBonito(nombreReal); sesion.nombreReal=nombreReal; localStorage.setItem('doloya_aliado_sesion', JSON.stringify(sesion)); }
+      snap.forEach(doc=>{ 
+        const d=doc.data(); 
+        if(esPedidoDeEsteRestaurante(d)){ 
+          count++; 
+          if(!nombreReal && d.restaurante?.nombre) nombreReal=d.restaurante.nombre; 
+        } 
+      });
+      if(nombreReal){ 
+        sub.textContent=formatearNombreBonito(nombreReal); 
+        sesion.nombreReal=nombreReal; 
+        localStorage.setItem('doloya_aliado_sesion', JSON.stringify(sesion)); 
+      }
       if(!primerCarga && count>ultimoCount) sonarDoloYa();
       ultimoCount=count; primerCarga=false; actualizarBadges(count);
     });
