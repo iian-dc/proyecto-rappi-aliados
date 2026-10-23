@@ -147,7 +147,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const sesion = JSON.parse(localStorage.getItem('doloya_aliado_sesion')||'null');
-let categoriaReal='alitas', idReal='alitas_factory', productos=[], productoEdit=null, productoAEliminar=null, categoriasReales=[], categoriasExtra=[], mapaCategorias={};
+let productos=[], productoEdit=null, productoAEliminar=null, categoriasReales=[], categoriasExtra=[], mapaCategorias={};
 
 function toast(t,m){
   document.getElementById('toastTitle').textContent=t;
@@ -156,23 +156,13 @@ function toast(t,m){
   setTimeout(()=>document.getElementById('toastOverlay').classList.remove('show'),2200);
 }
 document.getElementById('toastOverlay').onclick=()=>document.getElementById('toastOverlay').classList.remove('show');
-function getId(){ return sesion?.id || sesion?.negocio || 'alitas_factory'; }
 
-async function detectarRestaurante(){
-  const snap = await get(ref(db,'doloya_aliados'));
-  if(!snap.exists()){ categoriaReal='alitas'; idReal='alitas_factory'; return; }
-  const todas=snap.val();
-  Object.keys(todas).forEach(cat=>{
-    Object.keys(todas[cat]||{}).forEach(key=>{
-      if(key===getId()){ categoriaReal=cat; idReal=key; }
-    });
-  });
-  if(todas[getId()]){
-    const keys=Object.keys(todas[getId()]);
-    if(keys.length>0){ categoriaReal=getId(); idReal=keys[0]; }
-  }
-  if(todas['alitas'] && todas['alitas']['alitas_factory']){
-    categoriaReal='alitas'; idReal='alitas_factory';
+function getIdRestaurante(){
+  try{
+    const s = JSON.parse(localStorage.getItem('doloya_aliado_sesion'));
+    return s.id || s.negocio || 'santillos';
+  }catch{
+    return 'santillos';
   }
 }
 
@@ -180,28 +170,28 @@ function renderCategorias(){
   const bar=document.getElementById('catBar');
   const selectEdit=document.getElementById('editCat');
   
-  // ORDENAR POR ORDEN DE CONFIGURACION
-  let catsOrdenadas = [...categoriasExtra];
-  catsOrdenadas.sort((a,b)=>(a.orden??99)-(b.orden??99));
+  let catsActivas = categoriasExtra.filter(c=>c.activa!==false);
+  catsActivas.sort((a,b)=>(a.orden??99)-(b.orden??99));
   
-  // SOLO ACTIVAS PARA MOSTRAR
-  let catsActivas = catsOrdenadas.filter(c=>c.activa!==false);
-  
-  // Si no hay config, fallback a productos
   if(catsActivas.length===0){
     const catsDeProductos = [...new Set(productos.map(p=> (p.categoria||'').toLowerCase()).filter(Boolean))];
-    categoriasReales = catsDeProductos.length? catsDeProductos : ['alitas'];
+    categoriasReales = catsDeProductos.length? catsDeProductos : [];
   }else{
     categoriasReales = catsActivas.map(c=> (c.nombreLower||c.key||'').toLowerCase());
     mapaCategorias = {};
-    catsOrdenadas.forEach(c=>{
+    categoriasExtra.forEach(c=>{
       const key = (c.nombreLower||c.key||'').toLowerCase();
       mapaCategorias[key] = c.activa!==false;
     });
   }
 
-  bar.innerHTML = `<div class="cat-pill active" data-cat="todas">Todas</div>` + categoriasReales.map(c=>`<div class="cat-pill" data-cat="${c}">${c.charAt(0).toUpperCase()+c.slice(1)}</div>`).join('');
-  selectEdit.innerHTML = categoriasReales.map(c=>`<option value="${c}">${c.charAt(0).toUpperCase()+c.slice(1)}</option>`).join('');
+  if(categoriasReales.length===0){
+    bar.innerHTML = `<div class="cat-pill active" data-cat="todas">Todas</div>`;
+    selectEdit.innerHTML = `<option value="">Sin categorías</option>`;
+  }else{
+    bar.innerHTML = `<div class="cat-pill active" data-cat="todas">Todas</div>` + categoriasReales.map(c=>`<div class="cat-pill" data-cat="${c}">${c.charAt(0).toUpperCase()+c.slice(1)}</div>`).join('');
+    selectEdit.innerHTML = categoriasReales.map(c=>`<option value="${c}">${c.charAt(0).toUpperCase()+c.slice(1)}</option>`).join('');
+  }
   
   bar.querySelectorAll('.cat-pill').forEach(el=>{
     el.addEventListener('click',()=>{
@@ -211,42 +201,109 @@ function renderCategorias(){
   });
 }
 
+// CORRECCION: AHORA LEE DE doloya_aliados/{id}/categorias/categorias/{categoria}/{producto}
 function escucharProductos(){
-  const path=`doloya_aliados/${categoriaReal}/${idReal}/menu`;
-  const pathCat=`doloya_aliados/${categoriaReal}/${idReal}/categorias`;
+  const idRest = getIdRestaurante();
+  const pathCategorias = `doloya_aliados/${idRest}/categorias`;
   
-  onValue(ref(db,pathCat), s=>{
-    if(s.exists()){
-      const val=s.val();
-      categoriasExtra = Object.keys(val).map(k=>{
-        const o=val[k];
-        return {
-          id:k,
-          key:o.key||k,
-          nombre:o.nombre||k,
-          nombreLower:o.nombreLower||o.key||k,
-          activa:o.activa!==false,
-          orden:o.orden??99
-        };
-      });
-    }else{
-      categoriasExtra=[];
-    }
-    renderCategorias();
-    renderProductos();
-  });
+  onValue(ref(db, pathCategorias), s=>{
+    productos = [];
+    categoriasExtra = [];
 
-  onValue(ref(db,path), s=>{
-    if(s.exists()){
-      const val=s.val();
-      productos = Object.keys(val).map(k=>({id:k,...val[k]}));
+    if(!s.exists()){
       renderCategorias();
       renderProductos();
-    } else {
-      productos=[];
-      renderCategorias();
-      document.getElementById('gridProductos').innerHTML='<p style="padding:20px;color:#6b7280">No hay productos en menu aún</p>';
+      return;
     }
+
+    const data = s.val();
+    const camposCategoria = ['activa','fecha','key','nombre','nombreLower','orden'];
+    const camposProductoIgnorar = ['activa','fecha','key','nombre','nombreLower','orden','_info'];
+
+    function esProducto(obj){
+      return obj && typeof obj === 'object' && (obj.nombre !== undefined && obj.precio !== undefined || obj.id !== undefined) && obj.descripcion !== undefined || (obj.nombre && obj.imagen);
+    }
+
+    // 1. Lee donde las tienes tu ahora: categorias/categorias/salchipapas/la_mampana
+    let contenedorCategorias = null;
+    if(data.categorias && typeof data.categorias === 'object'){
+      contenedorCategorias = data.categorias;
+    }
+
+    // Si hay contenedor categorias/categorias
+    if(contenedorCategorias){
+      Object.keys(contenedorCategorias).forEach(catKey=>{
+        if(catKey.startsWith('_')) return;
+        const catObj = contenedorCategorias[catKey];
+        if(!catObj || typeof catObj !== 'object') return;
+
+        // Es una categoria
+        categoriasExtra.push({
+          id: catKey,
+          key: catObj.key || catKey,
+          nombre: catObj.nombre || catKey,
+          nombreLower: (catObj.nombreLower || catObj.key || catKey).toLowerCase(),
+          activa: catObj.activa !== false,
+          orden: catObj.orden ?? 99,
+          path: `${pathCategorias}/categorias/${catKey}`
+        });
+
+        // Busca productos dentro de esta categoria
+        Object.keys(catObj).forEach(prodKey=>{
+          if(camposCategoria.includes(prodKey)) return;
+          const prod = catObj[prodKey];
+          if(!prod || typeof prod !== 'object') return;
+          if(prod.nombre && (prod.precio !== undefined || prod.imagen)){
+            productos.push({
+              id: prodKey,
+              firebasePath: `${pathCategorias}/categorias/${catKey}/${prodKey}`,
+              categoriaKey: catKey.toLowerCase(),
+              ...prod
+            });
+          }
+        });
+      });
+    }
+
+    // 2. Tambien lee si alguna categoria esta arriba: categorias/boneles/producto
+    Object.keys(data).forEach(key=>{
+      if(key === 'categorias') return;
+      if(key.startsWith('_')) return;
+      const obj = data[key];
+      if(!obj || typeof obj !== 'object') return;
+      if(!obj.nombre && !obj.nombreLower) return;
+
+      if(!categoriasExtra.find(c=>c.key.toLowerCase()===key.toLowerCase())){
+        categoriasExtra.push({
+          id: key,
+          key: obj.key || key,
+          nombre: obj.nombre || key,
+          nombreLower: (obj.nombreLower || obj.key || key).toLowerCase(),
+          activa: obj.activa !== false,
+          orden: obj.orden ?? 99,
+          path: `${pathCategorias}/${key}`
+        });
+      }
+
+      Object.keys(obj).forEach(prodKey=>{
+        if(camposProductoIgnorar.includes(prodKey)) return;
+        const prod = obj[prodKey];
+        if(!prod || typeof prod !== 'object') return;
+        if(prod.nombre){
+          if(!productos.find(p=>p.id===prodKey)){
+            productos.push({
+              id: prodKey,
+              firebasePath: `${pathCategorias}/${key}/${prodKey}`,
+              categoriaKey: key.toLowerCase(),
+              ...prod
+            });
+          }
+        }
+      });
+    });
+
+    renderCategorias();
+    renderProductos();
   });
 }
 
@@ -263,40 +320,33 @@ function renderProductos(){
   const filtro=document.getElementById('filtroEstado').value;
   let f=productos;
 
-  // FILTRAR POR CATEGORIA INACTIVA (lo que guardaste en configuracion)
   f=f.filter(p=>{
-    const cat = (p.categoria||'').toLowerCase();
-    if(p.categoriaActiva===false) return false;
+    const cat = (p.categoria||p.categoriaKey||'').toLowerCase();
     if(mapaCategorias[cat]===false) return false;
     return true;
   });
 
-  if(catActive!=='todas') f=f.filter(p=>(p.categoria||'').toLowerCase()===catActive);
+  if(catActive!=='todas') f=f.filter(p=> (p.categoria||p.categoriaKey||'').toLowerCase()===catActive );
   if(busq) f=f.filter(p=>(p.nombre||'').toLowerCase().includes(busq));
-  if(filtro==='activos') f=f.filter(p=>p.activo!==false);
-  if(filtro==='inactivos') f=f.filter(p=>p.activo===false);
-
-  // ORDENAR PRODUCTOS POR ORDEN DE CATEGORIA
-  f.sort((a,b)=>{
-    const catA = categoriasExtra.find(c=>c.nombreLower===a.categoria?.toLowerCase() || c.key===a.categoria?.toLowerCase());
-    const catB = categoriasExtra.find(c=>c.nombreLower===b.categoria?.toLowerCase() || c.key===b.categoria?.toLowerCase());
-    const ordenA = catA?.orden ?? 99;
-    const ordenB = catB?.orden ?? 99;
-    if(ordenA!==ordenB) return ordenA-ordenB;
-    return 0;
-  });
+  if(filtro==='activos') f=f.filter(p=>p.activo!==false && p.disponibilidad!==false);
+  if(filtro==='inactivos') f=f.filter(p=>p.activo===false || p.disponibilidad===false);
 
   grid.innerHTML='';
+  if(f.length===0){
+    grid.innerHTML='<p style="padding:20px;color:#6b7280">No hay productos en esta categoría aún. Tu producto La Mampana debe aparecer aquí.</p>';
+    return;
+  }
+
   f.forEach(p=>{
     const nombre=p.nombre||'Producto';
-    const descripcion=p.descripcion||p.Descripcion||'';
+    const descripcion=p.descripcion||'';
     const precio=parseFloat(p.precio||0);
-    const porcentaje=parseFloat(p.porcentaje||0);
+    const porcentaje=parseFloat(p.porcentaje||p.descuento||0);
     const promoActiva = p.promoActiva!==false && porcentaje>0;
     const precioDesc = p.precioDescuento ? parseFloat(p.precioDescuento) : (promoActiva ? (precio - precio*porcentaje/100) : 0);
     const promoTexto=p.promo||'';
     const img=p.imagen||p.img||'https://images.unsplash.com/photo-1568909344668-6f14a07b56a0?w=400';
-    const activo=p.activo!==false;
+    const activo=p.activo!==false && p.disponibilidad!==false;
     let htmlPrecio = '';
     if(promoActiva && precioDesc>0){
       htmlPrecio = `<div class="price-line"><span class="price-old">$${fmtPrecio(precio)}</span><span class="price-disc">-${fmtPrecio(porcentaje)}%</span><span class="price-new">$${fmtPrecio(precioDesc)}</span></div>`;
@@ -313,7 +363,7 @@ function renderProductos(){
       const id=sw.dataset.id;
       const p=productos.find(x=>x.id===id);
       const nuevoEstado = !sw.classList.contains('on');
-      update(ref(db,`doloya_aliados/${categoriaReal}/${idReal}/menu/${id}`),{ activo: nuevoEstado });
+      update(ref(db,p.firebasePath),{ activo: nuevoEstado, disponibilidad: nuevoEstado });
       toast(nuevoEstado?'Disponible':'Agotado', nuevoEstado ? `${p.nombre} ahora es visible` : `${p.nombre} oculto del menú`);
     });
   });
@@ -324,13 +374,13 @@ function editar(id){
   productoEdit=p;
   document.getElementById('editImg').src = p.imagen||p.img||'';
   document.getElementById('editNombre').value=p.nombre||'';
-  document.getElementById('editDescripcion').value=p.descripcion||p.Descripcion||'';
+  document.getElementById('editDescripcion').value=p.descripcion||'';
   document.getElementById('editPrecio').value=p.precio||'';
-  document.getElementById('editCat').value=(p.categoria||'').toLowerCase();
+  document.getElementById('editCat').value=(p.categoria||p.categoriaKey||'').toLowerCase();
   document.getElementById('editTipoPromo').value=p.tipoPromo||'descuento';
-  document.getElementById('editPorc').value=p.porcentaje||10;
+  document.getElementById('editPorc').value=p.porcentaje||p.descuento||10;
   document.getElementById('switchPromo').className='switch-red '+(p.promoActiva!==false?'on':'');
-  document.getElementById('switchEstadoProd').className='switch-mini '+(p.activo!==false?'on':'');
+  document.getElementById('switchEstadoProd').className='switch-mini '+(p.activo!==false && p.disponibilidad!==false?'on':'');
   calcularDesc();
   toast('Producto cargado', p.nombre);
 }
@@ -345,17 +395,17 @@ function guardarTiempoReal(silent=false){
   if(!productoEdit) return;
   clearTimeout(timeoutReal);
   timeoutReal=setTimeout(()=>{
-    const path=`doloya_aliados/${categoriaReal}/${idReal}/menu/${productoEdit.id}`;
-    update(ref(db,path),{
+    update(ref(db,productoEdit.firebasePath),{
       nombre: document.getElementById('editNombre').value,
       descripcion: document.getElementById('editDescripcion').value,
-      Descripcion: document.getElementById('editDescripcion').value,
       precio: parseFloat(document.getElementById('editPrecio').value)||0,
       categoria: document.getElementById('editCat').value,
       tipoPromo: document.getElementById('editTipoPromo').value,
       porcentaje: parseFloat(document.getElementById('editPorc').value)||0,
+      descuento: parseFloat(document.getElementById('editPorc').value)||0,
       promoActiva: document.getElementById('switchPromo').classList.contains('on'),
       activo: document.getElementById('switchEstadoProd').classList.contains('on'),
+      disponibilidad: document.getElementById('switchEstadoProd').classList.contains('on'),
       precioDescuento: parseFloat(document.getElementById('editPrecioDesc').value)||0,
       promo: document.getElementById('switchPromo').classList.contains('on') ? (document.getElementById('editTipoPromo').value==='descuento'? `-${document.getElementById('editPorc').value}%` : document.getElementById('editTipoPromo').value) : '',
       imagen: document.getElementById('editImg').src
@@ -395,7 +445,10 @@ function abrirConfirmEliminar(id){
 window.cerrarConfirm=function(){ document.getElementById('confirmOverlay').classList.remove('show'); productoAEliminar=null; }
 window.confirmarEliminar=function(){
   if(!productoAEliminar) return;
-  remove(ref(db,`doloya_aliados/${categoriaReal}/${idReal}/menu/${productoAEliminar}`));
+  const p = productos.find(x=>x.id===productoAEliminar);
+  if(p && p.firebasePath){
+    remove(ref(db,p.firebasePath));
+  }
   document.getElementById('confirmOverlay').classList.remove('show');
   toast('Eliminado','Producto eliminado');
   productoAEliminar=null;
@@ -412,9 +465,9 @@ document.getElementById('inputFileImg').addEventListener('change', e=>{
 });
 document.getElementById('buscador').addEventListener('input',renderProductos);
 document.getElementById('filtroEstado').addEventListener('change',renderProductos);
-(async()=>{
-  if(!sesion){ location.href='index.html'; return; }
-  await detectarRestaurante();
+(()=>{
+  const s = sesion;
+  if(!s){ location.href='index.html'; return; }
   escucharProductos();
 })();
 </script>
