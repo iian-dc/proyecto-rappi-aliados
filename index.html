@@ -62,25 +62,41 @@ const db = getDatabase(app);
 
 async function vincularRestaurantes(){
   try{
-    await update(ref(db, 'doloya_aliados/alitas'), {
-      usuario: 'aliado',
+    // AHORA CADA RESTAURANTE TIENE USUARIO INDEPENDIENTE
+    await update(ref(db, 'doloya_aliados/alitas_factory'), {
+      usuario: 'alitas',
+      email: 'alitas',
       contraseña: '1111',
+      password: '1111',
       rol: 'aliado',
-      codigo: 'index'
+      codigo: 'index',
+      nombre: 'Alitas Factory',
+      id: 'alitas_factory',
+      negocio: 'alitas_factory'
     });
-    await update(ref(db, 'doloya_aliados/burgers'), {
-      usuario: 'aliado',
+    await update(ref(db, 'doloya_aliados/burgers_factory'), {
+      usuario: 'burgers',
+      email: 'burgers',
       contraseña: '2222',
+      password: '2222',
       rol: 'aliado',
-      codigo: 'index'
+      codigo: 'index',
+      nombre: 'Burgers Factory',
+      id: 'burgers_factory',
+      negocio: 'burgers_factory'
     });
-    await update(ref(db, 'doloya_aliados/pizzas'), {
-      usuario: 'aliado',
+    await update(ref(db, 'doloya_aliados/pizzas_factory'), {
+      usuario: 'pizzas',
+      email: 'pizzas',
       contraseña: '3333',
+      password: '3333',
       rol: 'aliado',
-      codigo: 'index'
+      codigo: 'index',
+      nombre: 'Pizzas Factory',
+      id: 'pizzas_factory',
+      negocio: 'pizzas_factory'
     });
-    console.log("Vinculados: alitas 1111, burgers 2222, pizzas 3333");
+    console.log("Vinculados independientes: alitas 1111, burgers 2222, pizzas 3333");
   }catch(e){
     console.error("Error vinculando", e);
   }
@@ -105,37 +121,27 @@ window.iniciarSesion = async function(){
     return;
   }
 
-  if(user === 'aliado'){
-    let idNegocio = null;
-    let nombreNegocio = '';
-    if(pass === '1111'){ idNegocio='alitas'; nombreNegocio='Alitas'; }
-    if(pass === '2222'){ idNegocio='burgers'; nombreNegocio='Hamburguesas'; }
-    if(pass === '3333'){ idNegocio='pizzas'; nombreNegocio='Pizzas'; }
-
-    if(idNegocio){
-      vincularRestaurantes();
-      localStorage.setItem('doloya_aliado_sesion', JSON.stringify({
-        rol:'aliado',
-        usuario:'aliado',
-        contraseña: pass,
-        codigo:'index',
-        id: idNegocio,
-        nombre: nombreNegocio,
-        negocio: idNegocio
-      }));
-      window.location.href='panelaliado.html';
-      return;
-    }
-  }
-
   try{
     const snapshot = await get(ref(db, 'doloya_aliados'));
     if(snapshot.exists()){
       const datos = snapshot.val();
       for(const key in datos){
         const rest = datos[key];
-        if( (rest.usuario===user || rest.email===user) && (rest.contraseña===pass || rest.password===pass) ){
-          localStorage.setItem('doloya_aliado_sesion', JSON.stringify({ rol:rest.rol||'aliado', usuario:rest.usuario, codigo:'index', id:key, nombre:rest.nombre||key }));
+        const u = String(rest.usuario||'').toLowerCase();
+        const e = String(rest.email||'').toLowerCase();
+        const c1 = String(rest.contraseña||'');
+        const c2 = String(rest.password||'');
+        // VALIDACION EXACTA USUARIO + CONTRASEÑA INDEPENDIENTE
+        if( (u===user || e===user) && (c1===pass || c2===pass) ){
+          localStorage.setItem('doloya_aliado_sesion', JSON.stringify({ 
+            rol: rest.rol||'aliado', 
+            usuario: rest.usuario, 
+            contraseña: pass,
+            codigo:'index', 
+            id: rest.id || key, 
+            nombre: rest.nombre||key,
+            negocio: rest.negocio || rest.id || key
+          }));
           window.location.href='panelaliado.html';
           return;
         }
@@ -144,7 +150,7 @@ window.iniciarSesion = async function(){
   }catch(e){ console.log(e); }
 
   errorBox.style.display='block';
-  errorBox.textContent='Usuario o contraseña incorrectos. Usa aliado / 1111, 2222, 3333';
+  errorBox.textContent='Usuario o contraseña incorrectos. Usa alitas / 1111, burgers / 2222, pizzas / 3333';
 }
 </script>
 </body>
