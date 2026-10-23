@@ -93,7 +93,6 @@ body{background:#f9f9fb;min-height:100vh;display:flex}
   <div class="content">
     <h1 class="title">Tu negocio también<br><span>nos importa</span></h1>
     <p class="desc">En DoloYa creemos en el crecimiento de cada aliado.</p>
-    <p id="infoNegocio" style="margin-top:16px;font-size:13px;font-weight:700;color:#C50D1F"></p>
   </div>
 </div>
 <script type="module">
@@ -120,8 +119,6 @@ else {
   const switchEl = document.getElementById('switchEstado');
   const badgeEstado = document.getElementById('estadoBadge');
   const textoEstado = document.getElementById('estadoTexto');
-  const infoNegocio = document.getElementById('infoNegocio');
-  // ID INDEPENDIENTE - AHORA SI RESPETA CADA RESTAURANTE
   const idNegocio = (sesion.id || sesion.negocio || 'alitas_factory').toLowerCase();
   const nombreSesion = (sesion.nombre || idNegocio).toLowerCase();
 
@@ -138,9 +135,7 @@ else {
 
   let primerCarga = true; let ultimoCount = 0; let estadoActual = true; let refEstadoReal = null; let categoriaReal = catBuscada; let idReal = idNegocio;
 
-  // Mostrar nombre correcto arriba desde el inicio
   sub.textContent = formatearNombreBonito(sesion.nombre || idNegocio);
-  infoNegocio.textContent = `Conectado como: ${formatearNombreBonito(sesion.nombre || idNegocio)} (${idNegocio})`;
 
   get(ref(dbAliados, 'doloya_aliados')).then(allSnap=>{
     if(!allSnap.exists()){
@@ -150,7 +145,6 @@ else {
     }
     const todas = allSnap.val();
     let encontrado = false;
-    // Buscar coincidencia exacta de cada restaurante independiente
     Object.keys(todas).forEach(cat=>{
       const nivel = todas[cat];
       if(typeof nivel !== 'object') return;
@@ -158,31 +152,43 @@ else {
         const data = nivel[key];
         if(!data) return;
         const keyNorm = normalize(key);
-        const catNorm = normalize(cat);
-        // Coincidencia exacta por id independiente
-        if(keyNorm === normalize(idNegocio) || catNorm === normalize(idNegocio) || keyNorm === normalize(nombreSesion)){
+        if(keyNorm === normalize(idNegocio)){
           categoriaReal = cat;
           idReal = key;
           encontrado = true;
         }
-        // Soporte para estructura antigua alitas/alitas_factory
-        if(normalize(idNegocio).includes(keyNorm) || keyNorm.includes(normalize(idNegocio))){
-          categoriaReal = cat;
-          idReal = key;
-        }
       });
     });
     if(!encontrado){
-      // Si no encuentra, usa la categoria deducida
       categoriaReal = catBuscada;
       idReal = idNegocio;
     }
     refEstadoReal = ref(dbAliados, `doloya_aliados/${categoriaReal}/${idReal}`);
-    sub.textContent = formatearNombreBonito(sesion.nombre || idReal);
     escucharEstado();
   });
 
-  function escucharEstado(){ if(!refEstadoReal) return; onValue(refEstadoReal, (snap)=>{ if(snap.exists()){ const data = snap.val(); estadoActual = data.abierto === true; actualizarUIEstado(estadoActual); } }); }
+  function escucharEstado(){ 
+    if(!refEstadoReal) return; 
+    onValue(refEstadoReal, (snap)=>{ 
+      if(snap.exists()){ 
+        const data = snap.val(); 
+        // CORREGIDO: si no tiene campo abierto, lo tomamos como ABIERTO por defecto
+        if(data.abierto === undefined && data.estado === undefined){
+          estadoActual = true;
+          // lo creamos como abierto para que quede guardado
+          update(refEstadoReal, { abierto: true, estado: 'abierto' });
+        } else {
+          estadoActual = data.abierto === true || data.estado === 'abierto';
+        }
+        actualizarUIEstado(estadoActual); 
+      } else {
+        // Si no existe el nodo, lo creamos abierto
+        estadoActual = true;
+        actualizarUIEstado(true);
+        update(refEstadoReal, { abierto: true, estado: 'abierto' });
+      }
+    }); 
+  }
   function actualizarUIEstado(abierto){ if(abierto){ switchEl.classList.add('on'); badgeEstado.textContent='ABIERTO'; badgeEstado.className='estado-badge abierto'; textoEstado.textContent='Abierto'; } else { switchEl.classList.remove('on'); badgeEstado.textContent='CERRADO'; badgeEstado.className='estado-badge cerrado'; textoEstado.textContent='Cerrado'; } }
   window.toggleEstado = function(){ const nuevo = !estadoActual; actualizarUIEstado(nuevo); estadoActual = nuevo; if(!refEstadoReal) refEstadoReal = ref(dbAliados, `doloya_aliados/${categoriaReal}/${idReal}`); update(refEstadoReal, { abierto: nuevo, estado: nuevo ? 'abierto' : 'cerrado' }); }
   function sonarDoloYa(){ bell.classList.add('vibrar'); setTimeout(()=>bell.classList.remove('vibrar'),3000); try{ window.speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance("¡DoloYa! ¡DoloYa! ¡Pedido!"); u.lang='es-MX'; u.rate=1.25; window.speechSynthesis.speak(u); }catch(e){} }
@@ -198,11 +204,10 @@ else {
     const nombreR = normalize(r.nombre || r.restauranteNombre || r.tienda || '');
     const targetCat = normalize(catBuscada);
     const targetId = normalize(idNegocio);
-    const targetNombre = normalize(nombreSesion);
     if(cat && cat === targetCat) return true;
-    if(idR && (idR === targetId || idR.includes(targetCat) || targetId.includes(idR))) return true;
-    if(nombreR && (nombreR.includes(targetCat) || nombreR.includes(targetNombre) || targetNombre.includes(nombreR))) return true;
-    if(cat.includes(targetCat) || targetCat.includes(cat)) return true;
+    if(idR && (idR === targetId || idR.includes(targetCat))) return true;
+    if(nombreR && nombreR.includes(targetCat)) return true;
+    if(cat.includes(targetCat)) return true;
     return false;
   }
 
@@ -215,19 +220,13 @@ else {
     });
   } else {
     onSnapshot(collection(dbFirestore, "pedidos"), (snap)=>{
-      let count=0; let nombreReal=null;
+      let count=0;
       snap.forEach(doc=>{ 
         const d=doc.data(); 
         if(esPedidoDeEsteRestaurante(d)){ 
           count++; 
-          if(!nombreReal && d.restaurante?.nombre) nombreReal=d.restaurante.nombre; 
         } 
       });
-      if(nombreReal){ 
-        sub.textContent=formatearNombreBonito(nombreReal); 
-        sesion.nombreReal=nombreReal; 
-        localStorage.setItem('doloya_aliado_sesion', JSON.stringify(sesion)); 
-      }
       if(!primerCarga && count>ultimoCount) sonarDoloYa();
       ultimoCount=count; primerCarga=false; actualizarBadges(count);
     });
