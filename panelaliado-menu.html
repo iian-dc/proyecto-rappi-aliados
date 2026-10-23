@@ -147,7 +147,8 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const sesion = JSON.parse(localStorage.getItem('doloya_aliado_sesion')||'null');
-let categoriaReal='alitas', idReal='alitas_factory', productos=[], productoEdit=null, productoAEliminar=null, categoriasReales=[], categoriasExtra=[];
+let categoriaReal='alitas', idReal='alitas_factory', productos=[], productoEdit=null, productoAEliminar=null, categoriasReales=[], categoriasExtra=[], mapaCategorias={};
+
 function toast(t,m){
   document.getElementById('toastTitle').textContent=t;
   document.getElementById('toastMsg').textContent=m;
@@ -156,9 +157,10 @@ function toast(t,m){
 }
 document.getElementById('toastOverlay').onclick=()=>document.getElementById('toastOverlay').classList.remove('show');
 function getId(){ return sesion?.id || sesion?.negocio || 'alitas_factory'; }
+
 async function detectarRestaurante(){
   const snap = await get(ref(db,'doloya_aliados'));
-  if(!snap.exists()) return;
+  if(!snap.exists()){ categoriaReal='alitas'; idReal='alitas_factory'; return; }
   const todas=snap.val();
   Object.keys(todas).forEach(cat=>{
     Object.keys(todas[cat]||{}).forEach(key=>{
@@ -169,16 +171,38 @@ async function detectarRestaurante(){
     const keys=Object.keys(todas[getId()]);
     if(keys.length>0){ categoriaReal=getId(); idReal=keys[0]; }
   }
+  if(todas['alitas'] && todas['alitas']['alitas_factory']){
+    categoriaReal='alitas'; idReal='alitas_factory';
+  }
 }
+
 function renderCategorias(){
   const bar=document.getElementById('catBar');
   const selectEdit=document.getElementById('editCat');
-  const catsDeProductos = [...new Set(productos.map(p=> (p.categoria||'').toLowerCase()).filter(Boolean))];
-  const catsDeFirebase = categoriasExtra.map(c=> (c.nombre||'').toLowerCase());
-  const todasCats = [...new Set([...catsDeProductos, ...catsDeFirebase])];
-  categoriasReales = todasCats.length? todasCats : ['alitas'];
+  
+  // ORDENAR POR ORDEN DE CONFIGURACION
+  let catsOrdenadas = [...categoriasExtra];
+  catsOrdenadas.sort((a,b)=>(a.orden??99)-(b.orden??99));
+  
+  // SOLO ACTIVAS PARA MOSTRAR
+  let catsActivas = catsOrdenadas.filter(c=>c.activa!==false);
+  
+  // Si no hay config, fallback a productos
+  if(catsActivas.length===0){
+    const catsDeProductos = [...new Set(productos.map(p=> (p.categoria||'').toLowerCase()).filter(Boolean))];
+    categoriasReales = catsDeProductos.length? catsDeProductos : ['alitas'];
+  }else{
+    categoriasReales = catsActivas.map(c=> (c.nombreLower||c.key||'').toLowerCase());
+    mapaCategorias = {};
+    catsOrdenadas.forEach(c=>{
+      const key = (c.nombreLower||c.key||'').toLowerCase();
+      mapaCategorias[key] = c.activa!==false;
+    });
+  }
+
   bar.innerHTML = `<div class="cat-pill active" data-cat="todas">Todas</div>` + categoriasReales.map(c=>`<div class="cat-pill" data-cat="${c}">${c.charAt(0).toUpperCase()+c.slice(1)}</div>`).join('');
-  selectEdit.innerHTML = categoriasReales.map(c=>`<option value="${c}">${c}</option>`).join('');
+  selectEdit.innerHTML = categoriasReales.map(c=>`<option value="${c}">${c.charAt(0).toUpperCase()+c.slice(1)}</option>`).join('');
+  
   bar.querySelectorAll('.cat-pill').forEach(el=>{
     el.addEventListener('click',()=>{
       bar.querySelectorAll('.cat-pill').forEach(x=>x.classList.remove('active'));
@@ -186,9 +210,32 @@ function renderCategorias(){
     });
   });
 }
+
 function escucharProductos(){
   const path=`doloya_aliados/${categoriaReal}/${idReal}/menu`;
   const pathCat=`doloya_aliados/${categoriaReal}/${idReal}/categorias`;
+  
+  onValue(ref(db,pathCat), s=>{
+    if(s.exists()){
+      const val=s.val();
+      categoriasExtra = Object.keys(val).map(k=>{
+        const o=val[k];
+        return {
+          id:k,
+          key:o.key||k,
+          nombre:o.nombre||k,
+          nombreLower:o.nombreLower||o.key||k,
+          activa:o.activa!==false,
+          orden:o.orden??99
+        };
+      });
+    }else{
+      categoriasExtra=[];
+    }
+    renderCategorias();
+    renderProductos();
+  });
+
   onValue(ref(db,path), s=>{
     if(s.exists()){
       const val=s.val();
@@ -201,31 +248,44 @@ function escucharProductos(){
       document.getElementById('gridProductos').innerHTML='<p style="padding:20px;color:#6b7280">No hay productos en menu aún</p>';
     }
   });
-  onValue(ref(db,pathCat), s=>{
-    if(s.exists()){
-      const val=s.val();
-      categoriasExtra = Object.keys(val).map(k=>({id:k,...val[k]})).filter(c=>c.activa!==false);
-    }else{
-      categoriasExtra=[];
-    }
-    renderCategorias();
-  });
 }
+
 function fmtPrecio(n){
   const num = parseFloat(n);
   if(isNaN(num)) return '0';
   return Number.isInteger(num) ? num.toFixed(0) : num.toFixed(2);
 }
+
 function renderProductos(){
   const grid=document.getElementById('gridProductos');
   const catActive=document.querySelector('.cat-pill.active')?.dataset.cat||'todas';
   const busq=document.getElementById('buscador').value.toLowerCase();
   const filtro=document.getElementById('filtroEstado').value;
   let f=productos;
+
+  // FILTRAR POR CATEGORIA INACTIVA (lo que guardaste en configuracion)
+  f=f.filter(p=>{
+    const cat = (p.categoria||'').toLowerCase();
+    if(p.categoriaActiva===false) return false;
+    if(mapaCategorias[cat]===false) return false;
+    return true;
+  });
+
   if(catActive!=='todas') f=f.filter(p=>(p.categoria||'').toLowerCase()===catActive);
   if(busq) f=f.filter(p=>(p.nombre||'').toLowerCase().includes(busq));
   if(filtro==='activos') f=f.filter(p=>p.activo!==false);
   if(filtro==='inactivos') f=f.filter(p=>p.activo===false);
+
+  // ORDENAR PRODUCTOS POR ORDEN DE CATEGORIA
+  f.sort((a,b)=>{
+    const catA = categoriasExtra.find(c=>c.nombreLower===a.categoria?.toLowerCase() || c.key===a.categoria?.toLowerCase());
+    const catB = categoriasExtra.find(c=>c.nombreLower===b.categoria?.toLowerCase() || c.key===b.categoria?.toLowerCase());
+    const ordenA = catA?.orden ?? 99;
+    const ordenB = catB?.orden ?? 99;
+    if(ordenA!==ordenB) return ordenA-ordenB;
+    return 0;
+  });
+
   grid.innerHTML='';
   f.forEach(p=>{
     const nombre=p.nombre||'Producto';
@@ -258,6 +318,7 @@ function renderProductos(){
     });
   });
 }
+
 function editar(id){
   const p=productos.find(x=>x.id==id); if(!p) return;
   productoEdit=p;
