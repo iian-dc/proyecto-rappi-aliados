@@ -1,1 +1,298 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aliados - DoloYa Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
+body{background:#f7f7f8;min-height:100vh}
+:root{--rojo:#C50D1F;--rojo-dark:#A80A19}
+.topbar{background:var(--rojo);padding:12px 18px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.top-left{display:flex;align-items:center;gap:14px}
+.btn-x{width:44px;height:44px;border-radius:50%;border:2.5px solid white;background:transparent;color:white;font-size:26px;font-weight:800;display:flex;align-items:center;justify-content:center;cursor:pointer;text-decoration:none;line-height:1}
+.top-left h1{color:white;font-size:32px;font-weight:800;letter-spacing:-0.5px}
+.btn-add{background:var(--rojo);border:1.5px solid white;color:white;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px;cursor:pointer;text-decoration:none}
+.btn-add span.plus{font-size:20px;font-weight:800;line-height:1}
+.container{padding:18px;max-width:1400px;margin:0 auto}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
+.card-stat{background:white;border-radius:14px;padding:16px 18px;display:flex;gap:14px;align-items:flex-start;box-shadow:0 1px 3px rgba(0,0,0,0.06);border:1px solid #eee}
+.icon-circle{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.icon-circle.red{background:var(--rojo);color:white}
+.icon-circle.pink{background:#FFE1E3;color:var(--rojo)}
+.icon-circle.light-red{background:#FFE6E8;color:var(--rojo)}
+.icon-circle.gray{background:#E9ECEF;color:#6c757d}
+.card-stat b.label{font-size:13px;color:#111;display:block;font-weight:700}
+.card-stat strong.num{font-size:26px;font-weight:800;color:#111;line-height:1.1;margin-top:4px;display:block}
+.card-stat span.sub{font-size:12px;color:#6c757d;margin-top:4px;display:block}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-left:auto}
+.dot.green{background:#22c55e}
+.dot.gray{background:#9ca3af}
 
+.filters{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.search-box{flex:1;min-width:220px;background:white;border:1px solid #e5e7eb;border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px}
+.search-box input{border:none;outline:none;width:100%;font-size:14px}
+.select-box{background:white;border:1px solid #e5e7eb;border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:8px;min-width:180px;cursor:pointer;position:relative}
+.select-box select{border:none;outline:none;background:transparent;width:100%;font-size:13px;font-weight:600;cursor:pointer;appearance:none}
+.table-wrap{background:white;border-radius:14px;border:1px solid #eee;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.04)}
+.table-header{display:grid;grid-template-columns:2.2fr 1fr 0.7fr 0.8fr 1fr 1.3fr;background:#F1F3F5;padding:12px 18px;font-size:12px;font-weight:700;color:#495057;align-items:center}
+.table-row{display:grid;grid-template-columns:2.2fr 1fr 0.7fr 0.8fr 1fr 1.3fr;padding:14px 18px;border-top:1px solid #f1f1f1;align-items:center;transition:0.15s}
+.table-row:hover{background:#fff8f8}
+.rest-info{display:flex;gap:12px;align-items:center}
+.rest-icon{width:44px;height:44px;border-radius:50%;background:var(--rojo);display:flex;align-items:center;justify-content:center;color:white;font-size:22px;flex-shrink:0}
+.rest-info b{font-size:13px;font-weight:700;color:#111;display:block;line-height:1.2}
+.rest-info span{font-size:11px;color:#6c757d;display:block;margin-top:2px}
+.tipo{display:flex;gap:8px;align-items:center;font-size:13px;color:#111;font-weight:500}
+.pedidos{display:flex;gap:6px;align-items:center;font-size:13px;font-weight:600}
+.estado-badge{font-size:11px;font-weight:700;padding:5px 10px;border-radius:999px;display:inline-flex;align-items:center;gap:6px;width:fit-content}
+.estado-badge.activo{background:#DCFCE7;color:#15803d}
+.estado-badge.pausa{background:#FEF3C7;color:#B45309}
+.estado-badge .dot2{width:8px;height:8px;border-radius:50%}
+.estado-badge.activo .dot2{background:#22c55e}
+.estado-badge.pausa .dot2{background:#f59e0b}
+.last{display:flex;flex-direction:column}
+.last b{font-size:12px;font-weight:600;color:#111}
+.last span{font-size:11px;color:#6c757d}
+.acciones{display:flex;gap:8px;align-items:center;justify-content:flex-end}
+.btn-resumen{border:1.5px solid var(--rojo);color:var(--rojo);background:white;border-radius:999px;padding:7px 12px;font-size:12px;font-weight:600;display:flex;gap:6px;align-items:center;cursor:pointer;text-decoration:none;white-space:nowrap}
+.btn-dots{border:none;background:transparent;font-size:18px;cursor:pointer;color:#6c757d;padding:4px}
+@media(max-width:1000px){.stats{grid-template-columns:repeat(2,1fr)}.table-header{display:none}.table-row{grid-template-columns:1fr;gap:10px}.acciones{justify-content:flex-start}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="top-left">
+    <a href="paneladmin.html" class="btn-x">✕</a>
+    <h1>Aliados</h1>
+  </div>
+  <a href="paneladmin-aliados-aggaliado.html" class="btn-add"><span class="plus">+</span> Agregar aliado</a>
+</div>
+
+<div class="container">
+  <div class="stats">
+    <div class="card-stat">
+      <div class="icon-circle red">🍴</div>
+      <div style="flex:1">
+        <b class="label">Total de aliados</b>
+        <strong class="num" id="totalAliados">0</strong>
+        <span class="sub">Restaurantes registrados</span>
+      </div>
+    </div>
+    <div class="card-stat">
+      <div class="icon-circle pink">🛍️</div>
+      <div style="flex:1">
+        <b class="label">Pedidos totales</b>
+        <strong class="num" id="pedidosTotales">0</strong>
+        <span class="sub">Todos los restaurantes</span>
+      </div>
+    </div>
+    <div class="card-stat">
+      <div class="icon-circle light-red">🏪</div>
+      <div style="flex:1;position:relative">
+        <b class="label" style="display:flex;align-items:center;justify-content:space-between">En servicio <span class="dot green"></span></b>
+        <strong class="num" id="enServicio">0</strong>
+        <span class="sub">Activos actualmente</span>
+      </div>
+    </div>
+    <div class="card-stat">
+      <div class="icon-circle gray">🏪</div>
+      <div style="flex:1">
+        <b class="label" style="display:flex;align-items:center;justify-content:space-between">En pausa <span class="dot gray"></span></b>
+        <strong class="num" id="enPausa">0</strong>
+        <span class="sub">Temporalmente</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="filters">
+    <div class="search-box">
+      <span>🔍</span>
+      <input id="buscarInput" type="text" placeholder="Buscar restaurante...">
+    </div>
+    <div class="select-box">
+      🍴
+      <select id="filtroTipo">
+        <option value="todos">Todos los tipos</option>
+        <option value="alitas">Alitas</option>
+        <option value="burgers">Hamburguesas</option>
+        <option value="pizzas">Pizzas</option>
+        <option value="tacos">Tacos</option>
+        <option value="sushi">Sushi</option>
+        <option value="pollo">Pollo</option>
+      </select>
+    </div>
+    <div class="select-box">
+      ⏸️
+      <select id="filtroEstado">
+        <option value="todos">Todos los estados</option>
+        <option value="activo">Activo</option>
+        <option value="pausa">En pausa</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <div class="table-header">
+      <div>🏪 Restaurante</div>
+      <div>🍴 Tipo de comida</div>
+      <div>🛒 Pedidos</div>
+      <div>⏸️ Estado</div>
+      <div>🕒 Última actividad</div>
+      <div style="text-align:right">⚙️ Acciones</div>
+    </div>
+    <div id="listaRestaurantes">
+      <div style="padding:30px;text-align:center;color:#6c757d">Cargando aliados...</div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+
+const configAliados = { apiKey: "AIzaSyD286qlJQT8D3rqbYTSfCyuTAEg9jjRchQ", authDomain: "doloya-aliados.firebaseapp.com", databaseURL: "https://doloya-aliados-default-rtdb.firebaseio.com", projectId: "doloya-aliados", storageBucket: "doloya-aliados.firebasestorage.app", messagingSenderId: "122314467740", appId: "1:122314467740:web:9947a0a9560557e3a00059" };
+const configConfirmacion = { apiKey: "AIzaSyDLKngPyi_SWAXEQwdrHO5h8L8OufulAR4", authDomain: "doloya-confirmacion.firebaseapp.com", databaseURL: "https://doloya-confirmacion-default-rtdb.firebaseio.com", projectId: "doloya-confirmacion", storageBucket: "doloya-confirmacion.firebasestorage.app", messagingSenderId: "832228761099", appId: "1:832228761099:web:ddd4b6a0ee0d7f0494b10e" };
+
+const appAliados = initializeApp(configAliados, "aliados");
+const appConfirm = initializeApp(configConfirmacion, "confirmacion");
+const dbAliados = getDatabase(appAliados);
+const dbFirestore = getFirestore(appConfirm);
+
+let aliadosData = [];
+let pedidosPorRestaurante = {};
+
+function formatearFecha(ts){
+  if(!ts) return {hora:'Sin actividad', sub:''};
+  const d = ts.seconds ? new Date(ts.seconds*1000) : new Date(ts);
+  const hoy = new Date();
+  const esHoy = d.toDateString()===hoy.toDateString();
+  const ayer = new Date(); ayer.setDate(hoy.getDate()-1);
+  const esAyer = d.toDateString()===ayer.toDateString();
+  const h = d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');
+  if(esHoy) return {hora:`Hoy, ${h}`, sub:'Último pedido'};
+  if(esAyer) return {hora:`Ayer, ${h}`, sub:'Último pedido'};
+  return {hora:`${d.getDate()}/${d.getMonth()+1} ${h}`, sub:'Último pedido'};
+}
+
+function iconoPorCategoria(cat){
+  const c = (cat||'').toLowerCase();
+  if(c.includes('burger')||c.includes('hamburg')) return '🍔';
+  if(c.includes('pizza')) return '🍕';
+  if(c.includes('alita')) return '🍗';
+  if(c.includes('sushi')) return '🍣';
+  if(c.includes('pollo')) return '🍗';
+  if(c.includes('taco')) return '🌮';
+  if(c.includes('salchipapa')) return '🍟';
+  return '🏪';
+}
+
+async function cargarDatos(){
+  const snapAliados = await get(ref(dbAliados, 'doloya_aliados'));
+  const snapPedidos = await getDocs(collection(dbFirestore, "pedidos"));
+  
+  pedidosPorRestaurante = {};
+  let totalPedidos = 0;
+  snapPedidos.forEach(doc=>{
+    const d = doc.data();
+    const rId = (d.restaurante?.id || d.restauranteId || '').toLowerCase();
+    const rCat = (d.restaurante?.cat || '').toLowerCase();
+    const key = rId || rCat;
+    if(!pedidosPorRestaurante[key]) pedidosPorRestaurante[key] = {count:0, last:null};
+    pedidosPorRestaurante[key].count++;
+    const ts = d.creadoEn || d.fecha || d.timestamp;
+    if(ts){
+      const t = ts.seconds ? ts.seconds : new Date(ts).getTime()/1000;
+      if(!pedidosPorRestaurante[key].last || t > (pedidosPorRestaurante[key].last.seconds || pedidosPorRestaurante[key].last/1000)){
+        pedidosPorRestaurante[key].last = ts;
+      }
+    }
+    totalPedidos++;
+  });
+
+  aliadosData = [];
+  if(snapAliados.exists()){
+    const data = snapAliados.val();
+    for(const cat in data){
+      for(const id in data[cat]){
+        const r = data[cat][id];
+        if(!r) continue;
+        const keyLower = id.toLowerCase();
+        const catLower = cat.toLowerCase();
+        const pedidosInfo = pedidosPorRestaurante[keyLower] || pedidosPorRestaurante[catLower] || {count:0, last:null};
+        aliadosData.push({
+          id: id,
+          categoria: cat,
+          nombre: r.nombre || r.nombreReal || id,
+          direccion: r.direccion || r.zona || 'Dolores Hidalgo',
+          tipo: r.tipo || r.categoria || cat,
+          abierto: r.abierto !== false && r.estado !== 'cerrado',
+          pedidos: pedidosInfo.count,
+          ultima: pedidosInfo.last,
+          dataRaw: r
+        });
+      }
+    }
+  }
+
+  document.getElementById('totalAliados').textContent = aliadosData.length;
+  document.getElementById('pedidosTotales').textContent = totalPedidos;
+  document.getElementById('enServicio').textContent = aliadosData.filter(a=>a.abierto).length;
+  document.getElementById('enPausa').textContent = aliadosData.filter(a=>!a.abierto).length;
+
+  renderTabla();
+}
+
+function renderTabla(){
+  const cont = document.getElementById('listaRestaurantes');
+  const busqueda = document.getElementById('buscarInput').value.toLowerCase();
+  const tipoF = document.getElementById('filtroTipo').value;
+  const estadoF = document.getElementById('filtroEstado').value;
+
+  let filtrados = aliadosData.filter(a=>{
+    const matchBusqueda = !busqueda || a.nombre.toLowerCase().includes(busqueda) || a.id.toLowerCase().includes(busqueda);
+    const matchTipo = tipoF==='todos' || a.categoria.toLowerCase().includes(tipoF) || a.tipo.toLowerCase().includes(tipoF);
+    const matchEstado = estadoF==='todos' || (estadoF==='activo' && a.abierto) || (estadoF==='pausa' && !a.abierto);
+    return matchBusqueda && matchTipo && matchEstado;
+  });
+
+  if(filtrados.length===0){
+    cont.innerHTML = `<div style="padding:30px;text-align:center;color:#6c757d">No se encontraron aliados</div>`;
+    return;
+  }
+
+  cont.innerHTML = filtrados.map(a=>{
+    const fecha = formatearFecha(a.ultima);
+    const estadoClass = a.abierto ? 'activo' : 'pausa';
+    const estadoTexto = a.abierto ? 'Activo' : 'En pausa';
+    const icono = iconoPorCategoria(a.categoria);
+    return `
+    <div class="table-row">
+      <div class="rest-info">
+        <div class="rest-icon" style="background:${a.abierto ? '#C50D1F' : '#111'}">${icono}</div>
+        <div>
+          <b>${a.nombre}</b>
+          <span>${a.direccion} • Dolores Hidalgo</span>
+        </div>
+      </div>
+      <div class="tipo">${iconoPorCategoria(a.tipo)} ${a.tipo.charAt(0).toUpperCase()+a.tipo.slice(1)}</div>
+      <div class="pedidos">🛒 ${a.pedidos}</div>
+      <div><span class="estado-badge ${estadoClass}"><span class="dot2"></span> ${estadoTexto}</span></div>
+      <div class="last"><b>🕒 ${fecha.hora}</b><span>${fecha.sub}</span></div>
+      <div class="acciones">
+        <a class="btn-resumen" href="paneladmin-pagos.html?id=${a.id}&cat=${a.categoria}">📄 Resumen de pagos</a>
+        <button class="btn-dots">⋮</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+document.getElementById('buscarInput').addEventListener('input', renderTabla);
+document.getElementById('filtroTipo').addEventListener('change', renderTabla);
+document.getElementById('filtroEstado').addEventListener('change', renderTabla);
+
+cargarDatos();
+</script>
+</body>
+</html>
