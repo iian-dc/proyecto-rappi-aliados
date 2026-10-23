@@ -133,7 +133,7 @@ body{background:#fff;min-height:100vh}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-import { getDatabase, ref, get, set, push, onValue } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js";
+import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyD286qlJQT8D3rqbYTSfCyuTAEg9jjRchQ",
@@ -148,11 +148,16 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
 let imagenBase64 = '';
-const RUTA_BASE = 'doloya_aliados/alitas/alitas_factory';
-const RUTA_CATEGORIAS = `${RUTA_BASE}/categorias`;
-const RUTA_MENU = `${RUTA_BASE}/menu`;
 
-let todasCategorias = new Set();
+// --- CORRECCION QUE ME PEDISTE: AHORA ES DINAMICO SEGUN EL RESTAURANTE LOGUEADO ---
+function getIdRestaurante(){
+  try{
+    const sesion = JSON.parse(localStorage.getItem('doloya_aliado_sesion'));
+    return sesion.id || sesion.negocio || 'santillos';
+  }catch{
+    return 'santillos';
+  }
+}
 
 function toast(t,m){
   document.getElementById('toastTitle').textContent=t;
@@ -161,71 +166,49 @@ function toast(t,m){
   setTimeout(()=>document.getElementById('toastOverlay').classList.remove('show'),2500);
 }
 
-function renderCategorias(){
-  const sel=document.getElementById('selectCat');
-  const lista=[...todasCategorias].filter(Boolean);
-  // Orden: alitas primero, luego el resto
-  lista.sort((a,b)=>{
-    if(a.toLowerCase()==='alitas') return -1;
-    if(b.toLowerCase()==='alitas') return 1;
-    return a.localeCompare(b);
-  });
-  if(lista.length===0){
-    sel.innerHTML='<option value="">No hay categorías registradas</option>';
-  }else{
-    sel.innerHTML='<option value="">Selecciona una categoría</option>'+lista.map(c=>`<option value="${c.toLowerCase()}">${c}</option>`).join('');
-  }
-}
+// --- CORRECCION 1: CARGAR TODAS LAS CATEGORIAS QUE YA AGREGASTE ---
+async function cargarCategorias(){
+  const idRest = getIdRestaurante();
+  const sel = document.getElementById('selectCat');
+  sel.innerHTML = '<option value="">Cargando categorías...</option>';
 
-function cargarTodo(){
-  // 1. Categoria principal del restaurante: categoria:"alitas"
-  get(ref(db, RUTA_BASE)).then(snap=>{
-    if(snap.exists()){
-      const data=snap.val();
-      if(data.categoria){
-        todasCategorias.add(data.categoria.charAt(0).toUpperCase()+data.categoria.slice(1).toLowerCase());
+  try{
+    const snap = await get(ref(db, `doloya_aliados/${idRest}/categorias`));
+    if(!snap.exists()){
+      sel.innerHTML = '<option value="">No hay categorías registradas</option>';
+      return;
+    }
+    const data = snap.val();
+    let opciones = [];
+
+    for(const key in data){
+      if(key.startsWith('_')) continue; // _info vacio
+      if(key === 'categorias') continue; // evita la duplicada que viste en la foto
+      if(typeof data[key] !== 'object') continue;
+      
+      // Si esta clave es una categoria (boneles, salchipapas)
+      const catObj = data[key];
+      // Si ya tiene productos adentro, igual la categoria es valida
+      const nombreBonito = catObj.nombre || key;
+      const nombreMostrar = nombreBonito.charAt(0).toUpperCase() + nombreBonito.slice(1).toLowerCase();
+      
+      // Evita duplicados si la categoria tiene _info
+      if(nombreMostrar.toLowerCase() !== 'vacio - se llenara despues'){
+        opciones.push({key: key, nombre: nombreMostrar});
       }
-      renderCategorias();
     }
-  });
 
-  // 2. Categorias registradas en /categorias (boneles, salchipapas)
-  onValue(ref(db, RUTA_CATEGORIAS), (snap)=>{
-    if(snap.exists()){
-      const val=snap.val();
-      Object.values(val).forEach(obj=>{
-        if(!obj) return;
-        if(obj.activa===false) return;
-        let nombre = obj.nombre || obj.key || obj.nombreLower;
-        if(nombre){
-          // Capitalizar bonito: Boneles, Salchipapas, Alitas
-          let bonito = nombre.charAt(0).toUpperCase()+nombre.slice(1).toLowerCase();
-          if(nombre.toLowerCase()==='boneles') bonito='Boneles';
-          if(nombre.toLowerCase()==='salchipapas') bonito='Salchipapas';
-          todasCategorias.add(bonito);
-        }
-      });
-      renderCategorias();
+    if(opciones.length === 0){
+      sel.innerHTML = '<option value="">No hay categorías registradas - Crea una primero</option>';
+    }else{
+      // Ordenar boneles primero si quieres, luego alfabético
+      opciones.sort((a,b)=> a.nombre.localeCompare(b.nombre));
+      sel.innerHTML = '<option value="">Selecciona una categoría</option>' + opciones.map(o=>`<option value="${o.key.toLowerCase()}">${o.nombre}</option>`).join('');
     }
-  });
-
-  // 3. También revisar categorías que ya existen en el menú (por si hay productos con categoria alitas)
-  onValue(ref(db, RUTA_MENU), (snap)=>{
-    if(snap.exists()){
-      const val=snap.val();
-      Object.values(val).forEach(p=>{
-        if(p && p.categoria){
-          let bonito = p.categoria.charAt(0).toUpperCase()+p.categoria.slice(1).toLowerCase();
-          todasCategorias.add(bonito);
-        }
-      });
-      renderCategorias();
-    }
-  });
-
-  // Aseguramos alitas siempre
-  todasCategorias.add('Alitas');
-  renderCategorias();
+  }catch(e){
+    console.log(e);
+    sel.innerHTML = '<option value="">Error cargando categorías</option>';
+  }
 }
 
 document.getElementById('txtDesc').addEventListener('input', e=>{
@@ -253,23 +236,25 @@ document.getElementById('inputImg').addEventListener('change', e=>{
       document.getElementById('imgPreview').style.display='block';
       document.getElementById('uploadBox').classList.add('has-img');
       document.getElementById('uploadContent').style.display='none';
-      toast('Imagen','Imagen cargada en URL');
+      toast('Imagen','Imagen cargada');
     };
     img.src=ev.target.result;
   };
   reader.readAsDataURL(file);
 });
 
+// --- CORRECCION 2: GUARDAR DENTRO DE LA CATEGORIA SELECCIONADA ---
 window.guardarProducto=async function(){
+  const idRest = getIdRestaurante();
   const nombre=document.getElementById('txtNombre').value.trim();
-  const categoria=document.getElementById('selectCat').value.trim().toLowerCase();
-  const categoriaBonita=document.getElementById('selectCat').options[document.getElementById('selectCat').selectedIndex]?.text || categoria;
+  const categoriaKey=document.getElementById('selectCat').value.trim().toLowerCase();
+  const categoriaTexto=document.getElementById('selectCat').options[document.getElementById('selectCat').selectedIndex]?.text || categoriaKey;
   const descripcion=document.getElementById('txtDesc').value.trim();
   const precioVal=document.getElementById('txtPrecio').value.trim();
   const precio=parseFloat(precioVal);
 
   if(!imagenBase64){ toast('Falta imagen','Sube la imagen del producto'); return; }
-  if(!categoria){ toast('Falta categoría','Selecciona una categoría'); return; }
+  if(!categoriaKey){ toast('Falta categoría','Selecciona una categoría'); return; }
   if(!nombre){ toast('Falta nombre','Escribe el nombre del producto'); return; }
   if(!descripcion){ toast('Falta descripción','Describe el producto'); return; }
   if(!precioVal || isNaN(precio) || precio<=0){ toast('Falta precio','Ingresa el precio'); return; }
@@ -278,35 +263,36 @@ window.guardarProducto=async function(){
   btn.disabled=true;
   btn.textContent='Guardando...';
 
-  const nuevoRef = push(ref(db,RUTA_MENU));
+  try{
+    const idProducto = nombre.toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'') + '_' + Date.now();
 
-  await set(nuevoRef,{
-    id:nuevoRef.key,
-    nombre:nombre,
-    Nombre:nombre,
-    descripcion:descripcion,
-    Descripcion:descripcion,
-    precio:precio,
-    Precio:precio,
-    precioDescuento:0,
-    porcentaje:0,
-    promo:'',
-    promoActiva:false,
-    tipoPromo:'descuento',
-    categoria:categoria,
-    Categoria:categoriaBonita,
-    imagen:imagenBase64,
-    img:imagenBase64,
-    Imagen:imagenBase64,
-    activo:true,
-    fecha:Date.now()
-  });
+    // ESTRUCTURA QUE ME PEDISTE: categorias / nombre_categoria / nombre_producto
+    // doloya_aliados / santillos / categorias / boneles / boneles_bbq_xxx
+    await set(ref(db, `doloya_aliados/${idRest}/categorias/${categoriaKey}/${idProducto}`),{
+      id: idProducto,
+      nombre: nombre,
+      descripcion: descripcion,
+      categoria: categoriaKey,
+      categoriaNombre: categoriaTexto,
+      precio: precio,
+      imagen: imagenBase64,
+      disponibilidad: true,
+      activo: true,
+      descuento: 0,
+      fecha: Date.now()
+    });
 
-  toast('Producto guardado', nombre+' registrado');
-  setTimeout(()=>{ window.location.href='panelaliado-menu.html'; },1200);
+    toast('Producto guardado', `${nombre} en ${categoriaTexto}`);
+    setTimeout(()=>{ window.location.href='panelaliado-menu.html'; },1200);
+  }catch(e){
+    console.error(e);
+    toast('Error', e.message);
+    btn.disabled=false;
+    btn.textContent='Guardar producto';
+  }
 }
 
-cargarTodo();
+cargarCategorias();
 </script>
 </body>
 </html>
