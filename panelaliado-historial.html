@@ -352,7 +352,27 @@ window.abrirDetalle = (id)=>{
 
   const prod=p.producto||0;
   const comision = prod*0.10;
-  const pagoRest = prod - comision;
+  let htmlDesglose = '';
+
+  if(p.estadoVisual==='cancelado'){
+    const descCancel = prod*0.40;
+    const pagoRest = prod - comision - descCancel; // 50%
+    htmlDesglose = `
+      <div class="pres-row"><span>Producto</span><b>$${prod.toFixed(2)}</b></div>
+      <div class="pres-row total-final"><span>Total pagado cliente</span><b>$0.00</b></div>
+      <div class="pres-row"><span>Descuento 10% plataforma</span><b>-$${comision.toFixed(2)}</b></div>
+      <div class="pres-row"><span>Descuento por cancelación 40%</span><b>-$${descCancel.toFixed(2)}</b></div>
+      <div class="pres-row green"><span>Total a pagar al restaurante (50%)</span><b>$${pagoRest.toFixed(2)}</b></div>
+    `;
+  } else {
+    const pagoRest = prod - comision;
+    htmlDesglose = `
+      <div class="pres-row"><span>Producto</span><b>$${prod.toFixed(2)}</b></div>
+      <div class="pres-row total-final"><span>Total pagado cliente</span><b>$${prod.toFixed(2)}</b></div>
+      <div class="pres-row"><span>Descuento 10% plataforma</span><b>-$${comision.toFixed(2)}</b></div>
+      <div class="pres-row green"><span>Total a pagar al restaurante</span><b>$${pagoRest.toFixed(2)}</b></div>
+    `;
+  }
 
   document.getElementById('modalTitle').innerHTML=`#${p.codigo} - ${p.estadoLabel} ${badgePago}`;
   document.getElementById('modalBody').innerHTML=`
@@ -366,10 +386,7 @@ window.abrirDetalle = (id)=>{
     </div>
     <div class="box"><h4>Productos</h4>${(raw.productos||raw.items||[]).map(pr=>`<div class="row-s"><b>${pr.nombre||pr.name||'Prod'}</b><span>x${pr.cantidad||1} $${pr.precio||pr.price||0}</span></div>`).join('')||`<div class="row-s"><b>Producto</b><span>$${prod.toFixed(2)}</span></div>`}</div>
     <div class="box presupuesto"><h4>Desglose REAL - Restaurante</h4>
-      <div class="pres-row"><span>Producto</span><b>$${prod.toFixed(2)}</b></div>
-      <div class="pres-row total-final"><span>Total pagado cliente</span><b>$${prod.toFixed(2)}</b></div>
-      <div class="pres-row"><span>Descuento 10% plataforma</span><b>-$${comision.toFixed(2)}</b></div>
-      <div class="pres-row green"><span>Total a pagar al restaurante</span><b>$${pagoRest.toFixed(2)}</b></div>
+      ${htmlDesglose}
     </div>
   `;
   document.getElementById('modal').classList.add('active');
