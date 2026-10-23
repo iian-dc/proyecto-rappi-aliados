@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Configuración Menú - DoloYa</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
+body{background:#fff;min-height:100vh}
+:root{--rojo:#C50D1F;--rojo2:#D90A17;--verde:#0ABF7D;--gris:#E5E7EB}
+.top-header{background:var(--rojo2);height:78px;display:flex;align-items:center;padding:0 20px;gap:16px;position:sticky;top:0;z-index:10}
+.btn-x{width:52px;height:52px;background:white;border:none;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.btn-x svg{width:24px;height:24px;stroke:var(--rojo2);stroke-width:3.5;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.line{width:1.5px;height:38px;background:rgba(255,255,255,0.4)}
+.top-text h1{color:white;font-size:28px;font-weight:800;line-height:1}
+.top-text p{color:rgba(255,255,255,0.92);font-size:13.5px;margin-top:4px}
+.main{padding:22px}
+.card{border:1.5px solid #E9ECF2;border-radius:10px;background:white;padding:18px}
+.card-head{display:flex;gap:12px;align-items:flex-start;margin-bottom:16px}
+.card-head svg{width:32px;height:32px;stroke:#111827;stroke-width:1.8;fill:none;flex-shrink:0}
+.card-head h2{font-size:17px;font-weight:700;color:#111827}
+.card-head p{font-size:12.5px;color:#6B7A99;margin-top:2px}
+.table-wrap{border:1.5px solid #EEF1F6;border-radius:10px;overflow:hidden}
+.t-head{display:grid;grid-template-columns:80px 1fr 180px 40px;background:#F6F8FC;height:44px;align-items:center;padding:0 14px;font-size:12.5px;font-weight:600;color:#111827}
+.row{display:grid;grid-template-columns:80px 1fr 180px 40px;align-items:center;padding:0 14px;height:56px;border-top:1px solid #EEF1F6;background:white;cursor:grab;transition:.15s}
+.row.dragging{opacity:0.5;background:#FFF5F5}
+.drag{width:22px;height:22px;display:flex;flex-wrap:wrap;gap:2px;align-content:center;justify-content:center;cursor:grab}
+.drag span{width:3px;height:3px;background:#111827;border-radius:50%;display:block}
+.badge{width:52px;height:28px;background:#F1F7FE;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;color:#111827;font-weight:500}
+.name{font-size:13.5px;color:#111827;font-weight:500}
+.estado{display:flex;align-items:center;gap:10px}
+.switch{width:44px;height:24px;background:var(--gris);border-radius:999px;position:relative;cursor:pointer;transition:.2s;flex-shrink:0}
+.switch.on{background:var(--verde)}
+.switch:after{content:'';position:absolute;top:2px;left:2px;width:20px;height:20px;background:white;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:.2s}
+.switch.on:after{left:22px}
+.txt-est{font-size:12.5px;color:#6B7280}
+.txt-est.on{color:#111827}
+.arrow{width:18px;height:18px;stroke:#8A94A8;stroke-width:2;fill:none;cursor:pointer}
+.footer{margin-top:24px;border:1.5px solid #EEF1F6;border-radius:10px;background:#FBFCFF;height:88px;display:flex;align-items:center;justify-content:flex-end;gap:14px;padding:0 18px}
+@media(max-width:600px){.t-head,.row{grid-template-columns:60px 1fr 120px 24px}.footer{flex-direction:column;height:auto;padding:14px}}
+.btn-cancel{height:44px;min-width:200px;padding:0 24px;border:1.5px solid #E5E9F0;background:white;border-radius:8px;font-size:13.5px;font-weight:600;cursor:pointer}
+.btn-save{height:44px;min-width:220px;padding:0 24px;border:none;background:var(--rojo2);border-radius:8px;color:white;font-size:13.5px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer}
+.btn-save svg{width:18px;height:18px;stroke:white;fill:none;stroke-width:2}
+#toast{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;z-index:999}
+#toast.show{display:flex}
+.toast-box{background:white;border-radius:12px;padding:18px 22px;min-width:260px;text-align:center;border-top:4px solid var(--rojo2)}
+</style>
+</head>
+<body>
+<div id="toast"><div class="toast-box"><b id="tTitle">Guardado</b><p id="tMsg" style="font-size:12px;color:#6b7280;margin-top:4px">Cambios guardados</p></div></div>
+
+<div class="top-header">
+  <button class="btn-x" onclick="location.href='panelaliado-menu.html'"><svg viewBox="0 0 24 24"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg></button>
+  <div class="line"></div>
+  <div class="top-text"><h1>Configuración</h1><p>Ajusta y personaliza la configuración de tu menú.</p></div>
+</div>
+
+<div class="main">
+  <div class="card">
+    <div class="card-head">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+      <div><h2>Categorías</h2><p>Activa o desactiva las categorías completas y ordénalas como prefieras arrastrando.</p></div>
+    </div>
+    <div class="table-wrap">
+      <div class="t-head"><span>Orden</span><span>Categoría</span><span>Estado</span><span></span></div>
+      <div id="lista"></div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <button class="btn-cancel" onclick="location.href='panelaliado-menu.html'">Cancelar</button>
+    <button class="btn-save" id="btnSave" onclick="guardar()"><svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Guardar cambios</button>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js";
+const firebaseConfig={apiKey:"AIzaSyD286qlJQT8D3rqbYTSfCyuTAEg9jjRchQ",authDomain:"doloya-aliados.firebaseapp.com",databaseURL:"https://doloya-aliados-default-rtdb.firebaseio.com",projectId:"doloya-aliados",storageBucket:"doloya-aliados.firebasestorage.app",messagingSenderId:"122314467740",appId:"1:122314467740:web:9947a0a9560557e3a00059"};
+const app=initializeApp(firebaseConfig);
+const db=getDatabase(app);
+const RUTA_BASE='doloya_aliados/alitas/alitas_factory';
+const RUTA_CAT=`${RUTA_BASE}/categorias`;
+let cats=[];
+
+function toast(t,m){document.getElementById('tTitle').textContent=t;document.getElementById('tMsg').textContent=m;document.getElementById('toast').classList.add('show');setTimeout(()=>document.getElementById('toast').classList.remove('show'),2000);}
+
+function render(){
+  const cont=document.getElementById('lista');
+  cont.innerHTML='';
+  cats.sort((a,b)=>(a.orden??99)-(b.orden??99));
+  cats.forEach((c,i)=>{
+    const row=document.createElement('div');
+    row.className='row';
+    row.draggable=true;
+    row.dataset.key=c.key;
+    row.innerHTML=`
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="drag"><span></span><span></span><span></span><span></span></div>
+        <div class="badge">${i+1}</div>
+      </div>
+      <div class="name">${c.nombre}</div>
+      <div class="estado">
+        <div class="switch ${c.activa!==false?'on':''}" onclick="toggle('${c.key}')"></div>
+        <span class="txt-est ${c.activa!==false?'on':''}">${c.activa!==false?'Activa':'Inactiva'}</span>
+      </div>
+      <svg class="arrow" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+    `;
+    cont.appendChild(row);
+  });
+  addDrag();
+}
+
+function addDrag(){
+  const lista=document.getElementById('lista');
+  let dragEl=null;
+  lista.querySelectorAll('.row').forEach(r=>{
+    r.addEventListener('dragstart',()=>{dragEl=r;setTimeout(()=>r.classList.add('dragging'),0)});
+    r.addEventListener('dragend',()=>{r.classList.remove('dragging');dragEl=null;reordenar()});
+    r.addEventListener('dragover',e=>e.preventDefault());
+    r.addEventListener('drop',e=>{
+      e.preventDefault();
+      if(dragEl && dragEl!==r){
+        const rows=[...lista.children];
+        const from=rows.indexOf(dragEl);
+        const to=rows.indexOf(r);
+        if(from<to) r.after(dragEl); else r.before(dragEl);
+        reordenar();
+      }
+    });
+  });
+}
+
+function reordenar(){
+  const keys=[...document.querySelectorAll('.row')].map(r=>r.dataset.key);
+  cats.forEach(c=>{c.orden=keys.indexOf(c.key)+1});
+  render();
+}
+
+window.toggle=function(key){
+  const c=cats.find(x=>x.key===key);
+  if(c){c.activa=!c.activa;render();}
+}
+
+async function cargar(){
+  const snap=await get(ref(db,RUTA_CAT));
+  cats=[];
+  if(snap.exists()){
+    const val=snap.val();
+    Object.keys(val).forEach(k=>{
+      const o=val[k];
+      cats.push({
+        key:o.key||k,
+        nombre:o.nombre||k.charAt(0).toUpperCase()+k.slice(1),
+        nombreLower:o.nombreLower||k,
+        activa:o.activa!==false,
+        orden:o.orden||o.fecha||99,
+        raw:o
+      });
+    });
+  }
+  // Si falta alitas (categoria principal) la agregamos visualmente
+  const baseSnap=await get(ref(db,RUTA_BASE));
+  if(baseSnap.exists()){
+    const d=baseSnap.val();
+    if(d.categoria){
+      const k=d.categoria.toLowerCase();
+      if(!cats.find(c=>c.key===k)){
+        cats.push({key:k,nombre:'Alitas',nombreLower:k,activa:true,orden:0});
+      }
+    }
+  }
+  // Si no hay orden, asignar
+  cats.forEach((c,i)=>{if(!c.orden||c.orden===99) c.orden=i+1});
+  render();
+}
+
+window.guardar=async function(){
+  const btn=document.getElementById('btnSave');
+  btn.disabled=true;btn.textContent='Guardando...';
+  let updates={};
+  cats.forEach(c=>{
+    // Si es la categoria principal alitas que no está en /categorias, la creamos
+    updates[`${RUTA_CAT}/${c.key}/key`]=c.key;
+    updates[`${RUTA_CAT}/${c.key}/nombre`]=c.nombre;
+    updates[`${RUTA_CAT}/${c.key}/nombreLower`]=c.nombreLower;
+    updates[`${RUTA_CAT}/${c.key}/activa`]=c.activa;
+    updates[`${RUTA_CAT}/${c.key}/orden`]=c.orden;
+  });
+  await update(ref(db),updates);
+  toast('Guardado','Orden y estado actualizados');
+  btn.disabled=false;btn.innerHTML=`<svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Guardar cambios`;
+  setTimeout(()=>location.href='panelaliado-menu.html',1000);
+}
+
+cargar();
+</script>
+</body>
+</html>
