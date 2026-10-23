@@ -127,7 +127,6 @@ let todosPedidos = [];
 let filtro = "todos";
 let filtroMes = "", filtroDia = "";
 
-// SESION ALIADO PARA FILTRAR POR RESTAURANTE
 const sesionAliado = JSON.parse(localStorage.getItem('doloya_aliado_sesion')||'null');
 const idAliado = (sesionAliado?.id || sesionAliado?.negocio || 'alitas_factory').toLowerCase();
 const nombreAliado = (sesionAliado?.nombre || sesionAliado?.restaurante || 'alitas factory').toLowerCase();
@@ -160,11 +159,9 @@ function esDeEsteRestaurante(p){
   const raw = p.raw || {};
   const rid = String(raw.restauranteId || raw.idRestaurante || raw.restaurante?.id || raw.negocioId || '').toLowerCase();
   const rNombre = String(raw.restauranteNombre || raw.restaurante?.nombre || raw.negocio || raw.tienda || '').toLowerCase();
-  
   if(rid && (rid===idAliado || rid.includes(idAliado) || idAliado.includes(rid))) return true;
   if(tiendaNorm.includes(normalize(idAliado)) || normalize(idAliado).includes(tiendaNorm)) return true;
   if(nombreAliado && (tiendaNorm.includes(normalize(nombreAliado)) || normalize(rNombre).includes(normalize(nombreAliado)))) return true;
-  // Fallback para alitas_factory
   if(idAliado==='alitas_factory' && (tiendaNorm.includes('alitas') || tiendaNorm.includes('factory'))) return true;
   if(tiendaNorm.includes('alitas factory') || tiendaNorm.includes('alitas_factory')) return true;
   return false;
@@ -177,7 +174,6 @@ function parseDoc(docSnap){
   const estadoRaw = String(data.estado || data.estadoOriginal || '').toLowerCase();
   let estadoVisual = estadoRaw.includes('cancel') ? 'cancelado' : 'entregado';
   let label = estadoVisual==='cancelado' ? 'Cancelado' : 'Entregado';
-
   let prod = 0, envio = 0, servicio = 0, total = 0;
   if(data.totales){
     prod = num(data.totales.subtotal || data.totales.producto || data.totales.productos || data.totales.valorProducto);
@@ -191,7 +187,6 @@ function parseDoc(docSnap){
   if(!total) total = num(data.total || data.valorTotal);
   if(!prod && Array.isArray(data.productos)){ prod = data.productos.reduce((a,p)=> a + num(p.precio||p.price||0)*num(p.cantidad||p.qty||1),0); }
   if(!total) total = prod+envio+servicio;
-
   return {
     id, codigo: String(data.codigo || data.idOriginal || data.numeroPedido || id).replace('#','').replace('ST-',''),
     cliente: data.nombre || data.cliente?.nombre || data.datosCliente?.nombre || 'Cliente',
@@ -221,7 +216,6 @@ function parseDoc(docSnap){
 }
 
 function getPedidosDeEsteRestaurante(){
-  // Si no detecta sesion, muestra todo para no dejar vacio en pruebas, pero con sesion filtra
   if(!sesionAliado) return todosPedidos;
   return todosPedidos.filter(esDeEsteRestaurante);
 }
@@ -241,9 +235,7 @@ function renderLista(){
   const q = normalize(qRaw).replace('#','');
   const qNum = qRaw.replace(/\D/g,'');
   const clienteQ = normalize(document.getElementById('fCliente').value);
-  
   let base = getPedidosDeEsteRestaurante();
-
   let filtrados = base.filter(p=>{
     if(filtro!=='todos' && p.estadoVisual!==filtro) return false;
     if(filtroMes && p._mes !== filtroMes) return false;
@@ -279,9 +271,7 @@ function renderLista(){
       <div class="sep"></div>
       <div class="col-precios">
         <div class="precio-row"><span>Producto</span><b class="val">$${p.producto.toFixed(2)}</b></div>
-        <div class="precio-row"><span>Envío</span><b class="val">$${p.envio.toFixed(2)}</b></div>
-        <div class="precio-row"><span>Servicio</span><b class="val">$${p.servicio.toFixed(2)}</b></div>
-        <div class="total"><b>Total</b><div class="val">$${p.total.toFixed(2)}</div></div>
+        <div class="total"><b>Total</b><div class="val">$${p.producto.toFixed(2)}</div></div>
       </div>
       <div style="padding-left:8px"><button class="btn-det" onclick="abrirDetalle('${p.id}')">Ver detalles</button></div>
     </div>
@@ -354,62 +344,33 @@ window.abrirDetalle = (id)=>{
   const tFinal = buscar(raw, ['finalizado','entregado_final']);
   const tCanc = buscar(raw, ['cancelado']);
 
-  const prod=p.producto||0, envio=p.envio||0, serv=p.servicio||0, total=p.total||0;
+  const prod=p.producto||0, total=p.total||0;
   const comision = prod*0.10;
   const pagoRest = prod - comision;
-  const pagoRepa = envio*0.80;
-  const subtotalPagos = pagoRest + pagoRepa;
-  const desc10 = comision;
-  const desc20 = envio - pagoRepa;
 
   document.getElementById('modalTitle').textContent=`#${p.codigo} - ${p.estadoLabel}`;
   document.getElementById('modalBody').innerHTML=`
-    <div class="box"><h4>Datos Cliente Final</h4>
-      <div class="row-s"><b>Nombre</b><span>${p.cliente}</span></div>
+    <div class="box"><h4>Datos de Entrega - ${p.estadoLabel}</h4>
+      <div class="row-s"><b>Estado</b><span style="color:${p.estadoVisual==='entregado'?'#22c55e':'#E30613'};font-weight:900">${p.estadoLabel}</span></div>
+      <div class="row-s"><b>Cliente</b><span>${p.cliente}</span></div>
       <div class="row-s"><b>Teléfono</b><span>${p.telefono}</span></div>
-      <div class="row-s"><b>Ciudad</b><span>${p.ciudad}</span></div>
-      <div class="row-s"><b>Dirección</b><span>${p.direccion}</span></div>
+      <div class="row-s"><b>Dirección entrega</b><span>${p.direccion}</span></div>
       <div class="row-s"><b>Colonia</b><span>${p.coloniaEntrega}</span></div>
-      <div class="row-s"><b>GPS Lat</b><span>${p.gps?.lat || buscar(raw,['lat']) || '-'}</span></div>
-      <div class="row-s"><b>GPS Lng</b><span>${p.gps?.lng || buscar(raw,['lng','longitud']) || '-'}</span></div>
-      <div class="row-s"><b>IP Cliente</b><span>${p.ip}</span></div>
-      <div class="row-s"><b>Código IP</b><span>${buscar(raw,['codigo_ip','ip_code']) || p.ip}</span></div>
-      <div class="row-s"><b>Estado IP</b><span style="color:${p.ipEstado==='Bloqueado'?'#E30613':'#22c55e'};font-weight:900">${p.ipEstado}</span></div>
-      <div class="row-s"><b>Tipo ingreso</b><span>${p.dispositivo}</span></div>
-    </div>
-    <div class="box"><h4>Datos Restaurante / Negocio</h4>
-      <div class="row-s"><b>Nombre</b><span>${p.tienda}</span></div>
-      <div class="row-s"><b>Dirección</b><span>${p.restDireccion}</span></div>
-      <div class="row-s"><b>Teléfono</b><span>${p.restTelefono}</span></div>
-      <div class="row-s"><b>Horario atención</b><span>${p.restHorario}</span></div>
-      <div class="row-s"><b>Colonia</b><span>${p.colTienda}</span></div>
-    </div>
-    <div class="box"><h4>Tiempos Restaurante</h4>
+      <div class="row-s"><b>Fecha</b><span>${p.fechaStr} • ${p.horaStr}</span></div>
       <div class="row-s"><b>Aceptado</b><span>${toHora(tAceptado)}</span></div>
       <div class="row-s"><b>Preparando</b><span>${toHora(tPreparando)}</span></div>
       <div class="row-s"><b>Listo</b><span>${toHora(tListo)}</span></div>
-    </div>
-    <div class="box"><h4>Tiempos Repartidor</h4>
-      <div class="row-s"><b>Ir a recoger</b><span>${toHora(tRecoger)}</span></div>
       <div class="row-s"><b>Recogido</b><span>${toHora(tRecogido)}</span></div>
       <div class="row-s"><b>En camino</b><span>${toHora(tCamino)}</span></div>
-      <div class="row-s"><b>Finalizado</b><span>${toHora(tFinal)}</span></div>
-      <div class="row-s"><b>Cancelado</b><span>${p.motivo} - ${toHora(tCanc)}</span></div>
+      <div class="row-s"><b>${p.estadoVisual==='cancelado'?'Cancelado':'Finalizado'}</b><span>${p.estadoVisual==='cancelado' ? `${p.motivo} - ${toHora(tCanc)}` : toHora(tFinal)}</span></div>
+      <div class="row-s"><b>Repartidor</b><span>${p.repartidor}</span></div>
     </div>
-    <div class="box"><h4>Interacciones</h4><div class="row-s"><b>Llamar cliente</b><span>${buscar(raw,['llamar_cliente','click_llamar'])||'-'}</span></div><div class="row-s"><b>Click Mapa</b><span>${buscar(raw,['click_mapa','ver_mapa'])||'-'}</span></div><div class="row-s"><b>Repartidor</b><span>${p.repartidor}</span></div></div>
     <div class="box"><h4>Productos</h4>${(raw.productos||raw.items||[]).map(pr=>`<div class="row-s"><b>${pr.nombre||pr.name||'Prod'}</b><span>x${pr.cantidad||1} $${pr.precio||pr.price||0}</span></div>`).join('')||`<div class="row-s"><b>Producto</b><span>$${prod.toFixed(2)}</span></div>`}</div>
-    <div class="box presupuesto"><h4>Desglose REAL</h4>
+    <div class="box presupuesto"><h4>Desglose REAL - Restaurante</h4>
       <div class="pres-row"><span>Producto</span><b>$${prod.toFixed(2)}</b></div>
-      <div class="pres-row"><span>Envío</span><b>$${envio.toFixed(2)}</b></div>
-      <div class="pres-row"><span>Tarifa Servicio</span><b>$${serv.toFixed(2)}</b></div>
-      <div class="pres-row total-final"><span>Total pagado</span><b>$${total.toFixed(2)}</b></div>
-      <div class="pres-row"><span>Pago a restaurante (producto - 10%)</span><b>$${pagoRest.toFixed(2)}</b></div>
-      <div class="pres-row"><span>Pago a repartidor (80% envío)</span><b>$${pagoRepa.toFixed(2)}</b></div>
-      <div class="pres-row sub"><span>Subtotal pagos</span><b>$${subtotalPagos.toFixed(2)}</b></div>
-      <div class="pres-row"><span>Descuento 10% plataforma sobre producto</span><b>$${desc10.toFixed(2)}</b></div>
-      <div class="pres-row"><span>Descuento repartidor 20% del envío</span><b>$${desc20.toFixed(2)}</b></div>
-      <div class="pres-row"><span>Tarifa de servicio</span><b>$${serv.toFixed(2)}</b></div>
-      <div class="pres-row green"><span>Total ganancia plataforma</span><b>$${(desc10+desc20+serv).toFixed(2)}</b></div>
+      <div class="pres-row total-final"><span>Total pagado cliente</span><b>$${total.toFixed(2)}</b></div>
+      <div class="pres-row"><span>Descuento 10% plataforma</span><b>-$${comision.toFixed(2)}</b></div>
+      <div class="pres-row green"><span>Total a pagar al restaurante</span><b>$${pagoRest.toFixed(2)}</b></div>
     </div>
   `;
   document.getElementById('modal').classList.add('active');
