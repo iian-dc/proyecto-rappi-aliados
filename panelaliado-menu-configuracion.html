@@ -82,6 +82,7 @@ const app=initializeApp(firebaseConfig);
 const db=getDatabase(app);
 const RUTA_BASE='doloya_aliados/alitas/alitas_factory';
 const RUTA_CAT=`${RUTA_BASE}/categorias`;
+const RUTA_MENU=`${RUTA_BASE}/menu`;
 let cats=[];
 
 function toast(t,m){document.getElementById('tTitle').textContent=t;document.getElementById('tMsg').textContent=m;document.getElementById('toast').classList.add('show');setTimeout(()=>document.getElementById('toast').classList.remove('show'),2000);}
@@ -148,19 +149,16 @@ async function cargar(){
   cats=[];
   if(snap.exists()){
     const val=snap.val();
-    Object.keys(val).forEach(k=>{
-      const o=val[k];
+    Object.values(val).forEach(obj=>{
       cats.push({
-        key:o.key||k,
-        nombre:o.nombre||k.charAt(0).toUpperCase()+k.slice(1),
-        nombreLower:o.nombreLower||k,
-        activa:o.activa!==false,
-        orden:o.orden||o.fecha||99,
-        raw:o
+        key:obj.key||obj.nombreLower||'',
+        nombre:obj.nombre||obj.key||'',
+        nombreLower:obj.nombreLower||obj.key||'',
+        activa:obj.activa!==false,
+        orden:obj.orden ?? 99
       });
     });
   }
-  // Si falta alitas (categoria principal) la agregamos visualmente
   const baseSnap=await get(ref(db,RUTA_BASE));
   if(baseSnap.exists()){
     const d=baseSnap.val();
@@ -171,7 +169,6 @@ async function cargar(){
       }
     }
   }
-  // Si no hay orden, asignar
   cats.forEach((c,i)=>{if(!c.orden||c.orden===99) c.orden=i+1});
   render();
 }
@@ -181,16 +178,30 @@ window.guardar=async function(){
   btn.disabled=true;btn.textContent='Guardando...';
   let updates={};
   cats.forEach(c=>{
-    // Si es la categoria principal alitas que no está en /categorias, la creamos
     updates[`${RUTA_CAT}/${c.key}/key`]=c.key;
     updates[`${RUTA_CAT}/${c.key}/nombre`]=c.nombre;
     updates[`${RUTA_CAT}/${c.key}/nombreLower`]=c.nombreLower;
     updates[`${RUTA_CAT}/${c.key}/activa`]=c.activa;
     updates[`${RUTA_CAT}/${c.key}/orden`]=c.orden;
+    updates[`${RUTA_CAT}/${c.key}/fecha`]=Date.now();
   });
+  const menuSnap=await get(ref(db,RUTA_MENU));
+  if(menuSnap.exists()){
+    const menu=menuSnap.val();
+    Object.keys(menu).forEach(prodId=>{
+      const prod=menu[prodId];
+      const catProd=(prod.categoria||prod.Categoria||'').toLowerCase();
+      const configCat=cats.find(cc=>cc.key===catProd || cc.nombreLower===catProd || cc.nombre.toLowerCase()===catProd);
+      if(configCat){
+        updates[`${RUTA_MENU}/${prodId}/categoriaActiva`]=configCat.activa;
+        updates[`${RUTA_MENU}/${prodId}/ordenCategoria`]=configCat.orden;
+      }
+    });
+  }
   await update(ref(db),updates);
   toast('Guardado','Orden y estado actualizados');
-  btn.disabled=false;btn.innerHTML=`<svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Guardar cambios`;
+  btn.disabled=false;
+  btn.innerHTML=`<svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Guardar cambios`;
   setTimeout(()=>location.href='panelaliado-menu.html',1000);
 }
 
