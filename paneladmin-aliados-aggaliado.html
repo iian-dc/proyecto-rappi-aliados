@@ -3,52 +3,134 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Agregar Aliado - DoloYa</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<title>Agregar aliado - DoloYa</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
-body{background:#f7f7f8}
-.topbar{background:#C50D1F;padding:12px 18px;display:flex;align-items:center;gap:14px}
-.btn-x{width:44px;height:44px;border-radius:50%;border:2.5px solid white;background:transparent;color:white;font-size:26px;font-weight:800;display:flex;align-items:center;justify-content:center;text-decoration:none}
-.topbar h1{color:white;font-size:22px;font-weight:800}
-.container{max-width:700px;margin:20px auto;padding:20px;background:white;border-radius:14px;border:1px solid #eee}
-label{font-size:13px;font-weight:600;margin-top:14px;display:block}
-input{width:100%;padding:11px 14px;border:1px solid #e5e7eb;border-radius:10px;margin-top:6px;font-size:14px;outline:none}
-.btn-guardar{width:100%;background:#C50D1F;color:white;border:none;border-radius:999px;padding:14px;font-size:15px;font-weight:800;margin-top:20px;cursor:pointer}
-.section{margin-top:20px;padding-top:14px;border-top:1px solid #f1f1f1}
-.section b{font-size:14px}
+body{background:#f8fafc;min-height:100vh}
+.topbar{background:#C50D1F;height:68px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;position:sticky;top:0;z-index:20}
+.top-left{display:flex;align-items:center;gap:14px}
+.btn-x{width:46px;height:46px;border-radius:50%;border:2.5px solid white;display:flex;align-items:center;justify-content:center;color:white;text-decoration:none;font-size:24px;font-weight:800;background:transparent}
+.topbar h1{color:white;font-size:28px;font-weight:800;letter-spacing:-0.3px}
+.logo-d{color:white;font-size:38px;font-weight:900;font-style:italic;transform:skewX(-12deg)}
+.layout{max-width:1350px;margin:20px auto;padding:0 20px;display:grid;grid-template-columns:1fr 320px;gap:20px}
+@media(max-width:900px){.layout{grid-template-columns:1fr}}
+.card{background:white;border-radius:12px;border:1px solid #E2E8F0;padding:22px}
+.card-header{display:flex;gap:14px;align-items:flex-start;border-bottom:1px solid #E2E8F0;padding-bottom:16px;margin-bottom:18px}
+.icon-store{width:44px;height:44px;border-radius:50%;background:#C50D1F;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.card-header b{font-size:16px;font-weight:700;color:#0F172A;display:block}
+.card-header span{font-size:13px;color:#64748B;display:block;margin-top:2px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px 20px}
+@media(max-width:700px){.form-grid{grid-template-columns:1fr}}
+.field label{font-size:13px;font-weight:600;color:#0F172A;display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.field label i{color:#C50D1F;font-style:normal}
+.field input{width:100%;padding:11px 14px;border:1px solid #E2E8F0;border-radius:8px;font-size:13px;outline:none;background:#fff;color:#334155}
+.field input::placeholder{color:#94A3B8}
+.field input:focus{border-color:#C50D1F;box-shadow:0 0 0 3px #ffe1e3}
+.input-with-icon{position:relative}
+.input-with-icon .eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;color:#64748B}
+.full{grid-column:1/-1}
+.upload-box{border:1.5px dashed #CBD5E1;border-radius:10px;background:#F8FAFC;padding:28px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;text-align:center;transition:.15s}
+.upload-box:hover{background:#FFF1F2;border-color:#C50D1F}
+.upload-box.dragover{background:#FFF1F2;border-color:#C50D1F}
+.upload-box img.preview{width:120px;height:120px;border-radius:12px;object-fit:cover;margin-bottom:12px;display:none}
+.upload-box b{font-size:14px;color:#334155}
+.upload-box span{font-size:12px;color:#64748B;margin-top:4px}
+.upload-box small{font-size:11px;color:#94A3B8;margin-top:10px}
+
+.right-col{display:flex;flex-direction:column;justify-content:space-between}
+.alert{background:#FFF1F3;border:1px solid #FECDD3;border-radius:10px;padding:16px;display:flex;gap:12px}
+.alert .icon-alert{width:28px;height:28px;border-radius:50%;background:#C50D1F;color:white;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:800;font-size:14px}
+.alert b{color:#C50D1F;font-size:14px;display:block}
+.alert p{font-size:12px;color:#64748B;margin-top:6px;line-height:1.5}
+.actions{display:flex;gap:12px;justify-content:flex-end;margin-top:20px}
+.btn-cancel{border:1.5px solid #C50D1F;color:#C50D1F;background:white;border-radius:8px;padding:12px 18px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px;cursor:pointer;text-decoration:none}
+.btn-save{border:none;background:#C50D1F;color:white;border-radius:8px;padding:12px 20px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px;cursor:pointer}
+.btn-save:disabled{opacity:.6;cursor:not-allowed}
 </style>
 </head>
 <body>
+
 <div class="topbar">
-  <a href="paneladmin-aliados.html" class="btn-x">✕</a>
-  <h1>Agregar aliado</h1>
+  <div class="top-left">
+    <a href="paneladmin-aliados.html" class="btn-x">✕</a>
+    <h1>Agregar aliado</h1>
+  </div>
+  <div class="logo-d">D</div>
 </div>
-<div class="container">
-  <div class="section"><b>Info del restaurante</b></div>
-  <label>Nombre restaurante (ID)</label>
-  <input id="idRest" placeholder="ej: saltillos">
-  <label>Nombre completo</label>
-  <input id="nombre" placeholder="ej: Saltillos">
-  <label>Dirección</label>
-  <input id="direccion">
-  <label>Teléfono</label>
-  <input id="telefono">
-  <label>Correo</label>
-  <input id="correo">
-  <label>Usuario</label>
-  <input id="usuario">
-  <label>Contraseña</label>
-  <input id="contraseña">
-  <label>Categoría</label>
-  <input id="categoria" placeholder="tacos, burgers, pizzas...">
 
-  <div class="section"><b>Disponibilidad</b></div>
-  <label>Estado (activo / desactivo)</label>
-  <input id="estado" value="activo">
+<div class="layout">
+  <!-- IZQUIERDA -->
+  <div class="card">
+    <div class="card-header">
+      <div class="icon-store">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M3 9l1-5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2l1 5"/><path d="M3 9h18v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z"/><path d="M9 13a2 2 0 1 0 4a2 2 0 0 0 0-4z"/><path d="M15 13a2 2 0 1 0 0 4a2 2 0 0 0 0-4z"/></svg>
+      </div>
+      <div>
+        <b>Datos del restaurante</b>
+        <span>Completa la información para agregar un nuevo aliado.</span>
+      </div>
+    </div>
 
-  <button class="btn-guardar" onclick="guardarAliado()">Guardar aliado independiente</button>
-  <p id="msg" style="margin-top:12px;font-size:13px;font-weight:600;text-align:center"></p>
+    <div class="form-grid">
+      <div class="field">
+        <label><svg width="18" height="18" viewBox="0 0 24 24" fill="#0F172A"><path d="M3 9l1-5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2l1 5H3z"/><path d="M3 9h18v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z" opacity=".8"/></svg> Nombre del restaurante <i>*</i></label>
+        <input id="nombre" placeholder="Ej. Restaurante La Plaza">
+      </div>
+      <div class="field">
+        <label><svg width="16" height="16" viewBox="0 0 24 24" fill="#0F172A"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg> Dirección <i>*</i></label>
+        <input id="direccion" placeholder="Ej. Calle Principal #123, Col. Centro">
+      </div>
+      <div class="field">
+        <label><svg width="16" height="16" viewBox="0 0 24 24" fill="#0F172A"><path d="M20 15.5c-1.25 0-2.45-.2-3.57-.57a1.02 1.02 0 0 0-1.02.24l-2.2 2.2a15.045 15.045 0 0 1-6.59-6.59l2.2-2.21a1.02 1.02 0 0 0 .24-1.02A11.36 11.36 0 0 1 8.5 4c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1 0 9.39 7.61 17 17 17 .55 0 1-.45 1-1v-3.5c0-.55-.45-1-1-1z"/></svg> Teléfono <i>*</i></label>
+        <input id="telefono" placeholder="Ej. 418 123 4567">
+      </div>
+      <div class="field">
+        <label><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0F172A" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> Correo electrónico <i>*</i></label>
+        <input id="correo" placeholder="Ej. restaurante@correo.com">
+      </div>
+      <div class="field">
+        <label><svg width="16" height="16" viewBox="0 0 24 24" fill="#0F172A"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6v1H4v-1z"/></svg> Usuario <i>*</i></label>
+        <input id="usuario" placeholder="Ej. usuario123">
+      </div>
+      <div class="field">
+        <label><svg width="16" height="16" viewBox="0 0 24 24" fill="#0F172A"><path d="M12 1a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V6a5 5 0 0 0-5-5zm-3 8V6a3 3 0 0 1 6 0v3H9zm3 8a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"/></svg> Contraseña <i>*</i></label>
+        <div class="input-with-icon">
+          <input id="contrasena" type="password" placeholder="Ej. ********">
+          <span class="eye" onclick="togglePass()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span>
+        </div>
+      </div>
+      <div class="field full">
+        <label><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0F172A" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> Imagen del restaurante <i>*</i></label>
+        <small style="color:#64748B;font-size:12px;margin-bottom:8px;display:block">Sube una imagen de tu negocio (logo o foto).</small>
+        <div class="upload-box" id="uploadBox" onclick="document.getElementById('fileInput').click()">
+          <img id="preview" class="preview">
+          <div id="uploadContent">
+            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="1.7"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/><circle cx="18" cy="8" r="2" fill="#CBD5E1" stroke="none"/><path d="M18 6v4M16 8h4" stroke="#fff" stroke-width="1.5"/></svg>
+            <b>Selecciona una imagen</b>
+            <span>Arrastra y suelta o haz clic para subir</span>
+            <small>Formatos: JPG, PNG | Tamaño máx: 5 MB</small>
+          </div>
+        </div>
+        <input type="file" id="fileInput" accept="image/*" hidden>
+      </div>
+    </div>
+  </div>
+
+  <!-- DERECHA -->
+  <div class="right-col">
+    <div class="alert">
+      <div class="icon-alert">!</div>
+      <div>
+        <b>Importante</b>
+        <p>Asegúrate de que toda la información sea correcta para que el aliado pueda acceder al sistema y comenzar a recibir pedidos.</p>
+      </div>
+    </div>
+    <div class="actions">
+      <a href="paneladmin-aliados.html" class="btn-cancel"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C50D1F" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Cancelar</a>
+      <button class="btn-save" id="btnGuardar" onclick="guardarAliado()"><svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8" fill="none" stroke="white" stroke-width="1.5"/></svg> Guardar aliado</button>
+    </div>
+  </div>
 </div>
 
 <script type="module">
@@ -59,41 +141,95 @@ const config = { apiKey: "AIzaSyD286qlJQT8D3rqbYTSfCyuTAEg9jjRchQ", authDomain: 
 const app = initializeApp(config);
 const db = getDatabase(app);
 
-window.guardarAliado = async function(){
-  const id = document.getElementById('idRest').value.trim().toLowerCase().replace(/\s+/g,'_');
-  if(!id){ alert('Pon ID'); return; }
-  
-  const info = {
-    id: id,
-    nombre: document.getElementById('nombre').value.trim(),
-    direccion: document.getElementById('direccion').value.trim(),
-    telefono: document.getElementById('telefono').value.trim(),
-    correo: document.getElementById('correo').value.trim(),
-    usuario: document.getElementById('usuario').value.trim().toLowerCase(),
-    contraseña: document.getElementById('contraseña').value.trim(),
-    password: document.getElementById('contraseña').value.trim(),
-    rol: 'aliado',
-    categoria: document.getElementById('categoria').value.trim().toLowerCase()
+let imagenBase64 = "";
+
+document.getElementById('fileInput').addEventListener('change', e=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  if(file.size > 5*1024*1024){ alert('Máximo 5 MB'); return; }
+  const reader = new FileReader();
+  reader.onload = ev=>{
+    imagenBase64 = ev.target.result;
+    const prev = document.getElementById('preview');
+    prev.src = imagenBase64;
+    prev.style.display='block';
+    document.getElementById('uploadContent').style.display='none';
   };
+  reader.readAsDataURL(file);
+});
 
-  await set(ref(db, `doloya_aliados/${id}/info`), info);
-  await set(ref(db, `doloya_aliados/${id}/disponibilidad`), {
-    abierto: true,
-    estado: document.getElementById('estado').value.trim().toLowerCase() || 'activo',
-    horarioApertura: '09:00',
-    horarioCierre: '22:00'
-  });
-  await set(ref(db, `doloya_aliados/${id}/perfil`), {
-    imagenPerfil: '',
-    imagenPortada: '',
-    reseñas: 0
-  });
-  await set(ref(db, `doloya_aliados/${id}/categorias`), {
-    placeholder: true
-  });
+const uploadBox = document.getElementById('uploadBox');
+uploadBox.addEventListener('dragover', e=>{ e.preventDefault(); uploadBox.classList.add('dragover'); });
+uploadBox.addEventListener('dragleave', ()=> uploadBox.classList.remove('dragover'));
+uploadBox.addEventListener('drop', e=>{
+  e.preventDefault(); uploadBox.classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if(file){ document.getElementById('fileInput').files = e.dataTransfer.files; document.getElementById('fileInput').dispatchEvent(new Event('change')); }
+});
 
-  document.getElementById('msg').textContent = `Aliado ${info.nombre} creado independiente en ${id}`;
-  document.getElementById('msg').style.color = '#15803d';
+window.togglePass = function(){
+  const inp = document.getElementById('contrasena');
+  inp.type = inp.type==='password' ? 'text' : 'password';
+}
+
+window.guardarAliado = async function(){
+  const nombre = document.getElementById('nombre').value.trim();
+  const direccion = document.getElementById('direccion').value.trim();
+  const telefono = document.getElementById('telefono').value.trim();
+  const correo = document.getElementById('correo').value.trim();
+  const usuario = document.getElementById('usuario').value.trim().toLowerCase();
+  const contrasena = document.getElementById('contrasena').value.trim();
+  const btn = document.getElementById('btnGuardar');
+
+  if(!nombre || !direccion || !telefono || !correo || !usuario || !contrasena){
+    alert('Completa todos los campos obligatorios *');
+    return;
+  }
+
+  const id = nombre.toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'');
+  btn.disabled=true; btn.textContent='Guardando...';
+
+  try{
+    // ESTRUCTURA ORGANIZADA QUE PEDISTE
+    await set(ref(db, `doloya_aliados/${id}/info`), {
+      id: id,
+      nombre: nombre,
+      direccion: direccion,
+      telefono: telefono,
+      correo: correo,
+      usuario: usuario,
+      contraseña: contrasena,
+      password: contrasena,
+      rol: "aliado",
+      categoria: "general",
+      imagen: imagenBase64 || "",
+      creado: new Date().toISOString()
+    });
+
+    await set(ref(db, `doloya_aliados/${id}/disponibilidad`), {
+      abierto: true,
+      estado: "activo"
+    });
+
+    await set(ref(db, `doloya_aliados/${id}/categorias`), {
+      _info: "vacío - se llenará después"
+    });
+
+    await set(ref(db, `doloya_aliados/${id}/perfil`), {
+      imagenPerfil: imagenBase64 || "",
+      imagenPortada: "",
+      reseñas: "",
+      calificacion: 0
+    });
+
+    alert(`Restaurante ${nombre} creado correctamente en doloya_aliados/${id}`);
+    window.location.href='paneladmin-aliados.html';
+
+  }catch(e){
+    alert('Error: '+e.message);
+    btn.disabled=false;
+    btn.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/></svg> Guardar aliado';
+  }
 }
 </script>
 </body>
