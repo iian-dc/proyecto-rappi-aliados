@@ -56,7 +56,7 @@ body{background:#fff;font-family:'Inter',Helvetica,Arial,sans-serif;color:#0f172
 .modal{position:fixed;inset:0;background:#fff;display:none;flex-direction:column;z-index:9999;overflow:auto}
 .modal.active{display:flex}
 .modal-top{position:sticky;top:0;background:white;border-bottom:1px solid #eef2f7;padding:10px 16px;display:flex;justify-content:space-between;align-items:center}
-.modal-top h2{font-size:14px;font-weight:900}
+.modal-top h2{font-size:14px;font-weight:900;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .btn-close{background:#111;color:white;border:none;border-radius:999px;padding:6px 12px;font-size:11px;font-weight:800;cursor:pointer}
 .modal-body{max-width:980px;margin:0 auto;padding:14px 16px 40px;width:100%;display:grid;grid-template-columns:1fr 1fr;gap:12px}
 @media(max-width:800px){.modal-body{grid-template-columns:1fr}}
@@ -71,6 +71,9 @@ body{background:#fff;font-family:'Inter',Helvetica,Arial,sans-serif;color:#0f172
 .pres-row.total-final{font-weight:900;font-size:12px;background:#f8fafc;padding:8px;border-radius:8px;border:none}
 .pres-row.sub{font-weight:800;background:#f1f5f9;padding:6px 8px;border-radius:6px;border:none}
 .pres-row.green{color:#15803d;background:#f0fdf4;padding:8px;border-radius:8px;border:1px solid #bbf7d0;font-weight:900;font-size:12px}
+.badge-pago{padding:3px 10px;border-radius:999px;font-size:10px;font-weight:900;letter-spacing:0.3px}
+.badge-pago.pendiente{background:#FFE1E1;color:#E30613;border:1.5px solid #FF4D4D;box-shadow:0 0 8px rgba(227,6,19,0.45)}
+.badge-pago.pagado{background:#D1FFDB;color:#15803d;border:1.5px solid #22c55e;box-shadow:0 0 8px rgba(34,197,94,0.55)}
 </style>
 </head>
 <body>
@@ -152,6 +155,14 @@ function buscar(raw, palabras){
     if(typeof raw[k]==='object'){ let r=buscar(raw[k], palabras); if(r && r!=='-' && r!=='' ) return r; }
   }
   return null;
+}
+function getEstadoPago(raw){
+  let val = buscar(raw, ['estado_pago','estadopago','pago_estado','status_pago']);
+  if(val) return String(val).toLowerCase();
+  if(raw.pagado===true || raw.pagado==='true' || raw.pagado===1) return 'pagado';
+  if(raw.pagado===false || raw.pagado==='false' || raw.pagado===0) return 'pendiente';
+  if(raw.pago===true) return 'pagado';
+  return 'pendiente';
 }
 
 function esDeEsteRestaurante(p){
@@ -335,40 +346,28 @@ document.getElementById('btnLimpiar').addEventListener('click',()=>{
 window.abrirDetalle = (id)=>{
   const p = todosPedidos.find(x=>x.id===id); if(!p) return;
   const raw = p.raw;
-  const tAceptado = buscar(raw, ['aceptado','acepta']);
-  const tPreparando = buscar(raw, ['preparando','preparacion','en_prepar']);
-  const tListo = buscar(raw, ['listo','listo_para']);
-  const tRecoger = buscar(raw, ['ir_a_recoger','a_recoger','recoger']);
-  const tRecogido = buscar(raw, ['recogido','tiene_pedido','recogida']);
-  const tCamino = buscar(raw, ['en_camino','ir_a_entregar','camino','en_curso']);
-  const tFinal = buscar(raw, ['finalizado','entregado_final']);
-  const tCanc = buscar(raw, ['cancelado']);
+  const estadoPago = getEstadoPago(raw);
+  const esPagado = estadoPago.includes('pagado');
+  const badgePago = esPagado ? `<span class="badge-pago pagado">PAGADO</span>` : `<span class="badge-pago pendiente">PAGO PENDIENTE</span>`;
 
-  const prod=p.producto||0, total=p.total||0;
+  const prod=p.producto||0;
   const comision = prod*0.10;
   const pagoRest = prod - comision;
 
-  document.getElementById('modalTitle').textContent=`#${p.codigo} - ${p.estadoLabel}`;
+  document.getElementById('modalTitle').innerHTML=`#${p.codigo} - ${p.estadoLabel} ${badgePago}`;
   document.getElementById('modalBody').innerHTML=`
     <div class="box"><h4>Datos de Entrega - ${p.estadoLabel}</h4>
       <div class="row-s"><b>Estado</b><span style="color:${p.estadoVisual==='entregado'?'#22c55e':'#E30613'};font-weight:900">${p.estadoLabel}</span></div>
-      <div class="row-s"><b>Cliente</b><span>${p.cliente}</span></div>
-      <div class="row-s"><b>Teléfono</b><span>${p.telefono}</span></div>
+      <div class="row-s"><b>Nombre cliente</b><span>${p.cliente}</span></div>
       <div class="row-s"><b>Dirección entrega</b><span>${p.direccion}</span></div>
       <div class="row-s"><b>Colonia</b><span>${p.coloniaEntrega}</span></div>
-      <div class="row-s"><b>Fecha</b><span>${p.fechaStr} • ${p.horaStr}</span></div>
-      <div class="row-s"><b>Aceptado</b><span>${toHora(tAceptado)}</span></div>
-      <div class="row-s"><b>Preparando</b><span>${toHora(tPreparando)}</span></div>
-      <div class="row-s"><b>Listo</b><span>${toHora(tListo)}</span></div>
-      <div class="row-s"><b>Recogido</b><span>${toHora(tRecogido)}</span></div>
-      <div class="row-s"><b>En camino</b><span>${toHora(tCamino)}</span></div>
-      <div class="row-s"><b>${p.estadoVisual==='cancelado'?'Cancelado':'Finalizado'}</b><span>${p.estadoVisual==='cancelado' ? `${p.motivo} - ${toHora(tCanc)}` : toHora(tFinal)}</span></div>
+      <div class="row-s"><b>Fecha del pedido</b><span>${p.fechaStr} • ${p.horaStr}</span></div>
       <div class="row-s"><b>Repartidor</b><span>${p.repartidor}</span></div>
     </div>
     <div class="box"><h4>Productos</h4>${(raw.productos||raw.items||[]).map(pr=>`<div class="row-s"><b>${pr.nombre||pr.name||'Prod'}</b><span>x${pr.cantidad||1} $${pr.precio||pr.price||0}</span></div>`).join('')||`<div class="row-s"><b>Producto</b><span>$${prod.toFixed(2)}</span></div>`}</div>
     <div class="box presupuesto"><h4>Desglose REAL - Restaurante</h4>
       <div class="pres-row"><span>Producto</span><b>$${prod.toFixed(2)}</b></div>
-      <div class="pres-row total-final"><span>Total pagado cliente</span><b>$${total.toFixed(2)}</b></div>
+      <div class="pres-row total-final"><span>Total pagado cliente</span><b>$${prod.toFixed(2)}</b></div>
       <div class="pres-row"><span>Descuento 10% plataforma</span><b>-$${comision.toFixed(2)}</b></div>
       <div class="pres-row green"><span>Total a pagar al restaurante</span><b>$${pagoRest.toFixed(2)}</b></div>
     </div>
