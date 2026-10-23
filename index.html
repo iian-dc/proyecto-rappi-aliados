@@ -45,7 +45,7 @@ body{background:#CF0A2C;min-height:100vh;display:flex;justify-content:center}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-import { getDatabase, ref, get, set, update } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js";
+import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyD286qlJQT8D3rqbYTSfCyuTAEg9jjRchQ",
@@ -59,49 +59,6 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
-
-async function vincularRestaurantes(){
-  try{
-    // AHORA CADA RESTAURANTE TIENE USUARIO INDEPENDIENTE
-    await update(ref(db, 'doloya_aliados/alitas_factory'), {
-      usuario: 'alitas',
-      email: 'alitas',
-      contraseña: '1111',
-      password: '1111',
-      rol: 'aliado',
-      codigo: 'index',
-      nombre: 'Alitas Factory',
-      id: 'alitas_factory',
-      negocio: 'alitas_factory'
-    });
-    await update(ref(db, 'doloya_aliados/burgers_factory'), {
-      usuario: 'burgers',
-      email: 'burgers',
-      contraseña: '2222',
-      password: '2222',
-      rol: 'aliado',
-      codigo: 'index',
-      nombre: 'Burgers Factory',
-      id: 'burgers_factory',
-      negocio: 'burgers_factory'
-    });
-    await update(ref(db, 'doloya_aliados/pizzas_factory'), {
-      usuario: 'pizzas',
-      email: 'pizzas',
-      contraseña: '3333',
-      password: '3333',
-      rol: 'aliado',
-      codigo: 'index',
-      nombre: 'Pizzas Factory',
-      id: 'pizzas_factory',
-      negocio: 'pizzas_factory'
-    });
-    console.log("Vinculados independientes: alitas 1111, burgers 2222, pizzas 3333");
-  }catch(e){
-    console.error("Error vinculando", e);
-  }
-}
-vincularRestaurantes();
 
 window.iniciarSesion = async function(){
   const user = document.getElementById('txtUsuario').value.trim().toLowerCase();
@@ -125,22 +82,37 @@ window.iniciarSesion = async function(){
     const snapshot = await get(ref(db, 'doloya_aliados'));
     if(snapshot.exists()){
       const datos = snapshot.val();
-      for(const key in datos){
-        const rest = datos[key];
-        const u = String(rest.usuario||'').toLowerCase();
-        const e = String(rest.email||'').toLowerCase();
-        const c1 = String(rest.contraseña||'');
-        const c2 = String(rest.password||'');
-        // VALIDACION EXACTA USUARIO + CONTRASEÑA INDEPENDIENTE
-        if( (u===user || e===user) && (c1===pass || c2===pass) ){
+      for(const idRestaurante in datos){
+        const nodo = datos[idRestaurante];
+        if(!nodo) continue;
+
+        // AQUI ESTA LA CORRECCION QUE ME PEDISTE: LEE DE info/usuario y info/password
+        const info = nodo.info ? nodo.info : nodo;
+
+        const u = String(info.usuario || '').toLowerCase();
+        const e = String(info.correo || info.email || '').toLowerCase();
+        
+        const c1 = String(info.contraseña || '').trim();
+        const c2 = String(info.password || '').trim();
+        const c3 = String(info.contrasena || '').trim();
+
+        if( (u===user || e===user) && (c1===pass || c2===pass || c3===pass) ){
+          const disponibilidad = nodo.disponibilidad || {};
           localStorage.setItem('doloya_aliado_sesion', JSON.stringify({ 
-            rol: rest.rol||'aliado', 
-            usuario: rest.usuario, 
+            rol: info.rol || 'aliado', 
+            usuario: info.usuario, 
             contraseña: pass,
             codigo:'index', 
-            id: rest.id || key, 
-            nombre: rest.nombre||key,
-            negocio: rest.negocio || rest.id || key
+            id: info.id || idRestaurante, 
+            nombre: info.nombre || idRestaurante,
+            negocio: idRestaurante,
+            categoria: info.categoria || 'general',
+            correo: info.correo || '',
+            telefono: info.telefono || '',
+            direccion: info.direccion || '',
+            imagen: info.imagen || '',
+            estado: disponibilidad.estado || 'activo',
+            abierto: disponibilidad.abierto !== false
           }));
           window.location.href='panelaliado.html';
           return;
@@ -150,7 +122,7 @@ window.iniciarSesion = async function(){
   }catch(e){ console.log(e); }
 
   errorBox.style.display='block';
-  errorBox.textContent='Usuario o contraseña incorrectos. Usa alitas / 1111, burgers / 2222, pizzas / 3333';
+  errorBox.textContent='Usuario o contraseña incorrectos';
 }
 </script>
 </body>
