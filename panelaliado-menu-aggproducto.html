@@ -149,7 +149,6 @@ const db = getDatabase(app);
 
 let imagenBase64 = '';
 
-// --- CORRECCION QUE ME PEDISTE: AHORA ES DINAMICO SEGUN EL RESTAURANTE LOGUEADO ---
 function getIdRestaurante(){
   try{
     const sesion = JSON.parse(localStorage.getItem('doloya_aliado_sesion'));
@@ -166,7 +165,7 @@ function toast(t,m){
   setTimeout(()=>document.getElementById('toastOverlay').classList.remove('show'),2500);
 }
 
-// --- CORRECCION 1: CARGAR TODAS LAS CATEGORIAS QUE YA AGREGASTE ---
+// CORRECCION: AHORA LEE LAS CATEGORIAS DE ABAJO DONDE LAS TIENES (categorias/categorias/boneles)
 async function cargarCategorias(){
   const idRest = getIdRestaurante();
   const sel = document.getElementById('selectCat');
@@ -181,29 +180,37 @@ async function cargarCategorias(){
     const data = snap.val();
     let opciones = [];
 
+    // TU CASO ACTUAL: categorias / categorias / boneles
+    if(data.categorias && typeof data.categorias === 'object'){
+      for(const key in data.categorias){
+        if(key.startsWith('_')) continue;
+        const cat = data.categorias[key];
+        if(!cat || typeof cat !== 'object') continue;
+        // Es una categoria real, no un producto suelto
+        if(cat.nombre || cat.key || cat.activa !== undefined){
+          const nombreMostrar = cat.nombre || key;
+          opciones.push({key: key.toLowerCase(), nombre: nombreMostrar, origen: 'abajo'});
+        }
+      }
+    }
+
+    // TAMBIEN POR SI ALGUNAS ESTAN ARRIBA: categorias / boneles
     for(const key in data){
-      if(key.startsWith('_')) continue; // _info vacio
-      if(key === 'categorias') continue; // evita la duplicada que viste en la foto
+      if(key === 'categorias') continue;
+      if(key.startsWith('_')) continue;
       if(typeof data[key] !== 'object') continue;
-      
-      // Si esta clave es una categoria (boneles, salchipapas)
-      const catObj = data[key];
-      // Si ya tiene productos adentro, igual la categoria es valida
-      const nombreBonito = catObj.nombre || key;
-      const nombreMostrar = nombreBonito.charAt(0).toUpperCase() + nombreBonito.slice(1).toLowerCase();
-      
-      // Evita duplicados si la categoria tiene _info
-      if(nombreMostrar.toLowerCase() !== 'vacio - se llenara despues'){
-        opciones.push({key: key, nombre: nombreMostrar});
+      if(data[key].nombre){
+        if(!opciones.find(o=> o.key === key.toLowerCase())){
+          opciones.push({key: key.toLowerCase(), nombre: data[key].nombre, origen: 'arriba'});
+        }
       }
     }
 
     if(opciones.length === 0){
-      sel.innerHTML = '<option value="">No hay categorías registradas - Crea una primero</option>';
+      sel.innerHTML = '<option value="">No hay categorías registradas</option>';
     }else{
-      // Ordenar boneles primero si quieres, luego alfabético
       opciones.sort((a,b)=> a.nombre.localeCompare(b.nombre));
-      sel.innerHTML = '<option value="">Selecciona una categoría</option>' + opciones.map(o=>`<option value="${o.key.toLowerCase()}">${o.nombre}</option>`).join('');
+      sel.innerHTML = '<option value="">Selecciona una categoría</option>' + opciones.map(o=>`<option value="${o.key}">${o.nombre}</option>`).join('');
     }
   }catch(e){
     console.log(e);
@@ -243,7 +250,6 @@ document.getElementById('inputImg').addEventListener('change', e=>{
   reader.readAsDataURL(file);
 });
 
-// --- CORRECCION 2: GUARDAR DENTRO DE LA CATEGORIA SELECCIONADA ---
 window.guardarProducto=async function(){
   const idRest = getIdRestaurante();
   const nombre=document.getElementById('txtNombre').value.trim();
@@ -266,9 +272,17 @@ window.guardarProducto=async function(){
   try{
     const idProducto = nombre.toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'') + '_' + Date.now();
 
-    // ESTRUCTURA QUE ME PEDISTE: categorias / nombre_categoria / nombre_producto
-    // doloya_aliados / santillos / categorias / boneles / boneles_bbq_xxx
-    await set(ref(db, `doloya_aliados/${idRest}/categorias/${categoriaKey}/${idProducto}`),{
+    // CORRECCION: SE GUARDA ADENTRO DE LA CATEGORIA DONDE LA TIENES (categorias/categorias/boneles/producto)
+    // Esto respeta tu estructura actual que es categorias / categorias / boneles
+    const snapCheck = await get(ref(db, `doloya_aliados/${idRest}/categorias/categorias/${categoriaKey}`));
+    let rutaFinal;
+    if(snapCheck.exists()){
+      rutaFinal = `doloya_aliados/${idRest}/categorias/categorias/${categoriaKey}/${idProducto}`;
+    }else{
+      rutaFinal = `doloya_aliados/${idRest}/categorias/${categoriaKey}/${idProducto}`;
+    }
+
+    await set(ref(db, rutaFinal),{
       id: idProducto,
       nombre: nombre,
       descripcion: descripcion,
