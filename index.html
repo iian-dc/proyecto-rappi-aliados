@@ -71,7 +71,7 @@ window.iniciarSesion = async function(){
     return;
   }
 
-  // ADMIN - INDEPENDIENTE
+  // ADMIN - RUTA INDEPENDIENTE A PANELADMIN
   if(user === 'admin' && pass === '0831'){
     localStorage.setItem('doloya_aliado_sesion', JSON.stringify({ rol:'administrador', usuario:'admin', codigo:'index', id:'admin', nombre:'Admin' }));
     window.location.href='paneladmin.html';
@@ -83,82 +83,71 @@ window.iniciarSesion = async function(){
     if(snapshot.exists()){
       const datos = snapshot.val();
 
-      // CORREGIDO: BUSCA EN TODOS LOS NIVELES, INDEPENDIENTE DONDE ESTÉ
-      function buscarEnNodo(nodo, idPadre){
+      function checarLogin(nodo, idNodo){
         if(!nodo || typeof nodo !== 'object') return null;
-        // Si este nodo tiene info con usuario
-        let info = nodo.info ? nodo.info : null;
-        if(!info && nodo.usuario) info = nodo; // por si está directo
-        
-        if(info && (info.usuario || info.correo)){
-          const u = String(info.usuario || '').toLowerCase();
-          const e = String(info.correo || info.email || '').toLowerCase();
-          const c1 = String(info.contraseña || '').trim();
-          const c2 = String(info.password || '').trim();
-          const c3 = String(info.contrasena || '').trim();
-          if( (u===user || e===user) && (c1===pass || c2===pass || c3===pass) ){
-            return { info, idReal: info.id || idPadre, nodoCompleto: nodo };
-          }
+        let info = nodo.info ? nodo.info : nodo;
+        if(!info || typeof info !== 'object') return null;
+        if(!info.usuario && !info.correo && !info.email && !idNodo) return null;
+
+        const u = String(info.usuario || '').trim().toLowerCase();
+        const e = String(info.correo || info.email || '').trim().toLowerCase();
+        const id = String(idNodo || info.id || '').trim().toLowerCase();
+
+        const p1 = String(info.password || '').trim();
+        const p2 = String(info.contraseña || '').trim();
+        const p3 = String(info.contrasena || '').trim();
+
+        const userMatch = (u && u === user) || (e && e === user) || (id && id === user);
+        const passMatch = (p1 && p1 === pass) || (p2 && p2 === pass) || (p3 && p3 === pass);
+
+        if(userMatch && passMatch){
+          return { info, idReal: info.id || idNodo, nodoCompleto: nodo };
         }
         return null;
+      }
+
+      function guardarSesion(encontrado, nodoCompleto){
+        const { info, idReal } = encontrado;
+        const disponibilidad = nodoCompleto.disponibilidad || nodoCompleto.categorias?.disponibilidad || {};
+        localStorage.setItem('doloya_aliado_sesion', JSON.stringify({ 
+          rol: info.rol || 'aliado', 
+          usuario: info.usuario || idReal, 
+          contraseña: pass,
+          codigo:'index', 
+          id: idReal, 
+          nombre: info.nombre || idReal,
+          negocio: idReal,
+          categoria: info.categoria || 'general',
+          correo: info.correo || info.email || '',
+          telefono: info.telefono || '',
+          direccion: info.direccion || '',
+          imagen: info.imagen || '',
+          estado: disponibilidad.estado || 'activo',
+          abierto: disponibilidad.abierto !== false
+        }));
+        window.location.href='panelaliado.html';
       }
 
       for(const idRestaurante in datos){
         const nodo = datos[idRestaurante];
         if(!nodo) continue;
 
-        // 1. Revisa si el nodo de primer nivel es un restaurante (santillos, nice_food, admin)
-        let encontrado = buscarEnNodo(nodo, idRestaurante);
-        if(encontrado){
-          const { info, idReal, nodoCompleto } = encontrado;
-          const disponibilidad = nodoCompleto.disponibilidad || nodoCompleto.categorias?.disponibilidad || {};
-          localStorage.setItem('doloya_aliado_sesion', JSON.stringify({ 
-            rol: info.rol || 'aliado', 
-            usuario: info.usuario, 
-            contraseña: pass,
-            codigo:'index', 
-            id: idReal, 
-            nombre: info.nombre || idReal,
-            negocio: idReal,
-            categoria: info.categoria || 'general',
-            correo: info.correo || '',
-            telefono: info.telefono || '',
-            direccion: info.direccion || '',
-            imagen: info.imagen || '',
-            estado: disponibilidad.estado || 'activo',
-            abierto: disponibilidad.abierto !== false
-          }));
-          window.location.href='panelaliado.html';
+        // 1. Busca aliados independientes en la raiz: doloya_aliados/nice_food , doloya_aliados/santillos
+        let res = checarLogin(nodo, idRestaurante);
+        if(res){
+          guardarSesion(res, nodo);
           return;
         }
 
-        // 2. Si no, revisa si dentro de este nodo hay restaurantes anidados (caso admin -> nice_food)
+        // 2. Si quedo anidado dentro de admin (caso viejo), tambien lo encuentra: doloya_aliados/admin/nice_food
         if(typeof nodo === 'object'){
           for(const subId in nodo){
+            if(['info','perfil','categorias','disponibilidad','menu','carritos','likes','id','nombre','rol'].includes(subId)) continue;
             const subNodo = nodo[subId];
             if(!subNodo || typeof subNodo !== 'object') continue;
-            if(['info','perfil','categorias','disponibilidad','menu','carritos','likes'].includes(subId)) continue;
-            let encontradoSub = buscarEnNodo(subNodo, subId);
-            if(encontradoSub){
-              const { info, idReal, nodoCompleto } = encontradoSub;
-              const disponibilidad = nodoCompleto.disponibilidad || {};
-              localStorage.setItem('doloya_aliado_sesion', JSON.stringify({ 
-                rol: info.rol || 'aliado', 
-                usuario: info.usuario, 
-                contraseña: pass,
-                codigo:'index', 
-                id: idReal, 
-                nombre: info.nombre || idReal,
-                negocio: idReal,
-                categoria: info.categoria || 'general',
-                correo: info.correo || '',
-                telefono: info.telefono || '',
-                direccion: info.direccion || '',
-                imagen: info.imagen || '',
-                estado: disponibilidad.estado || 'activo',
-                abierto: disponibilidad.abierto !== false
-              }));
-              window.location.href='panelaliado.html';
+            let resSub = checarLogin(subNodo, subId);
+            if(resSub){
+              guardarSesion(resSub, subNodo);
               return;
             }
           }
