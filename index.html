@@ -71,93 +71,67 @@ window.iniciarSesion = async function(){
     return;
   }
 
-  // ADMIN - RUTA INDEPENDIENTE A PANELADMIN
   if(user === 'admin' && pass === '0831'){
-    localStorage.setItem('doloya_aliado_sesion', JSON.stringify({ rol:'administrador', usuario:'admin', codigo:'index', id:'admin', nombre:'Admin' }));
+    localStorage.setItem('doloya_aliado_sesion', JSON.stringify({ rol:'administrador', usuario:'admin', id:'admin', nombre:'Admin' }));
     window.location.href='paneladmin.html';
     return;
   }
 
   try{
-    const snapshot = await get(ref(db, 'doloya_aliados'));
-    if(snapshot.exists()){
-      const datos = snapshot.val();
+    const snap = await get(ref(db, 'doloya_aliados'));
+    if(!snap.exists()){
+      errorBox.style.display='block';
+      errorBox.textContent='No hay aliados en la base';
+      return;
+    }
+    const datos = snap.val();
+    console.log("KEYS EN RAIZ:", Object.keys(datos));
 
-      function checarLogin(nodo, idNodo){
-        if(!nodo || typeof nodo !== 'object') return null;
-        let info = nodo.info ? nodo.info : nodo;
-        if(!info || typeof info !== 'object') return null;
-        if(!info.usuario && !info.correo && !info.email && !idNodo) return null;
-
-        const u = String(info.usuario || '').trim().toLowerCase();
-        const e = String(info.correo || info.email || '').trim().toLowerCase();
-        const id = String(idNodo || info.id || '').trim().toLowerCase();
-
-        const p1 = String(info.password || '').trim();
-        const p2 = String(info.contraseña || '').trim();
-        const p3 = String(info.contrasena || '').trim();
-
-        const userMatch = (u && u === user) || (e && e === user) || (id && id === user);
-        const passMatch = (p1 && p1 === pass) || (p2 && p2 === pass) || (p3 && p3 === pass);
-
-        if(userMatch && passMatch){
-          return { info, idReal: info.id || idNodo, nodoCompleto: nodo };
-        }
-        return null;
+    for(const key in datos){
+      if(key === 'admin') continue;
+      const nodo = datos[key];
+      if(!nodo || !nodo.info){
+        console.log(key + " no tiene info");
+        continue;
       }
+      const info = nodo.info;
+      console.log(`Revisando ${key}: usuario=${info.usuario} correo=${info.correo} pass=${info.password} contra=${info.contraseña}`);
 
-      function guardarSesion(encontrado, nodoCompleto){
-        const { info, idReal } = encontrado;
-        const disponibilidad = nodoCompleto.disponibilidad || nodoCompleto.categorias?.disponibilidad || {};
-        localStorage.setItem('doloya_aliado_sesion', JSON.stringify({ 
-          rol: info.rol || 'aliado', 
-          usuario: info.usuario || idReal, 
-          contraseña: pass,
-          codigo:'index', 
-          id: idReal, 
-          nombre: info.nombre || idReal,
-          negocio: idReal,
+      const u = String(info.usuario||'').trim().toLowerCase();
+      const e = String(info.correo||'').trim().toLowerCase();
+      const id = String(key||'').trim().toLowerCase();
+      const idInfo = String(info.id||'').trim().toLowerCase();
+
+      const p1 = String(info.password||'').trim();
+      const p2 = String(info.contraseña||'').trim();
+
+      const okUser = (u===user || e===user || id===user || idInfo===user);
+      const okPass = (p1===pass || p2===pass);
+
+      if(okUser && okPass){
+        localStorage.setItem('doloya_aliado_sesion', JSON.stringify({
+          rol:'aliado',
+          usuario: info.usuario,
+          id: info.id || key,
+          nombre: info.nombre || key,
+          negocio: key,
           categoria: info.categoria || 'general',
-          correo: info.correo || info.email || '',
-          telefono: info.telefono || '',
-          direccion: info.direccion || '',
-          imagen: info.imagen || '',
-          estado: disponibilidad.estado || 'activo',
-          abierto: disponibilidad.abierto !== false
+          correo: info.correo || '',
+          telefono: info.telefono || ''
         }));
         window.location.href='panelaliado.html';
-      }
-
-      for(const idRestaurante in datos){
-        const nodo = datos[idRestaurante];
-        if(!nodo) continue;
-
-        // 1. Busca aliados independientes en la raiz: doloya_aliados/nice_food , doloya_aliados/santillos
-        let res = checarLogin(nodo, idRestaurante);
-        if(res){
-          guardarSesion(res, nodo);
-          return;
-        }
-
-        // 2. Si quedo anidado dentro de admin (caso viejo), tambien lo encuentra: doloya_aliados/admin/nice_food
-        if(typeof nodo === 'object'){
-          for(const subId in nodo){
-            if(['info','perfil','categorias','disponibilidad','menu','carritos','likes','id','nombre','rol'].includes(subId)) continue;
-            const subNodo = nodo[subId];
-            if(!subNodo || typeof subNodo !== 'object') continue;
-            let resSub = checarLogin(subNodo, subId);
-            if(resSub){
-              guardarSesion(resSub, subNodo);
-              return;
-            }
-          }
-        }
+        return;
       }
     }
-  }catch(e){ console.log(e); }
+  }catch(e){
+    console.log("ERROR:", e);
+    errorBox.style.display='block';
+    errorBox.textContent='Error: ' + e.message;
+    return;
+  }
 
   errorBox.style.display='block';
-  errorBox.textContent='Usuario o contraseña incorrectos';
+  errorBox.textContent='Usuario o contraseña incorrectos. Abre F12 para ver que usuarios encontró';
 }
 </script>
 </body>
