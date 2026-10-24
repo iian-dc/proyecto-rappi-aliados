@@ -139,7 +139,7 @@ else {
 
   get(ref(dbAliados, 'doloya_aliados')).then(allSnap=>{
     if(!allSnap.exists()){
-      refEstadoReal = ref(dbAliados, `doloya_aliados/${categoriaReal}/${idReal}`);
+      refEstadoReal = ref(dbAliados, `doloya_aliados/${idReal}/categorias/disponibilidad`);
       escucharEstado(); 
       return;
     }
@@ -163,7 +163,8 @@ else {
       categoriaReal = catBuscada;
       idReal = idNegocio;
     }
-    refEstadoReal = ref(dbAliados, `doloya_aliados/${categoriaReal}/${idReal}`);
+    // CORREGIDO: SOLO SE USA categorias/disponibilidad, SE ELIMINA santillos/santillos
+    refEstadoReal = ref(dbAliados, `doloya_aliados/${idReal}/categorias/disponibilidad`);
     escucharEstado();
   });
 
@@ -172,25 +173,47 @@ else {
     onValue(refEstadoReal, (snap)=>{ 
       if(snap.exists()){ 
         const data = snap.val(); 
-        // CORREGIDO: si no tiene campo abierto, lo tomamos como ABIERTO por defecto
-        if(data.abierto === undefined && data.estado === undefined){
-          estadoActual = true;
-          // lo creamos como abierto para que quede guardado
-          update(refEstadoReal, { abierto: true, estado: 'abierto' });
+        // CORREGIDO: Lee solo desde disponibilidad
+        if(typeof data === 'boolean'){
+          estadoActual = data;
+        } else if(typeof data === 'object'){
+          if(data.abierto !== undefined){
+            estadoActual = data.abierto === true || data.abierto === 'true' || data.abierto === 'abierto';
+          } else if(data.estado !== undefined){
+            estadoActual = data.estado === 'abierto' || data.estado === 'activo';
+          } else {
+            estadoActual = true;
+          }
         } else {
-          estadoActual = data.abierto === true || data.estado === 'abierto';
+          estadoActual = true;
         }
         actualizarUIEstado(estadoActual); 
       } else {
-        // Si no existe el nodo, lo creamos abierto
+        // Si no existe disponibilidad, lo creamos abierto en disponibilidad
         estadoActual = true;
         actualizarUIEstado(true);
-        update(refEstadoReal, { abierto: true, estado: 'abierto' });
+        update(refEstadoReal, { abierto: true, estado: 'activo' });
       }
     }); 
   }
   function actualizarUIEstado(abierto){ if(abierto){ switchEl.classList.add('on'); badgeEstado.textContent='ABIERTO'; badgeEstado.className='estado-badge abierto'; textoEstado.textContent='Abierto'; } else { switchEl.classList.remove('on'); badgeEstado.textContent='CERRADO'; badgeEstado.className='estado-badge cerrado'; textoEstado.textContent='Cerrado'; } }
-  window.toggleEstado = function(){ const nuevo = !estadoActual; actualizarUIEstado(nuevo); estadoActual = nuevo; if(!refEstadoReal) refEstadoReal = ref(dbAliados, `doloya_aliados/${categoriaReal}/${idReal}`); update(refEstadoReal, { abierto: nuevo, estado: nuevo ? 'abierto' : 'cerrado' }); }
+  
+  window.toggleEstado = function(){ 
+    const nuevo = !estadoActual; 
+    actualizarUIEstado(nuevo); 
+    estadoActual = nuevo; 
+    if(!refEstadoReal) refEstadoReal = ref(dbAliados, `doloya_aliados/${idReal}/categorias/disponibilidad`); 
+    // CORREGIDO: Solo guarda en categorias/disponibilidad/abierto y estado, y elimina la casilla santillos/santillos
+    update(refEstadoReal, { abierto: nuevo, estado: nuevo ? 'activo' : 'cerrado' });
+    // Elimina la carpeta duplicada santillos/santillos que tenia abierto, estado, subcategoria Burger
+    const refDuplicada = ref(dbAliados, `doloya_aliados/${idReal}/santillos`);
+    get(refDuplicada).then(s=>{
+      if(s.exists()){
+        update(ref(dbAliados, `doloya_aliados/${idReal}`), { santillos: null });
+      }
+    });
+  }
+
   function sonarDoloYa(){ bell.classList.add('vibrar'); setTimeout(()=>bell.classList.remove('vibrar'),3000); try{ window.speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance("¡DoloYa! ¡DoloYa! ¡Pedido!"); u.lang='es-MX'; u.rate=1.25; window.speechSynthesis.speak(u); }catch(e){} }
   function actualizarBadges(count){
     badge.style.display='flex'; badge.textContent=count;
