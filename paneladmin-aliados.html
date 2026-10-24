@@ -38,9 +38,8 @@ body{background:#f7f7f8;min-height:100vh}
 .table-row{display:grid;grid-template-columns:2.2fr 1fr 0.7fr 0.8fr 1fr 1.3fr;padding:14px 18px;border-top:1px solid #f1f1f1;align-items:center}
 .table-row:hover{background:#fff8f8}
 .rest-info{display:flex;gap:12px;align-items:center}
-.rest-icon{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.rest-icon{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden}
 .rest-info b{font-size:13px;font-weight:700;color:#111;display:block}
-.rest-info span{font-size:11px;color:#6c757d;display:block;margin-top:2px}
 .tipo{display:flex;gap:8px;align-items:center;font-size:13px;color:#111;font-weight:500;flex-wrap:wrap}
 .pedidos{display:flex;gap:6px;align-items:center;font-size:13px;font-weight:600}
 .estado-badge{font-size:11px;font-weight:700;padding:5px 10px;border-radius:999px;display:inline-flex;align-items:center;gap:6px;width:fit-content}
@@ -53,90 +52,28 @@ body{background:#f7f7f8;min-height:100vh}
 .last span{font-size:11px;color:#6c757d;display:block}
 .acciones{display:flex;gap:8px;align-items:center;justify-content:flex-end}
 .btn-resumen{border:1.5px solid var(--rojo);color:var(--rojo);background:white;border-radius:999px;padding:7px 12px;font-size:12px;font-weight:600;display:flex;gap:6px;align-items:center;cursor:pointer;text-decoration:none;white-space:nowrap}
-.btn-dots{border:none;background:transparent;font-size:18px;cursor:pointer;color:#6c757d}
 @media(max-width:1000px){.stats{grid-template-columns:repeat(2,1fr)}.table-header{display:none}.table-row{grid-template-columns:1fr;gap:10px}}
 </style>
 </head>
 <body>
 <div class="topbar">
-  <div class="top-left">
-    <a href="paneladmin.html" class="btn-x">✕</a>
-    <h1>Aliados</h1>
-  </div>
-  <a href="paneladmin-aliados-aggaliado.html" class="btn-add">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-    Agregar aliado
-  </a>
+  <div class="top-left"><a href="paneladmin.html" class="btn-x">✕</a><h1>Aliados</h1></div>
+  <a href="paneladmin-aliados-aggaliado.html" class="btn-add">Agregar aliado</a>
 </div>
-
 <div class="container">
   <div class="stats">
-    <div class="card-stat">
-      <div class="icon-circle red">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>
-      </div>
-      <div style="flex:1">
-        <b class="label">Total de aliados</b>
-        <strong class="num" id="totalAliados">0</strong>
-        <span class="sub">Restaurantes vinculados</span>
-      </div>
-    </div>
-    <div class="card-stat">
-      <div class="icon-circle pink">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C50D1F" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M9 12l2 2 4-4"/></svg>
-      </div>
-      <div style="flex:1">
-        <b class="label">Pedidos totales</b>
-        <strong class="num" id="pedidosTotales">0</strong>
-        <span class="sub">Todos los restaurantes</span>
-      </div>
-    </div>
-    <div class="card-stat">
-      <div class="icon-circle light-red">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C50D1F" stroke-width="2"><path d="M3 9l1-5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2l1 5"/><path d="M3 9h18v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z"/><path d="M9 21v-5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v5"/></svg>
-      </div>
-      <div style="flex:1">
-        <b class="label" style="display:flex;align-items:center;justify-content:space-between">En servicio <span class="dot green"></span></b>
-        <strong class="num" id="enServicio">0</strong>
-        <span class="sub">Abiertos ahora</span>
-      </div>
-    </div>
-    <div class="card-stat">
-      <div class="icon-circle gray">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6c757d" stroke-width="2"><path d="M3 9l1-5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2l1 5"/><path d="M3 9h18v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z"/><line x1="9" y1="14" x2="15" y2="14"/></svg>
-      </div>
-      <div style="flex:1">
-        <b class="label" style="display:flex;align-items:center;justify-content:space-between">En pausa <span class="dot gray"></span></b>
-        <strong class="num" id="enPausa">0</strong>
-        <span class="sub">Cerrados</span>
-      </div>
-    </div>
+    <div class="card-stat"><div class="icon-circle red"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/></svg></div><div style="flex:1"><b class="label">Total de aliados</b><strong class="num" id="totalAliados">0</strong><span class="sub">Restaurantes vinculados</span></div></div>
+    <div class="card-stat"><div class="icon-circle pink"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C50D1F" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg></div><div style="flex:1"><b class="label">Pedidos totales</b><strong class="num" id="pedidosTotales">0</strong><span class="sub">Todos los restaurantes</span></div></div>
+    <div class="card-stat"><div class="icon-circle light-red"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C50D1F" stroke-width="2"><path d="M3 9l1-5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2l1 5"/><path d="M3 9h18v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z"/></svg></div><div style="flex:1"><b class="label">En servicio</b><strong class="num" id="enServicio">0</strong><span class="sub">Abiertos ahora</span></div></div>
+    <div class="card-stat"><div class="icon-circle gray"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6c757d" stroke-width="2"><path d="M3 9l1-5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2l1 5"/><path d="M3 9h18v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z"/></svg></div><div style="flex:1"><b class="label">En pausa</b><strong class="num" id="enPausa">0</strong><span class="sub">Cerrados</span></div></div>
   </div>
-
   <div class="filters">
-    <div class="search-box">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6c757d" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input id="buscarInput" type="text" placeholder="Buscar restaurante...">
-    </div>
-    <div class="select-box">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/></svg>
-      <select id="filtroTipo"><option value="todos">Todos los tipos</option><option value="tortas">Tortas</option><option value="burgers">Burgers</option><option value="pizzas">Pizzas</option><option value="tacos">Tacos</option><option value="alitas">Alitas</option></select>
-    </div>
-    <div class="select-box">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-      <select id="filtroEstado"><option value="todos">Todos los estados</option><option value="activo">Activo</option><option value="desactivo">Cerrado</option></select>
-    </div>
+    <div class="search-box"><input id="buscarInput" type="text" placeholder="Buscar restaurante..."></div>
+    <div class="select-box"><select id="filtroTipo"><option value="todos">Todos los tipos</option><option value="tortas">Tortas</option><option value="burgers">Burgers</option><option value="pizzas">Pizzas</option></select></div>
+    <div class="select-box"><select id="filtroEstado"><option value="todos">Todos los estados</option><option value="activo">Activo</option><option value="desactivo">Cerrado</option></select></div>
   </div>
-
   <div class="table-wrap">
-    <div class="table-header">
-      <div>Restaurante</div>
-      <div>Tipo / Categorías</div>
-      <div>Pedidos</div>
-      <div>Estado</div>
-      <div>Última actividad</div>
-      <div style="text-align:right;justify-content:flex-end">Acciones</div>
-    </div>
+    <div class="table-header"><div>Restaurante</div><div>Tipo</div><div>Pedidos</div><div>Estado</div><div>Última actividad</div><div style="text-align:right">Acciones</div></div>
     <div id="listaRestaurantes"><div style="padding:30px;text-align:center;color:#6c757d">Cargando aliados vinculados...</div></div>
   </div>
 </div>
@@ -171,23 +108,6 @@ function formatearFecha(ts){
   return {hora:`${d.getDate()}/${d.getMonth()+1} ${h}`, sub:'Último pedido'};
 }
 
-function obtenerAbiertoReal(nodo){
-  if(!nodo) return true;
-  let val = null;
-  if(nodo.categorias?.disponibilidad) val = nodo.categorias.disponibilidad;
-  if(nodo.categorias?.categorias?.disponibilidad) val = nodo.categorias.categorias.disponibilidad;
-  if(nodo.disponibilidad) val = nodo.disponibilidad;
-  if(nodo.info?.disponibilidad) val = nodo.info.disponibilidad;
-  if(val===null) return true;
-  if(typeof val === 'boolean') return val;
-  if(typeof val === 'string') return val==='true' || val==='abierto' || val==='activo';
-  if(typeof val === 'object'){
-    if(val.abierto!==undefined) return val.abierto===true || val.abierto==='true' || val.abierto==='abierto' || val.abierto==='activo';
-    if(val.estado!==undefined) return val.estado==='abierto' || val.estado==='activo';
-  }
-  return true;
-}
-
 async function cargarDatos(){
   onValue(ref(dbAliados, 'doloya_aliados'), async (snapAliados)=>{
     let totalPedidos = 0;
@@ -200,12 +120,7 @@ async function cargarDatos(){
         if(!pedidosPorRestaurante[rId]) pedidosPorRestaurante[rId] = {count:0, last:null};
         pedidosPorRestaurante[rId].count++;
         const ts = d.creadoEn || d.fecha || d.timestamp;
-        if(ts){
-          const t = ts.seconds ? ts.seconds : new Date(ts).getTime()/1000;
-          if(!pedidosPorRestaurante[rId].last || t > (pedidosPorRestaurante[rId].last.seconds || new Date(pedidosPorRestaurante[rId].last).getTime()/1000)){
-            pedidosPorRestaurante[rId].last = ts;
-          }
-        }
+        if(ts) pedidosPorRestaurante[rId].last = ts;
         totalPedidos++;
       });
     }catch(e){}
@@ -217,31 +132,47 @@ async function cargarDatos(){
         if(key==='admin') continue;
         const nodo = data[key];
         if(!nodo || typeof nodo!=='object') continue;
-        if(!nodo.info && !nodo.perfil && !nodo.categorias) continue;
 
         const info = nodo.info || {};
         const perfil = nodo.perfil || {};
-        
+
+        // NOMBRE CON ESPACIOS
         const nombreRaw = info.nombre || perfil.nombre || key;
         const nombre = nombreRaw.replace(/_/g,' ').trim();
         const nombreCapital = nombre.charAt(0).toUpperCase() + nombre.slice(1);
 
-        let logo = info.imagen || info.imagenPerfil || info.logo || perfil.imagenPerfil || perfil.imagenPortada || nodo.imagenPerfil || nodo.logo || '';
-        if(typeof logo !== 'string' || !logo.startsWith('http')) logo = '';
+        // LOGO EXACTO DE TU FIREBASE: info/imagen es data:image/jpeg;base64
+        let logo = info.imagen || perfil.imagenPerfil || info.imagenPerfil || info.logo || '';
+        if(typeof logo !== 'string') logo = '';
+        logo = logo.trim();
+        // ACEPTA https Y data:image
+        if(!(logo.startsWith('http') || logo.startsWith('data:image'))){
+          logo = '';
+        }
 
-        const tipoAsignada = (info.categoria || perfil.categoria || '').replace(/_/g,' ').trim() || 'General';
+        // CATEGORIA ASIGNADA POR NOSOTROS
+        const tipoAsignada = (info.categoria || '').replace(/_/g,' ').trim() || 'General';
 
-        const abierto = obtenerAbiertoReal(nodo);
-        
+        // ESTADO REAL EN TIEMPO REAL - RUTA EXACTA DE TU FOTO
+        // Prioridad 1: /las_tortas_de_migue/disponibilidad/abierto
+        // Prioridad 2: /las_tortas_de_migue/disponibilidad/estado
+        let abierto = true;
+        if(nodo.disponibilidad){
+          if(typeof nodo.disponibilidad.abierto === 'boolean') abierto = nodo.disponibilidad.abierto;
+          else if(typeof nodo.disponibilidad.abierto === 'string') abierto = nodo.disponibilidad.abierto === 'true' || nodo.disponibilidad.abierto === 'abierto';
+          else if(nodo.disponibilidad.estado) abierto = nodo.disponibilidad.estado === 'abierto' || nodo.disponibilidad.estado === 'activo';
+        }
+        // Si también existe en categorias/disponibilidad lo respeta
+        if(nodo.categorias?.disponibilidad?.abierto !== undefined){
+          abierto = nodo.categorias.disponibilidad.abierto === true || nodo.categorias.disponibilidad.abierto === 'true';
+        }
+
         const keyNorm = key.toLowerCase().replace(/\s+/g,'_');
-        const idNorm = (info.id||'').toLowerCase().replace(/\s+/g,'_');
-        const pedidosInfo = pedidosPorRestaurante[keyNorm] || pedidosPorRestaurante[idNorm] || {count:0, last:null};
-
+        const pedidosInfo = pedidosPorRestaurante[keyNorm] || {count:0, last:null};
         let ultima = pedidosInfo.last || info.creado || null;
 
         aliadosData.push({
           idReal: key,
-          id: key,
           nombre: nombreCapital,
           logo: logo,
           tipo: tipoAsignada,
@@ -256,7 +187,6 @@ async function cargarDatos(){
     document.getElementById('pedidosTotales').textContent = totalPedidos;
     document.getElementById('enServicio').textContent = aliadosData.filter(a=>a.abierto).length;
     document.getElementById('enPausa').textContent = aliadosData.filter(a=>!a.abierto).length;
-
     renderTabla();
   });
 }
@@ -268,14 +198,14 @@ function renderTabla(){
   const estadoF = document.getElementById('filtroEstado').value;
 
   let filtrados = aliadosData.filter(a=>{
-    const matchBusqueda = !busqueda || a.nombre.toLowerCase().includes(busqueda) || a.id.toLowerCase().includes(busqueda);
+    const matchBusqueda = !busqueda || a.nombre.toLowerCase().includes(busqueda);
     const matchTipo = tipoF==='todos' || a.tipo.toLowerCase().includes(tipoF);
     const matchEstado = estadoF==='todos' || (estadoF==='activo' && a.abierto) || (estadoF==='desactivo' && !a.abierto);
     return matchBusqueda && matchTipo && matchEstado;
   });
 
   if(filtrados.length===0){
-    cont.innerHTML = `<div style="padding:30px;text-align:center;color:#6c757d">No hay aliados vinculados</div>`;
+    cont.innerHTML = `<div style="padding:30px;text-align:center;color:#6c757d">No hay aliados</div>`;
     return;
   }
 
@@ -283,25 +213,15 @@ function renderTabla(){
     const fecha = formatearFecha(a.ultima);
     const estadoClass = a.abierto ? 'activo' : 'desactivo';
     const estadoTexto = a.abierto ? 'Activo' : 'Cerrado';
-    const logoHtml = a.logo ? `<img src="${a.logo}" style="width:44px;height:44px;border-radius:50%;object-fit:cover;border:1.5px solid #eee">` : `<div class="rest-icon" style="background:${a.abierto ? '#C50D1F' : '#111'}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M3 9l1-5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2l1 5"/><path d="M3 9h18v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z"/></svg></div>`;
-
+    const logoHtml = a.logo ? `<img src="${a.logo}" style="width:44px;height:44px;border-radius:50%;object-fit:cover;border:1.5px solid #eee;background:white">` : `<div class="rest-icon" style="background:#C50D1F"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M3 9l1-5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2l1 5"/><path d="M3 9h18v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z"/></svg></div>`;
     return `
     <div class="table-row">
-      <div class="rest-info">
-        ${logoHtml}
-        <div><b>${a.nombre}</b></div>
-      </div>
-      <div class="tipo">
-        <span style="text-transform:capitalize;font-weight:700;background:#F3F4F6;padding:4px 10px;border-radius:999px;font-size:12px">${a.tipo}</span>
-      </div>
-      <div class="pedidos">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg> ${a.pedidos}
-      </div>
+      <div class="rest-info">${logoHtml}<div><b>${a.nombre}</b></div></div>
+      <div class="tipo"><span style="text-transform:capitalize;font-weight:700;background:#F3F4F6;padding:4px 10px;border-radius:999px;font-size:12px">${a.tipo}</span></div>
+      <div class="pedidos"> ${a.pedidos} pedidos</div>
       <div><span class="estado-badge ${estadoClass}"><span class="dot2"></span> ${estadoTexto}</span></div>
-      <div class="last"><b style="display:flex;gap:5px;align-items:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> ${fecha.hora}</b><span>${fecha.sub}</span></div>
-      <div class="acciones">
-        <a class="btn-resumen" href="paneladmin-pagos.html?id=${a.idReal}&cat=${a.tipo}">Resumen</a>
-      </div>
+      <div class="last"><b>${fecha.hora}</b><span>${fecha.sub}</span></div>
+      <div class="acciones"><a class="btn-resumen" href="paneladmin-pagos.html?id=${a.idReal}">Resumen</a></div>
     </div>`;
   }).join('');
 }
@@ -309,7 +229,6 @@ function renderTabla(){
 document.getElementById('buscarInput').addEventListener('input', renderTabla);
 document.getElementById('filtroTipo').addEventListener('change', renderTabla);
 document.getElementById('filtroEstado').addEventListener('change', renderTabla);
-
 cargarDatos();
 </script>
 </body>
