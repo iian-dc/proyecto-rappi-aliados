@@ -1,1 +1,206 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Admin - Tarifas por KM - DoloYa</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
+body{background:#f8fafc;color:#0f172a;min-height:100vh}
+.header{padding:14px 16px;background:#fff;border-bottom:1px solid #eef2f7;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-d{width:38px;height:38px;background:#E30613;border-radius:10px;display:flex;align-items:center;justify-content:center;color:white;font-weight:900;font-size:20px;font-style:italic;transform:skew(-6deg)}
+.header h1{font-size:15px;font-weight:800}
+.badge-live{font-size:10px;background:#E6F9ED;color:#0A7D2E;border:1px solid #B5ECC5;padding:4px 8px;border-radius:999px;font-weight:800}
+.container{max-width:720px;margin:0 auto;padding:16px}
+.card{background:#fff;border:1.5px solid #eef2f7;border-radius:16px;padding:16px;margin-bottom:14px;box-shadow:0 4px 12px rgba(0,0,0,0.04)}
+.card h2{font-size:14px;font-weight:800;margin-bottom:2px}
+.card p.sub{font-size:11px;color:#64748b;margin-bottom:12px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:10px;font-weight:800;text-transform:uppercase;color:#475569;letter-spacing:0.3px}
+.field input{height:44px;border:1.5px solid #e5e7eb;border-radius:12px;padding:0 14px;font-size:14px;font-weight:700;outline:none;transition:.2s}
+.field input:focus{border-color:#E30613;box-shadow:0 0 0 3px rgba(227,6,19,0.1)}
+.input-group{position:relative}
+.input-group span{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:13px;font-weight:800;color:#64748b}
+.input-group input{padding-left:32px}
+.btn-save{width:100%;height:46px;background:#E30613;color:white;border:none;border-radius:12px;font-weight:800;font-size:13px;cursor:pointer;transition:.2s;margin-top:12px}
+.btn-save:active{transform:scale(0.98)}
+.btn-save:disabled{opacity:0.6;cursor:not-allowed}
+.preview{background:#0f172a;color:white;border-radius:16px;padding:16px}
+.preview h3{font-size:13px;font-weight:800;margin-bottom:10px}
+.calc-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed rgba(255,255,255,0.15);font-size:12px}
+.calc-row:last-child{border:none}
+.calc-row.total{font-weight:900;font-size:14px;background:rgba(255,255,255,0.08);padding:10px 12px;border-radius:10px;margin-top:6px}
+.tag{font-size:10px;padding:3px 8px;border-radius:999px;background:#F3F4F6;color:#475569;font-weight:700}
+.formula{margin-top:12px;background:#FFF1F2;border:1px solid #FFE4E6;border-radius:12px;padding:10px 12px;font-size:11px;color:#881337;line-height:1.4}
+.formula b{color:#E30613}
+.status{margin-top:10px;padding:10px 12px;border-radius:10px;font-size:11px;font-weight:700;display:none}
+.status.ok{background:#E6F9ED;color:#0A7D2E;border:1px solid #B5ECC5;display:block}
+.status.err{background:#FFF1F2;color:#9F1239;border:1px solid #FECDD3;display:block}
+.sim-table{width:100%;border-collapse:collapse;margin-top:10px}
+.sim-table th{font-size:10px;text-align:left;color:#64748b;text-transform:uppercase;padding:6px 4px;border-bottom:1px solid #eef2f7}
+.sim-table td{font-size:12px;padding:8px 4px;border-bottom:1px solid #f1f5f9;font-weight:600}
+.sim-table td:last-child{font-weight:800;color:#E30613}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="logo"><div class="logo-d">D</div><h1>Tarifas por KM</h1></div>
+  <div class="badge-live">● En vivo</div>
+</div>
 
+<div class="container">
+  <div class="card">
+    <h2>Configuración Global</h2>
+    <p class="sub">Esto es lo que usará inicio y aliado para calcular envío automático por distancia</p>
+    <div class="row">
+      <div class="field">
+        <label>Precio Base (arranque)</label>
+        <div class="input-group"><span>$</span><input id="inpBase" type="number" value="22" step="1" min="0"></div>
+      </div>
+      <div class="field">
+        <label>Precio por Kilómetro</label>
+        <div class="input-group"><span>$</span><input id="inpKm" type="number" value="4" step="1" min="0"></div>
+      </div>
+    </div>
+    <div class="formula">
+      Fórmula actual: <b>Costo = Base + (Distancia_km × Precio_km)</b><br>
+      Ejemplo: <b id="txtFormula">$22 + (2.3 km × $4) = $31.20</b>
+    </div>
+    <button class="btn-save" id="btnGuardar">Guardar tarifa en Firebase</button>
+    <div id="status" class="status"></div>
+  </div>
+
+  <div class="preview">
+    <h3>Vista previa automática</h3>
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <input id="inpDistancia" type="range" min="0.2" max="10" step="0.1" value="2.3" style="flex:1">
+      <span id="txtDist" style="font-weight:800;min-width:52px;text-align:right">2.3 km</span>
+    </div>
+    <div class="calc-row"><span>Base</span><span id="prevBase">$22.00</span></div>
+    <div class="calc-row"><span>Distancia</span><span id="prevDist">2.3 km</span></div>
+    <div class="calc-row"><span>Precio por km</span><span id="prevKm">$4 x 2.3</span></div>
+    <div class="calc-row total"><span>Total envío cliente</span><span id="prevTotal">$31.20</span></div>
+    
+    <table class="sim-table">
+      <tr><th>Distancia</th><th>Cálculo</th><th>Total</th></tr>
+      <tbody id="tablaSim"></tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>Ruta en Firebase</h2>
+    <p class="sub">Se guarda automáticamente aquí para que inicio lo lea</p>
+    <div style="font-family:monospace;font-size:11px;background:#f8fafc;border:1px solid #eef2f7;padding:10px;border-radius:10px">
+      doloya_aliados / config_global / tarifa_default<br>
+      {<br>
+      &nbsp;&nbsp;base: <span id="jsonBase">22</span>,<br>
+      &nbsp;&nbsp;precio_km: <span id="jsonKm">4</span>,<br>
+      &nbsp;&nbsp;actualizado: <span id="jsonFecha">-</span><br>
+      }
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+const firebaseConfig = { 
+  apiKey: "AIzaSyD286qlJQT8D3rqbYTSfCyuTAEg9jjRchQ", 
+  authDomain: "doloya-aliados.firebaseapp.com", 
+  databaseURL: "https://doloya-aliados-default-rtdb.firebaseio.com", 
+  projectId: "doloya-aliados", 
+  storageBucket: "doloya-aliados.firebasestorage.app", 
+  messagingSenderId: "122314467740", 
+  appId: "1:122314467740:web:9947a0a9560557e3a00059" 
+};
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+const inpBase = document.getElementById('inpBase');
+const inpKm = document.getElementById('inpKm');
+const inpDist = document.getElementById('inpDistancia');
+const status = document.getElementById('status');
+
+function calcular(base, precioKm, dist){
+  return base + (dist * precioKm);
+}
+
+function renderPreview(){
+  const base = parseFloat(inpBase.value)||0;
+  const precioKm = parseFloat(inpKm.value)||0;
+  const dist = parseFloat(inpDist.value)||0;
+  const total = calcular(base, precioKm, dist);
+  
+  document.getElementById('txtDist').textContent = dist.toFixed(1) + ' km';
+  document.getElementById('prevBase').textContent = '$' + base.toFixed(2);
+  document.getElementById('prevDist').textContent = dist.toFixed(1) + ' km';
+  document.getElementById('prevKm').textContent = '$' + precioKm + ' x ' + dist.toFixed(1);
+  document.getElementById('prevTotal').textContent = '$' + total.toFixed(2);
+  document.getElementById('txtFormula').textContent = `$${base} + (${dist.toFixed(1)} km × $${precioKm}) = $${total.toFixed(2)}`;
+  document.getElementById('jsonBase').textContent = base;
+  document.getElementById('jsonKm').textContent = precioKm;
+  
+  // Tabla simulación
+  let html = '';
+  [0.5,1,1.5,2,2.5,3,4,5,7,10].forEach(d=>{
+    let t = calcular(base, precioKm, d);
+    html += `<tr><td>${d} km</td><td>$${base} + (${d}×$${precioKm})</td><td>$${t.toFixed(2)}</td></tr>`;
+  });
+  document.getElementById('tablaSim').innerHTML = html;
+}
+
+inpBase.addEventListener('input', renderPreview);
+inpKm.addEventListener('input', renderPreview);
+inpDist.addEventListener('input', renderPreview);
+
+// Cargar tarifa actual de Firebase
+onValue(ref(db, 'config_global/tarifa_default'), (snap)=>{
+  const v = snap.val();
+  if(v){
+    if(v.base !== undefined) inpBase.value = v.base;
+    if(v.precio_km !== undefined) inpKm.value = v.precio_km;
+    document.getElementById('jsonFecha').textContent = v.actualizado ? new Date(v.actualizado).toLocaleString() : new Date().toLocaleString();
+    renderPreview();
+  } else {
+    // Si no existe, crea la default $22 + $4
+    renderPreview();
+  }
+});
+
+document.getElementById('btnGuardar').addEventListener('click', async ()=>{
+  const base = parseFloat(inpBase.value);
+  const precio_km = parseFloat(inpKm.value);
+  if(isNaN(base) || isNaN(precio_km)){
+    status.className = 'status err';
+    status.textContent = 'Pon valores válidos';
+    return;
+  }
+  const btn = document.getElementById('btnGuardar');
+  btn.disabled = true;
+  btn.textContent = 'Guardando...';
+  try{
+    await set(ref(db, 'config_global/tarifa_default'), {
+      base: base,
+      precio_km: precio_km,
+      actualizado: new Date().toISOString()
+    });
+    status.className = 'status ok';
+    status.textContent = `✓ Tarifa guardada: Base $${base} + $${precio_km}/km - Ya se refleja en inicio automáticamente`;
+    btn.textContent = 'Guardado ✓';
+    setTimeout(()=>{ btn.textContent = 'Guardar tarifa en Firebase'; btn.disabled=false; }, 1500);
+  }catch(e){
+    status.className = 'status err';
+    status.textContent = 'Error: ' + e.message;
+    btn.disabled = false;
+    btn.textContent = 'Guardar tarifa en Firebase';
+  }
+});
+
+renderPreview();
+</script>
+</body>
+</html>
