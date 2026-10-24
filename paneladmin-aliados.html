@@ -143,7 +143,7 @@ body{background:#f7f7f8;min-height:100vh}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js";
+import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js";
 import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
 const configAliados = { apiKey: "AIzaSyD286qlJQT8D3rqbYTSfCyuTAEg9jjRchQ", authDomain: "doloya-aliados.firebaseapp.com", databaseURL: "https://doloya-aliados-default-rtdb.firebaseio.com", projectId: "doloya-aliados", storageBucket: "doloya-aliados.firebasestorage.app", messagingSenderId: "122314467740", appId: "1:122314467740:web:9947a0a9560557e3a00059" };
@@ -158,7 +158,7 @@ let aliadosData = [];
 let pedidosPorRestaurante = {};
 
 function formatearFecha(ts){
-  if(!ts) return {hora:'Sin actividad', sub:'Nunca ha pedido'};
+  if(!ts) return {hora:'Sin actividad', sub:'—'};
   const d = ts.seconds ? new Date(ts.seconds*1000) : new Date(ts);
   if(isNaN(d.getTime())) return {hora:'Sin actividad', sub:''};
   const hoy = new Date();
@@ -188,102 +188,77 @@ function obtenerAbiertoReal(nodo){
   return true;
 }
 
-function extraerCategorias(nodo){
-  let cats = [];
-  if(!nodo.categorias) return cats;
-  let root = nodo.categorias;
-  if(root.categorias && typeof root.categorias === 'object') root = root.categorias;
-  Object.keys(root).forEach(k=>{
-    if(k.startsWith('_')) return;
-    if(['info','perfil','disponibilidad','santillos','likes'].includes(k)) return;
-    const v = root[k];
-    if(v && typeof v==='object'){
-      cats.push(v.nombre || k.replace(/_/g,' '));
-    }
-  });
-  if(nodo.info?.categoria) cats.unshift(nodo.info.categoria);
-  return [...new Set(cats)];
-}
-
-function iconoSVG(cat){
-  const c = (cat||'').toLowerCase();
-  if(c.includes('burger')) return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M3 8h18"/><path d="M4 8a8 8 0 0 1 16 0"/><path d="M5 12h14"/><path d="M4 16h16a2 2 0 0 0-2 2H6a2 2 0 0 0-2-2z"/></svg>`;
-  if(c.includes('pizza')) return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 2L2 22h20L12 2z"/><circle cx="12" cy="14" r="2"/></svg>`;
-  if(c.includes('torta')) return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M3 7h18v3H3z"/><path d="M3 10h18v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7z"/></svg>`;
-  return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M3 9l1-5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2l1 5"/><path d="M3 9h18v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z"/></svg>`;
-}
-
 async function cargarDatos(){
-  const snapAliados = await get(ref(dbAliados, 'doloya_aliados'));
-  let totalPedidos = 0;
-  try{
-    const snapPedidos = await getDocs(collection(dbFirestore, "pedidos"));
-    snapPedidos.forEach(doc=>{
-      const d = doc.data();
-      const rId = (d.restaurante?.id || d.restauranteId || '').toLowerCase().replace(/\s+/g,'_');
-      const key = rId;
-      if(!pedidosPorRestaurante[key]) pedidosPorRestaurante[key] = {count:0, last:null};
-      pedidosPorRestaurante[key].count++;
-      const ts = d.creadoEn || d.fecha || d.timestamp;
-      if(ts){
-        const t = ts.seconds ? ts.seconds : new Date(ts).getTime()/1000;
-        if(!pedidosPorRestaurante[key].last || t > (pedidosPorRestaurante[key].last.seconds || pedidosPorRestaurante[key].last/1000)){
-          pedidosPorRestaurante[key].last = ts;
+  onValue(ref(dbAliados, 'doloya_aliados'), async (snapAliados)=>{
+    let totalPedidos = 0;
+    try{
+      const snapPedidos = await getDocs(collection(dbFirestore, "pedidos"));
+      pedidosPorRestaurante = {};
+      snapPedidos.forEach(doc=>{
+        const d = doc.data();
+        const rId = (d.restaurante?.id || d.restauranteId || '').toLowerCase().replace(/\s+/g,'_');
+        if(!pedidosPorRestaurante[rId]) pedidosPorRestaurante[rId] = {count:0, last:null};
+        pedidosPorRestaurante[rId].count++;
+        const ts = d.creadoEn || d.fecha || d.timestamp;
+        if(ts){
+          const t = ts.seconds ? ts.seconds : new Date(ts).getTime()/1000;
+          if(!pedidosPorRestaurante[rId].last || t > (pedidosPorRestaurante[rId].last.seconds || new Date(pedidosPorRestaurante[rId].last).getTime()/1000)){
+            pedidosPorRestaurante[rId].last = ts;
+          }
         }
-      }
-      totalPedidos++;
-    });
-  }catch(e){ console.log("No hay pedidos o sin permisos", e); }
-
-  aliadosData = [];
-  if(snapAliados.exists()){
-    const data = snapAliados.val();
-    for(const key in data){
-      if(key==='admin') continue;
-      const nodo = data[key];
-      if(!nodo || typeof nodo!=='object') continue;
-      // Solo restaurantes vinculados con info real
-      if(!nodo.info && !nodo.perfil && !nodo.categorias) continue;
-      if(nodo.info && nodo.info.correo && !nodo.info.nombre && key==='admin') continue;
-
-      const info = nodo.info || {};
-      const nombreRaw = info.nombre || info.nombreRestaurante || nodo.perfil?.nombre || key;
-      const nombre = nombreRaw.replace(/_/g,' ').trim();
-      const nombreCapital = nombre.charAt(0).toUpperCase() + nombre.slice(1);
-
-      const abierto = obtenerAbiertoReal(nodo);
-      const cats = extraerCategorias(nodo);
-      const tipoPrincipal = info.categoria || cats[0] || 'general';
-      
-      const keyNorm = key.toLowerCase().replace(/\s+/g,'_');
-      const idNorm = (info.id||'').toLowerCase().replace(/\s+/g,'_');
-      const pedidosInfo = pedidosPorRestaurante[keyNorm] || pedidosPorRestaurante[idNorm] || {count:0, last:null};
-
-      // Última actividad = último pedido o fecha de creación
-      let ultima = pedidosInfo.last || info.creado || info.ultimaActividad || null;
-
-      aliadosData.push({
-        idReal: key,
-        id: key,
-        nombre: nombreCapital,
-        direccion: info.direccion || info.zona || 'Dolores Hidalgo',
-        tipo: tipoPrincipal,
-        categorias: cats,
-        abierto: abierto,
-        pedidos: pedidosInfo.count,
-        ultima: ultima,
-        telefono: info.telefono || '',
-        correo: info.correo || ''
+        totalPedidos++;
       });
+    }catch(e){}
+
+    aliadosData = [];
+    if(snapAliados.exists()){
+      const data = snapAliados.val();
+      for(const key in data){
+        if(key==='admin') continue;
+        const nodo = data[key];
+        if(!nodo || typeof nodo!=='object') continue;
+        if(!nodo.info && !nodo.perfil && !nodo.categorias) continue;
+
+        const info = nodo.info || {};
+        const perfil = nodo.perfil || {};
+        
+        const nombreRaw = info.nombre || perfil.nombre || key;
+        const nombre = nombreRaw.replace(/_/g,' ').trim();
+        const nombreCapital = nombre.charAt(0).toUpperCase() + nombre.slice(1);
+
+        let logo = info.imagen || info.imagenPerfil || info.logo || perfil.imagenPerfil || perfil.imagenPortada || nodo.imagenPerfil || nodo.logo || '';
+        if(typeof logo !== 'string' || !logo.startsWith('http')) logo = '';
+
+        const tipoAsignada = (info.categoria || perfil.categoria || '').replace(/_/g,' ').trim() || 'General';
+
+        const abierto = obtenerAbiertoReal(nodo);
+        
+        const keyNorm = key.toLowerCase().replace(/\s+/g,'_');
+        const idNorm = (info.id||'').toLowerCase().replace(/\s+/g,'_');
+        const pedidosInfo = pedidosPorRestaurante[keyNorm] || pedidosPorRestaurante[idNorm] || {count:0, last:null};
+
+        let ultima = pedidosInfo.last || info.creado || null;
+
+        aliadosData.push({
+          idReal: key,
+          id: key,
+          nombre: nombreCapital,
+          logo: logo,
+          tipo: tipoAsignada,
+          abierto: abierto,
+          pedidos: pedidosInfo.count,
+          ultima: ultima
+        });
+      }
     }
-  }
 
-  document.getElementById('totalAliados').textContent = aliadosData.length;
-  document.getElementById('pedidosTotales').textContent = totalPedidos;
-  document.getElementById('enServicio').textContent = aliadosData.filter(a=>a.abierto).length;
-  document.getElementById('enPausa').textContent = aliadosData.filter(a=>!a.abierto).length;
+    document.getElementById('totalAliados').textContent = aliadosData.length;
+    document.getElementById('pedidosTotales').textContent = totalPedidos;
+    document.getElementById('enServicio').textContent = aliadosData.filter(a=>a.abierto).length;
+    document.getElementById('enPausa').textContent = aliadosData.filter(a=>!a.abierto).length;
 
-  renderTabla();
+    renderTabla();
+  });
 }
 
 function renderTabla(){
@@ -293,14 +268,14 @@ function renderTabla(){
   const estadoF = document.getElementById('filtroEstado').value;
 
   let filtrados = aliadosData.filter(a=>{
-    const matchBusqueda = !busqueda || a.nombre.toLowerCase().includes(busqueda) || a.id.toLowerCase().includes(busqueda) || a.tipo.toLowerCase().includes(busqueda);
-    const matchTipo = tipoF==='todos' || a.tipo.toLowerCase().includes(tipoF) || a.categorias.join(' ').toLowerCase().includes(tipoF);
+    const matchBusqueda = !busqueda || a.nombre.toLowerCase().includes(busqueda) || a.id.toLowerCase().includes(busqueda);
+    const matchTipo = tipoF==='todos' || a.tipo.toLowerCase().includes(tipoF);
     const matchEstado = estadoF==='todos' || (estadoF==='activo' && a.abierto) || (estadoF==='desactivo' && !a.abierto);
     return matchBusqueda && matchTipo && matchEstado;
   });
 
   if(filtrados.length===0){
-    cont.innerHTML = `<div style="padding:30px;text-align:center;color:#6c757d">No hay aliados vinculados con ese filtro</div>`;
+    cont.innerHTML = `<div style="padding:30px;text-align:center;color:#6c757d">No hay aliados vinculados</div>`;
     return;
   }
 
@@ -308,21 +283,16 @@ function renderTabla(){
     const fecha = formatearFecha(a.ultima);
     const estadoClass = a.abierto ? 'activo' : 'desactivo';
     const estadoTexto = a.abierto ? 'Activo' : 'Cerrado';
-    const catsHtml = a.categorias.length>0 ? `<div style="margin-top:4px;display:flex;gap:4px;flex-wrap:wrap">${a.categorias.slice(0,3).map(c=>`<span style="background:#F3F4F6;border-radius:999px;padding:2px 7px;font-size:10px;font-weight:600;color:#555;text-transform:capitalize">${c.replace(/_/g,' ')}</span>`).join('')}${a.categorias.length>3?`<span style="font-size:10px;color:#888">+${a.categorias.length-3}</span>`:''}</div>` : '';
+    const logoHtml = a.logo ? `<img src="${a.logo}" style="width:44px;height:44px;border-radius:50%;object-fit:cover;border:1.5px solid #eee">` : `<div class="rest-icon" style="background:${a.abierto ? '#C50D1F' : '#111'}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M3 9l1-5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2l1 5"/><path d="M3 9h18v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z"/></svg></div>`;
+
     return `
     <div class="table-row">
       <div class="rest-info">
-        <div class="rest-icon" style="background:${a.abierto ? '#C50D1F' : '#111'}">${iconoSVG(a.tipo)}</div>
-        <div>
-          <b>${a.nombre}</b>
-          <span>${a.direccion} • ${a.correo||''}</span>
-        </div>
+        ${logoHtml}
+        <div><b>${a.nombre}</b></div>
       </div>
       <div class="tipo">
-        <div>
-          <span style="text-transform:capitalize;font-weight:700">${a.tipo.replace(/_/g,' ')}</span>
-          ${catsHtml}
-        </div>
+        <span style="text-transform:capitalize;font-weight:700;background:#F3F4F6;padding:4px 10px;border-radius:999px;font-size:12px">${a.tipo}</span>
       </div>
       <div class="pedidos">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg> ${a.pedidos}
@@ -330,7 +300,7 @@ function renderTabla(){
       <div><span class="estado-badge ${estadoClass}"><span class="dot2"></span> ${estadoTexto}</span></div>
       <div class="last"><b style="display:flex;gap:5px;align-items:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> ${fecha.hora}</b><span>${fecha.sub}</span></div>
       <div class="acciones">
-        <a class="btn-resumen" href="paneladmin-pagos.html?id=${a.idReal}&cat=${a.tipo}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Resumen</a>
+        <a class="btn-resumen" href="paneladmin-pagos.html?id=${a.idReal}&cat=${a.tipo}">Resumen</a>
       </div>
     </div>`;
   }).join('');
