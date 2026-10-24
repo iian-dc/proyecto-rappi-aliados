@@ -131,8 +131,8 @@ let filtro = "todos";
 let filtroMes = "", filtroDia = "";
 
 const sesionAliado = JSON.parse(localStorage.getItem('doloya_aliado_sesion')||'null');
-const idAliado = (sesionAliado?.id || sesionAliado?.negocio || 'alitas_factory').toLowerCase();
-const nombreAliado = (sesionAliado?.nombre || sesionAliado?.restaurante || 'alitas factory').toLowerCase();
+const idAliado = (sesionAliado?.id || sesionAliado?.negocio || '').toLowerCase().trim();
+const nombreAliado = (sesionAliado?.nombre || sesionAliado?.restaurante || '').toLowerCase().trim();
 
 function normalize(t){ return String(t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim(); }
 function toHora(ts){
@@ -165,16 +165,41 @@ function getEstadoPago(raw){
   return 'pendiente';
 }
 
+// CORREGIDO: VINCULACION EXACTA SOLO A ESTE RESTAURANTE LOGUEADO
 function esDeEsteRestaurante(p){
-  const tiendaNorm = normalize(p.tienda);
+  if(!idAliado) return false;
   const raw = p.raw || {};
-  const rid = String(raw.restauranteId || raw.idRestaurante || raw.restaurante?.id || raw.negocioId || '').toLowerCase();
-  const rNombre = String(raw.restauranteNombre || raw.restaurante?.nombre || raw.negocio || raw.tienda || '').toLowerCase();
-  if(rid && (rid===idAliado || rid.includes(idAliado) || idAliado.includes(rid))) return true;
-  if(tiendaNorm.includes(normalize(idAliado)) || normalize(idAliado).includes(tiendaNorm)) return true;
-  if(nombreAliado && (tiendaNorm.includes(normalize(nombreAliado)) || normalize(rNombre).includes(normalize(nombreAliado)))) return true;
-  if(idAliado==='alitas_factory' && (tiendaNorm.includes('alitas') || tiendaNorm.includes('factory'))) return true;
-  if(tiendaNorm.includes('alitas factory') || tiendaNorm.includes('alitas_factory')) return true;
+  
+  // Todos los posibles campos donde guardas el ID del restaurante en Firestore
+  const posiblesIds = [
+    raw.restauranteId,
+    raw.idRestaurante,
+    raw.restaurante?.id,
+    raw.negocioId,
+    raw.idNegocio,
+    raw.restaurante_id,
+    raw.id_aliado
+  ].map(v => String(v||'').toLowerCase().trim()).filter(Boolean);
+
+  // 1. Coincidencia EXACTA de ID - PRIORIDAD MAXIMA
+  for(let rid of posiblesIds){
+    let ridNorm = rid.replace(/-/g,'_').replace(/\s+/g,'_');
+    let idAliadoNorm = idAliado.replace(/-/g,'_').replace(/\s+/g,'_');
+    if(rid === idAliado || ridNorm === idAliadoNorm) return true;
+  }
+
+  // 2. Si no hay ID, verifica por nombre EXACTO de tienda logueada
+  const tiendaNorm = normalize(p.tienda);
+  const nombreAliadoNorm = normalize(nombreAliado);
+  const idAliadoNorm2 = normalize(idAliado);
+
+  if(nombreAliadoNorm && tiendaNorm === nombreAliadoNorm) return true;
+  if(idAliadoNorm2 && tiendaNorm === idAliadoNorm2) return true;
+
+  // 3. Fallback: si el campo restauranteNombre es EXACTO
+  const rNombre = normalize(raw.restauranteNombre || raw.restaurante?.nombre || raw.negocio || '');
+  if(nombreAliadoNorm && rNombre === nombreAliadoNorm) return true;
+
   return false;
 }
 
@@ -227,7 +252,7 @@ function parseDoc(docSnap){
 }
 
 function getPedidosDeEsteRestaurante(){
-  if(!sesionAliado) return todosPedidos;
+  if(!idAliado) return [];
   return todosPedidos.filter(esDeEsteRestaurante);
 }
 
@@ -356,7 +381,7 @@ window.abrirDetalle = (id)=>{
 
   if(p.estadoVisual==='cancelado'){
     const descCancel = prod*0.40;
-    const pagoRest = prod - comision - descCancel; // 50%
+    const pagoRest = prod - comision - descCancel;
     htmlDesglose = `
       <div class="pres-row"><span>Producto</span><b>$${prod.toFixed(2)}</b></div>
       <div class="pres-row total-final"><span>Total pagado cliente</span><b>$0.00</b></div>
