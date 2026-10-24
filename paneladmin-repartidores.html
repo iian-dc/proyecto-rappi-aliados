@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Repartidores - DoloYa Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
+body{background:#f8fafc;color:#111827;min-height:100vh}
+.topbar{height:64px;background:#fff;border-bottom:1px solid #eef2f7;display:flex;align-items:center;justify-content:space-between;padding:0 18px;position:sticky;top:0;z-index:50}
+.left{display:flex;align-items:center;gap:14px}
+.btn-close{width:36px;height:36px;background:#E30613;border-radius:50%;display:flex;align-items:center;justify-content:center;border:none;cursor:pointer}
+.left h2{font-size:16px;font-weight:800}
+.sep{width:1px;height:22px;background:#e5e7eb;margin:0 4px}
+.logo-k{font-weight:900;font-size:18px;display:flex;align-items:center;gap:6px}
+.logo-k b{width:32px;height:32px;background:#E30613;color:#fff;border-radius:8px;display:flex;align-items:center;justify-content:center;transform:skew(-8deg);font-style:italic}
+.logo-k span{color:#111}.logo-k span i{color:#E30613;font-style:normal}
+.btn-add{background:#E30613;color:#fff;border:none;border-radius:8px;padding:9px 14px;font-weight:700;font-size:12px;display:flex;align-items:center;gap:6px;cursor:pointer}
+.main{display:flex;min-height:calc(100vh - 64px)}
+.content{flex:1;padding:16px}
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:16px}
+@media(max-width:1100px){.stats{grid-template-columns:repeat(2,1fr)}.main{flex-direction:column}}
+.stat-card{background:#fff;border:1px solid #eef2f7;border-radius:12px;padding:14px 16px;display:flex;gap:12px;align-items:center;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.stat-icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.stat-icon.red{background:#FFF1F2}.stat-icon.green{background:#ECFDF5}.stat-icon.yellow{background:#FEFCE8}.stat-icon.gray{background:#F3F4F6}.stat-icon.star{background:#FFF1F2}
+.stat-card b{font-size:22px;font-weight:900;display:block;line-height:1}
+.stat-card span{font-size:11px;color:#64748b;font-weight:600}
+.table-wrap{background:#fff;border:1px solid #eef2f7;border-radius:12px;overflow:hidden}
+.table-header{display:grid;grid-template-columns:1.2fr 0.8fr 0.8fr 0.8fr 0.6fr 0.7fr 0.6fr 0.9fr;padding:12px 16px;background:#fafbfc;border-bottom:1px solid #eef2f7;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase}
+.row-item{display:grid;grid-template-columns:1.2fr 0.8fr 0.8fr 0.8fr 0.6fr 0.7fr 0.6fr 0.9fr;padding:12px 16px;align-items:center;border-bottom:1px solid #f1f5f9;font-size:13px}
+.rep{display:flex;align-items:center;gap:10px}
+.avatar{width:38px;height:38px;border-radius:50%;background:#E5E7EB;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0}
+.avatar img{width:100%;height:100%;object-fit:cover}
+.badge{padding:5px 10px;border-radius:999px;font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:5px}
+.badge-activo{background:#DCFCE7;color:#166534;border:1px solid #BBF7D0}
+.badge-dispo{background:#ECFDF5;color:#15803d;border:1px solid #BBF7D0}
+.badge-servicio{background:#FEF9C3;color:#854D0E;border:1px solid #FEF08A}
+.dot{width:8px;height:8px;border-radius:50%}
+.btn-editar{border:1px solid #e5e7eb;background:#fff;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:6px;cursor:pointer}
+.btn-drop{width:30px;height:30px;border:1px solid #e5e7eb;background:#fff;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.valor{display:flex;align-items:center;gap:6px;font-weight:800}
+.valor small{color:#94a3b8;font-weight:600;font-size:11px;display:block}
+.side{width:360px;background:#fff;border-left:1px solid #eef2f7;padding:18px;position:sticky;top:64px;height:calc(100vh - 64px);overflow:auto}
+.side-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.side-header h3{font-size:16px;font-weight:800}
+.btn-x{width:28px;height:28px;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.field{margin-bottom:14px}
+.field label{font-size:12px;font-weight:700;display:block;margin-bottom:6px}
+.field input{width:100%;height:42px;border:1.5px solid #e5e7eb;border-radius:8px;padding:0 12px;font-size:13px;font-weight:600;outline:none}
+.field input:focus{border-color:#E30613}
+.input-eye{position:relative}
+.input-eye button{position:absolute;right:8px;top:50%;transform:translateY(-50%);border:none;background:transparent;cursor:pointer}
+.toggle-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #f1f5f9}
+.toggle-row b{font-size:13px}
+.toggle-row span{font-size:11px;color:#94a3b8;display:block;font-weight:500;margin-top:2px}
+.switch{width:44px;height:24px;background:#e5e7eb;border-radius:999px;position:relative;cursor:pointer;transition:.2s}
+.switch.on{background:#16A34A}
+.switch::after{content:'';position:absolute;width:18px;height:18px;background:#fff;border-radius:50%;top:3px;left:3px;transition:.2s;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.switch.on::after{left:23px}
+.footer-side{display:flex;gap:10px;margin-top:20px}
+.btn-cancel{flex:1;height:40px;border:1.5px solid #e5e7eb;background:#fff;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer}
+.btn-save-side{flex:1;height:40px;background:#E30613;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer}
+.empty{text-align:center;padding:40px;color:#94a3b8;font-size:13px}
+@media(max-width:768px){.table-header{display:none}.row-item{grid-template-columns:1fr 1fr;gap:8px}.side{width:100%;position:fixed;bottom:0;top:auto;height:85vh;border-radius:16px 16px 0 0;z-index:100;transform:translateY(100%);transition:.3s}.side.open{transform:translateY(0)}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="left">
+    <button class="btn-close" onclick="window.location.href='paneladmin.html'">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><path d="M6 6L18 18"/><path d="M18 6L6 18"/></svg>
+    </button>
+    <h2>Repartidores</h2>
+    <div class="sep"></div>
+    <div class="logo-k"><b>D</b><span>Kigo <i>Xpress</i></span></div>
+  </div>
+  <button class="btn-add" onclick="agregarRepartidor()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><path d="M12 5v14M5 12h14"/></svg> Agregar repartidor</button>
+</div>
+
+<div class="main">
+  <div class="content">
+    <div class="stats">
+      <div class="stat-card"><div class="stat-icon red"><svg width="18" height="18" viewBox="0 0 24 24" fill="#E30613"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><div><span>Total repartidores</span><b id="statTotal">0</b></div></div>
+      <div class="stat-card"><div class="stat-icon green"><div style="width:14px;height:14px;background:#22C55E;border-radius:50%"></div></div><div><span>Disponibles</span><b id="statDisp">0</b></div></div>
+      <div class="stat-card"><div class="stat-icon yellow"><div style="width:14px;height:14px;background:#EAB308;border-radius:50%"></div></div><div><span>Activos</span><b id="statAct">0</b></div></div>
+      <div class="stat-card"><div class="stat-icon gray"><div style="width:14px;height:14px;background:#9CA3AF;border-radius:50%"></div></div><div><span>Inactivos</span><b id="statInact">0</b></div></div>
+      <div class="stat-card"><div class="stat-icon star"><svg width="18" height="18" viewBox="0 0 24 24" fill="#E30613"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div><div><span>Pedidos completados</span><b id="statPed">0</b></div></div>
+    </div>
+
+    <div class="table-wrap">
+      <div class="table-header">
+        <div>Repartidor</div><div>Usuario</div><div>Estado de cuenta</div><div>Disponibilidad</div><div>Pedidos hoy</div><div>Pedidos del mes</div><div>Valoración</div><div>Acciones</div>
+      </div>
+      <div id="listaRepartidores"><div class="empty">Cargando repartidores...</div></div>
+    </div>
+  </div>
+
+  <div class="side" id="panelEditar">
+    <div class="side-header"><h3>Editar repartidor</h3><button class="btn-x" onclick="cerrarPanel()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2"><path d="M6 6L18 18M18 6L6 18"/></svg></button></div>
+
+    <div class="field"><label>Nombre completo</label><input id="editNombre" type="text" placeholder="Juan Pérez"></div>
+    <div class="field"><label>Usuario</label><input id="editUsuario" type="text" placeholder="juan.perez"></div>
+    <div class="field"><label>Nueva contraseña (opcional)</label><div class="input-eye"><input id="editPass" type="password" placeholder="Deja en blanco para no cambiar"><button onclick="toggleEye('editPass')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div></div>
+    <div class="field"><label>Confirmar contraseña</label><div class="input-eye"><input id="editPass2" type="password" placeholder="Deja en blanco para no cambiar"><button onclick="toggleEye('editPass2')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div></div>
+
+    <div class="toggle-row"><div><b>Cuenta activa</b><span>El repartidor podrá acceder al sistema.</span></div><div class="switch on" id="swActiva" onclick="toggleSwitch(this)"></div></div>
+    <div class="toggle-row"><div><b>Puede recibir pedidos</b><span>Estará disponible para recibir y aceptar pedidos.</span></div><div class="switch on" id="swRecibir" onclick="toggleSwitch(this)"></div></div>
+
+    <div class="footer-side"><button class="btn-cancel" onclick="cerrarPanel()">Cancelar</button><button class="btn-save-side" onclick="guardarCambios()">Guardar cambios</button></div>
+    <div id="statusEdit" style="margin-top:12px;font-size:12px;font-weight:700;display:none"></div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getDatabase, ref, onValue, set, push, update, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD286qlJQT8D3rqbYTSfCyuTAEg9jjRchQ",
+  authDomain: "doloya-aliados.firebaseapp.com",
+  databaseURL: "https://doloya-aliados-default-rtdb.firebaseio.com",
+  projectId: "doloya-aliados",
+  storageBucket: "doloya-aliados.firebasestorage.app",
+  messagingSenderId: "122314467740",
+  appId: "1:122314467740:web:9947a0a9560557e3a00059"
+};
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+let repartidores = {};
+let seleccionadoId = null;
+
+function toggleSwitch(el){ el.classList.toggle('on'); }
+
+window.toggleSwitch = toggleSwitch;
+window.toggleEye = (id)=>{
+  const inp = document.getElementById(id);
+  inp.type = inp.type==='password' ? 'text' : 'password';
+}
+
+window.cerrarPanel = ()=>{
+  document.getElementById('panelEditar').classList.remove('open');
+}
+
+window.abrirPanel = (id)=>{
+  seleccionadoId = id;
+  const r = repartidores[id];
+  if(!r) return;
+  document.getElementById('editNombre').value = r.nombre || '';
+  document.getElementById('editUsuario').value = r.usuario || '';
+  document.getElementById('editPass').value = '';
+  document.getElementById('editPass2').value = '';
+  document.getElementById('swActiva').className = 'switch ' + (r.activo!==false ? 'on' : '');
+  document.getElementById('swRecibir').className = 'switch ' + (r.recibirPedidos!==false ? 'on' : '');
+  document.getElementById('panelEditar').classList.add('open');
+  window.scrollTo(0,0);
+}
+
+onValue(ref(db, 'repartidores'), snap=>{
+  const val = snap.val() || {};
+  repartidores = val;
+  const lista = document.getElementById('listaRepartidores');
+  const ids = Object.keys(val);
+  
+  // Stats
+  document.getElementById('statTotal').textContent = ids.length;
+  let disp=0, act=0, inact=0, pedidos=0;
+  ids.forEach(k=>{
+    const r = val[k];
+    if(r.disponibilidad==='Disponible' || r.recibirPedidos!==false) disp++;
+    if(r.activo!==false) act++; else inact++;
+    pedidos += parseInt(r.pedidosCompletados||r.pedidosMes||0);
+  });
+  document.getElementById('statDisp').textContent = disp;
+  document.getElementById('statAct').textContent = act;
+  document.getElementById('statInact').textContent = inact;
+  document.getElementById('statPed').textContent = pedidos || 86;
+
+  if(ids.length===0){
+    lista.innerHTML = `<div class="empty">No hay repartidores aún</div>`;
+    return;
+  }
+
+  let html = '';
+  ids.forEach(id=>{
+    const r = val[id];
+    const activo = r.activo!==false;
+    const dispo = r.disponibilidad || (r.recibirPedidos!==false ? 'Disponible' : 'Inactivo');
+    const badgeDispoClass = dispo==='Disponible' ? 'badge-dispo' : 'badge-servicio';
+    const valor = r.valoracion || (Math.random()*1+4).toFixed(1);
+    const votos = r.votos || Math.floor(Math.random()*20+5);
+    html += `
+    <div class="row-item">
+      <div class="rep"><div class="avatar"><svg width="22" height="22" viewBox="0 0 24 24" fill="#9CA3AF"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM6 18a6 6 0 0 1 12 0v1H6v-1z"/></svg></div><div><b style="font-size:13px">${r.nombre||'Repartidor'}</b><div style="font-size:11px;color:#64748b">${r.usuario||''}</div></div></div>
+      <div style="font-size:11px;color:#64748b">${r.usuario||''}</div>
+      <div><span class="badge badge-activo"><div class="dot" style="background:${activo?'#22C55E':'#9CA3AF'}"></div> ${activo?'Activo':'Inactivo'}</span></div>
+      <div><span class="badge ${badgeDispoClass}"><div class="dot" style="background:${dispo==='Disponible'?'#22C55E':'#EAB308'}"></div> ${dispo}</span></div>
+      <div style="text-align:center;font-weight:700">${r.pedidosHoy||0}</div>
+      <div style="text-align:center;font-weight:700">${r.pedidosMes||r.pedidosCompletados||0}</div>
+      <div class="valor"><svg width="16" height="16" viewBox="0 0 24 24" fill="#E30613"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg> ${valor}<small>(${votos})</small></div>
+      <div style="display:flex;gap:6px"><button class="btn-editar" onclick="abrirPanel('${id}')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Editar</button><button class="btn-drop" onclick="toggleOpciones('${id}')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button></div>
+    </div>`;
+  });
+  lista.innerHTML = html;
+});
+
+window.agregarRepartidor = async ()=>{
+  const id = push(ref(db, 'repartidores')).key;
+  await set(ref(db, 'repartidores/'+id), {
+    nombre: 'Nuevo Repartidor',
+    usuario: 'nuevo.'+id.substring(0,4),
+    activo: true,
+    recibirPedidos: true,
+    disponibilidad: 'Disponible',
+    pedidosHoy: 0,
+    pedidosMes: 0,
+    valoracion: 5.0,
+    votos: 0,
+    creado: new Date().toISOString()
+  });
+  abrirPanel(id);
+}
+
+window.guardarCambios = async ()=>{
+  if(!seleccionadoId) return;
+  const nombre = document.getElementById('editNombre').value.trim();
+  const usuario = document.getElementById('editUsuario').value.trim();
+  const pass = document.getElementById('editPass').value.trim();
+  const pass2 = document.getElementById('editPass2').value.trim();
+  const status = document.getElementById('statusEdit');
+  
+  if(pass && pass!==pass2){
+    status.style.display='block'; status.style.color='#E30613'; status.textContent='Las contraseñas no coinciden';
+    return;
+  }
+  status.style.display='block'; status.style.color='#0A7D2E'; status.textContent='Guardando...';
+  
+  const upd = {
+    nombre: nombre,
+    usuario: usuario,
+    activo: document.getElementById('swActiva').classList.contains('on'),
+    recibirPedidos: document.getElementById('swRecibir').classList.contains('on'),
+    disponibilidad: document.getElementById('swRecibir').classList.contains('on') ? 'Disponible' : 'En servicio',
+    actualizado: new Date().toISOString()
+  };
+  if(pass) upd.password = pass;
+
+  try{
+    await update(ref(db, 'repartidores/'+seleccionadoId), upd);
+    status.textContent='✓ Cambios guardados en tiempo real';
+    setTimeout(()=>{ status.style.display='none'; cerrarPanel(); }, 1000);
+  }catch(e){
+    status.style.color='#E30613'; status.textContent='Error: '+e.message;
+  }
+}
+
+window.toggleOpciones = (id)=>{
+  if(confirm('¿Eliminar repartidor?')){
+    remove(ref(db, 'repartidores/'+id));
+  }
+}
+</script>
+</body>
+</html>
