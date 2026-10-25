@@ -67,8 +67,8 @@ body{background:#f8fafc}
     <div class="field"><label>Nombre completo (nombre)</label><input id="fNombre" placeholder="Jose"></div>
     <div class="field"><label>Usuario (usuario)</label><input id="fUsuario" placeholder="Jose"></div>
     <div class="field"><label>Rol</label><select id="fRol"><option value="repartidor">repartidor</option><option value="admin">admin</option></select></div>
-    <div class="field"><label>Contraseña (password)</label><input id="fPass" type="text" placeholder="1234"></div>
-    <div class="field"><label>Confirmar contraseña</label><input id="fPass2" type="text" placeholder="1234"></div>
+    <div class="field"><label>Contraseña (password)</label><input id="fPass" type="text" placeholder="1111"></div>
+    <div class="field"><label>Confirmar contraseña</label><input id="fPass2" type="text" placeholder="1111"></div>
     <div class="field"><label>Estado de conexión</label><select id="fEstadoCon"><option value="disponible">disponible</option><option value="conectado">conectado</option><option value="desconectado">desconectado</option><option value="ocupado">ocupado</option></select></div>
     <div class="field"><label>INE</label><input id="fIne" placeholder="INE"></div>
     <div class="field"><label>CreadoEn</label><input id="fCreado" disabled></div>
@@ -81,14 +81,15 @@ body{background:#f8fafc}
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, onValue, set, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
+// CONFIG EXACTA DE TU LOGIN - MISMA BASE PARA QUE NO HAYA DESFASE
 const firebaseConfig = {
-  apiKey: "AIzaSyD286qlJQT8D3rqbYTSfCyuTAEg9jjRchQ",
+  apiKey: "AIzaSyCYdy62kQCPEhz1d-Ln9H-sup2iOTYJPwU",
   authDomain: "doloya-repartidores.firebaseapp.com",
   databaseURL: "https://doloya-repartidores-default-rtdb.firebaseio.com",
   projectId: "doloya-repartidores",
   storageBucket: "doloya-repartidores.firebasestorage.app",
-  messagingSenderId: "122314467740",
-  appId: "1:122314467740:web:9947a0a9560557e3a00059"
+  messagingSenderId: "308893983803",
+  appId: "1:308893983803:web:fe2b85c80f3a203de9a81e"
 };
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
@@ -115,7 +116,8 @@ window.editar = (id)=>{
   document.getElementById('fFoto').value=r.foto||'';
   document.getElementById('fNombre').value=r.nombre||'';
   document.getElementById('fUsuario').value=r.usuario||'';
-  document.getElementById('fPass').value=r.password||''; document.getElementById('fPass2').value=r.password||'';
+  document.getElementById('fPass').value=r.password||''; 
+  document.getElementById('fPass2').value=r.password||'';
   document.getElementById('fEstadoCon').value=r.estadoConexion||r.estado||'disponible';
   document.getElementById('fIne').value=r.ine||'';
   document.getElementById('fCreado').value=r.creadoEn||'';
@@ -169,47 +171,58 @@ window.guardar = async ()=>{
   if(pass!==pass2){ msg.style.display='block'; msg.style.color='#E30613'; msg.textContent='Contraseñas no coinciden'; return; }
 
   const estadoSel = document.getElementById('fEstadoCon').value;
-  const existente = !modoAgregar && editId ? (repartidores[editId]||{}) : {};
-
-  const data = {
-    nombre: nombre,
-    usuario: usuario,
-    password: pass,
-    rol: document.getElementById('fRol').value,
-    estado: estadoSel,
-    estadoConexion: estadoSel,
-    foto: document.getElementById('fFoto').value.trim(),
-    ine: document.getElementById('fIne').value.trim(),
-    // mantener datos de ubicación que ya tiene para no borrarlos
-    lat: existente.lat || existente.latitude || 21.161396813552113,
-    latitude: existente.latitude || existente.lat || 21.161396813552113,
-    lng: existente.lng || existente.longitude || -100.9341225228198,
-    longitude: existente.longitude || existente.lng || -100.9341225228198,
-    accuracy: existente.accuracy || 111,
-    heading: existente.heading || 0,
-    speed: existente.speed || 0,
-    pedidosHoy: existente.pedidosHoy || 0,
-    pedidosMes: existente.pedidosMes || 0,
-    pedidosGeneral: existente.pedidosGeneral || existente.pedidosCompletados || 0,
-    pedidosCompletados: existente.pedidosCompletados || existente.pedidosGeneral || 0,
-    pedidosCancelados: existente.pedidosCancelados || 0,
-    conectado: estadoSel==='desconectado' ? false : true,
-    timestamp: new Date().toISOString(),
-    ultimaActualizacion: Date.now(),
-    creadoEn: existente.creadoEn || new Date().toISOString()
-  };
 
   try{
-    msg.style.display='block'; msg.style.color='#0A7D2E'; msg.textContent='Guardando en Firebase...';
+    msg.style.display='block'; msg.style.color='#0A7D2E'; msg.textContent='Guardando...';
+    
     if(modoAgregar){
-      const idFinal = usuario;
-      await set(ref(db,'repartidores/'+idFinal), data);
-      msg.textContent='✓ Repartidor '+idFinal+' agregado';
+      // AL CREAR SI CREAMOS LA ESTRUCTURA COMPLETA COMO EN TU FOTO
+      const nuevo = {
+        nombre: nombre,
+        usuario: usuario,
+        password: pass,
+        rol: document.getElementById('fRol').value,
+        estado: estadoSel,
+        estadoConexion: estadoSel,
+        foto: document.getElementById('fFoto').value.trim(),
+        ine: document.getElementById('fIne').value.trim(),
+        conectado: true,
+        accuracy: 111,
+        heading: 0,
+        speed: 0,
+        lat: 21.161396813552113,
+        latitude: 21.161396813552113,
+        lng: -100.9341225228198,
+        longitude: -100.9341225228198,
+        pedidosHoy: 0,
+        pedidosMes: 0,
+        pedidosGeneral: 0,
+        pedidosCompletados: 0,
+        pedidosCancelados: 0,
+        creadoEn: new Date().toISOString(),
+        timestamp: new Date().toISOString(),
+        ultimaActualizacion: Date.now()
+      };
+      await set(ref(db,'repartidores/'+usuario), nuevo);
+      msg.textContent='✓ Repartidor '+usuario+' agregado';
     }else{
-      await update(ref(db,'repartidores/'+editId), data);
-      msg.textContent='✓ Actualizado en tiempo real ✓';
+      // AL EDITAR SOLO TOCAMOS LO QUE CAMBIASTE - NO RECREA LAT/LNG
+      const soloCambios = {
+        nombre: nombre,
+        usuario: usuario,
+        password: pass,
+        rol: document.getElementById('fRol').value,
+        estado: estadoSel,
+        estadoConexion: estadoSel,
+        foto: document.getElementById('fFoto').value.trim(),
+        ine: document.getElementById('fIne').value.trim(),
+        ultimaActualizacion: Date.now(),
+        timestamp: new Date().toISOString()
+      };
+      await update(ref(db,'repartidores/'+editId), soloCambios);
+      msg.textContent='✓ Actualizado en tiempo real - ya cambió en login';
     }
-    setTimeout(()=>{ msg.style.display='none'; cerrar(); }, 900);
+    setTimeout(()=>{ msg.style.display='none'; cerrar(); }, 1000);
   }catch(e){ msg.style.display='block'; msg.style.color='#E30613'; msg.textContent='Error: '+e.message; }
 }
 </script>
