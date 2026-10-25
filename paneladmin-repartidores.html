@@ -2,129 +2,128 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Repartidores - DoloYa Admin</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Repartidores - DoloYa</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
-body{background:#f8fafc;color:#111827;min-height:100vh}
+body{background:#f8fafc}
 .topbar{height:64px;background:#fff;border-bottom:1px solid #eef2f7;display:flex;align-items:center;justify-content:space-between;padding:0 18px;position:sticky;top:0;z-index:50}
-.left{display:flex;align-items:center;gap:14px}
-.btn-close{width:36px;height:36px;background:#E30613;border-radius:50%;display:flex;align-items:center;justify-content:center;border:none;cursor:pointer}
-.left h2{font-size:17px;font-weight:800}
-.btn-add{background:#E30613;color:#fff;border:none;border-radius:8px;padding:9px 14px;font-weight:700;font-size:12px;display:flex;align-items:center;gap:6px;cursor:pointer}
-.main{display:flex;min-height:calc(100vh - 64px)}
+.btn-close{width:36px;height:36px;background:#E30613;border-radius:50%;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.main{display:flex}
 .content{flex:1;padding:16px}
 .stats{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:16px}
-@media(max-width:1100px){.stats{grid-template-columns:repeat(2,1fr)}.main{flex-direction:column}}
-.stat-card{background:#fff;border:1px solid #eef2f7;border-radius:12px;padding:14px 16px;display:flex;gap:12px;align-items:center;box-shadow:0 1px 2px rgba(0,0,0,.04)}
-.stat-icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.stat-card b{font-size:22px;font-weight:900;display:block;line-height:1}
-.stat-card span{font-size:11px;color:#64748b;font-weight:600}
-.table-wrap{background:#fff;border:1px solid #eef2f7;border-radius:12px;overflow:hidden;overflow-x:auto}
-.table-header{display:grid;grid-template-columns:1.1fr 0.7fr 0.7fr 0.7fr 0.5fr 0.5fr 0.6fr 0.7fr;padding:12px 16px;background:#fafbfc;border-bottom:1px solid #eef2f7;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;min-width:900px}
-.row-item{display:grid;grid-template-columns:1.1fr 0.7fr 0.7fr 0.7fr 0.5fr 0.5fr 0.6fr 0.7fr;padding:12px 16px;align-items:center;border-bottom:1px solid #f1f5f9;font-size:13px;min-width:900px}
-.rep{display:flex;align-items:center;gap:10px}
-.avatar{width:38px;height:38px;border-radius:50%;background:#E5E7EB;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;border:1px solid #e5e7eb}
+.stat{background:#fff;border:1px solid #eef2f7;border-radius:12px;padding:14px;display:flex;gap:10px;align-items:center}
+.stat b{font-size:22px;font-weight:900;display:block}
+.stat span{font-size:11px;color:#64748b;font-weight:600}
+.table-wrap{background:#fff;border:1px solid #eef2f7;border-radius:12px;overflow:auto}
+.header-t{display:grid;grid-template-columns:1.2fr 0.6fr 0.6fr 0.8fr 0.5fr 0.6fr 0.6fr 0.6fr 0.7fr;min-width:1050px;padding:12px 14px;background:#fafbfc;border-bottom:1px solid #eef2f7;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase}
+.row{display:grid;grid-template-columns:1.2fr 0.6fr 0.6fr 0.8fr 0.5fr 0.6fr 0.6fr 0.6fr 0.7fr;min-width:1050px;padding:12px 14px;border-bottom:1px solid #f1f5f9;align-items:center;font-size:13px}
+.avatar{width:36px;height:36px;border-radius:50%;background:#e5e7eb;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .avatar img{width:100%;height:100%;object-fit:cover}
-.badge{padding:5px 10px;border-radius:999px;font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:5px}
-.badge-activo{background:#DCFCE7;color:#166534;border:1px solid #BBF7D0}
-.badge-dispo{background:#ECFDF5;color:#15803d;border:1px solid #BBF7D0}
-.badge-servicio{background:#FEF9C3;color:#854D0E;border:1px solid #FEF08A}
-.badge-inactivo{background:#F3F4F6;color:#64748b;border:1px solid #e5e7eb}
-.btn-editar{border:1px solid #e5e7eb;background:#fff;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:6px;cursor:pointer}
-.btn-drop{width:30px;height:30px;border:1px solid #e5e7eb;background:#fff;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer}
-.side{width:370px;background:#fff;border-left:1px solid #eef2f7;padding:18px;position:sticky;top:64px;height:calc(100vh - 64px);overflow:auto}
-.side-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
-.side-header h3{font-size:16px;font-weight:800}
-.btn-x{width:28px;height:28px;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center}
-.field{margin-bottom:13px}
-.field label{font-size:12px;font-weight:700;display:block;margin-bottom:6px}
-.field input{width:100%;height:42px;border:1.5px solid #e5e7eb;border-radius:8px;padding:0 12px;font-size:13px;font-weight:600;outline:none}
+.badge{padding:4px 9px;border-radius:999px;font-size:11px;font-weight:700}
+.badge-ok{background:#DCFCE7;color:#166534}.badge-off{background:#F3F4F6;color:#64748b}.badge-disc{background:#FEF9C3;color:#854D0E}
+.btn-add{background:#E30613;color:#fff;border:none;border-radius:8px;padding:9px 14px;font-weight:700;font-size:12px;cursor:pointer}
+.btn-edit{border:1px solid #e5e7eb;background:#fff;border-radius:8px;padding:6px 11px;font-weight:700;font-size:12px;cursor:pointer}
+.side{width:380px;background:#fff;border-left:1px solid #eef2f7;padding:18px;position:sticky;top:64px;height:calc(100vh - 64px);overflow:auto}
+.side h3{font-size:16px;font-weight:800;margin-bottom:14px;display:flex;justify-content:space-between}
+.field{margin-bottom:12px}
+.field label{font-size:11px;font-weight:800;text-transform:uppercase;color:#475569;display:block;margin-bottom:5px}
+.field input, .field select{width:100%;height:40px;border:1.5px solid #e5e7eb;border-radius:8px;padding:0 12px;font-size:13px;font-weight:600;outline:none}
 .field input:focus{border-color:#E30613}
-.input-eye{position:relative}
-.input-eye button{position:absolute;right:8px;top:50%;transform:translateY(-50%);border:none;background:transparent;cursor:pointer}
-.toggle-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #f1f5f9}
-.toggle-row b{font-size:13px}
-.toggle-row span{font-size:11px;color:#94a3b8;display:block;font-weight:500;margin-top:2px}
-.switch{width:44px;height:24px;background:#e5e7eb;border-radius:999px;position:relative;cursor:pointer;transition:.2s}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.switch{width:44px;height:24px;background:#e5e7eb;border-radius:999px;position:relative;cursor:pointer}
 .switch.on{background:#16A34A}
-.switch::after{content:'';position:absolute;width:18px;height:18px;background:#fff;border-radius:50%;top:3px;left:3px;transition:.2s;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.switch::after{content:'';position:absolute;width:18px;height:18px;background:#fff;border-radius:50%;top:3px;left:3px;transition:.2s}
 .switch.on::after{left:23px}
-.footer-side{display:flex;gap:10px;margin-top:18px}
-.btn-cancel{flex:1;height:40px;border:1.5px solid #e5e7eb;background:#fff;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer}
-.btn-save-side{flex:1;height:40px;background:#E30613;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer}
-.empty{text-align:center;padding:40px;color:#94a3b8;font-size:13px}
-.preview-img{width:70px;height:70px;border-radius:50%;background:#f1f5f9;border:1.5px dashed #e5e7eb;display:flex;align-items:center;justify-content:center;overflow:hidden;margin-bottom:10px}
-.preview-img img{width:100%;height:100%;object-fit:cover}
-@media(max-width:768px){.table-header{display:none}.row-item{grid-template-columns:1fr 1fr;gap:8px}.side{width:100%;position:fixed;bottom:0;top:auto;height:88vh;border-radius:16px 16px 0 0;z-index:100;transform:translateY(100%);transition:.3s}.side.open{transform:translateY(0)}}
+.footer{display:flex;gap:10px;margin-top:16px}
+.btn-cancel{flex:1;height:42px;border:1.5px solid #e5e7eb;background:#fff;border-radius:8px;font-weight:700;cursor:pointer}
+.btn-save{flex:1;height:42px;background:#E30613;color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer}
+.toggle{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f1f5f9}
+@media(max-width:900px){.stats{grid-template-columns:1fr 1fr}.side{position:fixed;bottom:0;top:auto;width:100%;height:90vh;border-radius:16px 16px 0 0;transform:translateY(100%);transition:.3s;z-index:100}.side.open{transform:translateY(0)}.main{flex-direction:column}}
 </style>
 </head>
 <body>
 <div class="topbar">
-  <div class="left">
-    <button class="btn-close" onclick="window.location.href='paneladmin.html'">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><path d="M6 6L18 18"/><path d="M18 6L6 18"/></svg>
-    </button>
-    <h2>Repartidores</h2>
+  <div style="display:flex;align-items:center;gap:12px">
+    <button class="btn-close" onclick="window.location.href='paneladmin.html'"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><path d="M6 6L18 18"/><path d="M18 6L6 18"/></svg></button>
+    <h2 style="font-size:17px;font-weight:800">Repartidores</h2>
   </div>
-  <button class="btn-add" onclick="agregarRepartidor()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><path d="M12 5v14M5 12h14"/></svg> Agregar repartidor</button>
+  <button class="btn-add" onclick="agregarNuevo()">+ Agregar repartidor</button>
 </div>
 
 <div class="main">
   <div class="content">
     <div class="stats">
-      <div class="stat-card"><div class="stat-icon" style="background:#FFF1F2"><svg width="18" height="18" viewBox="0 0 24 24" fill="#E30613"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div><div><span>Total repartidores</span><b id="statTotal">0</b></div></div>
-      <div class="stat-card"><div class="stat-icon" style="background:#ECFDF5"><div style="width:14px;height:14px;background:#22C55E;border-radius:50%"></div></div><div><span>Disponibles</span><b id="statDisp">0</b></div></div>
-      <div class="stat-card"><div class="stat-icon" style="background:#F3F4F6"><div style="width:14px;height:14px;background:#9CA3AF;border-radius:50%"></div></div><div><span>Inactivos</span><b id="statInact">0</b></div></div>
-      <div class="stat-card"><div class="stat-icon" style="background:#FFF1F2"><svg width="18" height="18" viewBox="0 0 24 24" fill="#E30613"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div><div><span>Pedidos completados</span><b id="statPed">0</b></div></div>
-      <div class="stat-card"><div class="stat-icon" style="background:#FFF1F2"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E30613" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg></div><div><span>Pedidos cancelados</span><b id="statCancel">0</b></div></div>
+      <div class="stat"><div><span>Total repartidores</span><b id="sTotal">0</b></div></div>
+      <div class="stat"><div><span>Disponibles</span><b id="sDisp">0</b></div></div>
+      <div class="stat"><div><span>Inactivos</span><b id="sInact">0</b></div></div>
+      <div class="stat"><div><span>Pedidos completados</span><b id="sComp">0</b></div></div>
+      <div class="stat"><div><span>Pedidos cancelados</span><b id="sCancel">0</b></div></div>
     </div>
 
     <div class="table-wrap">
-      <div class="table-header">
-        <div>Repartidor</div><div>Usuario</div><div>Contraseña</div><div>Disponibilidad</div><div>Pedidos hoy</div><div>Pedidos mes</div><div>Pedidos general</div><div>Acciones</div>
+      <div class="header-t">
+        <div>Repartidor</div><div>Usuario</div><div>Contraseña</div><div>Estado / Conexión</div><div>Pedidos hoy</div><div>Pedidos mes</div><div>General</div><div>Ubicación</div><div>Acciones</div>
       </div>
-      <div id="listaRepartidores"><div class="empty">Cargando repartidores...</div></div>
+      <div id="lista"></div>
     </div>
   </div>
 
-  <div class="side" id="panelEditar">
-    <div class="side-header"><h3 id="tituloPanel">Editar repartidor</h3><button class="btn-x" onclick="cerrarPanel()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2"><path d="M6 6L18 18M18 6L6 18"/></svg></button></div>
+  <div class="side" id="sidePanel">
+    <h3><span id="titPanel">Agregar repartidor</span><span onclick="cerrar()" style="cursor:pointer">✕</span></h3>
 
-    <div style="display:flex;flex-direction:column;align-items:center;margin-bottom:12px">
-      <div class="preview-img" id="previewImg"><svg width="28" height="28" viewBox="0 0 24 24" fill="#94a3b8"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM6 18a6 6 0 0 1 12 0v1H6v-1z"/></svg></div>
-      <input id="editFoto" type="text" placeholder="URL de foto (Firebase)" style="width:100%;height:38px;border:1.5px solid #e5e7eb;border-radius:8px;padding:0 12px;font-size:12px;margin-top:6px">
+    <div class="field"><label>Foto URL</label><input id="fFoto" placeholder="https://..."></div>
+    <div class="field"><label>Nombre completo (nombre)</label><input id="fNombre" placeholder="Jose"></div>
+    <div class="grid2">
+      <div class="field"><label>Usuario (usuario)</label><input id="fUsuario" placeholder="Jose"></div>
+      <div class="field"><label>Rol</label><select id="fRol"><option value="repartidor">repartidor</option><option value="admin">admin</option></select></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label>Contraseña (password)</label><input id="fPass" type="text" placeholder="1234"></div>
+      <div class="field"><label>Confirmar contraseña</label><input id="fPass2" type="text" placeholder="1234"></div>
     </div>
 
-    <div class="field"><label>Nombre completo</label><input id="editNombre" type="text" placeholder="Juan Pérez"></div>
-    <div class="field"><label>Usuario</label><input id="editUsuario" type="text" placeholder="juan.perez"></div>
-    <div class="field"><label>Contraseña</label><div class="input-eye"><input id="editPass" type="password" placeholder="••••••••"><button onclick="toggleEye('editPass')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div></div>
-    <div class="field"><label>Confirmar contraseña</label><div class="input-eye"><input id="editPass2" type="password" placeholder="••••••••"><button onclick="toggleEye('editPass2')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div></div>
-    <div class="field"><label>INE / Identificación</label><input id="editIne" type="text" placeholder="INE-12345678"></div>
-    <div class="field"><label>Pedidos hoy</label><input id="editHoy" type="number" value="0"></div>
-    <div class="field"><label>Pedidos del mes</label><input id="editMes" type="number" value="0"></div>
-    <div class="field"><label>Pedidos general</label><input id="editGeneral" type="number" value="0"></div>
-    <div class="field"><label>Pedidos cancelados</label><input id="editCancelados" type="number" value="0"></div>
+    <div class="grid2">
+      <div class="field"><label>Estado</label><select id="fEstado"><option value="disponible">disponible</option><option value="ocupado">ocupado</option><option value="inactivo">inactivo</option></select></div>
+      <div class="field"><label>Estado Conexión</label><select id="fEstadoCon"><option value="conectado">conectado</option><option value="desconectado">desconectado</option></select></div>
+    </div>
 
-    <div class="toggle-row"><div><b>Cuenta activa</b><span>El repartidor podrá acceder al sistema.</span></div><div class="switch on" id="swActiva" onclick="toggleSwitch(this)"></div></div>
-    <div class="toggle-row"><div><b>Puede recibir pedidos</b><span>Estará disponible para recibir pedidos.</span></div><div class="switch on" id="swRecibir" onclick="toggleSwitch(this)"></div></div>
+    <div class="toggle"><div><b>Conectado</b><div style="font-size:11px;color:#94a3b8">conectado: true/false</div></div><div class="switch on" id="swConectado" onclick="this.classList.toggle('on')"></div></div>
 
-    <div class="footer-side"><button class="btn-cancel" onclick="cerrarPanel()">Cancelar</button><button class="btn-save-side" id="btnGuardar" onclick="guardarCambios()">Guardar cambios</button></div>
-    <div id="statusEdit" style="margin-top:12px;font-size:12px;font-weight:700;display:none"></div>
+    <div class="field"><label>Ubicación - Lat</label><input id="fLat" placeholder="21.1613"></div>
+    <div class="field"><label>Ubicación - Lng</label><input id="fLng" placeholder="-100.9341"></div>
+    <div class="grid2">
+      <div class="field"><label>Accuracy</label><input id="fAcc" type="number" value="111"></div>
+      <div class="field"><label>Heading</label><input id="fHead" type="number" value="0"></div>
+      <div class="field"><label>Speed</label><input id="fSpeed" type="number" value="0"></div>
+      <div class="field"><label>Pedidos hoy</label><input id="fHoy" type="number" value="0"></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label>Pedidos mes</label><input id="fMes" type="number" value="0"></div>
+      <div class="field"><label>Pedidos general</label><input id="fGeneral" type="number" value="0"></div>
+      <div class="field"><label>Pedidos cancelados</label><input id="fCancel" type="number" value="0"></div>
+      <div class="field"><label>INE (opcional)</label><input id="fIne" placeholder="INE"></div>
+    </div>
+
+    <div class="field"><label>CreadoEn (auto)</label><input id="fCreado" disabled></div>
+
+    <div class="footer"><button class="btn-cancel" onclick="cerrar()">Cancelar</button><button class="btn-save" onclick="guardar()">Guardar</button></div>
+    <div id="msg" style="margin-top:10px;font-size:12px;font-weight:700;display:none"></div>
   </div>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, onValue, set, push, update, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, onValue, set, update, push, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
+// CONFIG DOLOYA-REPARTIDORES - tu base real
 const firebaseConfig = {
   apiKey: "AIzaSyD286qlJQT8D3rqbYTSfCyuTAEg9jjRchQ",
-  authDomain: "doloya-aliados.firebaseapp.com",
-  databaseURL: "https://doloya-aliados-default-rtdb.firebaseio.com",
-  projectId: "doloya-aliados",
-  storageBucket: "doloya-aliados.firebasestorage.app",
+  authDomain: "doloya-repartidores.firebaseapp.com",
+  databaseURL: "https://doloya-repartidores-default-rtdb.firebaseio.com",
+  projectId: "doloya-repartidores",
+  storageBucket: "doloya-repartidores.firebasestorage.app",
   messagingSenderId: "122314467740",
   appId: "1:122314467740:web:9947a0a9560557e3a00059"
 };
@@ -132,122 +131,122 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
 let repartidores = {};
-let seleccionadoId = null;
-let modoAgregar = false;
+let editId = null;
+let modoAgregar = true;
 
-window.toggleSwitch = (el)=>{ el.classList.toggle('on'); }
-window.toggleEye = (id)=>{ const i=document.getElementById(id); i.type=i.type==='password'?'text':'password'; }
-window.cerrarPanel = ()=>{ document.getElementById('panelEditar').classList.remove('open'); }
+window.cerrar = ()=>{ document.getElementById('sidePanel').classList.remove('open'); }
 
-function actualizarPreviewFoto(){
-  const url = document.getElementById('editFoto').value.trim();
-  const cont = document.getElementById('previewImg');
-  if(url){ cont.innerHTML = `<img src="${url}" onerror="this.parentElement.innerHTML='<svg width=28 height=28 viewBox=0 0 24 24 fill=#94a3b8><path d=M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM6 18a6 6 0 0 1 12 0v1H6v-1z/></svg>'">`; }
-  else{ cont.innerHTML = `<svg width="28" height="28" viewBox="0 0 24 24" fill="#94a3b8"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM6 18a6 6 0 0 1 12 0v1H6v-1z"/></svg>`; }
-}
-document.getElementById('editFoto').addEventListener('input', actualizarPreviewFoto);
-
-window.agregarRepartidor = ()=>{
-  modoAgregar = true; seleccionadoId = null;
-  document.getElementById('tituloPanel').textContent = 'Agregar repartidor';
-  document.getElementById('btnGuardar').textContent = 'Agregar repartidor';
-  document.getElementById('editNombre').value=''; document.getElementById('editUsuario').value='';
-  document.getElementById('editPass').value=''; document.getElementById('editPass2').value='';
-  document.getElementById('editIne').value=''; document.getElementById('editFoto').value='';
-  document.getElementById('editHoy').value=0; document.getElementById('editMes').value=0;
-  document.getElementById('editGeneral').value=0; document.getElementById('editCancelados').value=0;
-  document.getElementById('swActiva').className='switch on'; document.getElementById('swRecibir').className='switch on';
-  actualizarPreviewFoto(); document.getElementById('panelEditar').classList.add('open');
+window.agregarNuevo = ()=>{
+  modoAgregar=true; editId=null;
+  document.getElementById('titPanel').textContent='Agregar repartidor';
+  ['fFoto','fNombre','fUsuario','fPass','fPass2','fLat','fLng','fIne'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('fAcc').value=111; document.getElementById('fHead').value=0; document.getElementById('fSpeed').value=0;
+  document.getElementById('fHoy').value=0; document.getElementById('fMes').value=0; document.getElementById('fGeneral').value=0; document.getElementById('fCancel').value=0;
+  document.getElementById('fCreado').value=new Date().toISOString();
+  document.getElementById('fEstado').value='disponible'; document.getElementById('fEstadoCon').value='conectado';
+  document.getElementById('swConectado').className='switch on';
+  document.getElementById('sidePanel').classList.add('open');
 }
 
-window.abrirPanel = (id)=>{
-  modoAgregar = false; seleccionadoId = id;
-  const r = repartidores[id]; if(!r) return;
-  document.getElementById('tituloPanel').textContent='Editar repartidor';
-  document.getElementById('btnGuardar').textContent='Guardar cambios';
-  document.getElementById('editNombre').value = r.nombre||'';
-  document.getElementById('editUsuario').value = r.usuario||'';
-  document.getElementById('editPass').value = r.password||''; document.getElementById('editPass2').value = r.password||'';
-  document.getElementById('editIne').value = r.ine||''; document.getElementById('editFoto').value = r.foto||r.imagen||'';
-  document.getElementById('editHoy').value = r.pedidosHoy||0; document.getElementById('editMes').value = r.pedidosMes||0;
-  document.getElementById('editGeneral').value = r.pedidosCompletados||r.pedidosGeneral||0;
-  document.getElementById('editCancelados').value = r.pedidosCancelados||0;
-  document.getElementById('swActiva').className='switch '+(r.activo!==false?'on':'');
-  document.getElementById('swRecibir').className='switch '+(r.recibirPedidos!==false?'on':'');
-  actualizarPreviewFoto(); document.getElementById('panelEditar').classList.add('open');
+window.editar = (id)=>{
+  modoAgregar=false; editId=id; const r=repartidores[id];
+  document.getElementById('titPanel').textContent='Editar repartidor: '+id;
+  document.getElementById('fFoto').value=r.foto||'';
+  document.getElementById('fNombre').value=r.nombre||'';
+  document.getElementById('fUsuario').value=r.usuario||'';
+  document.getElementById('fPass').value=r.password||''; document.getElementById('fPass2').value=r.password||'';
+  document.getElementById('fEstado').value=r.estado||'disponible';
+  document.getElementById('fEstadoCon').value=r.estadoConexion||'conectado';
+  document.getElementById('fLat').value=r.lat||r.latitude||''; document.getElementById('fLng').value=r.lng||r.longitude||'';
+  document.getElementById('fAcc').value=r.accuracy||111; document.getElementById('fHead').value=r.heading||0; document.getElementById('fSpeed').value=r.speed||0;
+  document.getElementById('fHoy').value=r.pedidosHoy||0; document.getElementById('fMes').value=r.pedidosMes||0; document.getElementById('fGeneral').value=r.pedidosCompletados||r.pedidosGeneral||0; document.getElementById('fCancel').value=r.pedidosCancelados||0;
+  document.getElementById('fIne').value=r.ine||''; document.getElementById('fCreado').value=r.creadoEn||'';
+  document.getElementById('swConectado').className='switch '+(r.conectado?'on':'');
+  document.getElementById('sidePanel').classList.add('open');
 }
 
-onValue(ref(db, 'repartidores'), snap=>{
-  const val = snap.val()||{}; repartidores=val; const ids=Object.keys(val);
-  let total=ids.length, disp=0, inact=0, comp=0, cancel=0;
-  ids.forEach(k=>{ const r=val[k]; if(r.recibirPedidos!==false && r.activo!==false) disp++; if(r.activo===false) inact++; comp+=parseInt(r.pedidosCompletados||r.pedidosGeneral||0); cancel+=parseInt(r.pedidosCancelados||0); });
-  document.getElementById('statTotal').textContent=total;
-  document.getElementById('statDisp').textContent=disp;
-  document.getElementById('statInact').textContent=inact;
-  document.getElementById('statPed').textContent=comp;
-  document.getElementById('statCancel').textContent=cancel;
+onValue(ref(db,'repartidores'), snap=>{
+  const val=snap.val()||{}; repartidores=val; const ids=Object.keys(val);
+  document.getElementById('sTotal').textContent=ids.length;
+  let disp=0,inact=0,comp=0,canc=0;
+  ids.forEach(k=>{ const r=val[k]; if(r.estado==='disponible') disp++; if(r.estado==='inactivo' || r.conectado===false) inact++; comp+=parseInt(r.pedidosGeneral||r.pedidosCompletados||0); canc+=parseInt(r.pedidosCancelados||0); });
+  document.getElementById('sDisp').textContent=disp;
+  document.getElementById('sInact').textContent=inact;
+  document.getElementById('sComp').textContent=comp;
+  document.getElementById('sCancel').textContent=canc;
 
-  const lista=document.getElementById('listaRepartidores');
-  if(ids.length===0){ lista.innerHTML=`<div style="text-align:center;padding:40px;color:#94a3b8">No hay repartidores</div>`; return; }
+  const cont=document.getElementById('lista');
+  if(ids.length===0){ cont.innerHTML='<div style="padding:20px;text-align:center;color:#94a3b8">Sin repartidores</div>'; return; }
   let html='';
   ids.forEach(id=>{
     const r=val[id];
-    const foto = r.foto||r.imagen||'';
-    const dispoTxt = r.disponibilidad || (r.recibirPedidos!==false?'Disponible':'Inactivo');
-    const badgeClass = dispoTxt==='Disponible'?'badge-dispo':(r.activo===false?'badge-inactivo':'badge-servicio');
-    const passMask = r.password ? '••••••' : '—';
-    html+=`<div class="row-item">
-      <div class="rep"><div class="avatar">${foto?`<img src="${foto}" onerror="this.style.display='none'">`:`<svg width="20" height="20" viewBox="0 0 24 24" fill="#94a3b8"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM6 18a6 6 0 0 1 12 0v1H6v-1z"/></svg>`}</div><div><b>${r.nombre||''}</b><div style="font-size:11px;color:#64748b">${r.ine||''}</div></div></div>
+    html+=`<div class="row">
+      <div style="display:flex;gap:8px;align-items:center"><div class="avatar">${r.foto?`<img src="${r.foto}">`:`<span style="font-weight:800">${(r.nombre||id).charAt(0)}</span>`}</div><div><b>${r.nombre||id}</b><div style="font-size:11px;color:#64748b">${r.ine||''}</div></div></div>
       <div>${r.usuario||''}</div>
-      <div style="font-weight:700">${passMask}</div>
-      <div><span class="badge ${badgeClass}">${dispoTxt}</span></div>
+      <div style="font-weight:700">${r.password||''}</div>
+      <div><span class="badge ${r.conectado?'badge-ok':'badge-off'}">${r.estado||''} / ${r.estadoConexion||''}</span></div>
       <div style="text-align:center;font-weight:800">${r.pedidosHoy||0}</div>
       <div style="text-align:center;font-weight:800">${r.pedidosMes||0}</div>
-      <div style="text-align:center;font-weight:800">${r.pedidosCompletados||r.pedidosGeneral||0}</div>
-      <div style="display:flex;gap:6px"><button class="btn-editar" onclick="abrirPanel('${id}')">Editar</button><button class="btn-drop" onclick="if(confirm('Eliminar?')){import('https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js').then(m=>{}); remove(ref(db,'repartidores/${id}'))}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M10 11v6M14 11v6M5 6l1 14h12l1-14"/></svg></button></div>
+      <div style="text-align:center;font-weight:800">${r.pedidosGeneral||r.pedidosCompletados||0}</div>
+      <div style="font-size:11px">${r.lat?parseFloat(r.lat).toFixed(4):''}, ${r.lng?parseFloat(r.lng).toFixed(4):''}</div>
+      <div style="display:flex;gap:6px"><button class="btn-edit" onclick="editar('${id}')">Editar</button><button class="btn-edit" onclick="if(confirm('Eliminar ${id}?')) remove(ref(db,'repartidores/${id}'))">✕</button></div>
     </div>`;
   });
-  lista.innerHTML=html;
+  cont.innerHTML=html;
 });
 
-window.guardarCambios = async ()=>{
-  const nombre=document.getElementById('editNombre').value.trim();
-  const usuario=document.getElementById('editUsuario').value.trim();
-  const pass=document.getElementById('editPass').value.trim();
-  const pass2=document.getElementById('editPass2').value.trim();
-  const status=document.getElementById('statusEdit');
-  if(!nombre||!usuario){ status.style.display='block'; status.style.color='#E30613'; status.textContent='Nombre y usuario obligatorios'; return; }
-  if(pass!==pass2){ status.style.display='block'; status.style.color='#E30613'; status.textContent='Contraseñas no coinciden'; return; }
-  status.style.display='block'; status.style.color='#0A7D2E'; status.textContent=modoAgregar?'Agregando...':'Guardando...';
-  
+window.guardar = async ()=>{
+  const nombre=document.getElementById('fNombre').value.trim();
+  const usuario=document.getElementById('fUsuario').value.trim();
+  const pass=document.getElementById('fPass').value.trim();
+  const pass2=document.getElementById('fPass2').value.trim();
+  const msg=document.getElementById('msg');
+  if(!nombre||!usuario){ msg.style.display='block'; msg.style.color='#E30613'; msg.textContent='Nombre y usuario obligatorios'; return; }
+  if(pass!==pass2){ msg.style.display='block'; msg.style.color='#E30613'; msg.textContent='Contraseñas no coinciden'; return; }
+
+  const lat = parseFloat(document.getElementById('fLat').value)||21.161396813552113;
+  const lng = parseFloat(document.getElementById('fLng').value)||-100.9341225228198;
+
   const data = {
     nombre: nombre,
     usuario: usuario,
     password: pass,
-    ine: document.getElementById('editIne').value.trim(),
-    foto: document.getElementById('editFoto').value.trim(),
-    pedidosHoy: parseInt(document.getElementById('editHoy').value)||0,
-    pedidosMes: parseInt(document.getElementById('editMes').value)||0,
-    pedidosGeneral: parseInt(document.getElementById('editGeneral').value)||0,
-    pedidosCompletados: parseInt(document.getElementById('editGeneral').value)||0,
-    pedidosCancelados: parseInt(document.getElementById('editCancelados').value)||0,
-    activo: document.getElementById('swActiva').classList.contains('on'),
-    recibirPedidos: document.getElementById('swRecibir').classList.contains('on'),
-    disponibilidad: document.getElementById('swRecibir').classList.contains('on')?'Disponible':'Inactivo',
-    actualizado: new Date().toISOString()
+    rol: document.getElementById('fRol').value,
+    estado: document.getElementById('fEstado').value,
+    estadoConexion: document.getElementById('fEstadoCon').value,
+    conectado: document.getElementById('swConectado').classList.contains('on'),
+    foto: document.getElementById('fFoto').value.trim(),
+    ine: document.getElementById('fIne').value.trim(),
+    lat: lat, latitude: lat,
+    lng: lng, longitude: lng,
+    accuracy: parseInt(document.getElementById('fAcc').value)||111,
+    heading: parseInt(document.getElementById('fHead').value)||0,
+    speed: parseInt(document.getElementById('fSpeed').value)||0,
+    pedidosHoy: parseInt(document.getElementById('fHoy').value)||0,
+    pedidosMes: parseInt(document.getElementById('fMes').value)||0,
+    pedidosGeneral: parseInt(document.getElementById('fGeneral').value)||0,
+    pedidosCompletados: parseInt(document.getElementById('fGeneral').value)||0,
+    pedidosCancelados: parseInt(document.getElementById('fCancel').value)||0,
+    timestamp: new Date().toISOString(),
+    ultimaActualizacion: Date.now(),
+    ultimaUbicacion: Date.now(),
+    creadoEn: document.getElementById('fCreado').value || new Date().toISOString(),
+    ultimaActualizacion: document.getElementById('fCreado').value || new Date().toISOString(),
+    ubicacion: { lat: lat, lng: lng }
   };
+
   try{
+    msg.style.display='block'; msg.style.color='#0A7D2E'; msg.textContent='Guardando...';
     if(modoAgregar){
-      const newRef = push(ref(db,'repartidores'));
-      data.creado = new Date().toISOString();
-      await set(newRef, data);
-      status.textContent='✓ Repartidor agregado';
+      const idFinal = usuario || nombre.replace(/\s/g,'_');
+      await set(ref(db,'repartidores/'+idFinal), data);
+      msg.textContent='✓ Repartidor '+idFinal+' agregado';
     }else{
-      await update(ref(db,'repartidores/'+seleccionadoId), data);
-      status.textContent='✓ Cambios guardados';
+      await update(ref(db,'repartidores/'+editId), data);
+      msg.textContent='✓ Cambios guardados en tiempo real';
     }
-    setTimeout(()=>{ status.style.display='none'; cerrarPanel(); }, 900);
-  }catch(e){ status.style.color='#E30613'; status.textContent='Error: '+e.message; }
+    setTimeout(()=>{ msg.style.display='none'; cerrar(); }, 900);
+  }catch(e){ msg.style.color='#E30613'; msg.textContent='Error: '+e.message; }
 }
 </script>
 </body>
