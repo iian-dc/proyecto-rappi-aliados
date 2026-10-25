@@ -30,7 +30,7 @@ body{background:#fff;font-family:'Inter',Helvetica,Arial,sans-serif;color:#0f172
 .suggest div:hover{background:#f8fafc}
 .suggest.active{display:block}
 .list{max-width:1280px;margin:12px auto;padding:0 18px 40px;display:flex;flex-direction:column;gap:6px}
-.card{display:grid;grid-template-columns:170px 1px 1fr 1px 210px 115px;gap:0;background:white;border:1px solid #eef2f7;border-radius:10px;padding:8px 12px;align-items:center;min-height:68px}
+.card{display:grid;grid-template-columns:170px 1px 1fr 1px 210px 115px;gap:0;background:white;border:1px solid #eef2f7;border-radius:10px;padding:8px 12px;align-items:center;min-height:68px;position:relative}
 .card.entregado{background:#f6fbf6;border-color:#d9ecd9}
 .card.cancelado{background:#fff7f7;border-color:#ffd6d6}
 .badge{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:2px 7px;font-size:9px;font-weight:800;margin-bottom:3px}
@@ -52,7 +52,12 @@ body{background:#fff;font-family:'Inter',Helvetica,Arial,sans-serif;color:#0f172
 .total b{font-size:8.5px;color:#64748b}
 .total .val{font-size:11px;font-weight:900}
 .btn-det{border:1.2px solid #E30613;background:white;border-radius:999px;padding:5px 10px;font-size:10px;font-weight:800;cursor:pointer;width:100%}
-@media(max-width:1024px){.card{grid-template-columns:1fr;gap:8px}.sep{display:none}}
+
+/* BOTON ELIMINAR ARRIBA DONDE LA FLECHITA */
+.btn-del{position:absolute;top:6px;right:8px;width:26px;height:26px;border-radius:50%;border:1px solid #fee2e2;background:#fff7f7;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:2}
+.btn-del:hover{background:#fee2e2}
+
+@media(max-width:1024px){.card{grid-template-columns:1fr;gap:8px}.sep{display:none}.btn-del{top:8px;right:8px}}
 .modal{position:fixed;inset:0;background:#fff;display:none;flex-direction:column;z-index:9999;overflow:auto}
 .modal.active{display:flex}
 .modal-top{position:sticky;top:0;background:white;border-bottom:1px solid #eef2f7;padding:10px 16px;display:flex;justify-content:space-between;align-items:center}
@@ -71,6 +76,16 @@ body{background:#fff;font-family:'Inter',Helvetica,Arial,sans-serif;color:#0f172
 .pres-row.total-final{font-weight:900;font-size:12px;background:#f8fafc;padding:8px;border-radius:8px;border:none}
 .pres-row.sub{font-weight:800;background:#f1f5f9;padding:6px 8px;border-radius:6px;border:none}
 .pres-row.green{color:#15803d;background:#f0fdf4;padding:8px;border-radius:8px;border:1px solid #bbf7d0;font-weight:900;font-size:12px}
+
+/* MODAL CONFIRMACION ELIMINAR CENTRADO */
+.modal-delete{position:fixed;inset:0;background:rgba(15,23,42,0.55);display:none;align-items:center;justify-content:center;z-index:10000;padding:16px}
+.modal-delete.active{display:flex}
+.delete-card{background:white;border-radius:16px;padding:20px 18px;max-width:340px;width:100%;text-align:center;box-shadow:0 20px 40px rgba(0,0,0,0.2)}
+.delete-card h3{font-size:14px;font-weight:900;margin-bottom:6px}
+.delete-card p{font-size:11px;color:#64748b;margin-bottom:16px;line-height:1.4}
+.delete-actions{display:flex;gap:10px;justify-content:center}
+.btn-no{flex:1;background:#e2e8f0;color:#0f172a;border:none;border-radius:999px;padding:8px 14px;font-size:12px;font-weight:800;cursor:pointer}
+.btn-si{flex:1;background:#E30613;color:white;border:none;border-radius:999px;padding:8px 14px;font-size:12px;font-weight:800;cursor:pointer}
 </style>
 </head>
 <body>
@@ -108,9 +123,21 @@ body{background:#fff;font-family:'Inter',Helvetica,Arial,sans-serif;color:#0f172
   <div class="modal-body" id="modalBody"></div>
 </div>
 
+<!-- MODAL ELIMINAR CONFIRMACION -->
+<div class="modal-delete" id="modalDelete">
+  <div class="delete-card">
+    <h3>¿Deseas eliminar este pedido?</h3>
+    <p id="deleteText">Esta acción borrará el pedido permanentemente de Firebase y no se puede deshacer.</p>
+    <div class="delete-actions">
+      <button class="btn-no" onclick="cerrarDelete()">No</button>
+      <button class="btn-si" id="btnConfirmDelete">Sí, eliminar</button>
+    </div>
+  </div>
+</div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+import { getFirestore, collection, onSnapshot, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCRx4B7mO444s0yU-WTnsqMjBHDWX4IRv8",
@@ -126,6 +153,7 @@ const db = getFirestore(app);
 let todosPedidos = [];
 let filtro = "todos";
 let filtroMes = "", filtroDia = "";
+let pedidoAEliminar = null;
 
 function normalize(t){ return String(t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim(); }
 function toHora(ts){
@@ -235,6 +263,9 @@ function renderLista(){
   actualizarConteos();
   document.getElementById('lista').innerHTML = filtrados.map(p=>`
     <div class="card ${p.estadoVisual}">
+      <button class="btn-del" onclick="abrirDelete('${p.id}')" title="Eliminar pedido">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#E30613" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+      </button>
       <div>
         <div class="badge ${p.estadoVisual}"><span class="s">${p.estadoVisual==='entregado'?`<svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>`:`<svg width="7" height="7" viewBox="0 0 24 24" fill="none" stroke="#E30613" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`}</span>${p.estadoLabel}</div>
         <div style="font-weight:800;font-size:11.5px">#${p.codigo}</div>
@@ -282,7 +313,28 @@ function escuchar(nombre){
   onSnapshot(collection(db, nombre), (snap)=>{
     const nuevos = snap.docs.map(parseDoc);
     const map = new Map(); [...todosPedidos, ...nuevos].forEach(p=> map.set(p.id, p));
-    todosPedidos = Array.from(map.values());
+    // Reemplaza todo para evitar duplicados, pero mantiene ambos estados
+    // Mejor: reconstruimos desde las dos colecciones, usamos el ultimo snapshot
+    // Simplificado: usamos map y filtramos por existencia actual en Firestore no es trivial, así que reconstruimos de forma simple
+    // Para delete en tiempo real: si el doc fue borrado, onSnapshot ya no lo trae, así que reconstruimos
+    let actualesIds = new Set(snap.docs.map(d=>d.id));
+    // Solo si es la primera vez o si queremos full sync, usamos merge inteligente
+    // Para este caso, cada escucha actualiza su colección
+    if(nombre==='pedidos_entregados'){
+      const cancelados = todosPedidos.filter(p=>p.estadoVisual==='cancelado');
+      const entregadosNuevos = nuevos;
+      todosPedidos = [...cancelados, ...entregadosNuevos];
+      // Si se borró uno, se va de la lista automáticamente porque no está en nuevos
+      const entregadosIds = new Set(entregadosNuevos.map(p=>p.id));
+      todosPedidos = todosPedidos.filter(p=> p.estadoVisual==='cancelado' || entregadosIds.has(p.id) || nuevos.some(n=>n.id===p.id));
+    } else {
+      const entregados = todosPedidos.filter(p=>p.estadoVisual==='entregado');
+      const canceladosNuevos = nuevos;
+      const canceladosIds = new Set(canceladosNuevos.map(p=>p.id));
+      todosPedidos = [...entregados, ...canceladosNuevos].filter((v,i,a)=>a.findIndex(t=>t.id===v.id)===i);
+    }
+    // Limpieza final: merge único
+    const unico = new Map(); todosPedidos.forEach(p=>unico.set(p.id,p)); todosPedidos = Array.from(unico.values());
     renderLista();
   });
 }
@@ -310,6 +362,41 @@ document.getElementById('btnBuscar').addEventListener('click',()=>{
 document.getElementById('btnLimpiar').addEventListener('click',()=>{
   document.getElementById('fMes').value=''; document.getElementById('fDia').value=''; document.getElementById('fCliente').value=''; document.getElementById('buscador').value=''; document.getElementById('suggest').classList.remove('active');
   filtroMes=''; filtroDia=''; renderLista();
+});
+
+// ELIMINAR
+window.abrirDelete = (id)=>{
+  const p = todosPedidos.find(x=>x.id===id); if(!p) return;
+  pedidoAEliminar = p;
+  document.getElementById('deleteText').textContent = `¿Deseas eliminar el pedido #${p.codigo} de ${p.tienda}? Se borrará permanentemente de Firebase.`;
+  document.getElementById('modalDelete').classList.add('active');
+}
+window.cerrarDelete = ()=>{
+  document.getElementById('modalDelete').classList.remove('active');
+  pedidoAEliminar = null;
+}
+document.getElementById('modalDelete').addEventListener('click', (e)=>{
+  if(e.target.id==='modalDelete') cerrarDelete();
+});
+document.getElementById('btnConfirmDelete').addEventListener('click', async ()=>{
+  if(!pedidoAEliminar) return;
+  const btn = document.getElementById('btnConfirmDelete');
+  btn.textContent='Eliminando...'; btn.disabled=true;
+  try{
+    const coleccion = pedidoAEliminar.estadoVisual==='cancelado' ? 'pedidos_cancelados' : 'pedidos_entregados';
+    // Intenta borrar de ambas colecciones por seguridad
+    try{ await deleteDoc(doc(db, 'pedidos_entregados', pedidoAEliminar.id)); }catch{}
+    try{ await deleteDoc(doc(db, 'pedidos_cancelados', pedidoAEliminar.id)); }catch{}
+    // También intenta con la colección detectada
+    await deleteDoc(doc(db, coleccion, pedidoAEliminar.id)).catch(()=>{});
+    todosPedidos = todosPedidos.filter(x=>x.id!==pedidoAEliminar.id);
+    renderLista();
+    cerrarDelete();
+  }catch(err){
+    alert('Error al eliminar: '+err.message);
+  }finally{
+    btn.textContent='Sí, eliminar'; btn.disabled=false;
+  }
 });
 
 window.abrirDetalle = (id)=>{
