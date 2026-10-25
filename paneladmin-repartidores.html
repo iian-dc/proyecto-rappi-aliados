@@ -17,12 +17,12 @@ body{background:#f8fafc}
 .stat b{font-size:22px;font-weight:900;display:block}
 .stat span{font-size:11px;color:#64748b;font-weight:600}
 .table-wrap{background:#fff;border:1px solid #eef2f7;border-radius:12px;overflow:auto}
-.header-t{display:grid;grid-template-columns:1.2fr 0.6fr 0.6fr 0.8fr 0.5fr 0.6fr 0.6fr 0.6fr 0.7fr;min-width:1050px;padding:12px 14px;background:#fafbfc;border-bottom:1px solid #eef2f7;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase}
-.row{display:grid;grid-template-columns:1.2fr 0.6fr 0.6fr 0.8fr 0.5fr 0.6fr 0.6fr 0.6fr 0.7fr;min-width:1050px;padding:12px 14px;border-bottom:1px solid #f1f5f9;align-items:center;font-size:13px}
+.header-t{display:grid;grid-template-columns:1.2fr 0.7fr 0.6fr 0.8fr 0.6fr 0.6fr 0.7fr;min-width:900px;padding:12px 14px;background:#fafbfc;border-bottom:1px solid #eef2f7;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase}
+.row{display:grid;grid-template-columns:1.2fr 0.7fr 0.6fr 0.8fr 0.6fr 0.6fr 0.7fr;min-width:900px;padding:12px 14px;border-bottom:1px solid #f1f5f9;align-items:center;font-size:13px}
 .avatar{width:36px;height:36px;border-radius:50%;background:#e5e7eb;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .avatar img{width:100%;height:100%;object-fit:cover}
 .badge{padding:4px 9px;border-radius:999px;font-size:11px;font-weight:700}
-.badge-ok{background:#DCFCE7;color:#166534}.badge-off{background:#F3F4F6;color:#64748b}.badge-disc{background:#FEF9C3;color:#854D0E}
+.badge-ok{background:#DCFCE7;color:#166534}.badge-off{background:#FEE2E2;color:#991B1B}
 .btn-add{background:#E30613;color:#fff;border:none;border-radius:8px;padding:9px 14px;font-weight:700;font-size:12px;cursor:pointer}
 .btn-edit{border:1px solid #e5e7eb;background:#fff;border-radius:8px;padding:6px 11px;font-weight:700;font-size:12px;cursor:pointer}
 .side{width:380px;background:#fff;border-left:1px solid #eef2f7;padding:18px;position:sticky;top:64px;height:calc(100vh - 64px);overflow:auto}
@@ -32,14 +32,9 @@ body{background:#f8fafc}
 .field input, .field select{width:100%;height:40px;border:1.5px solid #e5e7eb;border-radius:8px;padding:0 12px;font-size:13px;font-weight:600;outline:none}
 .field input:focus{border-color:#E30613}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.switch{width:44px;height:24px;background:#e5e7eb;border-radius:999px;position:relative;cursor:pointer}
-.switch.on{background:#16A34A}
-.switch::after{content:'';position:absolute;width:18px;height:18px;background:#fff;border-radius:50%;top:3px;left:3px;transition:.2s}
-.switch.on::after{left:23px}
 .footer{display:flex;gap:10px;margin-top:16px}
 .btn-cancel{flex:1;height:42px;border:1.5px solid #e5e7eb;background:#fff;border-radius:8px;font-weight:700;cursor:pointer}
 .btn-save{flex:1;height:42px;background:#E30613;color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer}
-.toggle{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f1f5f9}
 @media(max-width:900px){.stats{grid-template-columns:1fr 1fr}.side{position:fixed;bottom:0;top:auto;width:100%;height:90vh;border-radius:16px 16px 0 0;transform:translateY(100%);transition:.3s;z-index:100}.side.open{transform:translateY(0)}.main{flex-direction:column}}
 </style>
 </head>
@@ -64,7 +59,7 @@ body{background:#f8fafc}
 
     <div class="table-wrap">
       <div class="header-t">
-        <div>Repartidor</div><div>Usuario</div><div>Contraseña</div><div>Estado / Conexión</div><div>Pedidos hoy</div><div>Pedidos mes</div><div>General</div><div>Ubicación</div><div>Acciones</div>
+        <div>Repartidor</div><div>Usuario</div><div>Contraseña</div><div>Estado</div><div>Pedidos hoy</div><div>General</div><div>Acciones</div>
       </div>
       <div id="lista"></div>
     </div>
@@ -75,37 +70,14 @@ body{background:#f8fafc}
 
     <div class="field"><label>Foto URL</label><input id="fFoto" placeholder="https://..."></div>
     <div class="field"><label>Nombre completo (nombre)</label><input id="fNombre" placeholder="Jose"></div>
-    <div class="grid2">
-      <div class="field"><label>Usuario (usuario)</label><input id="fUsuario" placeholder="Jose"></div>
-      <div class="field"><label>Rol</label><select id="fRol"><option value="repartidor">repartidor</option><option value="admin">admin</option></select></div>
-    </div>
+    <div class="field"><label>Usuario (usuario)</label><input id="fUsuario" placeholder="Jose"></div>
+    <div class="field"><label>Rol</label><select id="fRol"><option value="repartidor">repartidor</option><option value="admin">admin</option></select></div>
     <div class="grid2">
       <div class="field"><label>Contraseña (password)</label><input id="fPass" type="text" placeholder="1234"></div>
       <div class="field"><label>Confirmar contraseña</label><input id="fPass2" type="text" placeholder="1234"></div>
     </div>
-
-    <div class="grid2">
-      <div class="field"><label>Estado</label><select id="fEstado"><option value="disponible">disponible</option><option value="ocupado">ocupado</option><option value="inactivo">inactivo</option></select></div>
-      <div class="field"><label>Estado Conexión</label><select id="fEstadoCon"><option value="conectado">conectado</option><option value="desconectado">desconectado</option></select></div>
-    </div>
-
-    <div class="toggle"><div><b>Conectado</b><div style="font-size:11px;color:#94a3b8">conectado: true/false</div></div><div class="switch on" id="swConectado" onclick="this.classList.toggle('on')"></div></div>
-
-    <div class="field"><label>Ubicación - Lat</label><input id="fLat" placeholder="21.1613"></div>
-    <div class="field"><label>Ubicación - Lng</label><input id="fLng" placeholder="-100.9341"></div>
-    <div class="grid2">
-      <div class="field"><label>Accuracy</label><input id="fAcc" type="number" value="111"></div>
-      <div class="field"><label>Heading</label><input id="fHead" type="number" value="0"></div>
-      <div class="field"><label>Speed</label><input id="fSpeed" type="number" value="0"></div>
-      <div class="field"><label>Pedidos hoy</label><input id="fHoy" type="number" value="0"></div>
-    </div>
-    <div class="grid2">
-      <div class="field"><label>Pedidos mes</label><input id="fMes" type="number" value="0"></div>
-      <div class="field"><label>Pedidos general</label><input id="fGeneral" type="number" value="0"></div>
-      <div class="field"><label>Pedidos cancelados</label><input id="fCancel" type="number" value="0"></div>
-      <div class="field"><label>INE (opcional)</label><input id="fIne" placeholder="INE"></div>
-    </div>
-
+    <div class="field"><label>Estado de conexión (estadoConexion)</label><select id="fEstadoCon"><option value="disponible">disponible</option><option value="conectado">conectado</option><option value="desconectado">desconectado</option><option value="ocupado">ocupado</option></select></div>
+    <div class="field"><label>INE</label><input id="fIne" placeholder="INE"></div>
     <div class="field"><label>CreadoEn (auto)</label><input id="fCreado" disabled></div>
 
     <div class="footer"><button class="btn-cancel" onclick="cerrar()">Cancelar</button><button class="btn-save" onclick="guardar()">Guardar</button></div>
@@ -115,9 +87,8 @@ body{background:#f8fafc}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, onValue, set, update, push, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, onValue, set, update, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-// CONFIG DOLOYA-REPARTIDORES - tu base real
 const firebaseConfig = {
   apiKey: "AIzaSyD286qlJQT8D3rqbYTSfCyuTAEg9jjRchQ",
   authDomain: "doloya-repartidores.firebaseapp.com",
@@ -139,12 +110,10 @@ window.cerrar = ()=>{ document.getElementById('sidePanel').classList.remove('ope
 window.agregarNuevo = ()=>{
   modoAgregar=true; editId=null;
   document.getElementById('titPanel').textContent='Agregar repartidor';
-  ['fFoto','fNombre','fUsuario','fPass','fPass2','fLat','fLng','fIne'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('fAcc').value=111; document.getElementById('fHead').value=0; document.getElementById('fSpeed').value=0;
-  document.getElementById('fHoy').value=0; document.getElementById('fMes').value=0; document.getElementById('fGeneral').value=0; document.getElementById('fCancel').value=0;
+  ['fFoto','fNombre','fUsuario','fPass','fPass2','fIne'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('fCreado').value=new Date().toISOString();
-  document.getElementById('fEstado').value='disponible'; document.getElementById('fEstadoCon').value='conectado';
-  document.getElementById('swConectado').className='switch on';
+  document.getElementById('fEstadoCon').value='disponible';
+  document.getElementById('fRol').value='repartidor';
   document.getElementById('sidePanel').classList.add('open');
 }
 
@@ -155,13 +124,10 @@ window.editar = (id)=>{
   document.getElementById('fNombre').value=r.nombre||'';
   document.getElementById('fUsuario').value=r.usuario||'';
   document.getElementById('fPass').value=r.password||''; document.getElementById('fPass2').value=r.password||'';
-  document.getElementById('fEstado').value=r.estado||'disponible';
-  document.getElementById('fEstadoCon').value=r.estadoConexion||'conectado';
-  document.getElementById('fLat').value=r.lat||r.latitude||''; document.getElementById('fLng').value=r.lng||r.longitude||'';
-  document.getElementById('fAcc').value=r.accuracy||111; document.getElementById('fHead').value=r.heading||0; document.getElementById('fSpeed').value=r.speed||0;
-  document.getElementById('fHoy').value=r.pedidosHoy||0; document.getElementById('fMes').value=r.pedidosMes||0; document.getElementById('fGeneral').value=r.pedidosCompletados||r.pedidosGeneral||0; document.getElementById('fCancel').value=r.pedidosCancelados||0;
-  document.getElementById('fIne').value=r.ine||''; document.getElementById('fCreado').value=r.creadoEn||'';
-  document.getElementById('swConectado').className='switch '+(r.conectado?'on':'');
+  document.getElementById('fEstadoCon').value=r.estadoConexion||r.estado||'disponible';
+  document.getElementById('fIne').value=r.ine||'';
+  document.getElementById('fCreado').value=r.creadoEn||'';
+  document.getElementById('fRol').value=r.rol||'repartidor';
   document.getElementById('sidePanel').classList.add('open');
 }
 
@@ -169,7 +135,7 @@ onValue(ref(db,'repartidores'), snap=>{
   const val=snap.val()||{}; repartidores=val; const ids=Object.keys(val);
   document.getElementById('sTotal').textContent=ids.length;
   let disp=0,inact=0,comp=0,canc=0;
-  ids.forEach(k=>{ const r=val[k]; if(r.estado==='disponible') disp++; if(r.estado==='inactivo' || r.conectado===false) inact++; comp+=parseInt(r.pedidosGeneral||r.pedidosCompletados||0); canc+=parseInt(r.pedidosCancelados||0); });
+  ids.forEach(k=>{ const r=val[k]; if(r.estadoConexion==='disponible' || r.estado==='disponible') disp++; if(r.conectado===false || r.estadoConexion==='desconectado') inact++; comp+=parseInt(r.pedidosGeneral||r.pedidosCompletados||0); canc+=parseInt(r.pedidosCancelados||0); });
   document.getElementById('sDisp').textContent=disp;
   document.getElementById('sInact').textContent=inact;
   document.getElementById('sComp').textContent=comp;
@@ -180,15 +146,16 @@ onValue(ref(db,'repartidores'), snap=>{
   let html='';
   ids.forEach(id=>{
     const r=val[id];
+    const estadoTxt = r.estadoConexion || r.estado || 'disponible';
+    const conectadoTxt = r.conectado ? 'Conectado' : (r.estadoConexion==='desconectado' ? 'Desconectado' : 'Conectado');
+    const badgeClass = r.conectado!==false ? 'badge-ok' : 'badge-off';
     html+=`<div class="row">
       <div style="display:flex;gap:8px;align-items:center"><div class="avatar">${r.foto?`<img src="${r.foto}">`:`<span style="font-weight:800">${(r.nombre||id).charAt(0)}</span>`}</div><div><b>${r.nombre||id}</b><div style="font-size:11px;color:#64748b">${r.ine||''}</div></div></div>
       <div>${r.usuario||''}</div>
       <div style="font-weight:700">${r.password||''}</div>
-      <div><span class="badge ${r.conectado?'badge-ok':'badge-off'}">${r.estado||''} / ${r.estadoConexion||''}</span></div>
+      <div><div style="font-weight:800;text-transform:capitalize">${estadoTxt}</div><div style="font-size:11px"><span class="badge ${badgeClass}">${conectadoTxt}</span></div></div>
       <div style="text-align:center;font-weight:800">${r.pedidosHoy||0}</div>
-      <div style="text-align:center;font-weight:800">${r.pedidosMes||0}</div>
       <div style="text-align:center;font-weight:800">${r.pedidosGeneral||r.pedidosCompletados||0}</div>
-      <div style="font-size:11px">${r.lat?parseFloat(r.lat).toFixed(4):''}, ${r.lng?parseFloat(r.lng).toFixed(4):''}</div>
       <div style="display:flex;gap:6px"><button class="btn-edit" onclick="editar('${id}')">Editar</button><button class="btn-edit" onclick="if(confirm('Eliminar ${id}?')) remove(ref(db,'repartidores/${id}'))">✕</button></div>
     </div>`;
   });
@@ -204,46 +171,47 @@ window.guardar = async ()=>{
   if(!nombre||!usuario){ msg.style.display='block'; msg.style.color='#E30613'; msg.textContent='Nombre y usuario obligatorios'; return; }
   if(pass!==pass2){ msg.style.display='block'; msg.style.color='#E30613'; msg.textContent='Contraseñas no coinciden'; return; }
 
-  const lat = parseFloat(document.getElementById('fLat').value)||21.161396813552113;
-  const lng = parseFloat(document.getElementById('fLng').value)||-100.9341225228198;
+  const esAgregar = modoAgregar;
+  const idBase = editId || usuario;
+  const existente = !esAgregar ? (repartidores[idBase]||{}) : {};
 
   const data = {
     nombre: nombre,
     usuario: usuario,
     password: pass,
     rol: document.getElementById('fRol').value,
-    estado: document.getElementById('fEstado').value,
+    estado: document.getElementById('fEstadoCon').value,
     estadoConexion: document.getElementById('fEstadoCon').value,
-    conectado: document.getElementById('swConectado').classList.contains('on'),
     foto: document.getElementById('fFoto').value.trim(),
     ine: document.getElementById('fIne').value.trim(),
-    lat: lat, latitude: lat,
-    lng: lng, longitude: lng,
-    accuracy: parseInt(document.getElementById('fAcc').value)||111,
-    heading: parseInt(document.getElementById('fHead').value)||0,
-    speed: parseInt(document.getElementById('fSpeed').value)||0,
-    pedidosHoy: parseInt(document.getElementById('fHoy').value)||0,
-    pedidosMes: parseInt(document.getElementById('fMes').value)||0,
-    pedidosGeneral: parseInt(document.getElementById('fGeneral').value)||0,
-    pedidosCompletados: parseInt(document.getElementById('fGeneral').value)||0,
-    pedidosCancelados: parseInt(document.getElementById('fCancel').value)||0,
+    // Mantener ubicación existente si ya existe, si no crear default
+    lat: existente.lat || existente.latitude || 21.161396813552113,
+    latitude: existente.latitude || existente.lat || 21.161396813552113,
+    lng: existente.lng || existente.longitude || -100.9341225228198,
+    longitude: existente.longitude || existente.lng || -100.9341225228198,
+    accuracy: existente.accuracy || 111,
+    heading: existente.heading || 0,
+    speed: existente.speed || 0,
+    pedidosHoy: existente.pedidosHoy || 0,
+    pedidosMes: existente.pedidosMes || 0,
+    pedidosGeneral: existente.pedidosGeneral || existente.pedidosCompletados || 0,
+    pedidosCompletados: existente.pedidosCompletados || existente.pedidosGeneral || 0,
+    pedidosCancelados: existente.pedidosCancelados || 0,
+    conectado: existente.conectado !== undefined ? existente.conectado : true,
     timestamp: new Date().toISOString(),
     ultimaActualizacion: Date.now(),
-    ultimaUbicacion: Date.now(),
-    creadoEn: document.getElementById('fCreado').value || new Date().toISOString(),
-    ultimaActualizacion: document.getElementById('fCreado').value || new Date().toISOString(),
-    ubicacion: { lat: lat, lng: lng }
+    creadoEn: existente.creadoEn || new Date().toISOString()
   };
 
   try{
     msg.style.display='block'; msg.style.color='#0A7D2E'; msg.textContent='Guardando...';
-    if(modoAgregar){
-      const idFinal = usuario || nombre.replace(/\s/g,'_');
+    if(esAgregar){
+      const idFinal = usuario;
       await set(ref(db,'repartidores/'+idFinal), data);
       msg.textContent='✓ Repartidor '+idFinal+' agregado';
     }else{
       await update(ref(db,'repartidores/'+editId), data);
-      msg.textContent='✓ Cambios guardados en tiempo real';
+      msg.textContent='✓ Cambios guardados';
     }
     setTimeout(()=>{ msg.style.display='none'; cerrar(); }, 900);
   }catch(e){ msg.style.color='#E30613'; msg.textContent='Error: '+e.message; }
