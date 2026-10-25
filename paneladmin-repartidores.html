@@ -17,16 +17,19 @@ body{background:#f8fafc}
 .stat b{font-size:22px;font-weight:900;display:block}
 .stat span{font-size:11px;color:#64748b;font-weight:600}
 .table-wrap{background:#fff;border:1px solid #eef2f7;border-radius:12px;overflow:auto}
-.header-t{display:grid;grid-template-columns:1.2fr 0.7fr 0.6fr 0.8fr 0.6fr 0.6fr 0.7fr;min-width:900px;padding:12px 14px;background:#fafbfc;border-bottom:1px solid #eef2f7;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase}
-.row{display:grid;grid-template-columns:1.2fr 0.7fr 0.6fr 0.8fr 0.6fr 0.6fr 0.7fr;min-width:900px;padding:12px 14px;border-bottom:1px solid #f1f5f9;align-items:center;font-size:13px}
+.header-t{display:grid;grid-template-columns:1.2fr 0.7fr 0.6fr 0.8fr 0.6fr 0.6fr 0.9fr;min-width:950px;padding:12px 14px;background:#fafbfc;border-bottom:1px solid #eef2f7;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase}
+.row{display:grid;grid-template-columns:1.2fr 0.7fr 0.6fr 0.8fr 0.6fr 0.6fr 0.9fr;min-width:950px;padding:12px 14px;border-bottom:1px solid #f1f5f9;align-items:center;font-size:13px}
 .avatar{width:36px;height:36px;border-radius:50%;background:#e5e7eb;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .avatar img{width:100%;height:100%;object-fit:cover}
 .badge{padding:5px 10px;border-radius:999px;font-size:11px;font-weight:800;display:inline-block}
 .badge-ok{background:#DCFCE7;color:#166534;border:1px solid #BBF7D0}.badge-off{background:#FEE2E2;color:#991B1B;border:1px solid #FECACA}.badge-disc{background:#FEF9C3;color:#854D0E;border:1px solid #FEF08A}
 .btn-add{background:#E30613;color:#fff;border:none;border-radius:8px;padding:9px 14px;font-weight:700;font-size:12px;cursor:pointer}
-.btn-edit{border:1px solid #e5e7eb;background:#fff;border-radius:8px;padding:6px 11px;font-weight:700;font-size:12px;cursor:pointer}
-.side{width:380px;background:#fff;border-left:1px solid #eef2f7;padding:18px;position:sticky;top:64px;height:calc(100vh - 64px);overflow:auto}
-.side h3{font-size:16px;font-weight:800;margin-bottom:14px;display:flex;justify-content:space-between}
+.btn-edit{border:1.5px solid #e5e7eb;background:#fff;border-radius:8px;padding:6px 11px;font-weight:700;font-size:12px;cursor:pointer}
+.btn-del{border:1.5px solid #FECACA;background:#fff;color:#E30613;border-radius:8px;padding:6px 11px;font-weight:700;font-size:12px;cursor:pointer}
+.btn-del:hover{background:#FEF2F2}
+.side{width:380px;background:#fff;border-left:1px solid #eef2f7;padding:18px;position:fixed;right:0;top:64px;height:calc(100vh - 64px);overflow:auto;transform:translateX(100%);transition:.3s ease;z-index:90;box-shadow:-10px 0 30px rgba(0,0,0,.08)}
+.side.open{transform:translateX(0)}
+.side h3{font-size:16px;font-weight:800;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center}
 .field{margin-bottom:12px}
 .field label{font-size:11px;font-weight:800;text-transform:uppercase;color:#475569;display:block;margin-bottom:5px}
 .field input, .field select{width:100%;height:40px;border:1.5px solid #e5e7eb;border-radius:8px;padding:0 12px;font-size:13px;font-weight:600;outline:none}
@@ -34,7 +37,17 @@ body{background:#f8fafc}
 .footer{display:flex;gap:10px;margin-top:16px}
 .btn-cancel{flex:1;height:42px;border:1.5px solid #e5e7eb;background:#fff;border-radius:8px;font-weight:700;cursor:pointer}
 .btn-save{flex:1;height:42px;background:#E30613;color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer}
-@media(max-width:900px){.stats{grid-template-columns:1fr 1fr}.side{position:fixed;bottom:0;top:auto;width:100%;height:90vh;border-radius:16px 16px 0 0;transform:translateY(100%);transition:.3s;z-index:100}.side.open{transform:translateY(0)}.main{flex-direction:column}}
+/* MODAL ELIMINAR */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;z-index:200;padding:16px}
+.overlay.show{display:flex}
+.modal-del{background:#fff;border-radius:16px;padding:22px;width:100%;max-width:340px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3);animation:pop .25s ease}
+.modal-del h4{font-size:16px;font-weight:800;margin-bottom:8px}
+.modal-del p{font-size:13px;color:#64748b;margin-bottom:18px}
+.modal-del .actions{display:flex;gap:10px}
+.btn-no{flex:1;height:42px;border:1.5px solid #e5e7eb;background:#fff;border-radius:10px;font-weight:700;cursor:pointer}
+.btn-yes{flex:1;height:42px;background:#E30613;color:#fff;border:none;border-radius:10px;font-weight:800;cursor:pointer}
+@keyframes pop{0%{transform:scale(.9)}100%{transform:scale(1)}}
+@media(max-width:900px){.stats{grid-template-columns:1fr 1fr}.side{position:fixed;bottom:0;top:auto;width:100%;height:90vh;border-radius:16px 16px 0 0;transform:translateY(100%)}.side.open{transform:translateY(0)}.main{flex-direction:column}}
 </style>
 </head>
 <body>
@@ -62,7 +75,7 @@ body{background:#f8fafc}
   </div>
 
   <div class="side" id="sidePanel">
-    <h3><span id="titPanel">Agregar repartidor</span><span onclick="cerrar()" style="cursor:pointer">✕</span></h3>
+    <h3><span id="titPanel">Agregar repartidor</span><span onclick="cerrar()" style="cursor:pointer;font-size:20px;font-weight:900;width:32px;height:32px;display:flex;align-items:center;justify-content:center;background:#f1f5f9;border-radius:50%">✕</span></h3>
     <div class="field"><label>Foto URL</label><input id="fFoto" placeholder="https://..."></div>
     <div class="field"><label>Nombre completo (nombre)</label><input id="fNombre" placeholder="Jose"></div>
     <div class="field"><label>Usuario (usuario)</label><input id="fUsuario" placeholder="Jose"></div>
@@ -77,11 +90,23 @@ body{background:#f8fafc}
   </div>
 </div>
 
+<!-- MODAL ELIMINAR -->
+<div class="overlay" id="overlayDel">
+  <div class="modal-del">
+    <div style="width:56px;height:56px;background:#FEE2E2;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;color:#E30613;font-size:28px">🗑️</div>
+    <h4>¿Eliminar repartidor?</h4>
+    <p>¿Deseas eliminar a <b id="delNombre">este repartidor</b>? Esta acción se borrará de Firebase y no se puede deshacer.</p>
+    <div class="actions">
+      <button class="btn-no" onclick="cerrarDel()">No, cancelar</button>
+      <button class="btn-yes" onclick="confirmarEliminar()">Sí, eliminar</button>
+    </div>
+  </div>
+</div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, onValue, set, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, onValue, set, update, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-// CONFIG EXACTA DE TU LOGIN - MISMA BASE PARA QUE NO HAYA DESFASE
 const firebaseConfig = {
   apiKey: "AIzaSyCYdy62kQCPEhz1d-Ln9H-sup2iOTYJPwU",
   authDomain: "doloya-repartidores.firebaseapp.com",
@@ -97,6 +122,7 @@ const db = getDatabase(app);
 let repartidores = {};
 let editId = null;
 let modoAgregar = true;
+let idEliminar = null;
 
 window.cerrar = ()=>{ document.getElementById('sidePanel').classList.remove('open'); }
 
@@ -125,11 +151,41 @@ window.editar = (id)=>{
   document.getElementById('sidePanel').classList.add('open');
 }
 
+// ELIMINAR CON MODAL
+window.eliminar = (id)=>{
+  idEliminar = id;
+  const r = repartidores[id];
+  document.getElementById('delNombre').textContent = r.nombre || r.usuario || id;
+  document.getElementById('overlayDel').classList.add('show');
+}
+window.cerrarDel = ()=>{
+  document.getElementById('overlayDel').classList.remove('show');
+  idEliminar = null;
+}
+window.confirmarEliminar = async ()=>{
+  if(!idEliminar) return;
+  try{
+    await remove(ref(db,'repartidores/'+idEliminar));
+    cerrarDel();
+  }catch(e){ alert('Error al eliminar: '+e.message); }
+}
+
+document.getElementById('overlayDel').addEventListener('click', (e)=>{
+  if(e.target.id==='overlayDel') cerrarDel();
+});
+
 onValue(ref(db,'repartidores'), snap=>{
   const val=snap.val()||{}; repartidores=val; const ids=Object.keys(val);
   document.getElementById('sTotal').textContent=ids.length;
   let disp=0,inact=0,comp=0,canc=0;
-  ids.forEach(k=>{ const r=val[k]; if((r.estadoConexion||r.estado)==='disponible' || r.estadoConexion==='conectado') disp++; if((r.estadoConexion||'')==='desconectado' || r.conectado===false) inact++; comp+=parseInt(r.pedidosGeneral||r.pedidosCompletados||0); canc+=parseInt(r.pedidosCancelados||0); });
+  ids.forEach(k=>{ 
+    const r=val[k]; 
+    if((r.estadoConexion||r.estado)==='disponible' || r.estadoConexion==='conectado') disp++; 
+    if((r.estadoConexion||'')==='desconectado' || r.conectado===false) inact++; 
+    // PEDIDOS VINCULADOS DESDE FIREBASE
+    comp+=parseInt(r.pedidosGeneral||r.pedidosCompletados||0); 
+    canc+=parseInt(r.pedidosCancelados||0); 
+  });
   document.getElementById('sDisp').textContent=disp;
   document.getElementById('sInact').textContent=inact;
   document.getElementById('sComp').textContent=comp;
@@ -155,7 +211,10 @@ onValue(ref(db,'repartidores'), snap=>{
       <div><span class="badge ${badgeClass}">${txt}</span></div>
       <div style="text-align:center;font-weight:800">${r.pedidosHoy||0}</div>
       <div style="text-align:center;font-weight:800">${r.pedidosGeneral||r.pedidosCompletados||0}</div>
-      <div style="display:flex;gap:6px"><button class="btn-edit" onclick="editar('${id}')">Editar</button></div>
+      <div style="display:flex;gap:6px">
+        <button class="btn-edit" onclick="editar('${id}')">Editar</button>
+        <button class="btn-del" onclick="eliminar('${id}')">Eliminar</button>
+      </div>
     </div>`;
   });
   cont.innerHTML=html;
@@ -176,7 +235,6 @@ window.guardar = async ()=>{
     msg.style.display='block'; msg.style.color='#0A7D2E'; msg.textContent='Guardando...';
     
     if(modoAgregar){
-      // AL CREAR SI CREAMOS LA ESTRUCTURA COMPLETA COMO EN TU FOTO
       const nuevo = {
         nombre: nombre,
         usuario: usuario,
@@ -206,7 +264,6 @@ window.guardar = async ()=>{
       await set(ref(db,'repartidores/'+usuario), nuevo);
       msg.textContent='✓ Repartidor '+usuario+' agregado';
     }else{
-      // AL EDITAR SOLO TOCAMOS LO QUE CAMBIASTE - NO RECREA LAT/LNG
       const soloCambios = {
         nombre: nombre,
         usuario: usuario,
@@ -220,7 +277,7 @@ window.guardar = async ()=>{
         timestamp: new Date().toISOString()
       };
       await update(ref(db,'repartidores/'+editId), soloCambios);
-      msg.textContent='✓ Actualizado en tiempo real - ya cambió en login';
+      msg.textContent='✓ Actualizado en tiempo real';
     }
     setTimeout(()=>{ msg.style.display='none'; cerrar(); }, 1000);
   }catch(e){ msg.style.display='block'; msg.style.color='#E30613'; msg.textContent='Error: '+e.message; }
