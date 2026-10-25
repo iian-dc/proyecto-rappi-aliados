@@ -25,9 +25,6 @@ body{background:#f7f7f8;min-height:100vh}
 .card-stat b.label{font-size:13px;color:#111;display:block;font-weight:700}
 .card-stat strong.num{font-size:26px;font-weight:800;color:#111;line-height:1.1;margin-top:4px;display:block}
 .card-stat span.sub{font-size:12px;color:#6c757d;margin-top:4px;display:block}
-.dot{width:10px;height:10px;border-radius:50%;display:inline-block}
-.dot.green{background:#22c55e}
-.dot.gray{background:#9ca3af}
 .filters{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}
 .search-box{flex:1;min-width:220px;background:white;border:1px solid #e5e7eb;border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px}
 .search-box input{border:none;outline:none;width:100%;font-size:14px}
@@ -41,7 +38,7 @@ body{background:#f7f7f8;min-height:100vh}
 .rest-icon{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden}
 .rest-info b{font-size:13px;font-weight:700;color:#111;display:block}
 .tipo{display:flex;gap:8px;align-items:center;font-size:13px;color:#111;font-weight:500;flex-wrap:wrap}
-.pedidos{display:flex;gap:6px;align-items:center;font-size:13px;font-weight:600}
+.pedidos{display:flex;gap:6px;align-items:center;font-size:13px;font-weight:800}
 .estado-badge{font-size:11px;font-weight:700;padding:5px 10px;border-radius:999px;display:inline-flex;align-items:center;gap:6px;width:fit-content}
 .estado-badge.activo{background:#DCFCE7;color:#15803d}
 .estado-badge.desactivo{background:#FEE2E2;color:#991B1B}
@@ -84,153 +81,132 @@ import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10
 import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
 const configAliados = { apiKey: "AIzaSyD286qlJQT8D3rqbYTSfCyuTAEg9jjRchQ", authDomain: "doloya-aliados.firebaseapp.com", databaseURL: "https://doloya-aliados-default-rtdb.firebaseio.com", projectId: "doloya-aliados", storageBucket: "doloya-aliados.firebasestorage.app", messagingSenderId: "122314467740", appId: "1:122314467740:web:9947a0a9560557e3a00059" };
-const configConfirmacion = { apiKey: "AIzaSyDLKngPyi_SWAXEQwdrHO5h8L8OufulAR4", authDomain: "doloya-confirmacion.firebaseapp.com", databaseURL: "https://doloya-confirmacion-default-rtdb.firebaseio.com", projectId: "doloya-confirmacion", storageBucket: "doloya-confirmacion.firebasestorage.app", messagingSenderId: "832228761099", appId: "1:832228761099:web:ddd4b6a0ee0d7f0494b10e" };
+const configHistorial = { apiKey: "AIzaSyCRx4B7mO444s0yU-WTnsqMjBHDWX4IRv8", authDomain: "doloya-historial.firebaseapp.com", projectId: "doloya-historial", storageBucket: "doloya-historial.firebasestorage.app", messagingSenderId: "41258055121", appId: "1:41258055121:web:19a443786320e04ebd9cf0" };
 
 const appAliados = initializeApp(configAliados, "aliados");
-const appConfirm = initializeApp(configConfirmacion, "confirmacion");
+const appHistorial = initializeApp(configHistorial, "historial");
 const dbAliados = getDatabase(appAliados);
-const dbFirestore = getFirestore(appConfirm);
+const dbHistorial = getFirestore(appHistorial);
 
 let aliadosData = [];
-let pedidosPorRestaurante = {};
-let totalPedidosGlobal = 0;
+let conteoEntregados = {};
+let conteoCancelados = {};
 
-function normalizarKey(str){
-  if(!str) return '';
-  return str.toString().toLowerCase().trim().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'').replace(/__+/g,'_');
+function normalizar(str){ if(!str) return ''; return str.toString().toLowerCase().trim().replace(/\s+/g,'_'); }
+
+function extraerRestauranteId(d){
+  // En tu foto se ve que el pedido tiene cliente y detalles, el restaurante puede estar en varios campos
+  return d.restauranteId || d.restaurante_id || d.restaurante?.id || d.restaurante?.nombre || d.restauranteNombre || d.nombreRestaurante || d.aliadoId || d.aliado || d.negocioId || d.tiendaId || d.detalles?.restauranteId || d.detalles?.restaurante || d.detalles?.negocio || d.restaurante || d.establecimiento || '';
 }
 
 function formatearFecha(ts){
   if(!ts) return {hora:'Sin actividad', sub:'—'};
-  const d = ts.seconds ? new Date(ts.seconds*1000) : new Date(ts);
-  if(isNaN(d.getTime())) return {hora:'Sin actividad', sub:''};
-  const hoy = new Date();
-  const esHoy = d.toDateString()===hoy.toDateString();
-  const ayer = new Date(); ayer.setDate(hoy.getDate()-1);
-  const esAyer = d.toDateString()===ayer.toDateString();
-  const h = d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');
-  if(esHoy) return {hora:`Hoy, ${h}`, sub:'Último pedido'};
-  if(esAyer) return {hora:`Ayer, ${h}`, sub:'Último pedido'};
-  return {hora:`${d.getDate()}/${d.getMonth()+1} ${h}`, sub:'Último pedido'};
+  let f = ts.seconds ? new Date(ts.seconds*1000) : new Date(ts);
+  if(isNaN(f.getTime())) return {hora: String(ts).slice(0,16), sub:'Último pedido'};
+  const hoy=new Date(); const ayer=new Date(); ayer.setDate(hoy.getDate()-1);
+  const h=f.getHours().toString().padStart(2,'0')+':'+f.getMinutes().toString().padStart(2,'0');
+  if(f.toDateString()===hoy.toDateString()) return {hora:`Hoy, ${h}`, sub:'Último pedido'};
+  if(f.toDateString()===ayer.toDateString()) return {hora:`Ayer, ${h}`, sub:'Último pedido'};
+  return {hora:`${f.getDate()}/${f.getMonth()+1} ${h}`, sub:'Último pedido'};
 }
 
-function renderStatsYTabla(){
-  document.getElementById('totalAliados').textContent = aliadosData.length;
-  document.getElementById('pedidosTotales').textContent = totalPedidosGlobal;
-  document.getElementById('enServicio').textContent = aliadosData.filter(a=>a.abierto).length;
-  document.getElementById('enPausa').textContent = aliadosData.filter(a=>!a.abierto).length;
+function mergeConteos(){
+  let combinado = {};
+  for(const k in conteoEntregados){ combinado[k]={count: conteoEntregados[k].count, last: conteoEntregados[k].last}; }
+  for(const k in conteoCancelados){
+    if(!combinado[k]) combinado[k]={count:0,last:null};
+    combinado[k].count += conteoCancelados[k].count;
+    if(conteoCancelados[k].last && (!combinado[k].last || new Date(conteoCancelados[k].last) > new Date(combinado[k].last))){ combinado[k].last = conteoCancelados[k].last; }
+  }
+  return combinado;
+}
+
+function recalcular(){
+  if(!aliadosData.length) return;
+  const mapa = mergeConteos();
+  let total=0;
+  aliadosData = aliadosData.map(a=>{
+    const key = normalizar(a.idReal);
+    const key2 = normalizar(a.nombre);
+    const info = mapa[key] || mapa[key2] || {count:0, last:null};
+    total+=info.count;
+    return {...a, pedidos: info.count, ultima: info.last || a.ultimaOriginal};
+  });
+  document.getElementById('totalAliados').textContent=aliadosData.length;
+  document.getElementById('pedidosTotales').textContent=total;
+  document.getElementById('enServicio').textContent=aliadosData.filter(a=>a.abierto).length;
+  document.getElementById('enPausa').textContent=aliadosData.filter(a=>!a.abierto).length;
   renderTabla();
 }
 
-function escucharPedidosTiempoReal(){
-  onSnapshot(collection(dbFirestore, "pedidos"), (snapPedidos)=>{
-    pedidosPorRestaurante = {};
-    totalPedidosGlobal = 0;
-    snapPedidos.forEach(doc=>{
-      const d = doc.data();
-      const rawId = d.restaurante?.id || d.restauranteId || d.restaurante_id || d.restaurante?.nombre || d.restauranteNombre || d.nombreRestaurante || '';
-      const key = normalizarKey(rawId);
-      if(!key) return;
-      if(!pedidosPorRestaurante[key]) pedidosPorRestaurante[key] = {count:0, last:null};
-      pedidosPorRestaurante[key].count++;
-      const ts = d.creadoEn || d.fecha || d.timestamp || d.createdAt;
-      if(ts) pedidosPorRestaurante[key].last = ts;
-      totalPedidosGlobal++;
-    });
-    if(aliadosData.length){
-      aliadosData = aliadosData.map(a=>{
-        const keyNorm = normalizarKey(a.idReal);
-        const info = pedidosPorRestaurante[keyNorm] || {count:0, last:a.ultimaOriginal||null};
-        return {...a, pedidos: info.count, ultima: info.last || a.ultimaOriginal};
-      });
-      renderStatsYTabla();
-    }
+// ESCUCHA TIEMPO REAL pedidos_entregados
+onSnapshot(collection(dbHistorial, "pedidos_entregados"), snap=>{
+  let temp={};
+  snap.forEach(doc=>{
+    const d=doc.data();
+    const raw=extraerRestauranteId(d);
+    if(!raw){ console.log("Pedido sin restauranteId:", d); return; }
+    const k=normalizar(raw);
+    if(!temp[k]) temp[k]={count:0,last:null};
+    temp[k].count++;
+    const ts=d.actualizadoEn||d.creadoEn||d.fecha||d.timestamp;
+    if(ts) temp[k].last=ts;
   });
-}
+  conteoEntregados=temp;
+  recalcular();
+});
 
-function cargarDatos(){
-  escucharPedidosTiempoReal();
-  onValue(ref(dbAliados, 'doloya_aliados'), (snapAliados)=>{
-    aliadosData = [];
-    if(snapAliados.exists()){
-      const data = snapAliados.val();
-      for(const key in data){
-        if(key==='admin') continue;
-        const nodo = data[key];
-        if(!nodo || typeof nodo!=='object') continue;
-        const info = nodo.info || {};
-        const perfil = nodo.perfil || {};
-        const nombreRaw = info.nombre || perfil.nombre || key;
-        const nombre = nombreRaw.replace(/_/g,' ').trim();
-        const nombreCapital = nombre.charAt(0).toUpperCase() + nombre.slice(1);
-        let logo = info.imagen || perfil.imagenPerfil || info.imagenPerfil || info.logo || '';
-        if(typeof logo !== 'string') logo = '';
-        logo = logo.trim();
-        if(!(logo.startsWith('http') || logo.startsWith('data:image'))){ logo = ''; }
-        const tipoAsignada = (info.categoria || '').replace(/_/g,' ').trim() || 'General';
-        let abierto = true;
-        if(nodo.disponibilidad){
-          if(typeof nodo.disponibilidad.abierto === 'boolean') abierto = nodo.disponibilidad.abierto;
-          else if(typeof nodo.disponibilidad.abierto === 'string') abierto = nodo.disponibilidad.abierto === 'true' || nodo.disponibilidad.abierto === 'abierto';
-          else if(nodo.disponibilidad.estado) abierto = nodo.disponibilidad.estado === 'abierto' || nodo.disponibilidad.estado === 'activo';
-        }
-        if(nodo.categorias?.disponibilidad?.abierto !== undefined){
-          abierto = nodo.categorias.disponibilidad.abierto === true || nodo.categorias.disponibilidad.abierto === 'true';
-        }
-        const keyNorm = normalizarKey(key);
-        const pedidosInfo = pedidosPorRestaurante[keyNorm] || {count:0, last:null};
-        aliadosData.push({
-          idReal: key,
-          nombre: nombreCapital,
-          logo: logo,
-          tipo: tipoAsignada,
-          abierto: abierto,
-          pedidos: pedidosInfo.count,
-          ultima: pedidosInfo.last || info.creado || null,
-          ultimaOriginal: info.creado || null
-        });
-      }
-    }
-    renderStatsYTabla();
+// ESCUCHA TIEMPO REAL pedidos_cancelados
+onSnapshot(collection(dbHistorial, "pedidos_cancelados"), snap=>{
+  let temp={};
+  snap.forEach(doc=>{
+    const d=doc.data();
+    const raw=extraerRestauranteId(d);
+    if(!raw) return;
+    const k=normalizar(raw);
+    if(!temp[k]) temp[k]={count:0,last:null};
+    temp[k].count++;
+    const ts=d.actualizadoEn||d.canceladoEn||d.creadoEn;
+    if(ts) temp[k].last=ts;
   });
-}
+  conteoCancelados=temp;
+  recalcular();
+});
+
+onValue(ref(dbAliados, 'doloya_aliados'), snap=>{
+  aliadosData=[];
+  if(snap.exists()){
+    const data=snap.val();
+    for(const key in data){
+      if(key==='admin') continue;
+      const nodo=data[key]; if(!nodo||typeof nodo!=='object') continue;
+      const info=nodo.info||{}; const perfil=nodo.perfil||{};
+      const nombreRaw=info.nombre||perfil.nombre||key;
+      const nombre=nombreRaw.replace(/_/g,' ').trim();
+      const nombreCapital=nombre.charAt(0).toUpperCase()+nombre.slice(1);
+      let logo=info.imagen||perfil.imagenPerfil||info.imagenPerfil||info.logo||''; if(typeof logo!=='string') logo=''; logo=logo.trim(); if(!(logo.startsWith('http')||logo.startsWith('data:image'))){logo='';}
+      const tipo=(info.categoria||'').replace(/_/g,' ').trim()||'General';
+      let abierto=true; if(nodo.disponibilidad){ if(typeof nodo.disponibilidad.abierto==='boolean') abierto=nodo.disponibilidad.abierto; else if(typeof nodo.disponibilidad.abierto==='string') abierto=nodo.disponibilidad.abierto==='true'||nodo.disponibilidad.abierto==='abierto'; else if(nodo.disponibilidad.estado) abierto=nodo.disponibilidad.estado==='abierto'||nodo.disponibilidad.estado==='activo'; }
+      if(nodo.categorias?.disponibilidad?.abierto!==undefined){ abierto=nodo.categorias.disponibilidad.abierto===true||nodo.categorias.disponibilidad.abierto==='true'; }
+      const mapa=mergeConteos(); const k=normalizar(key); const k2=normalizar(nombre); const infoPed=mapa[k]||mapa[k2]||{count:0,last:null};
+      aliadosData.push({idReal:key,nombre:nombreCapital,logo:logo,tipo:tipo,abierto:abierto,pedidos:infoPed.count,ultima:infoPed.last||info.creado||null,ultimaOriginal:info.creado||null});
+    }
+  }
+  recalcular();
+});
 
 function renderTabla(){
-  const cont = document.getElementById('listaRestaurantes');
-  const busqueda = document.getElementById('buscarInput').value.toLowerCase();
-  const tipoF = document.getElementById('filtroTipo').value;
-  const estadoF = document.getElementById('filtroEstado').value;
-  let filtrados = aliadosData.filter(a=>{
-    const matchBusqueda = !busqueda || a.nombre.toLowerCase().includes(busqueda);
-    const matchTipo = tipoF==='todos' || a.tipo.toLowerCase().includes(tipoF);
-    const matchEstado = estadoF==='todos' || (estadoF==='activo' && a.abierto) || (estadoF==='desactivo' && !a.abierto);
-    return matchBusqueda && matchTipo && matchEstado;
-  });
-  if(filtrados.length===0){
-    cont.innerHTML = `<div style="padding:30px;text-align:center;color:#6c757d">No hay aliados</div>`;
-    return;
-  }
-  cont.innerHTML = filtrados.map(a=>{
-    const fecha = formatearFecha(a.ultima);
-    const estadoClass = a.abierto ? 'activo' : 'desactivo';
-    const estadoTexto = a.abierto ? 'Activo' : 'Cerrado';
-    const logoHtml = a.logo ? `<img src="${a.logo}" style="width:44px;height:44px;border-radius:50%;object-fit:cover;border:1.5px solid #eee;background:white">` : `<div class="rest-icon" style="background:#C50D1F"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M3 9l1-5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2l1 5"/><path d="M3 9h18v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z"/></svg></div>`;
-    return `
-    <div class="table-row">
-      <div class="rest-info">${logoHtml}<div><b>${a.nombre}</b></div></div>
-      <div class="tipo"><span style="text-transform:capitalize;font-weight:700;background:#F3F4F6;padding:4px 10px;border-radius:999px;font-size:12px">${a.tipo}</span></div>
-      <div class="pedidos"> ${a.pedidos} pedidos</div>
-      <div><span class="estado-badge ${estadoClass}"><span class="dot2"></span> ${estadoTexto}</span></div>
-      <div class="last"><b>${fecha.hora}</b><span>${fecha.sub}</span></div>
-      <div class="acciones"><a class="btn-resumen" href="paneladmin-pagos.html?id=${a.idReal}">Resumen</a></div>
-    </div>`;
-  }).join('');
+  const cont=document.getElementById('listaRestaurantes');
+  const busqueda=document.getElementById('buscarInput').value.toLowerCase();
+  const tipoF=document.getElementById('filtroTipo').value;
+  const estadoF=document.getElementById('filtroEstado').value;
+  let filtrados=aliadosData.filter(a=>{ const mB=!busqueda||a.nombre.toLowerCase().includes(busqueda); const mT=tipoF==='todos'||a.tipo.toLowerCase().includes(tipoF); const mE=estadoF==='todos'||(estadoF==='activo'&&a.abierto)||(estadoF==='desactivo'&&!a.abierto); return mB&&mT&&mE; });
+  if(filtrados.length===0){ cont.innerHTML=`<div style="padding:30px;text-align:center;color:#6c757d">No hay aliados</div>`; return; }
+  cont.innerHTML=filtrados.map(a=>{ const fecha=formatearFecha(a.ultima); const estadoClass=a.abierto?'activo':'desactivo'; const estadoTexto=a.abierto?'Activo':'Cerrado'; const logoHtml=a.logo?`<img src="${a.logo}" style="width:44px;height:44px;border-radius:50%;object-fit:cover;border:1.5px solid #eee;background:white">`:`<div class="rest-icon" style="background:#C50D1F"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M3 9l1-5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2l1 5"/><path d="M3 9h18v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z"/></svg></div>`; return `<div class="table-row"><div class="rest-info">${logoHtml}<div><b>${a.nombre}</b></div></div><div class="tipo"><span style="text-transform:capitalize;font-weight:700;background:#F3F4F6;padding:4px 10px;border-radius:999px;font-size:12px">${a.tipo}</span></div><div class="pedidos">${a.pedidos} pedidos</div><div><span class="estado-badge ${estadoClass}"><span class="dot2"></span> ${estadoTexto}</span></div><div class="last"><b>${fecha.hora}</b><span>${fecha.sub}</span></div><div class="acciones"><a class="btn-resumen" href="paneladmin-pagos.html?id=${a.idReal}">Resumen</a></div></div>`; }).join('');
 }
-
 document.getElementById('buscarInput').addEventListener('input', renderTabla);
 document.getElementById('filtroTipo').addEventListener('change', renderTabla);
 document.getElementById('filtroEstado').addEventListener('change', renderTabla);
-cargarDatos();
 </script>
 </body>
 </html>
