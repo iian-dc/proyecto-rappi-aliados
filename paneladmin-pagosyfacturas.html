@@ -30,6 +30,7 @@ body{background:#f6f8fb;color:#0f172a}
 .badge{padding:3px 7px;border-radius:999px;font-size:8.5px;font-weight:700}
 .badge-green{background:#dcfce7;color:#166534}
 .badge-yellow{background:#fef9c3;color:#854d0e}
+.badge-red{background:#fee2e2;color:#991b1b}
 .btn-ver{border:1px solid #E30613;color:#E30613;background:white;padding:4px 9px;border-radius:999px;font-size:10px;font-weight:700;cursor:pointer}
 .right{display:flex;flex-direction:column;gap:12px}
 .resumen,.filtros{padding:12px}
@@ -44,41 +45,41 @@ body{background:#f6f8fb;color:#0f172a}
 <button class="btn-x" onclick="location.href='paneladmin.html'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
 <div style="width:2px;height:16px;background:#E30613"></div>
 <h1>Pagos y Facturas</h1>
+<span id="estadoLive" style="margin-left:auto;font-size:10px;color:#16a34a;font-weight:700">● En vivo</span>
 </div>
 
 <div class="top-cards">
 <div class="tcard"><div class="ticon" style="background:#E30613;color:white">$</div><div><span>Total por pagar</span><b id="kTotalPagar">$ 0.00</b></div></div>
 <div class="tcard"><div class="ticon" style="background:#16a34a;color:white">✓</div><div><span>Pagos realizados</span><b id="kPagados">$ 0.00</b></div></div>
 <div class="tcard"><div class="ticon" style="background:#f59e0b;color:white">◷</div><div><span>Pendientes</span><b id="kPendiente">$ 0.00</b></div></div>
-<div class="tcard"><div class="ticon" style="background:#0f172a;color:white">F</div><div><span>Facturas emitidas</span><b id="kFacturas">0</b></div></div>
+<div class="tcard"><div class="ticon" style="background:#0f172a;color:white">F</div><div><span>Total restaurantes</span><b id="kFacturas">0</b></div></div>
 </div>
 
 <div class="main">
 <div class="box">
 <div class="filters">
-<input id="buscar" placeholder="Buscar aliado, restaurante..." onkeyup="filtrar()">
-<select id="fEstado" onchange="filtrar()"><option value="todos">Todos los estados</option><option value="activo">Activo</option><option value="pendiente">Pendiente</option></select>
+<input id="buscar" placeholder="Buscar restaurante..." onkeyup="filtrar()">
+<select id="fEstado" onchange="filtrar()"><option value="todos">Todos los estados</option><option value="abierto">Abierto</option><option value="cerrado">Cerrado</option><option value="activo">Activo</option></select>
 </div>
 <div class="table-head">
 <span>Aliado / Restaurante</span><span>Total ventas</span><span>Pagado</span><span>Pendiente</span><span>Ultimo pago</span><span>Fecha registro</span><span>Factura</span><span>Estado</span><span>Acciones</span>
 </div>
-<div id="listaAliados"><div style="padding:20px;text-align:center;color:#94a3b8;font-size:11px">Leyendo de doloya_aliados/admin...</div></div>
+<div id="listaAliados"><div style="padding:20px;text-align:center;color:#94a3b8;font-size:11px">Conectando en tiempo real a doloya-aliados...</div></div>
 </div>
 
 <div class="right">
 <div class="box resumen">
-<h3>Resumen de pagos</h3>
-<div class="item-res"><span>Total por pagar</span><b id="rPagar">$ 0.00</b></div>
-<div class="item-res"><span>Pagos realizados</span><b id="rPagados">$ 0.00</b></div>
-<div class="item-res"><span>Pendientes</span><b id="rPend">$ 0.00</b></div>
-<div class="item-res"><span>Total aliados</span><b id="rTotalAli">0</b></div>
+<h3>Resumen</h3>
+<div class="item-res"><span>Total restaurantes</span><b id="rTotalAli">0</b></div>
+<div class="item-res"><span>Abiertos</span><b id="rAbiertos">0</b></div>
+<div class="item-res"><span>Cerrados</span><b id="rCerrados">0</b></div>
 </div>
 </div>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const configAliados = {
@@ -106,144 +107,145 @@ const dbHis = getFirestore(appHis);
 
 let aliados = [];
 let filtrados = [];
+let ventasMap = {};
 
-async function cargar(){
-  let mapa = {};
-  let ventasMap = {};
-
-  // 1. LEER EXACTAMENTE DE doloya_aliados/admin COMO ESTA EN TU FOTO
-  try{
-    const snapAdmin = await get(child(ref(dbAliados), "doloya_aliados/admin"));
-    if(snapAdmin.exists()){
-      const admins = snapAdmin.val();
-      Object.entries(admins).forEach(([key, val])=>{
-        const info = val.info || val;
-        const id = info.id || key;
-        const nombre = info.nombre || key;
-        const imagen = info.imagen || info.logo || "";
-        const direccion = info.direccion || "";
-        const telefono = info.telefono || "";
-        const correo = info.correo || "";
-        const creado = info.creado || val.creado || "";
-        const estado = val.estado || info.estado || "activo";
-        const categoria = info.categoria || "";
-
-        mapa[id] = {
-          id: id,
-          nombre: nombre,
-          logo: imagen,
-          categoria: categoria,
-          direccion: direccion,
-          telefono: telefono,
-          correo: correo,
-          fechaRegistro: creado,
-          estado: estado,
-          totalVentas: 0,
-          pagado: 0,
-          pendiente: 0,
-          ultimoPago: "",
-          factura: "F-00"+Math.floor(1000+Math.random()*9000)
-        };
-      });
-    }
-  }catch(e){ console.log("error admin", e); }
-
-  // 2. VENTAS DESDE HISTORIAL pedidos_entregados
+async function cargarVentas(){
+  ventasMap = {};
   try{
     const snapE = await getDocs(collection(dbHis, "pedidos_entregados"));
     snapE.forEach(d=>{
       const p = d.data();
       const r = p.restaurante || {};
-      const nombreR = r.nombre || p.restauranteNombre || "";
-      const idR = r.id || nombreR;
+      const id = r.id || r.nombre || "";
+      if(!id) return;
+      if(!ventasMap[id]) ventasMap[id]={total:0, ultimo:""};
+      ventasMap[id].total += Number(p.totales?.costoProductos||0);
+      ventasMap[id].ultimo = p.timestamp || ventasMap[id].ultimo;
+    });
+  }catch(e){ console.log(e); }
+}
 
-      // Buscar match con aliados existentes
-      let keyMatch = null;
-      if(mapa[idR]) keyMatch = idR;
-      else {
-        const encontrado = Object.keys(mapa).find(k => mapa[k].nombre.toLowerCase() === nombreR.toLowerCase() || k.toLowerCase() === nombreR.toLowerCase() || k === idR);
-        if(encontrado) keyMatch = encontrado;
-      }
-
-      if(keyMatch){
-        const total = Number(p.totales?.costoProductos||0);
-        if(!ventasMap[keyMatch]) ventasMap[keyMatch]={total:0, ultimo:""};
-        ventasMap[keyMatch].total += total;
-        ventasMap[keyMatch].ultimo = p.timestamp || p.fecha || ventasMap[keyMatch].ultimo;
-      } else if(idR){
-        // Si es un restaurante que no está en admin pero tiene ventas, igual créalo
-        if(!mapa[idR]){
-          mapa[idR] = {
-            id: idR,
-            nombre: nombreR || idR,
-            logo: r.logo || "",
-            categoria: r.cat || "",
-            direccion: "",
-            telefono: "",
-            correo: "",
-            fechaRegistro: p.timestamp || "",
-            estado: "activo",
-            totalVentas: 0,
-            pagado: 0,
-            pendiente: 0,
-            ultimoPago: "",
-            factura: "F-00"+Math.floor(1000+Math.random()*9000)
-          };
-        }
-        const total = Number(p.totales?.costoProductos||0);
-        if(!ventasMap[idR]) ventasMap[idR]={total:0, ultimo:""};
-        ventasMap[idR].total += total;
-        ventasMap[idR].ultimo = p.timestamp || ventasMap[idR].ultimo;
+function extraerRestaurantes(data){
+  let lista = [];
+  // Tu estructura real: doloya_aliados / admin / las_tortas_de_migue
+  // Y también puede haber otros niveles, así que recorremos recursivo
+  function recorrer(obj, path=""){
+    if(!obj || typeof obj!=="object") return;
+    // Si este objeto tiene info con nombre e imagen, es un restaurante
+    if(obj.info && obj.info.nombre){
+      const info = obj.info;
+      const abierto = obj.abierto !== undefined ? obj.abierto : obj.info.abierto;
+      const estado = obj.estado || info.estado || "activo";
+      lista.push({
+        id: info.id || path.split("/").pop() || "sin_id",
+        nombre: info.nombre || "Sin nombre",
+        logo: info.imagen || info.logo || "",
+        categoria: info.categoria || "",
+        direccion: info.direccion || "",
+        telefono: info.telefono || "",
+        correo: info.correo || "",
+        fechaRegistro: info.creado || "",
+        estado: estado,
+        abierto: abierto,
+        rawPath: path
+      });
+      return;
+    }
+    // Si es un contenedor de restaurantes (ej: admin tiene muchos hijos)
+    Object.entries(obj).forEach(([k,v])=>{
+      if(typeof v==="object" && v!==null){
+        // Evitar config_global
+        if(k==="config_global" || k==="config-global") return;
+        recorrer(v, path ? path+"/"+k : k);
       }
     });
-  }catch(e){ console.log("error historial", e); }
+  }
 
-  // Combinar
-  Object.keys(mapa).forEach(id=>{
-    const v = ventasMap[id] || {total:0, ultimo:""};
-    mapa[id].totalVentas = v.total;
-    mapa[id].ultimoPago = v.ultimo;
-    mapa[id].pagado = v.total * 0.7;
-    mapa[id].pendiente = v.total * 0.3;
-    if(mapa[id].pendiente < 5){ mapa[id].pendiente=0; mapa[id].pagado=mapa[id].totalVentas; }
+  recorrer(data);
+  return lista;
+}
+
+async function iniciarTiempoReal(){
+  await cargarVentas();
+
+  // ESCUCHA EN TIEMPO REAL TODA LA BASE doloya_aliados
+  const refRoot = ref(dbAliados, "doloya_aliados");
+  onValue(refRoot, (snapshot)=>{
+    if(!snapshot.exists()){
+      document.getElementById('listaAliados').innerHTML='<div style="padding:20px;text-align:center;color:#94a3b8">No hay datos en doloya_aliados</div>';
+      return;
+    }
+    const data = snapshot.val();
+    let restaurantes = extraerRestaurantes(data);
+
+    // Eliminar duplicados por id
+    const unicos = {};
+    restaurantes.forEach(r=>{
+      if(!unicos[r.id]) unicos[r.id]=r;
+    });
+    restaurantes = Object.values(unicos);
+
+    // Orden alfabético como pediste
+    restaurantes.sort((a,b)=> a.nombre.toLowerCase().localeCompare(b.nombre.toLowerCase()));
+
+    // Agregar ventas (si tiene, si no 0 igual aparece)
+    restaurantes = restaurantes.map(r=>{
+      const v = ventasMap[r.id] || ventasMap[r.nombre] || {total:0, ultimo:""};
+      // Buscar también por nombre en minúsculas
+      let ventaMatch = v;
+      if(v.total===0){
+        const keyVenta = Object.keys(ventasMap).find(k=> k.toLowerCase()===r.nombre.toLowerCase() || k.toLowerCase()===r.id.toLowerCase());
+        if(keyVenta) ventaMatch = ventasMap[keyVenta];
+      }
+      return {
+        ...r,
+        totalVentas: ventaMatch.total || 0,
+        pagado: (ventaMatch.total || 0)*0.7,
+        pendiente: (ventaMatch.total || 0)*0.3,
+        ultimoPago: ventaMatch.ultimo || "",
+        factura: "F-00"+Math.floor(1000+Math.random()*9000)
+      };
+    });
+
+    aliados = restaurantes;
+    filtrados = [...aliados];
+    render();
   });
-
-  aliados = Object.values(mapa);
-  filtrados = [...aliados];
-  render();
 }
 
 function render(){
   const cont = document.getElementById('listaAliados');
-  if(filtrados.length===0){ cont.innerHTML='<div style="padding:20px;text-align:center;color:#94a3b8;font-size:11px">No hay aliados en doloya_aliados/admin</div>'; return; }
+  if(filtrados.length===0){ cont.innerHTML='<div style="padding:20px;text-align:center;color:#94a3b8;font-size:11px">No hay restaurantes</div>'; return; }
 
-  let totalPagar = 0, totalPagado = 0;
-  filtrados.forEach(a=>{ totalPagar+=a.pendiente; totalPagado+=a.pagado; });
+  document.getElementById('kFacturas').textContent = filtrados.length;
+  document.getElementById('rTotalAli').textContent = filtrados.length;
+  document.getElementById('rAbiertos').textContent = filtrados.filter(a=>a.abierto===true || a.abierto==="true").length;
+  document.getElementById('rCerrados').textContent = filtrados.filter(a=>a.abierto===false || a.abierto==="false").length;
 
+  const totalPagar = filtrados.reduce((s,a)=>s+a.pendiente,0);
+  const totalPagado = filtrados.reduce((s,a)=>s+a.pagado,0);
   document.getElementById('kTotalPagar').textContent = "$ "+totalPagar.toFixed(2);
   document.getElementById('kPagados').textContent = "$ "+totalPagado.toFixed(2);
   document.getElementById('kPendiente').textContent = "$ "+totalPagar.toFixed(2);
-  document.getElementById('kFacturas').textContent = filtrados.length;
-  document.getElementById('rPagar').textContent = "$ "+totalPagar.toFixed(2);
-  document.getElementById('rPagados').textContent = "$ "+totalPagado.toFixed(2);
-  document.getElementById('rPend').textContent = "$ "+totalPagar.toFixed(2);
-  document.getElementById('rTotalAli').textContent = filtrados.length;
 
   cont.innerHTML="";
   filtrados.forEach(a=>{
     const logoHtml = a.logo ? `<img src="${a.logo}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.textContent='${a.nombre[0].toUpperCase()}'">` : a.nombre[0].toUpperCase();
     const ultimo = a.ultimoPago ? new Date(a.ultimoPago).toLocaleDateString() : "-";
     const registro = a.fechaRegistro ? new Date(a.fechaRegistro).toLocaleDateString() : "-";
+    const estadoAbierto = a.abierto===true || a.abierto==="true" ? "Abierto" : a.abierto===false || a.abierto==="false" ? "Cerrado" : a.estado;
+    const badgeClass = estadoAbierto.toLowerCase().includes("abierto") ? "badge-green" : estadoAbierto.toLowerCase().includes("cerrado") ? "badge-red" : "badge-yellow";
+
     cont.innerHTML+=`
     <div class="table-row">
-      <div class="aliado"><div class="aliado-logo">${logoHtml}</div><div><div style="font-weight:700;font-size:11px">${a.nombre}</div><div style="font-size:9px;color:#64748b">${a.categoria} - ${a.direccion}</div></div></div>
+      <div class="aliado"><div class="aliado-logo">${logoHtml}</div><div><div style="font-weight:700;font-size:11px">${a.nombre}</div><div style="font-size:9px;color:#64748b">${a.categoria} ${a.direccion?'- '+a.direccion:''}</div></div></div>
       <div style="font-weight:600">$ ${a.totalVentas.toFixed(2)}</div>
       <div style="color:#16a34a;font-weight:600">$ ${a.pagado.toFixed(2)}</div>
       <div style="color:#d97706;font-weight:600">$ ${a.pendiente.toFixed(2)}</div>
       <div style="font-size:10px">${ultimo}</div>
       <div style="font-size:10px">${registro}</div>
       <div style="font-size:10px">${a.factura}</div>
-      <div><span class="badge ${a.estado==='activo'?'badge-green':'badge-yellow'}">${a.estado}</span></div>
+      <div><span class="badge ${badgeClass}">${estadoAbierto}</span></div>
       <div><button class="btn-ver" onclick="location.href='paneladmin-aliado-detalle.html?id=${a.id}'">Consultar</button></div>
     </div>`;
   });
@@ -254,13 +256,16 @@ window.filtrar = ()=>{
   const est = document.getElementById('fEstado').value;
   filtrados = aliados.filter(a=>{
     const matchTxt = a.nombre.toLowerCase().includes(txt) || a.id.toLowerCase().includes(txt) || a.categoria.toLowerCase().includes(txt);
-    const matchEst = est==='todos' || a.estado===est;
+    let matchEst = true;
+    if(est==="abierto") matchEst = a.abierto===true || a.abierto==="true";
+    else if(est==="cerrado") matchEst = a.abierto===false || a.abierto==="false";
+    else if(est!=="todos") matchEst = a.estado.toLowerCase().includes(est);
     return matchTxt && matchEst;
   });
   render();
 };
 
-cargar();
+iniciarTiempoReal();
 </script>
 </body>
 </html>
