@@ -12,28 +12,29 @@ body{background:#fff;font-family:'Inter',sans-serif;color:#0f172a;overflow-x:hid
 .x-btn{width:38px;height:38px;background:#E30613;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;text-decoration:none;flex-shrink:0}
 .line{width:2px;height:26px;background:#E30613;margin:0 12px}
 .top h1{font-size:26px;font-weight:900;letter-spacing:-0.5px}
-.table-wrap{max-width:1450px;margin:18px auto;padding:0 16px}
+.table-wrap{max-width:1550px;margin:18px auto;padding:0 12px}
 .table{width:100%;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;background:white}
-.header-row{display:grid;grid-template-columns:1.1fr 0.85fr 1.2fr 0.55fr 0.9fr 1fr 1fr 0.75fr 1.3fr;background:#0b111c;color:white;padding:11px 0;font-size:11.5px;font-weight:700;align-items:center}
-.header-row div{padding:0 10px;display:flex;align-items:center;gap:6px}
-.header-row .ip-badge{background:#E30613;color:white;border-radius:999px;padding:4px 12px;font-size:11px;font-weight:800;min-width:42px;justify-content:center}
-.row{display:grid;grid-template-columns:1.1fr 0.85fr 1.2fr 0.55fr 0.9fr 1fr 1fr 0.75fr 1.3fr;border-top:1px solid #eef2f7;padding:10px 0;align-items:center;background:white;font-size:11px;min-height:62px}
-.row div{padding:0 10px;display:flex;align-items:center;gap:8px;overflow:hidden}
-.client-name{font-weight:800;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.header-row{display:grid;grid-template-columns:1fr 0.75fr 1fr 0.35fr 0.65fr 0.75fr 0.6fr 0.45fr 0.65fr 0.65fr;background:#0b111c;color:white;padding:10px 0;font-size:10px;font-weight:700;align-items:center}
+.header-row div{padding:0 8px;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.header-row .ip-badge{background:#E30613;color:white;border-radius:999px;padding:3px 10px;font-size:9px;font-weight:800;min-width:32px;justify-content:center}
+.row{display:grid;grid-template-columns:1fr 0.75fr 1fr 0.35fr 0.65fr 0.75fr 0.6fr 0.45fr 0.65fr 0.65fr;border-top:1px solid #eef2f7;padding:8px 0;align-items:center;background:white;font-size:10px;min-height:58px}
+.row div{padding:0 8px;display:flex;align-items:center;gap:6px;overflow:hidden}
+.client-name{font-weight:800;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px}
 .addr{flex-direction:column;align-items:flex-start;gap:1px}
-.addr b{font-size:10.5px;font-weight:600;max-width:170px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.addr span{font-size:9px;color:#64748b}
-.time{flex-direction:column;align-items:flex-start;line-height:1.1}
-.badge-origen{font-size:8.5px;font-weight:800;padding:3px 8px;border-radius:999px;white-space:nowrap;border:1px solid}
+.addr b{font-size:10px;font-weight:600;max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.addr span{font-size:8px;color:#64748b}
+.time{flex-direction:column;align-items:flex-start;line-height:1.1;font-size:10px}
+.badge-origen{font-size:7.5px;font-weight:800;padding:3px 7px;border-radius:999px;white-space:nowrap;border:1px solid}
 .badge-origen.entregado{background:#dcfce7;color:#166534;border-color:#bbf7d0}
 .badge-origen.cancelado{background:#fee2e2;color:#991b1b;border-color:#fecaca}
 .badge-origen.reportado{background:#fef3c7;color:#92400e;border-color:#fde68a}
-.btn-resumen{border:1.5px solid #E30613;color:#E30613;background:white;border-radius:999px;padding:6px 12px;font-size:10px;font-weight:800;text-decoration:none;white-space:nowrap}
-.btn-bloq{border:none;border-radius:999px;padding:7px 10px;font-size:10px;font-weight:800;color:white;min-width:108px;justify-content:center;cursor:pointer;display:flex;align-items:center;gap:5px;white-space:nowrap}
+.btn-resumen{border:1.5px solid #E30613;color:#E30613;background:white;border-radius:999px;padding:4px 9px;font-size:9px;font-weight:800;text-decoration:none;white-space:nowrap}
+.btn-bloq{border:none;border-radius:999px;padding:5px 8px;font-size:8.5px;font-weight:800;color:white;min-width:84px;justify-content:center;cursor:pointer;display:flex;align-items:center;gap:4px;white-space:nowrap}
 .btn-bloq.desbloqueado{background:#16a34a}
 .btn-bloq.bloqueado{background:#E30613}
-.actions-wrap{display:flex;flex-direction:column;gap:5px;align-items:flex-start}
-@media(max-width:1250px){.header-row{display:none}.row{grid-template-columns:1fr;gap:8px;border:1px solid #eef2f7;border-radius:10px;margin-bottom:10px;padding:12px}.table{border:none}}
+.carpeta-box{display:flex;flex-direction:column;gap:3px;align-items:flex-start}
+.carpeta-title{font-size:8px;font-weight:700;color:#64748b;text-transform:uppercase}
+@media(max-width:1300px){.header-row{display:none}.row{grid-template-columns:1fr;gap:6px;border:1px solid #eef2f7;border-radius:10px;margin-bottom:10px;padding:10px}.table{border:none}}
 </style>
 </head>
 <body>
@@ -44,7 +45,7 @@ body{background:#fff;font-family:'Inter',sans-serif;color:#0f172a;overflow-x:hid
 
 <div class="table-wrap">
 <div class="table">
-<div class="header-row"><div>Cliente</div><div>Teléfono</div><div>Dirección</div><div>Pedidos</div><div>Último pedido</div><div><span class="ip-badge">IP</span></div><div>Ciudad / GPS</div><div>Resumen</div><div>Bloqueado / Origen</div></div>
+<div class="header-row"><div>Cliente</div><div>Teléfono</div><div>Dirección</div><div>Pedidos</div><div>Último pedido</div><div><span class="ip-badge">IP</span></div><div>Ciudad</div><div>Resumen</div><div>Bloqueado</div><div>Carpeta</div></div>
 <div id="lista" style="padding:20px;text-align:center;color:#64748b;font-size:12px">Cargando de DoloYa-Historial...</div>
 </div></div>
 
@@ -66,19 +67,20 @@ const db = getFirestore(app);
 let clientesMap = {};
 
 function getFecha(f){
-  if(!f) return new Date();
+  if(!f) return new Date(0);
   if(f.toDate) return f.toDate();
+  if(f.seconds) return new Date(f.seconds*1000);
   if(typeof f==='string') return new Date(f);
   return new Date(f);
 }
 function formatFecha(d){
-  if(!d) return '-';
+  if(!d || d.getTime()===0) return '-';
   const dd=String(d.getDate()).padStart(2,'0'); const mm=String(d.getMonth()+1).padStart(2,'0'); const yy=d.getFullYear();
   let h=d.getHours(); const mi=String(d.getMinutes()).padStart(2,'0'); const ampm=h>=12?'p.m.':'a.m.'; h=h%12||12;
-  return `${dd}/${mm}/${yy}<br><span style="color:#64748b;font-size:9px">${String(h).padStart(2,'0')}:${mi} ${ampm}</span>`;
+  return `${dd}/${mm}/${yy}<br><span style="color:#64748b;font-size:8px">${String(h).padStart(2,'0')}:${mi} ${ampm}</span>`;
 }
 
-function asegurarCliente(keyTel, nombre, telefonoRaw, direccion, ip, ciudad, lat, lng, fecha, origen){
+function asegurarCliente(keyTel, nombre, telefonoRaw, direccion, ip, ciudad, ipInfo, lat, lng, fecha, origen){
   if(!keyTel) return;
   if(!clientesMap[keyTel]){
     clientesMap[keyTel]={
@@ -87,55 +89,65 @@ function asegurarCliente(keyTel, nombre, telefonoRaw, direccion, ip, ciudad, lat
       telefono: telefonoRaw||keyTel,
       direccion: direccion||'-',
       ip: ip||'-',
-      ciudad: ciudad||'Dolores Hidalgo',
+      ipInfo: ipInfo||{},
+      ciudad: ciudad||'Dolores Hgo.',
       lat: lat||null,
       lng: lng||null,
       ultimo: fecha,
       pedidos: 0,
       origenes: new Set(),
+      carpetaPrincipal: origen,
       bloqueado: false,
       motivo: ''
     };
   }
   const c = clientesMap[keyTel];
   c.pedidos++;
-  if(fecha > c.ultimo){
+  // ULTIMO PEDIDO = cuando hizo el ultimo pedido, no cuando ingreso
+  if(fecha && fecha > c.ultimo){
     c.ultimo = fecha;
-    if(ip && ip!=='null' && ip!=='-') c.ip = ip;
+    if(ip && ip!=='null' && ip!=='-' && ip!=='0.0.0.0') c.ip = ip;
+    if(ipInfo) c.ipInfo = ipInfo;
     if(lat) c.lat = lat;
     if(lng) c.lng = lng;
     if(direccion && direccion!=='-') c.direccion = direccion;
+    if(ciudad) c.ciudad = ciudad;
+    c.carpetaPrincipal = origen;
+  } else if (c.ultimo.getTime()===0) {
+    c.ultimo = fecha;
   }
   if(nombre && nombre!=='Cliente') c.nombre = nombre;
   if(origen) c.origenes.add(origen);
 }
 
-// 1. CLIENTES REPORTADOS NO RECIBE (tu foto principal)
+// 1. CLIENTES REPORTADOS NO RECIBE
 onSnapshot(collection(db, "clientes_reportados_no_recibe"), snap=>{
   snap.forEach(ds=>{
     const data = ds.data();
     const telefonoRaw = data.telefono || data.celular || ds.id;
     const key = String(telefonoRaw).replace(/\D/g,'');
     if(!key) return;
-    const nombre = data.nombre || 'Cliente';
-    const direccion = data.direccion || data.detalles?.direccion || '-';
-    const gps = data.gps || data.gpsActualCliente || {};
-    const lat = gps.lat || data.detalles?.lat;
-    const lng = gps.lng || data.detalles?.lng;
-    const ipReal = data.ip && data.ip!=='null' ? data.ip : null;
-    const fecha = getFecha(data.timestamp || data.actualizadoEn);
-    const ciudad = 'Dolores Hidalgo, Gto.';
+    const nombre = data.nombre || data.cliente?.nombre || 'Cliente';
+    const direccion = data.direccion || data.cliente?.direccion || data.detalles?.direccion || '-';
+    const gps = data.gps || data.cliente?.ubicacion || data.gpsActualCliente || {};
+    const lat = gps.lat || data.latitud || data.detalles?.lat;
+    const lng = gps.lng || data.longitud || data.detalles?.lng;
+    const ipReal = data.ip && data.ip!=='null' && data.ip!=='0.0.0.0' ? data.ip : (data.ubicacionCompleta?.ip || null);
+    const ipInfo = data.ipInfo || data.ubicacionCompleta?.ipInfo || {};
+    const fecha = getFecha(data.fechaReporte || data.ultimoPedido || data.timestamp || data.actualizadoEn);
+    const ciudad = ipInfo.city || data.ciudad || 'Dolores Hgo.';
     const bloqueado = data.bloqueado===true || data.ipBloqueada===true;
 
     if(!clientesMap[key]){
-      asegurarCliente(key, nombre, telefonoRaw, direccion, ipReal, ciudad, lat, lng, fecha, 'REPORTADO');
-    } else {
+      asegurarCliente(key, nombre, telefonoRaw, direccion, ipReal, ciudad, ipInfo, lat, lng, fecha, 'REPORTADO');
+    }
+    if(clientesMap[key]){
       clientesMap[key].origenes.add('REPORTADO');
       clientesMap[key].bloqueado = bloqueado;
       clientesMap[key].motivo = data.motivo || '';
       if(fecha > clientesMap[key].ultimo) clientesMap[key].ultimo = fecha;
+      if(ipReal) clientesMap[key].ip = ipReal;
     }
-    clientesMap[key].bloqueado = bloqueado;
   });
   render();
 });
@@ -144,17 +156,19 @@ onSnapshot(collection(db, "clientes_reportados_no_recibe"), snap=>{
 onSnapshot(collection(db, "pedidos_entregados"), snap=>{
   snap.forEach(ds=>{
     const d = ds.data();
-    const cli = d.cliente || d.detalles || {};
-    const telRaw = cli.celular || cli.telefono || d.telefono || '-';
+    const cli = d.cliente || {};
+    const telRaw = cli.celular || cli.telefono || d.telefono || d.celular || '-';
     const key = String(telRaw).replace(/\D/g,'');
     if(!key || key.length<7) return;
     const nombre = cli.nombre || d.nombre || 'Cliente';
-    const direccion = cli.direccion || d.direccion || '-';
-    const ip = d.ip && d.ip!=='null' ? d.ip : null;
-    const lat = cli.ubicacion?.lat || d.lat || null;
-    const lng = cli.ubicacion?.lng || d.lng || null;
-    const fecha = getFecha(d.actualizadoEn || d.enviadoAHistorialEn || d.timestamp);
-    asegurarCliente(key, nombre, telRaw, direccion, ip, 'Dolores Hidalgo', lat, lng, fecha, 'ENTREGADO');
+    const direccion = cli.direccion || d.direccionEntrega || '-';
+    const ip = d.ip && d.ip!=='null' && d.ip!=='0.0.0.0' ? d.ip : (d.ubicacionCompleta?.ip || null);
+    const ipInfo = d.ipInfo || d.ubicacionCompleta?.ipInfo || {};
+    const lat = cli.ubicacion?.lat || d.latitud || d.gps?.lat || null;
+    const lng = cli.ubicacion?.lng || d.longitud || d.gps?.lng || null;
+    const fecha = getFecha(d.fechaEntrega || d.enviadoAHistorialEn || d.timestamp || d.timestampAdmin);
+    const ciudad = ipInfo.city || 'Dolores Hgo.';
+    asegurarCliente(key, nombre, telRaw, direccion, ip, ciudad, ipInfo, lat, lng, fecha, 'ENTREGADO');
   });
   render();
 });
@@ -163,17 +177,19 @@ onSnapshot(collection(db, "pedidos_entregados"), snap=>{
 onSnapshot(collection(db, "pedidos_cancelados"), snap=>{
   snap.forEach(ds=>{
     const d = ds.data();
-    const cli = d.cliente || d.detalles || {};
-    const telRaw = cli.celular || cli.telefono || d.telefono || '-';
+    const cli = d.cliente || {};
+    const telRaw = cli.celular || cli.telefono || d.telefono || d.celular || '-';
     const key = String(telRaw).replace(/\D/g,'');
     if(!key || key.length<7) return;
     const nombre = cli.nombre || d.nombre || 'Cliente';
-    const direccion = cli.direccion || d.direccion || '-';
-    const ip = d.ip && d.ip!=='null' ? d.ip : null;
-    const lat = cli.ubicacion?.lat || d.lat || null;
-    const lng = cli.ubicacion?.lng || d.lng || null;
-    const fecha = getFecha(d.actualizadoEn || d.fechaCancelacion || d.timestamp);
-    asegurarCliente(key, nombre, telRaw, direccion, ip, 'Dolores Hidalgo', lat, lng, fecha, 'CANCELADO');
+    const direccion = cli.direccion || d.direccionEntrega || '-';
+    const ip = d.ip && d.ip!=='null' && d.ip!=='0.0.0.0' ? d.ip : (d.ubicacionCompleta?.ip || null);
+    const ipInfo = d.ipInfo || d.ubicacionCompleta?.ipInfo || {};
+    const lat = cli.ubicacion?.lat || d.latitud || d.gps?.lat || null;
+    const lng = cli.ubicacion?.lng || d.longitud || d.gps?.lng || null;
+    const fecha = getFecha(d.fechaCancelacion || d.enviadoAHistorialEn || d.timestamp);
+    const ciudad = ipInfo.city || 'Dolores Hgo.';
+    asegurarCliente(key, nombre, telRaw, direccion, ip, ciudad, ipInfo, lat, lng, fecha, 'CANCELADO');
   });
   render();
 });
@@ -182,23 +198,24 @@ function render(){
   const arr = Object.values(clientesMap).sort((a,b)=> b.ultimo - a.ultimo);
   if(arr.length===0){ document.getElementById('lista').innerHTML=`<div style="padding:20px;text-align:center">Sin clientes</div>`; return; }
   document.getElementById('lista').innerHTML = arr.map(c=>{
-    let ipMostrar = c.ip && c.ip!=='-' && c.ip!=='null' ? c.ip : `${c.lat? String(c.lat).substring(0,8):'21.16'} , ${c.lng? String(c.lng).substring(0,9):'-100.93'}`;
-    let origenBadges = Array.from(c.origenes).map(o=>{
-      let cls = o==='ENTREGADO'?'entregado':o==='CANCELADO'?'cancelado':'reportado';
-      return `<span class="badge-origen ${cls}">${o}</span>`;
-    }).join(' ');
-    if(origenBadges==='') origenBadges = `<span class="badge-origen reportado">REPORTADO</span>`;
+    let ipMostrar = c.ip && c.ip!=='-' && c.ip!=='null' && c.ip!=='0.0.0.0' ? c.ip : (c.lat ? `${String(c.lat).substring(0,6)},${String(c.lng).substring(0,6)}` : '-');
+    let ciudadMostrar = c.ipInfo?.city || c.ciudad || 'Dolores Hgo.';
+    let origenes = Array.from(c.origenes);
+    let carpetaBadge = c.carpetaPrincipal || (origenes[origenes.length-1]||'REPORTADO');
+    let cls = carpetaBadge==='ENTREGADO'?'entregado':carpetaBadge==='CANCELADO'?'cancelado':'reportado';
+
     return `
     <div class="row">
       <div><b class="client-name">${c.nombre}</b></div>
-      <div>${c.telefono}</div>
-      <div><div class="addr"><b>${c.direccion.substring(0,32)}</b><span>Col. Centro</span></div></div>
-      <div>${c.pedidos}</div>
+      <div style="font-size:10px">${c.telefono}</div>
+      <div><div class="addr"><b title="${c.direccion}">${c.direccion.substring(0,28)}</b></div></div>
+      <div><b>${c.pedidos}</b></div>
       <div><div class="time">${formatFecha(c.ultimo)}</div></div>
-      <div style="font-size:9px;font-weight:700;flex-direction:column;align-items:flex-start"><span>${ipMostrar}</span><span style="color:#E30613;font-size:7px">${(!c.ip || c.ip==='-')?'IP null -> GPS':''}</span></div>
-      <div style="font-size:9px">Dolores Hgo.<br><span style="color:#64748b">${c.lat||''} ${c.lng||''}</span></div>
+      <div style="font-size:9px;font-weight:700;flex-direction:column;align-items:flex-start;line-height:1.1"><span>${ipMostrar}</span></div>
+      <div style="font-size:9px;flex-direction:column;align-items:flex-start"><span>${ciudadMostrar}</span><span style="color:#64748b;font-size:7.5px">${c.lat? 'GPS':''}</span></div>
       <div><a class="btn-resumen" href="paneladmin-clientes-resumen.html?tel=${c.key}&id=${c.key}">Resumen</a></div>
-      <div><div class="actions-wrap"><button class="btn-bloq ${c.bloqueado?'bloqueado':'desbloqueado'}" onclick="toggleBloq('${c.key}')">${c.bloqueado?'Bloqueado':'Desbloqueado'}</button><div style="display:flex;gap:4px;flex-wrap:wrap">${origenBadges}</div></div></div>
+      <div><button class="btn-bloq ${c.bloqueado?'bloqueado':'desbloqueado'}" onclick="toggleBloq('${c.key}')">${c.bloqueado?'Bloqueado':'Desbloq.'}</button></div>
+      <div><div class="carpeta-box"><span class="carpeta-title">Carpeta</span><span class="badge-origen ${cls}">${carpetaBadge}</span></div></div>
     </div>`;
   }).join('');
 }
@@ -208,10 +225,13 @@ window.toggleBloq = async (key)=>{
   if(!c) return;
   const nuevo = !c.bloqueado;
   try{
-    // Actualiza en reportados y también crea en clientes_bloqueados para que bloquee la IP
-    await updateDoc(doc(db, "clientes_reportados_no_recibe", key), { bloqueado: nuevo, ipBloqueada: nuevo, bloqueadoEn: new Date().toISOString() }).catch(async ()=>{
-      await setDoc(doc(db, "clientes_reportados_no_recibe", key), { telefono: key, bloqueado: nuevo, ipBloqueada: nuevo, bloqueadoEn: new Date().toISOString() }, {merge:true});
+    await updateDoc(doc(db, "clientes_reportados_no_recibe", key), { bloqueado: nuevo, ipBloqueada: nuevo, bloqueadoEn: new Date().toISOString(), ip: c.ip }).catch(async ()=>{
+      await setDoc(doc(db, "clientes_reportados_no_recibe", key), { telefono: key, bloqueado: nuevo, ipBloqueada: nuevo, ip: c.ip, bloqueadoEn: new Date().toISOString() }, {merge:true});
     });
+    // También bloquea IP real en otra colección
+    if(c.ip && c.ip!=='-'){
+      await setDoc(doc(db, "ips_bloqueadas", c.ip), { ip: c.ip, telefono: key, bloqueado: nuevo, fecha: new Date().toISOString() }, {merge:true});
+    }
     c.bloqueado = nuevo;
     render();
   }catch(e){ alert(e.message); }
