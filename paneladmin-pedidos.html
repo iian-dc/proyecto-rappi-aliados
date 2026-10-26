@@ -345,6 +345,7 @@ window.asignarRepartidor = async (pedidoId, repId, repNombre)=>{
   }catch(e){ alert(e.message); }
 }
 
+// === MODIFICADO - ENVIO A HISTORIAL CON TODA LA INFO DEL CLIENTE ===
 window.siEnviarHistorial = async (id)=>{
   const pedido = pedidosCache.find(p=>p.id===id);
   if(!pedido){ alert('Pedido no encontrado'); return; }
@@ -352,15 +353,61 @@ window.siEnviarHistorial = async (id)=>{
   pedidosCache = pedidosCache.filter(p=>p.id!==id);
   render();
   try{
-    await setDoc(doc(dbHistorial, "pedidos_entregados", id), {
+    const cliente = pedido.cliente || {};
+    const gps = pedido.gps || cliente.ubicacion || {};
+    const ubiCompleta = pedido.ubicacionCompleta || {};
+
+    const datosHistorial = {
       ...pedido,
+      // INFO CLIENTE COMPLETA GARANTIZADA
+      clienteId: pedido.clienteId || cliente.clienteId || id,
+      nombre: pedido.nombre || cliente.nombre || pedido.cliente?.nombre || 'Cliente',
+      telefono: pedido.telefono || cliente.celular || cliente.telefono || pedido.detalles?.telefono || '',
+      celular: pedido.celular || cliente.celular || cliente.telefono || '',
+      direccionEntrega: pedido.direccionEntrega || cliente.direccion || pedido.detalles?.direccion || '',
+      cliente: {
+        clienteId: cliente.clienteId || pedido.clienteId || id,
+        nombre: cliente.nombre || pedido.nombre || 'Cliente',
+        celular: cliente.celular || cliente.telefono || pedido.telefono || '',
+        telefono: cliente.telefono || cliente.celular || pedido.telefono || '',
+        direccion: cliente.direccion || pedido.direccionEntrega || '',
+        referencia: cliente.referencia || '',
+        tipoDireccion: cliente.tipoDireccion || '',
+        nombreEdificio: cliente.nombreEdificio || '',
+        piso: cliente.piso || '',
+        ubicacion: {
+          lat: cliente.ubicacion?.lat || gps.lat || pedido.latitud || 0,
+          lng: cliente.ubicacion?.lng || gps.lng || pedido.longitud || 0,
+          accuracy: cliente.ubicacion?.accuracy || gps.accuracy || 0,
+          googleMapsUrl: cliente.ubicacion?.googleMapsUrl || `https://www.google.com/maps?q=${cliente.ubicacion?.lat || gps.lat || 0},${cliente.ubicacion?.lng || gps.lng || 0}`
+        },
+        gpsActualCliente: cliente.gpsActualCliente || gps
+      },
+      // GPS, LAT, LNG
+      gps: gps,
+      latitud: gps.lat || pedido.latitud || cliente.ubicacion?.lat || 0,
+      longitud: gps.lng || pedido.longitud || cliente.ubicacion?.lng || 0,
+      ubicacionCompleta: ubiCompleta,
+      detalles: pedido.detalles || {},
+      // IP Y RED - LO QUE TE FALTABA
+      ip: pedido.ip || ubiCompleta.ip || '0.0.0.0',
+      ipInfo: pedido.ipInfo || ubiCompleta.ipInfo || {},
+      // DISPOSITIVO Y NAVEGADOR
+      dispositivo: pedido.dispositivo || {},
+      userAgent: pedido.userAgent || pedido.dispositivo?.userAgent || '',
+      plataforma: pedido.plataforma || pedido.dispositivo?.plataforma || '',
+      navegador: pedido.dispositivo?.navegador || pedido.dispositivo?.userAgent || '',
+      // ESTADOS HISTORIAL
       estado: 'historial',
       estadoOriginal: pedido.estado,
       enviadoAHistorialEn: new Date().toISOString(),
       fechaEntrega: new Date().toISOString(),
       guardadoDesde: 'doloya-confirmacion'
-    });
+    };
+
+    await setDoc(doc(dbHistorial, "pedidos_entregados", id), datosHistorial);
     await deleteDoc(doc(db, "pedidos_admin", id));
+    console.log("✅ Enviado a historial con IP:", datosHistorial.ip, "GPS:", datosHistorial.latitud, datosHistorial.longitud);
   }catch(e){
     console.error(e);
     alert('Error: '+e.message);
@@ -381,16 +428,55 @@ window.siEnviarCanceladoHistorial = async (id)=>{
   }
 
   try{
-    // 1. GUARDAR EN doloya-historial / pedidos_cancelados - CREA LA CARPETA AUTOMATICAMENTE
+    const cliente = pedido.cliente || {};
+    const gps = pedido.gps || cliente.ubicacion || {};
+    const ubiCompleta = pedido.ubicacionCompleta || {};
+
     const datosCompletos = {
       ...pedido,
       idOriginal: pedido.id,
       codigo: pedido.codigo || pedido.id,
+      // CLIENTE COMPLETO
+      clienteId: pedido.clienteId || cliente.clienteId || id,
+      nombre: pedido.nombre || cliente.nombre || 'Cliente',
+      telefono: pedido.telefono || cliente.celular || cliente.telefono || pedido.detalles?.telefono || '',
+      celular: pedido.celular || cliente.celular || cliente.telefono || '',
+      direccionEntrega: pedido.direccionEntrega || cliente.direccion || pedido.detalles?.direccion || '',
+      cliente: {
+        clienteId: cliente.clienteId || pedido.clienteId || id,
+        nombre: cliente.nombre || pedido.nombre || 'Cliente',
+        celular: cliente.celular || cliente.telefono || pedido.telefono || '',
+        telefono: cliente.telefono || cliente.celular || pedido.telefono || '',
+        direccion: cliente.direccion || pedido.direccionEntrega || '',
+        referencia: cliente.referencia || '',
+        tipoDireccion: cliente.tipoDireccion || '',
+        nombreEdificio: cliente.nombreEdificio || '',
+        piso: cliente.piso || '',
+        ubicacion: {
+          lat: cliente.ubicacion?.lat || gps.lat || pedido.latitud || 0,
+          lng: cliente.ubicacion?.lng || gps.lng || pedido.longitud || 0,
+          accuracy: cliente.ubicacion?.accuracy || gps.accuracy || 0,
+          googleMapsUrl: cliente.ubicacion?.googleMapsUrl || `https://www.google.com/maps?q=${cliente.ubicacion?.lat || gps.lat || 0},${cliente.ubicacion?.lng || gps.lng || 0}`
+        },
+        gpsActualCliente: cliente.gpsActualCliente || gps
+      },
+      // GPS
+      gps: gps,
+      latitud: gps.lat || pedido.latitud || cliente.ubicacion?.lat || 0,
+      longitud: gps.lng || pedido.longitud || cliente.ubicacion?.lng || 0,
+      ubicacionCompleta: ubiCompleta,
+      detalles: pedido.detalles || {},
+      // IP - YA NO NULL
+      ip: pedido.ip || ubiCompleta.ip || '0.0.0.0',
+      ipInfo: pedido.ipInfo || ubiCompleta.ipInfo || {},
+      // DISPOSITIVO
+      dispositivo: pedido.dispositivo || {},
+      userAgent: pedido.userAgent || pedido.dispositivo?.userAgent || '',
+      plataforma: pedido.plataforma || pedido.dispositivo?.plataforma || '',
+      navegador: pedido.dispositivo?.navegador || '',
+      // CANCELADO
       estado: 'cancelado_historial',
       estadoOriginal: pedido.estado,
-      cliente: pedido.cliente || { nombre: pedido.nombre, celular: pedido.telefono },
-      telefono: pedido.telefono || pedido.cliente?.celular || pedido.detalles?.telefono,
-      direccionEntrega: pedido.direccionEntrega || pedido.detalles?.direccion || pedido.cliente?.direccion,
       motivoCancelacion: pedido.motivoCancelacion || 'Sin motivo',
       detalleCancelacion: pedido.detalleCancelacion || '',
       canceladoPor: pedido.canceladoPor,
@@ -402,21 +488,15 @@ window.siEnviarCanceladoHistorial = async (id)=>{
       datosCompletosOriginales: pedido
     };
 
-    console.log('Guardando en pedidos_cancelados...', id);
+    console.log('Guardando en pedidos_cancelados con IP:', datosCompletos.ip);
     await setDoc(doc(dbHistorial, "pedidos_cancelados", id), datosCompletos);
-    console.log('Guardado OK en pedidos_cancelados');
-
-    // 2. BORRAR DE pedidos_admin
     await deleteDoc(doc(db, "pedidos_admin", id));
-    console.log('Eliminado de pedidos_admin');
-
-    // 3. QUITAR DE VISTA
     pedidosCache = pedidosCache.filter(p=>p.id!==id);
     render();
 
   }catch(e){
     console.error('ERROR CANCELADO:', e);
-    alert('Error al mover a historial:\n'+e.message+'\n\nRevisa reglas de Firestore en doloya-historial, pon allow read,write if true temporalmente');
+    alert('Error al mover a historial:\n'+e.message);
     if(cardEl){ cardEl.style.transform='scale(1)'; cardEl.style.opacity='1'; }
   }
 }
