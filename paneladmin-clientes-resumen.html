@@ -16,26 +16,29 @@ body{background:#f8fafc;color:#0f172a}
 .desbloquear{background:#16a34a;color:white}
 .wrap{max-width:920px;margin:0 auto;padding:16px;display:flex;flex-direction:column;gap:16px}
 .card{background:white;border-radius:18px;border:1px solid #e2e8f0;overflow:hidden}
-.card-head{padding:14px 16px;background:#fcfcfc;border-bottom:1px solid #f1f5f9;display:flex;justify-content:space-between}
-.card-head h2{font-size:11px;font-weight:900;text-transform:uppercase}
+.card-head{padding:14px 16px;background:#fcfcfc;border-bottom:1px solid #f1f5f9;display:flex;justify-content:space-between;align-items:center}
+.card-head h2{font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.5px}
 .badge{padding:5px 12px;border-radius:999px;font-size:10px;font-weight:900}
 .badge-bloq{background:#fee2e2;color:#991b1b}
 .badge-ok{background:#dcfce7;color:#166534}
-.card-body{padding:16px}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-@media(max-width:600px){.grid2{grid-template-columns:1fr}}
-.item{background:#f8fafc;border:1px solid #f1f5f9;border-radius:12px;padding:10px 12px}
-.item label{font-size:9px;color:#64748b;font-weight:800;text-transform:uppercase;display:block;margin-bottom:3px}
-.item span{font-size:13px;font-weight:600;word-break:break-word}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
-.stat{background:#0f172a;color:white;border-radius:14px;padding:12px;text-align:center}
-.stat b{font-size:16px;display:block}
-.stat label{font-size:8px;opacity:.7;text-transform:uppercase}
-.pedido{border:1.5px solid #e2e8f0;border-radius:16px;padding:14px;margin-bottom:14px}
-.prod-list{margin-top:10px;background:#f8fafc;border-radius:12px;padding:10px;border:1px solid #f1f5f9}
-.prod{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed #e2e8f0;font-size:12px}
-pre.json{background:#0f172a;color:#e2e8f0;border-radius:8px;padding:10px;font-size:10px;overflow:auto;max-height:300px;white-space:pre-wrap;margin-top:8px}
-.btn-maps{background:#0f172a;color:white;padding:8px 12px;border-radius:999px;font-size:11px;text-decoration:none;display:inline-flex;margin-top:8px}
+.card-body{padding:10px 16px}
+.row{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid #f1f5f9}
+.row:last-child{border:none}
+.row .t{font-size:12px;color:#64748b;font-weight:600}
+.row .v{font-size:13px;color:#0f172a;font-weight:700;text-align:right;max-width:62%;word-break:break-word}
+.stats{display:flex;gap:10px;margin-bottom:12px}
+.stat{flex:1;background:#0f172a;color:white;border-radius:14px;padding:12px;text-align:center}
+.stat b{font-size:18px;display:block}
+.stat label{font-size:9px;opacity:.7;text-transform:uppercase}
+.pedido{border:1.5px solid #e2e8f0;border-radius:16px;padding:14px;margin-bottom:14px;background:white}
+.pedido-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.estado{padding:5px 10px;border-radius:999px;font-size:10px;font-weight:900;text-transform:uppercase}
+.estado-cancelado{background:#fee2e2;color:#991b1b}
+.estado-entregado{background:#dcfce7;color:#166534}
+.prod-list{margin-top:10px}
+.prod{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed #e2e8f0;font-size:12px}
+.btn-maps{background:#0f172a;color:white;padding:8px 14px;border-radius:999px;font-size:11px;text-decoration:none;display:inline-flex;margin-top:10px}
+.empty{padding:20px;color:#64748b;font-size:13px}
 </style>
 </head>
 <body>
@@ -48,24 +51,25 @@ pre.json{background:#0f172a;color:#e2e8f0;border-radius:8px;padding:10px;font-si
 </div>
 
 <div class="wrap">
-<div class="card"><div class="card-head"><h2>Datos cliente - de pedidos</h2><span id="badge" class="badge badge-ok">ACTIVO</span></div>
-<div class="card-body">
-<div class="stats"><div class="stat"><b id="stTotal">0</b><label>Pedidos</label></div><div class="stat"><b id="stEnt">0</b><label>Entregados</label></div><div class="stat"><b id="stCan">0</b><label>Cancelados</label></div><div class="stat"><b id="stGast">$0</b><label>Gastado</label></div></div>
-<div class="grid2">
-<div class="item"><label>ClienteID</label><span id="cId">-</span></div>
-<div class="item"><label>IP</label><span id="cIp">-</span></div>
-<div class="item"><label>Celular</label><span id="cCel">-</span></div>
-<div class="item"><label>Nombre</label><span id="cNom">-</span></div>
-<div class="item" style="grid-column:1/-1"><label>Dirección completa</label><span id="cDir">-</span></div>
-<div class="item"><label>Ciudad / Región / Postal</label><span id="cCiudad">-</span></div>
-<div class="item"><label>País / Org</label><span id="cPais">-</span></div>
-<div class="item"><label>GPS Lat Lng Accuracy</label><span id="cGps">-</span><br><a id="cMaps" target="_blank" class="btn-maps" style="display:none">Ver Maps</a></div>
-<div class="item"><label>Dispositivo / Plataforma</label><span id="cDisp">-</span></div>
-</div>
-</div></div>
 
-<div class="card"><div class="card-head"><h2>Pedidos encontrados</h2><span id="countP" class="badge" style="background:#f1f5f9">0</span></div>
-<div class="card-body" id="listaP">Iniciando...</div></div>
+<div class="card">
+<div class="card-head"><h2>Datos del cliente</h2><span id="badge" class="badge badge-ok">ACTIVO</span></div>
+<div class="card-body">
+<div class="stats">
+<div class="stat"><b id="stTotal">0</b><label>Total pedidos</label></div>
+<div class="stat"><b id="stEnt">0</b><label>Entregados</label></div>
+<div class="stat"><b id="stCan">0</b><label>Cancelados</label></div>
+</div>
+<div id="datosCliente"></div>
+<a id="cMaps" target="_blank" class="btn-maps" style="display:none">Ver ubicación del cliente en mapa</a>
+</div>
+</div>
+
+<div class="card">
+<div class="card-head"><h2>Pedidos del cliente</h2><span id="countP" class="badge" style="background:#f1f5f9">0</span></div>
+<div class="card-body" id="listaP">Cargando pedidos...</div>
+</div>
+
 </div>
 
 <script type="module">
@@ -84,113 +88,141 @@ const app = initializeApp(configHistorial);
 const db = getFirestore(app);
 
 const params = new URLSearchParams(location.search);
-// ACEPTA CUALQUIER NOMBRE DE PARAMETRO
-const valorBusqueda = params.get('tel') || params.get('cel') || params.get('celular') || params.get('telefono') || params.get('id') || params.get('clienteId') || params.get('clienteid') || params.get('ip') || params.get('cliente') || "";
-const ipParam = params.get('ip');
-const idParam = params.get('id') || params.get('clienteId');
-
-let ipReal = ipParam || "";
-let clienteIdReal = idParam || "";
+const valorBusqueda = params.get('tel') || params.get('cel') || params.get('celular') || params.get('id') || params.get('clienteId') || params.get('ip') || "";
+let ipReal = params.get('ip') || "";
+let clienteIdReal = params.get('id') || params.get('clienteId') || "";
 let bloqueado=false;
 
 const $=id=>document.getElementById(id);
-
 $("sub").textContent = "Buscando: " + valorBusqueda;
 
+function addRow(contenedor, titulo, valor){
+  if(valor===undefined || valor===null || valor==="" || valor==="undefined") return;
+  contenedor.innerHTML+=`<div class="row"><span class="t">${titulo}</span><span class="v">${valor}</span></div>`;
+}
+
 async function cargarTodo(){
-  if(!valorBusqueda){
-    $("listaP").innerHTML = "Falta ?tel= o ?id= o ?ip= - Ejemplo: paneladmin-clientes-resumen.html?tel=546378290";
-    return;
-  }
-
-  $("listaP").innerHTML = "Descargando colecciones...";
+  if(!valorBusqueda){ $("listaP").innerHTML="Falta ?tel= o ?id= o ?ip="; return; }
   let todos=[];
-
-  // DESCARGA SIN WHERE - FILTRO LOCAL PARA QUE NO FALLE
   try{
     const snapE = await getDocs(collection(db, "pedidos_entregados"));
-    snapE.forEach(d=>{
-      const data = d.data();
-      const txt = JSON.stringify(data).toLowerCase();
-      if(txt.includes(valorBusqueda.toLowerCase())){
-        todos.push({idDoc:d.id, coleccion:"pedidos_entregados", ...data});
-      }
-    });
-  }catch(e){ $("listaP").innerHTML += "<br>Error entregados: "+e.message; }
-
+    snapE.forEach(d=>{ if(JSON.stringify(d.data()).toLowerCase().includes(valorBusqueda.toLowerCase())) todos.push({idDoc:d.id, coleccion:"pedidos_entregados", ...d.data()}); });
+  }catch{}
   try{
     const snapC = await getDocs(collection(db, "pedidos_cancelados"));
-    snapC.forEach(d=>{
-      const data = d.data();
-      const txt = JSON.stringify(data).toLowerCase();
-      if(txt.includes(valorBusqueda.toLowerCase())){
-        todos.push({idDoc:d.id, coleccion:"pedidos_cancelados", ...data});
-      }
-    });
-  }catch(e){ $("listaP").innerHTML += "<br>Error cancelados: "+e.message; }
+    snapC.forEach(d=>{ if(JSON.stringify(d.data()).toLowerCase().includes(valorBusqueda.toLowerCase())) todos.push({idDoc:d.id, coleccion:"pedidos_cancelados", ...d.data()}); });
+  }catch{}
 
-  $("countP").textContent = todos.length+" encontrados";
+  $("countP").textContent = todos.length;
   $("stTotal").textContent = todos.length;
   $("stEnt").textContent = todos.filter(p=>p.coleccion==="pedidos_entregados").length;
   $("stCan").textContent = todos.filter(p=>p.coleccion==="pedidos_cancelados").length;
 
-  let total=0;
-  todos.forEach(p=> total+= Number(p.totales?.costoProductos||0)+Number(p.totales?.costoEnvio||0));
-  $("stGast").textContent = "$"+total.toFixed(2);
+  if(todos.length===0){ $("listaP").innerHTML=`<div class="empty">No se encontró nada con "${valorBusqueda}"</div>`; return; }
 
-  if(todos.length===0){
-    $("listaP").innerHTML = `No se encontró nada con "${valorBusqueda}" en pedidos_entregados ni pedidos_cancelados. Revisa que en tu base el celular 546378290 sí exista.`;
-    return;
-  }
-
-  // TOMAR DATOS DEL PRIMER PEDIDO (ESTRUCTURA REAL DE TUS FOTOS)
   const primero = todos[0];
-  const c = primero.cliente || {};
-  ipReal = primero.ip || primero.gps?.ip || primero.idOriginal || ipParam || "";
-  clienteIdReal = c.clienteId || primero.clienteId || idParam || "";
-
-  $("titulo").textContent = c.clienteId || clienteIdReal || valorBusqueda;
-  $("sub").textContent = `Encontrado: ${todos.length} pedidos - IP ${ipReal} Cel ${c.celular||''}`;
-  $("cId").textContent = c.clienteId || "-";
-  $("cIp").textContent = primero.ip || "-";
-  $("cCel").textContent = c.celular || primero.celular || valorBusqueda;
-  $("cNom").textContent = primero.nombre || "-";
-  $("cDir").textContent = c.direccion || primero.direccion || "-";
-  $("cCiudad").textContent = `${primero.ipInfo?.ciudad||''} ${primero.ipInfo?.region||''} ${primero.ipInfo?.postal||''}`;
-  $("cPais").textContent = `${primero.ipInfo?.pais||''} ${primero.ipInfo?.org||''}`;
+  const cli = primero.cliente || {};
   const gps = primero.gps || primero.gpsActualCliente || {};
-  $("cGps").textContent = `${gps.lat||primero.lat||''}, ${gps.lng||primero.lng||''} acc:${gps.accuracy||''}`;
-  $("cDisp").textContent = `${primero.dispositivo?.plataforma||primero.plataforma||''} ${primero.dispositivo?.conexion||''}`;
+  const ipInfo = primero.ipInfo || {};
+  const rest = primero.restaurante || {};
+
+  ipReal = primero.ip || ipReal;
+  clienteIdReal = cli.clienteId || clienteIdReal;
+
+  $("titulo").textContent = cli.clienteId || clienteIdReal || valorBusqueda;
+  $("sub").textContent = `${todos.length} pedidos encontrados`;
+
+  // DATOS CLIENTE TITULO Y RESPUESTA LIMPIO
+  const cont = $("datosCliente");
+  cont.innerHTML="";
+  addRow(cont,"ID Cliente", cli.clienteId || clienteIdReal);
+  addRow(cont,"Nombre cliente", primero.nombre);
+  addRow(cont,"Celular", cli.celular);
+  addRow(cont,"Teléfono", primero.telefono);
+  addRow(cont,"Dirección completa", cli.direccion);
+  addRow(cont,"Referencia", primero.referencia);
+  addRow(cont,"Piso", primero.piso);
+  addRow(cont,"Nombre edificio", primero.nombreEdificio);
+  addRow(cont,"Tipo de dirección", primero.tipoDireccion);
+  addRow(cont,"IP", primero.ip);
+  addRow(cont,"Ciudad", ipInfo.ciudad);
+  addRow(cont,"Región", ipInfo.region);
+  addRow(cont,"Código postal", ipInfo.postal);
+  addRow(cont,"País", ipInfo.pais);
+  addRow(cont,"Organización", ipInfo.org);
+  addRow(cont,"Latitud", gps.lat || primero.lat);
+  addRow(cont,"Longitud", gps.lng || primero.lng);
+  addRow(cont,"Precisión GPS", gps.accuracy);
+  addRow(cont,"Fecha GPS", gps.timestamp);
+  addRow(cont,"Dispositivo plataforma", primero.dispositivo?.plataforma || primero.plataforma);
+  addRow(cont,"Conexión", primero.dispositivo?.conexion);
+  addRow(cont,"Es móvil", primero.dispositivo?.esMovil ? "Sí" : "No");
+  addRow(cont,"Idioma", primero.dispositivo?.idioma);
+  addRow(cont,"Pantalla", primero.dispositivo?.pantalla);
+  addRow(cont,"Código pedido", primero.codigo);
+
   if(gps.lat){ const m=$("cMaps"); m.href=`https://www.google.com/maps?q=${gps.lat},${gps.lng}`; m.style.display='inline-flex'; }
 
-  // BLOQUEO
   await checkBloq();
 
-  // LISTAR PEDIDOS
+  // PEDIDOS
   const lista = $("listaP");
   lista.innerHTML="";
+  todos.sort((a,b)=> new Date(b.timestamp||b.fecha||0)-new Date(a.timestamp||a.fecha||0));
   todos.forEach((p,i)=>{
-    const cli = p.cliente||{};
-    const gps2 = p.gps || p.gpsActualCliente || {};
+    const c2 = p.cliente||{};
+    const g2 = p.gps || p.gpsActualCliente || {};
+    const r2 = p.restaurante||{};
+    const t2 = p.totales||{};
     const prod = p.productos||[];
-    const rest = p.restaurante||{};
-    const tot = p.totales||{};
-    lista.innerHTML+=`
-    <div class="pedido">
-      <div style="display:flex;justify-content:space-between"><b>PEDIDO ${i+1} - ${p.coleccion.toUpperCase()} - ${p.idDoc}</b><span style="font-size:10px;background:${p.coleccion==='pedidos_cancelados'?'#fee2e2':'#dcfce7'};padding:4px 8px;border-radius:999px">${p.codigo||''} ${p.estado||''}</span></div>
-      <div class="grid2" style="margin-top:10px">
-        <div class="item"><label>Dirección</label><span>${cli.direccion||''}</span></div>
-        <div class="item"><label>Celular / Nombre</label><span>${cli.celular||''} - ${p.nombre||''}</span></div>
-        <div class="item"><label>Restaurante / Cat</label><span>${rest.nombre||''} / ${rest.cat||''}</span></div>
-        <div class="item"><label>Total Prod / Envio / Total</label><span>$${tot.costoProductos||''} / $${tot.costoEnvio||''} / $${tot.costoTotal||''}</span></div>
-        <div class="item"><label>GPS Cliente</label><span>${gps2.lat||''}, ${gps2.lng||''} acc ${gps2.accuracy||''}</span></div>
-        <div class="item"><label>Metodo Pago / Motivo Cancel</label><span>${p.metodoPago?.tipo||''} / ${p.motivoCancelacion||''}</span></div>
-        <div class="item"><label>IP / Ciudad / Org</label><span>${p.ip||''} ${p.ipInfo?.ciudad||''} ${p.ipInfo?.org||''}</span></div>
-        <div class="item"><label>Cancelado Por / Fecha</label><span>${p.canceladoPor||''} ${p.canceladoEn||p.timestamp||''}</span></div>
-      </div>
-      ${prod.length?`<div class="prod-list">${prod.map(pr=>`<div class="prod"><span>${pr.nombre} x${pr.cantidad}</span><span>$${pr.precio}</span></div>`).join('')}</div>`:''}
-      <pre class="json">${JSON.stringify(p,null,2)}</pre>
-    </div>`;
+    const esCancelado = p.coleccion==="pedidos_cancelados";
+
+    let html = `<div class="pedido">
+    <div class="pedido-top"><b style="font-size:13px">Pedido ${i+1} - ${esCancelado?"Cancelado":"Entregado"} - ${p.codigo||p.idDoc.slice(-6)}</b><span class="estado ${esCancelado?'estado-cancelado':'estado-entregado'}">${esCancelado?'Cancelado':'Entregado'}</span></div>`;
+
+    // Detalle limpio titulo respuesta
+    html+=`<div class="row"><span class="t">ID Documento</span><span class="v">${p.idDoc}</span></div>`;
+    html+=`<div class="row"><span class="t">Fecha pedido</span><span class="v">${p.timestamp||p.fecha||p.fechaCancelacion||''}</span></div>`;
+    html+=`<div class="row"><span class="t">Estado</span><span class="v">${p.estado||''}</span></div>`;
+    if(esCancelado){
+      html+=`<div class="row"><span class="t">Cancelado por</span><span class="v">${p.canceladoPor||''} ${p.canceladoPorNombre||''}</span></div>`;
+      html+=`<div class="row"><span class="t">Motivo cancelación</span><span class="v">${p.motivoCancelacion||p.detalleCancelacion||''}</span></div>`;
+      html+=`<div class="row"><span class="t">Fecha cancelación</span><span class="v">${p.fechaCancelacion||p.canceladoEn||''}</span></div>`;
+    }
+    html+=`<div class="row"><span class="t">Nombre cliente</span><span class="v">${p.nombre||''}</span></div>`;
+    html+=`<div class="row"><span class="t">Celular</span><span class="v">${c2.celular||''}</span></div>`;
+    html+=`<div class="row"><span class="t">Dirección</span><span class="v">${c2.direccion||''}</span></div>`;
+    html+=`<div class="row"><span class="t">Restaurante</span><span class="v">${r2.nombre||''}</span></div>`;
+    html+=`<div class="row"><span class="t">Categoría restaurante</span><span class="v">${r2.cat||''}</span></div>`;
+    html+=`<div class="row"><span class="t">ID Restaurante</span><span class="v">${r2.id||''}</span></div>`;
+    html+=`<div class="row"><span class="t">Lat Restaurante</span><span class="v">${r2.lat||''}</span></div>`;
+    html+=`<div class="row"><span class="t">Lng Restaurante</span><span class="v">${r2.lng||''}</span></div>`;
+    html+=`<div class="row"><span class="t">Método de pago</span><span class="v">${p.metodoPago?.tipo||''}</span></div>`;
+    html+=`<div class="row"><span class="t">Instrucciones</span><span class="v">${p.instrucciones||''}</span></div>`;
+    html+=`<div class="row"><span class="t">Total producto</span><span class="v">$${t2.costoProductos||''}</span></div>`;
+    html+=`<div class="row"><span class="t">Costo envío</span><span class="v">$${t2.costoEnvio||''}</span></div>`;
+    html+=`<div class="row"><span class="t">Tarifa</span><span class="v">$${t2.tarifa||t2.costoEnvio||''}</span></div>`;
+    html+=`<div class="row"><span class="t">Propina</span><span class="v">$${t2.propina||0}</span></div>`;
+    html+=`<div class="row"><span class="t">Costo total</span><span class="v">$${t2.costoTotal||''}</span></div>`;
+    if(esCancelado){
+      html+=`<div class="row"><span class="t">Valor pedido cancelado</span><span class="v">$${t2.costoProductos||t2.costoTotal||prod.reduce((s,it)=>s+Number(it.precio||0)*Number(it.cantidad||1),0)}</span></div>`;
+    }
+    html+=`<div class="row"><span class="t">IP cliente</span><span class="v">${p.ip||''}</span></div>`;
+    html+=`<div class="row"><span class="t">Ciudad IP</span><span class="v">${p.ipInfo?.ciudad||''}</span></div>`;
+    html+=`<div class="row"><span class="t">GPS Cliente Lat</span><span class="v">${g2.lat||''}</span></div>`;
+    html+=`<div class="row"><span class="t">GPS Cliente Lng</span><span class="v">${g2.lng||''}</span></div>`;
+
+    if(prod.length){
+      html+=`<div style="margin-top:12px;font-size:11px;font-weight:900">PRODUCTOS</div>`;
+      prod.forEach(pr=>{
+        html+=`<div class="prod"><span>${pr.nombre} x${pr.cantidad}</span><span>$${pr.precio}</span></div>`;
+      });
+    }
+
+    if(g2.lat) html+=`<a href="https://www.google.com/maps?q=${g2.lat},${g2.lng}" target="_blank" class="btn-maps">Ver ubicación de este pedido</a>`;
+
+    html+=`</div>`;
+    lista.innerHTML+=html;
   });
 }
 
@@ -208,8 +240,8 @@ async function checkBloq(){
 }
 
 $("btnBloq").addEventListener('click', async ()=>{
-  if(!ipReal){ alert("No hay IP, bloquea por IP del pedido: "+$("cIp").textContent); ipReal=$("cIp").textContent; if(!ipReal) return; }
-  const nuevo = !bloqueado;
+  if(!ipReal){ ipReal=$("cIp")?.textContent || prompt("IP a bloquear:"); if(!ipReal) return; }
+  const nuevo=!bloqueado;
   if(!confirm((nuevo?"Bloquear":"Desbloquear")+" IP "+ipReal+"?")) return;
   try{
     const data={ip:ipReal,bloqueado:nuevo,clienteId:clienteIdReal,fecha:new Date().toISOString()};
