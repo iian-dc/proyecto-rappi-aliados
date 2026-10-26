@@ -14,27 +14,28 @@ body{background:#fff;font-family:'Inter',sans-serif;color:#0f172a;overflow-x:hid
 .top h1{font-size:26px;font-weight:900;letter-spacing:-0.5px}
 .table-wrap{max-width:1550px;margin:18px auto;padding:0 12px}
 .table{width:100%;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;background:white}
-.header-row{display:grid;grid-template-columns:1fr 0.75fr 1fr 0.35fr 0.65fr 0.75fr 0.6fr 0.45fr 0.65fr 0.65fr;background:#0b111c;color:white;padding:10px 0;font-size:10px;font-weight:700;align-items:center}
-.header-row div{padding:0 8px;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.header-row{display:grid;grid-template-columns:130px 110px 170px 55px 95px 125px 110px 70px 90px 95px;background:#0b111c;color:white;padding:0;font-size:10px;font-weight:700;align-items:center;height:42px}
+.header-row div{padding:0 10px;display:flex;align-items:center;height:100%;border-right:1px solid #1e293b;white-space:nowrap;overflow:hidden}
+.header-row div:last-child{border-right:none}
 .header-row .ip-badge{background:#E30613;color:white;border-radius:999px;padding:3px 10px;font-size:9px;font-weight:800;min-width:32px;justify-content:center}
-.row{display:grid;grid-template-columns:1fr 0.75fr 1fr 0.35fr 0.65fr 0.75fr 0.6fr 0.45fr 0.65fr 0.65fr;border-top:1px solid #eef2f7;padding:8px 0;align-items:center;background:white;font-size:10px;min-height:58px}
-.row div{padding:0 8px;display:flex;align-items:center;gap:6px;overflow:hidden}
-.client-name{font-weight:800;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px}
-.addr{flex-direction:column;align-items:flex-start;gap:1px}
-.addr b{font-size:10px;font-weight:600;max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.addr span{font-size:8px;color:#64748b}
-.time{flex-direction:column;align-items:flex-start;line-height:1.1;font-size:10px}
-.badge-origen{font-size:7.5px;font-weight:800;padding:3px 7px;border-radius:999px;white-space:nowrap;border:1px solid}
+.row{display:grid;grid-template-columns:130px 110px 170px 55px 95px 125px 110px 70px 90px 95px;border-top:1px solid #e2e8f0;padding:0;align-items:center;background:white;font-size:10px;min-height:56px}
+.row:hover{background:#f8fafc}
+.row div{padding:0 10px;display:flex;align-items:center;height:100%;border-right:1px solid #f1f5f9;overflow:hidden;white-space:nowrap}
+.row div:last-child{border-right:none}
+.client-name{font-weight:800;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:100%}
+.addr{flex-direction:column !important;align-items:flex-start !important;justify-content:center;gap:1px;line-height:1.1}
+.addr b{font-size:10px;font-weight:600;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.time{flex-direction:column !important;align-items:flex-start !important;justify-content:center;line-height:1.1}
+.badge-origen{font-size:8px;font-weight:800;padding:4px 8px;border-radius:999px;white-space:nowrap;border:1px solid;display:inline-flex;align-items:center;justify-content:center;min-width:68px}
 .badge-origen.entregado{background:#dcfce7;color:#166534;border-color:#bbf7d0}
 .badge-origen.cancelado{background:#fee2e2;color:#991b1b;border-color:#fecaca}
 .badge-origen.reportado{background:#fef3c7;color:#92400e;border-color:#fde68a}
-.btn-resumen{border:1.5px solid #E30613;color:#E30613;background:white;border-radius:999px;padding:4px 9px;font-size:9px;font-weight:800;text-decoration:none;white-space:nowrap}
-.btn-bloq{border:none;border-radius:999px;padding:5px 8px;font-size:8.5px;font-weight:800;color:white;min-width:84px;justify-content:center;cursor:pointer;display:flex;align-items:center;gap:4px;white-space:nowrap}
+.btn-resumen{border:1.5px solid #E30613;color:#E30613;background:white;border-radius:999px;padding:4px 9px;font-size:9px;font-weight:800;text-decoration:none;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center}
+.btn-bloq{border:none;border-radius:999px;padding:5px 8px;font-size:8.5px;font-weight:800;color:white;min-width:80px;justify-content:center;cursor:pointer;display:flex;align-items:center;white-space:nowrap}
 .btn-bloq.desbloqueado{background:#16a34a}
-.btn-bloq.bloqueado{background:#E30613}
-.carpeta-box{display:flex;flex-direction:column;gap:3px;align-items:flex-start}
-.carpeta-title{font-size:8px;font-weight:700;color:#64748b;text-transform:uppercase}
-@media(max-width:1300px){.header-row{display:none}.row{grid-template-columns:1fr;gap:6px;border:1px solid #eef2f7;border-radius:10px;margin-bottom:10px;padding:10px}.table{border:none}}
+.btn-bloq.bloqueado{background:#E30613;box-shadow:0 0 0 2px rgba(227,6,19,0.15)}
+.ip-cell{font-family:monospace;font-size:10px;font-weight:700;letter-spacing:-0.3px}
+@media(max-width:1300px){.header-row{display:none}.row{grid-template-columns:1fr;gap:0;border:1px solid #eef2f7;border-radius:10px;margin-bottom:10px;padding:10px;height:auto;min-height:auto}.row div{border:none;height:auto;padding:4px 0}.table{border:none}}
 </style>
 </head>
 <body>
@@ -45,13 +46,13 @@ body{background:#fff;font-family:'Inter',sans-serif;color:#0f172a;overflow-x:hid
 
 <div class="table-wrap">
 <div class="table">
-<div class="header-row"><div>Cliente</div><div>Teléfono</div><div>Dirección</div><div>Pedidos</div><div>Último pedido</div><div><span class="ip-badge">IP</span></div><div>Ciudad</div><div>Resumen</div><div>Bloqueado</div><div>Carpeta</div></div>
+<div class="header-row"><div>Cliente</div><div>Teléfono</div><div>Dirección</div><div>Pedidos</div><div>Último pedido</div><div>IP</div><div>Ciudad</div><div>Resumen</div><div>Bloqueado</div><div>Carpeta</div></div>
 <div id="lista" style="padding:20px;text-align:center;color:#64748b;font-size:12px">Cargando de DoloYa-Historial...</div>
 </div></div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-import { getFirestore, collection, onSnapshot, doc, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+import { getFirestore, collection, onSnapshot, doc, updateDoc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCRx4B7mO444s0yU-WTnsqMjBHDWX4IRv8",
@@ -77,7 +78,7 @@ function formatFecha(d){
   if(!d || d.getTime()===0) return '-';
   const dd=String(d.getDate()).padStart(2,'0'); const mm=String(d.getMonth()+1).padStart(2,'0'); const yy=d.getFullYear();
   let h=d.getHours(); const mi=String(d.getMinutes()).padStart(2,'0'); const ampm=h>=12?'p.m.':'a.m.'; h=h%12||12;
-  return `${dd}/${mm}/${yy}<br><span style="color:#64748b;font-size:8px">${String(h).padStart(2,'0')}:${mi} ${ampm}</span>`;
+  return `${dd}/${mm}/${yy} ${String(h).padStart(2,'0')}:${mi}${ampm}`;
 }
 
 function asegurarCliente(keyTel, nombre, telefonoRaw, direccion, ip, ciudad, ipInfo, lat, lng, fecha, origen){
@@ -97,13 +98,11 @@ function asegurarCliente(keyTel, nombre, telefonoRaw, direccion, ip, ciudad, ipI
       pedidos: 0,
       origenes: new Set(),
       carpetaPrincipal: origen,
-      bloqueado: false,
-      motivo: ''
+      bloqueado: false
     };
   }
   const c = clientesMap[keyTel];
   c.pedidos++;
-  // ULTIMO PEDIDO = cuando hizo el ultimo pedido, no cuando ingreso
   if(fecha && fecha > c.ultimo){
     c.ultimo = fecha;
     if(ip && ip!=='null' && ip!=='-' && ip!=='0.0.0.0') c.ip = ip;
@@ -120,7 +119,6 @@ function asegurarCliente(keyTel, nombre, telefonoRaw, direccion, ip, ciudad, ipI
   if(origen) c.origenes.add(origen);
 }
 
-// 1. CLIENTES REPORTADOS NO RECIBE
 onSnapshot(collection(db, "clientes_reportados_no_recibe"), snap=>{
   snap.forEach(ds=>{
     const data = ds.data();
@@ -128,68 +126,76 @@ onSnapshot(collection(db, "clientes_reportados_no_recibe"), snap=>{
     const key = String(telefonoRaw).replace(/\D/g,'');
     if(!key) return;
     const nombre = data.nombre || data.cliente?.nombre || 'Cliente';
-    const direccion = data.direccion || data.cliente?.direccion || data.detalles?.direccion || '-';
-    const gps = data.gps || data.cliente?.ubicacion || data.gpsActualCliente || {};
-    const lat = gps.lat || data.latitud || data.detalles?.lat;
-    const lng = gps.lng || data.longitud || data.detalles?.lng;
-    const ipReal = data.ip && data.ip!=='null' && data.ip!=='0.0.0.0' ? data.ip : (data.ubicacionCompleta?.ip || null);
+    const direccion = data.direccion || data.cliente?.direccion || '-';
+    const gps = data.gps || data.cliente?.ubicacion || {};
+    const lat = gps.lat || data.latitud;
+    const lng = gps.lng || data.longitud;
+    const ipReal = data.ip && data.ip!=='null' && data.ip!=='0.0.0.0' ? data.ip : (data.ubicacionCompleta?.ip || '-');
     const ipInfo = data.ipInfo || data.ubicacionCompleta?.ipInfo || {};
-    const fecha = getFecha(data.fechaReporte || data.ultimoPedido || data.timestamp || data.actualizadoEn);
+    const fecha = getFecha(data.fechaReporte || data.ultimoPedido || data.timestamp);
     const ciudad = ipInfo.city || data.ciudad || 'Dolores Hgo.';
     const bloqueado = data.bloqueado===true || data.ipBloqueada===true;
-
-    if(!clientesMap[key]){
-      asegurarCliente(key, nombre, telefonoRaw, direccion, ipReal, ciudad, ipInfo, lat, lng, fecha, 'REPORTADO');
-    }
+    if(!clientesMap[key]) asegurarCliente(key, nombre, telefonoRaw, direccion, ipReal, ciudad, ipInfo, lat, lng, fecha, 'REPORTADO');
     if(clientesMap[key]){
       clientesMap[key].origenes.add('REPORTADO');
       clientesMap[key].bloqueado = bloqueado;
-      clientesMap[key].motivo = data.motivo || '';
       if(fecha > clientesMap[key].ultimo) clientesMap[key].ultimo = fecha;
-      if(ipReal) clientesMap[key].ip = ipReal;
+      if(ipReal && ipReal!=='-') clientesMap[key].ip = ipReal;
     }
   });
   render();
 });
 
-// 2. PEDIDOS ENTREGADOS
 onSnapshot(collection(db, "pedidos_entregados"), snap=>{
   snap.forEach(ds=>{
     const d = ds.data();
     const cli = d.cliente || {};
-    const telRaw = cli.celular || cli.telefono || d.telefono || d.celular || '-';
+    const telRaw = cli.celular || cli.telefono || d.telefono || '-';
     const key = String(telRaw).replace(/\D/g,'');
     if(!key || key.length<7) return;
     const nombre = cli.nombre || d.nombre || 'Cliente';
     const direccion = cli.direccion || d.direccionEntrega || '-';
-    const ip = d.ip && d.ip!=='null' && d.ip!=='0.0.0.0' ? d.ip : (d.ubicacionCompleta?.ip || null);
+    const ip = d.ip && d.ip!=='null' && d.ip!=='0.0.0.0' ? d.ip : (d.ubicacionCompleta?.ip || '-');
     const ipInfo = d.ipInfo || d.ubicacionCompleta?.ipInfo || {};
-    const lat = cli.ubicacion?.lat || d.latitud || d.gps?.lat || null;
-    const lng = cli.ubicacion?.lng || d.longitud || d.gps?.lng || null;
-    const fecha = getFecha(d.fechaEntrega || d.enviadoAHistorialEn || d.timestamp || d.timestampAdmin);
+    const lat = cli.ubicacion?.lat || d.latitud || null;
+    const lng = cli.ubicacion?.lng || d.longitud || null;
+    const fecha = getFecha(d.fechaEntrega || d.enviadoAHistorialEn || d.timestamp);
     const ciudad = ipInfo.city || 'Dolores Hgo.';
     asegurarCliente(key, nombre, telRaw, direccion, ip, ciudad, ipInfo, lat, lng, fecha, 'ENTREGADO');
   });
   render();
 });
 
-// 3. PEDIDOS CANCELADOS
 onSnapshot(collection(db, "pedidos_cancelados"), snap=>{
   snap.forEach(ds=>{
     const d = ds.data();
     const cli = d.cliente || {};
-    const telRaw = cli.celular || cli.telefono || d.telefono || d.celular || '-';
+    const telRaw = cli.celular || cli.telefono || d.telefono || '-';
     const key = String(telRaw).replace(/\D/g,'');
     if(!key || key.length<7) return;
     const nombre = cli.nombre || d.nombre || 'Cliente';
     const direccion = cli.direccion || d.direccionEntrega || '-';
-    const ip = d.ip && d.ip!=='null' && d.ip!=='0.0.0.0' ? d.ip : (d.ubicacionCompleta?.ip || null);
+    const ip = d.ip && d.ip!=='null' && d.ip!=='0.0.0.0' ? d.ip : (d.ubicacionCompleta?.ip || '-');
     const ipInfo = d.ipInfo || d.ubicacionCompleta?.ipInfo || {};
-    const lat = cli.ubicacion?.lat || d.latitud || d.gps?.lat || null;
-    const lng = cli.ubicacion?.lng || d.longitud || d.gps?.lng || null;
+    const lat = cli.ubicacion?.lat || d.latitud || null;
+    const lng = cli.ubicacion?.lng || d.longitud || null;
     const fecha = getFecha(d.fechaCancelacion || d.enviadoAHistorialEn || d.timestamp);
     const ciudad = ipInfo.city || 'Dolores Hgo.';
     asegurarCliente(key, nombre, telRaw, direccion, ip, ciudad, ipInfo, lat, lng, fecha, 'CANCELADO');
+  });
+  render();
+});
+
+// CARGAR IPS BLOQUEADAS PARA SINCRONIZAR ESTADO
+onSnapshot(collection(db, "ips_bloqueadas"), snap=>{
+  snap.forEach(ds=>{
+    const ip = ds.id;
+    const data = ds.data();
+    if(data.bloqueado){
+      Object.values(clientesMap).forEach(c=>{
+        if(c.ip===ip) c.bloqueado = true;
+      });
+    }
   });
   render();
 });
@@ -198,24 +204,22 @@ function render(){
   const arr = Object.values(clientesMap).sort((a,b)=> b.ultimo - a.ultimo);
   if(arr.length===0){ document.getElementById('lista').innerHTML=`<div style="padding:20px;text-align:center">Sin clientes</div>`; return; }
   document.getElementById('lista').innerHTML = arr.map(c=>{
-    let ipMostrar = c.ip && c.ip!=='-' && c.ip!=='null' && c.ip!=='0.0.0.0' ? c.ip : (c.lat ? `${String(c.lat).substring(0,6)},${String(c.lng).substring(0,6)}` : '-');
+    let ipMostrar = c.ip && c.ip!=='-' && c.ip!=='null' && c.ip!=='0.0.0.0' ? c.ip : '-';
     let ciudadMostrar = c.ipInfo?.city || c.ciudad || 'Dolores Hgo.';
-    let origenes = Array.from(c.origenes);
-    let carpetaBadge = c.carpetaPrincipal || (origenes[origenes.length-1]||'REPORTADO');
+    let carpetaBadge = c.carpetaPrincipal || 'REPORTADO';
     let cls = carpetaBadge==='ENTREGADO'?'entregado':carpetaBadge==='CANCELADO'?'cancelado':'reportado';
-
     return `
     <div class="row">
-      <div><b class="client-name">${c.nombre}</b></div>
-      <div style="font-size:10px">${c.telefono}</div>
-      <div><div class="addr"><b title="${c.direccion}">${c.direccion.substring(0,28)}</b></div></div>
-      <div><b>${c.pedidos}</b></div>
+      <div><b class="client-name" title="${c.nombre}">${c.nombre}</b></div>
+      <div>${c.telefono}</div>
+      <div><div class="addr"><b title="${c.direccion}">${c.direccion.substring(0,30)}</b></div></div>
+      <div style="justify-content:center"><b>${c.pedidos}</b></div>
       <div><div class="time">${formatFecha(c.ultimo)}</div></div>
-      <div style="font-size:9px;font-weight:700;flex-direction:column;align-items:flex-start;line-height:1.1"><span>${ipMostrar}</span></div>
-      <div style="font-size:9px;flex-direction:column;align-items:flex-start"><span>${ciudadMostrar}</span><span style="color:#64748b;font-size:7.5px">${c.lat? 'GPS':''}</span></div>
-      <div><a class="btn-resumen" href="paneladmin-clientes-resumen.html?tel=${c.key}&id=${c.key}">Resumen</a></div>
+      <div class="ip-cell">${ipMostrar}</div>
+      <div style="font-size:9px">${ciudadMostrar}</div>
+      <div><a class="btn-resumen" href="paneladmin-clientes-resumen.html?tel=${c.key}">Resumen</a></div>
       <div><button class="btn-bloq ${c.bloqueado?'bloqueado':'desbloqueado'}" onclick="toggleBloq('${c.key}')">${c.bloqueado?'Bloqueado':'Desbloq.'}</button></div>
-      <div><div class="carpeta-box"><span class="carpeta-title">Carpeta</span><span class="badge-origen ${cls}">${carpetaBadge}</span></div></div>
+      <div><span class="badge-origen ${cls}">${carpetaBadge}</span></div>
     </div>`;
   }).join('');
 }
@@ -224,16 +228,43 @@ window.toggleBloq = async (key)=>{
   const c = clientesMap[key];
   if(!c) return;
   const nuevo = !c.bloqueado;
+  const ipLimpia = (c.ip||'').replace(/\./g,'_') || key;
   try{
-    await updateDoc(doc(db, "clientes_reportados_no_recibe", key), { bloqueado: nuevo, ipBloqueada: nuevo, bloqueadoEn: new Date().toISOString(), ip: c.ip }).catch(async ()=>{
-      await setDoc(doc(db, "clientes_reportados_no_recibe", key), { telefono: key, bloqueado: nuevo, ipBloqueada: nuevo, ip: c.ip, bloqueadoEn: new Date().toISOString() }, {merge:true});
-    });
-    // También bloquea IP real en otra colección
-    if(c.ip && c.ip!=='-'){
-      await setDoc(doc(db, "ips_bloqueadas", c.ip), { ip: c.ip, telefono: key, bloqueado: nuevo, fecha: new Date().toISOString() }, {merge:true});
+    // 1. Bloquea por teléfono
+    await setDoc(doc(db, "clientes_reportados_no_recibe", key), { 
+      telefono: key, 
+      bloqueado: nuevo, 
+      ipBloqueada: nuevo, 
+      ip: c.ip,
+      ipInfo: c.ipInfo||{},
+      bloqueadoEn: new Date().toISOString(),
+      motivo: nuevo ? 'Bloqueado manual desde panel clientes' : ''
+    }, {merge:true});
+
+    // 2. BLOQUEA IP REAL - ESTO ES LO QUE IMPIDE QUE VUELVA A INGRESAR
+    if(c.ip && c.ip!=='-' && c.ip!=='null' && c.ip!=='0.0.0.0'){
+      await setDoc(doc(db, "ips_bloqueadas", c.ip), { 
+        ip: c.ip, 
+        ipInfo: c.ipInfo||{},
+        telefono: key, 
+        nombre: c.nombre,
+        bloqueado: nuevo, 
+        fecha: new Date().toISOString(),
+        origen: 'panel_clientes'
+      }, {merge:true});
+
+      // También por si acaso en doloya-confirmacion para bloqueo rápido en checkout
+      await setDoc(doc(db, "bloqueos_ip", c.ip), {
+        ip: c.ip,
+        bloqueado: nuevo,
+        telefono: key,
+        timestamp: new Date().toISOString()
+      }, {merge:true});
     }
+
     c.bloqueado = nuevo;
     render();
+    console.log(nuevo ? `🔴 IP ${c.ip} BLOQUEADA` : `🟢 IP ${c.ip} DESBLOQUEADA`);
   }catch(e){ alert(e.message); }
 }
 </script>
