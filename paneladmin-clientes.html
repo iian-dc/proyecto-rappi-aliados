@@ -9,9 +9,9 @@
 body{background:#fff;font-family:'Inter',sans-serif;color:#0f172a;overflow-x:hidden}
 .top{position:relative;max-width:100%;padding:14px 22px 18px;display:flex;align-items:center;border-bottom:1px solid #f1f5f9;background:white}
 .top::after{content:"";position:absolute;top:0;right:0;width:110px;height:46px;background:linear-gradient(135deg,#E30613 0%,#E30613 55%,#0f172a 55%,#0f172a 100%);clip-path:polygon(25% 0,100% 0,100% 100%,0 100%)}
-.x-btn{width:38px;height:38px;background:#E30613;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;text-decoration:none;flex-shrink:0}
+.x-btn{width:38px;height:38px;background:#E30613;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;text-decoration:none}
 .line{width:2px;height:26px;background:#E30613;margin:0 12px}
-.top h1{font-size:26px;font-weight:900;letter-spacing:-0.5px}
+.top h1{font-size:26px;font-weight:900}
 .table-wrap{max-width:1380px;margin:18px auto;padding:0 16px}
 .table{width:100%;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;background:white}
 .header-row{display:grid;grid-template-columns:1.2fr 0.9fr 1.4fr 0.6fr 1fr 0.9fr 1.1fr 0.8fr 1fr;background:#0b111c;color:white;padding:10px 0;font-size:12.5px;font-weight:700;align-items:center}
@@ -19,23 +19,17 @@ body{background:#fff;font-family:'Inter',sans-serif;color:#0f172a;overflow-x:hid
 .header-row .ip-badge{background:#E30613;color:white;border-radius:999px;padding:4px 14px;font-size:12px;font-weight:800;display:inline-flex;justify-content:center;min-width:46px}
 .row{display:grid;grid-template-columns:1.2fr 0.9fr 1.4fr 0.6fr 1fr 0.9fr 1.1fr 0.8fr 1fr;border-top:1px solid #eef2f7;padding:10px 0;align-items:center;background:white;font-size:12px}
 .row div{padding:0 12px;display:flex;align-items:center;gap:8px;min-height:32px;overflow:hidden}
-.row .client-name{font-weight:800;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.row .addr{flex-direction:column;align-items:flex-start;gap:1px}
-.row .addr b{font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px}
-.row .addr span{font-size:10px;color:#64748b}
-.row .time{flex-direction:column;align-items:flex-start;line-height:1.2;font-size:11px}
-.btn-resumen{border:1.8px solid #E30613;color:#E30613;background:white;border-radius:999px;padding:7px 14px;font-size:11px;font-weight:800;display:flex;align-items:center;gap:6px;cursor:pointer;white-space:nowrap}
+.client-name{font-weight:800;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.addr{flex-direction:column;align-items:flex-start;gap:1px}
+.addr b{font-size:11px;font-weight:600;max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.addr span{font-size:10px;color:#64748b}
+.time{flex-direction:column;align-items:flex-start;line-height:1.2;font-size:11px}
+.btn-resumen{border:1.8px solid #E30613;color:#E30613;background:white;border-radius:999px;padding:7px 14px;font-size:11px;font-weight:800;display:flex;align-items:center;gap:6px;cursor:pointer;text-decoration:none;white-space:nowrap}
 .btn-bloq{border:none;border-radius:999px;padding:7px 10px;font-size:10px;font-weight:800;display:flex;align-items:center;gap:6px;cursor:pointer;color:white;min-width:116px;justify-content:center;white-space:nowrap}
 .btn-bloq.desbloqueado{background:#16a34a}
 .btn-bloq.bloqueado{background:#E30613}
 .ic{width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-@media(max-width:1200px){.header-row,.row{grid-template-columns:1fr;gap:6px}.header-row{display:none}.row{border:1px solid #eef2f7;border-radius:10px;margin-bottom:10px;padding:10px}.table{border:none}}
-.modal{position:fixed;inset:0;background:rgba(15,23,42,0.6);display:none;align-items:center;justify-content:center;z-index:9999;padding:16px}
-.modal.active{display:flex}
-.modal-card{background:white;border-radius:14px;max-width:520px;width:100%;padding:16px;max-height:85vh;overflow:auto}
-.modal-card h3{font-size:14px;font-weight:900;margin-bottom:10px}
-.modal-card .pedido{border:1px solid #eef2f7;border-radius:10px;padding:8px 10px;margin-bottom:6px;display:flex;justify-content:space-between;font-size:11px}
-.btn-close{background:#0f172a;color:white;border:none;border-radius:999px;padding:8px 12px;font-size:11px;font-weight:800;cursor:pointer;margin-top:10px;width:100%}
+@media(max-width:1200px){.header-row{display:none}.row{grid-template-columns:1fr;gap:6px;border:1px solid #eef2f7;border-radius:10px;margin-bottom:10px;padding:10px}.table{border:none}}
 </style>
 </head>
 <body>
@@ -53,13 +47,9 @@ body{background:#fff;font-family:'Inter',sans-serif;color:#0f172a;overflow-x:hid
   </div>
 </div>
 
-<div class="modal" id="modalResumen">
-  <div class="modal-card"><h3 id="resumenTitle">Resumen cliente</h3><div id="resumenBody"></div><button class="btn-close" onclick="document.getElementById('modalResumen').classList.remove('active')">Cerrar</button></div>
-</div>
-
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+import { getFirestore, collection, onSnapshot, doc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCRx4B7mO444s0yU-WTnsqMjBHDWX4IRv8",
@@ -73,65 +63,91 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 let clientesMap = {};
-let reportadosMap = {};
+let bloqueadosIPs = {};
 
-function buscar(obj, keys){
-  if(!obj) return null;
-  for(let k of Object.keys(obj)){
-    let kl=k.toLowerCase();
-    for(let s of keys){ if(kl.includes(s)) return obj[k]; }
-    if(typeof obj[k]==='object'){ let r=buscar(obj[k], keys); if(r) return r; }
+const ipRegex = /^(?:\d{1,3}\.){3}\d{1,3}$/;
+
+function extraerIP(data){
+  // Solo campos que REALMENTE son IP, para no traer "efectivo"
+  const candidatos = [
+    data.ip,
+    data.ipCliente,
+    data.ip_cliente,
+    data.cliente?.ip,
+    data.cliente?.ipCliente,
+    data.datosCliente?.ip,
+    data.ubicacionCompleta?.ip,
+    data.ubicacion?.ip,
+    data.cliente?.ubicacion?.ip
+  ];
+  for(let c of candidatos){
+    if(c && typeof c==='string' && ipRegex.test(c.trim())) return c.trim();
   }
-  return null;
+  // Si aún no hay, busca en el objeto si hay alguna string que parezca IP
+  for(let k in data){
+    let v = data[k];
+    if(typeof v==='string' && ipRegex.test(v.trim())) return v.trim();
+    if(typeof v==='object' && v){
+      for(let kk in v){
+        let vv = v[kk];
+        if(typeof vv==='string' && ipRegex.test(vv.trim()) && kk.toLowerCase().includes('ip')) return vv.trim();
+      }
+    }
+  }
+  return '-';
 }
 
-function extraer(data){
-  const clienteObj = data.cliente || {};
-  const ubic = clienteObj.ubicacion || data.ubicacion || {};
-  const ip = data.ip || data.ipCliente || clienteObj.ip || buscar(data, ['ip','ip_cliente']) || '-';
-  const ciudad = data.ciudad || clienteObj.ciudad || buscar(data, ['ciudad','municipio']) || `Dolores Hidalgo, Gto.`;
-  const nombre = clienteObj.nombre || data.nombre || data.clienteNombre || 'Cliente';
-  const celular = clienteObj.celular || clienteObj.telefono || data.telefono || data.celular || data.clienteCelular || '-';
-  const direccion = clienteObj.direccion || data.direccion || data.direccionEntrega || '-';
+function extraerCliente(data){
+  const c = data.cliente || {};
+  const nombre = c.nombre || data.nombre || 'Cliente';
+  const celularRaw = c.celular || c.telefono || data.telefono || data.celular || '-';
+  const celular = String(celularRaw).replace(/\D/g,'');
+  const direccion = c.direccion || data.direccionEntrega || data.direccion || '-';
+  const ciudad = data.ciudad || c.ciudad || data.municipio || 'Dolores Hidalgo, Gto.';
+  const ip = extraerIP(data);
   const fecha = data.actualizadoEn || data.enviadoAHistorialEn || data.fechaEntrega || data.fechaCancelacion || data.timestamp || new Date();
-  return { nombre, celular: String(celular), direccion, ip: String(ip), ciudad, lat: ubic.lat || buscar(data,['lat']) || null, lng: ubic.lng || buscar(data,['lng','longitud']) || null, fecha };
+  const lat = c.ubicacion?.lat || data.ubicacion?.lat || null;
+  const lng = c.ubicacion?.lng || data.ubicacion?.lng || null;
+  return { nombre, celular, celularRaw: String(celularRaw), direccion, ciudad, ip, fecha, lat, lng };
 }
 
-function addPedidos(snap){
+function agregarSnap(snap){
   snap.forEach(ds=>{
-    const d = ds.data();
-    const ex = extraer(d);
-    let key = ex.celular.replace(/\D/g,'');
-    if(!key || key.length<7) key = ex.ip;
-    if(!key || key==='-') return;
+    const ex = extraerCliente(ds.data());
+    if(!ex.celular || ex.celular.length < 7) return; // Agrupamos solo por telefono, no por IP
+    const key = ex.celular;
     if(!clientesMap[key]){
-      clientesMap[key]={ key, nombre:ex.nombre, telefono:ex.celular, direccion:ex.direccion, ip:ex.ip, ciudad:ex.ciudad, lat:ex.lat, lng:ex.lng, pedidos:0, ultimo:null, lista:[] };
+      clientesMap[key]={ key, nombre:ex.nombre, telefono:ex.celularRaw, direccion:ex.direccion, ciudad:ex.ciudad, ip:ex.ip, lat:ex.lat, lng:ex.lng, pedidos:0, ultimo:null };
     }
     clientesMap[key].pedidos++;
     let f = ex.fecha?.toDate ? ex.fecha.toDate() : new Date(ex.fecha);
     if(isNaN(f.getTime())) f = new Date();
-    if(!clientesMap[key].ultimo || f>clientesMap[key].ultimo) clientesMap[key].ultimo=f;
-    if(ex.nombre && ex.nombre!=='Cliente') clientesMap[key].nombre=ex.nombre;
-    if(ex.direccion && ex.direccion!=='-') clientesMap[key].direccion=ex.direccion;
-    if(ex.ip && ex.ip!=='-') clientesMap[key].ip=ex.ip;
-    if(ex.ciudad) clientesMap[key].ciudad=ex.ciudad;
-    if(ex.lat) clientesMap[key].lat=ex.lat;
-    if(ex.lng) clientesMap[key].lng=ex.lng;
-    clientesMap[key].lista.push({ id:ds.id, fecha:f, total: d.totales?.total || d.total || 0, estado: d.estado || ds.id });
+    if(!clientesMap[key].ultimo || f > clientesMap[key].ultimo){
+      clientesMap[key].ultimo = f;
+      clientesMap[key].ip = ex.ip; // Siempre la última IP con la que pidió
+      if(ex.lat) clientesMap[key].lat = ex.lat;
+      if(ex.lng) clientesMap[key].lng = ex.lng;
+    }
+    if(ex.nombre && ex.nombre!=='Cliente') clientesMap[key].nombre = ex.nombre;
+    if(ex.direccion && ex.direccion!=='-') clientesMap[key].direccion = ex.direccion;
   });
   render();
 }
 
-onSnapshot(collection(db, "pedidos_entregados"), addPedidos);
-onSnapshot(collection(db, "pedidos_cancelados"), addPedidos);
+onSnapshot(collection(db, "pedidos_entregados"), agregarSnap);
+onSnapshot(collection(db, "pedidos_cancelados"), agregarSnap);
+
+// Escucha bloqueados - puedes tener 2 colecciones, usamos ambas
+onSnapshot(collection(db, "clientes_bloqueados"), snap=>{
+  snap.forEach(d=>{ bloqueadosIPs[d.id]=true; if(d.data().ip) bloqueadosIPs[d.data().ip]=true; });
+  render();
+});
 onSnapshot(collection(db, "clientes_reportados_no_recibe"), snap=>{
-  reportadosMap={};
   snap.forEach(d=>{
-    const data=d.data();
-    const cel = String(data.celular || data.telefono || buscar(data,['celular','telefono']) || d.id).replace(/\D/g,'');
-    if(cel) reportadosMap[cel]=true;
-    const ip = String(data.ip || '').trim();
-    if(ip) reportadosMap[ip]=true;
+    const ip = d.data().ip;
+    const cel = String(d.data().celular||'').replace(/\D/g,'');
+    if(ip && ipRegex.test(ip)) bloqueadosIPs[ip]=true;
+    if(cel) bloqueadosIPs[cel]=true;
   });
   render();
 });
@@ -147,31 +163,37 @@ function render(){
   const arr = Object.values(clientesMap).sort((a,b)=> b.ultimo - a.ultimo);
   if(arr.length===0){ document.getElementById('lista').innerHTML=`<div style="padding:20px;text-align:center;color:#64748b;font-size:12px">Sin clientes aún</div>`; return; }
   document.getElementById('lista').innerHTML = arr.map(c=>{
-    const keyTel = c.telefono.replace(/\D/g,'');
-    const bloqueado = reportadosMap[keyTel] || reportadosMap[c.ip] || false;
+    const estaBloqueado = bloqueadosIPs[c.key] || bloqueadosIPs[c.ip] || false;
     return `
     <div class="row">
       <div><span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="#111"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 20a8 8 0 0 1 16 0v1H4v-1z"/></svg></span><span class="client-name">${c.nombre}</span></div>
-      <div><span class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="#111"><path d="M20 10.5a9 9 0 0 0-1-4.2L18 6l-2 .7A7 7 0 0 0 10.5 2 7.5 7.5 0 0 0 3 9.5c0 2.5 1.2 4.7 3 6.2L6 22l6.5-1.7A7.5 7.5 0 0 0 20 10.5z"/></svg></span>${c.telefono}</div>
-      <div><span class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="#111"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7z"/></svg></span><div class="addr"><b>${c.direccion.substring(0,32)}</b><span>${c.ciudad.includes('Dolores')? 'Col. Centro' : c.ciudad}</span></div></div>
-      <div><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="1.8"><path d="M3 7h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/><path d="M12 12l-3-2v4l3 2 3-2v-4l-3 2z"/></svg></span>${c.pedidos}</div>
-      <div><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg></span><div class="time">${formatFecha(c.ultimo)}</div></div>
-      <div style="font-size:10px;white-space:nowrap">${c.ip.substring(0,15)}</div>
-      <div><span class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="#111"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7z"/></svg></span><div style="font-size:10px;line-height:1.2">${c.ciudad}<br><span style="color:#64748b">${c.lat? c.lat.toString().substring(0,8):''} ${c.lng? c.lng.toString().substring(0,9):''}</span></div></div>
-      <div><button class="btn-resumen" onclick="verResumen('${c.key}')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#E30613" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg> Resumen</button></div>
-      <div><button class="btn-bloq ${bloqueado?'bloqueado':'desbloqueado'}"><svg width="12" height="12" viewBox="0 0 24 24" fill="white"><path d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5zm-3 5a3 3 0 0 1 6 0v3H9V7zm-3 5h12v8H6v-8z"/></svg> ${bloqueado?'Bloqueado':'Desbloqueado'}</button></div>
+      <div>${c.telefono}</div>
+      <div><div class="addr"><b>${c.direccion.substring(0,32)}</b><span>Col. Centro</span></div></div>
+      <div>${c.pedidos}</div>
+      <div><div class="time">${formatFecha(c.ultimo)}</div></div>
+      <div style="font-size:10px;white-space:nowrap;font-weight:700">${c.ip}</div>
+      <div><div style="font-size:10px;line-height:1.2">${c.ciudad}<br><span style="color:#64748b">${c.lat? String(c.lat).substring(0,8):''} ${c.lng? String(c.lng).substring(0,9):''}</span></div></div>
+      <div><a class="btn-resumen" href="paneladmin-clientes-resumen.html?tel=${c.key}&ip=${encodeURIComponent(c.ip)}">Resumen</a></div>
+      <div><button class="btn-bloq ${estaBloqueado?'bloqueado':'desbloqueado'}" onclick="toggleBloq('${c.key}','${c.ip}')">${estaBloqueado?'Bloqueado':'Desbloqueado'}</button></div>
     </div>`;
   }).join('');
 }
 
-window.verResumen = (key)=>{
-  const c = clientesMap[key]; if(!c) return;
-  document.getElementById('resumenTitle').textContent = `${c.nombre} - ${c.telefono}`;
-  document.getElementById('resumenBody').innerHTML = `
-    <div style="font-size:11px;margin-bottom:10px"><b>IP:</b> ${c.ip}<br><b>Ciudad:</b> ${c.ciudad}<br><b>GPS:</b> ${c.lat||'-'}, ${c.lng||'-'}<br><b>Dirección:</b> ${c.direccion}<br><b>Total pedidos:</b> ${c.pedidos}</div>
-    ${c.lista.sort((a,b)=>b.fecha-a.fecha).map(p=>`<div class="pedido"><span>#${p.id.substring(0,8)}</span><span>${p.fecha.toLocaleDateString()}</span><b>$${Number(p.total).toFixed(2)}</b></div>`).join('')}
-  `;
-  document.getElementById('modalResumen').classList.add('active');
+window.toggleBloq = async (keyTel, ip)=>{
+  const estaBloqueado = bloqueadosIPs[keyTel] || bloqueadosIPs[ip];
+  const docId = ip && ip!=='-' && ipRegex.test(ip) ? ip : keyTel;
+  try{
+    if(estaBloqueado){
+      await deleteDoc(doc(db, "clientes_bloqueados", docId));
+      delete bloqueadosIPs[docId];
+      delete bloqueadosIPs[keyTel];
+      delete bloqueadosIPs[ip];
+    } else {
+      await setDoc(doc(db, "clientes_bloqueados", docId), { telefono:keyTel, ip:ip, bloqueadoEn:new Date().toISOString(), activo:true });
+      bloqueadosIPs[docId]=true;
+    }
+    render();
+  }catch(e){ alert('Error: '+e.message); }
 }
 </script>
 </body>
