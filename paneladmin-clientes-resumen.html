@@ -7,7 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
-body{background:#f8fafc;color:#0f172a;padding-bottom:30px}
+body{background:#f8fafc;color:#0f172a}
 .header{position:sticky;top:0;z-index:30;background:white;border-bottom:1px solid #e2e8f0;padding:12px 14px;display:flex;justify-content:space-between;align-items:center}
 .left{display:flex;align-items:center;gap:12px}
 .btn-back{width:42px;height:42px;background:#E30613;border-radius:50%;display:flex;align-items:center;justify-content:center;border:none;cursor:pointer}
@@ -17,7 +17,7 @@ body{background:#f8fafc;color:#0f172a;padding-bottom:30px}
 .wrap{max-width:920px;margin:0 auto;padding:16px;display:flex;flex-direction:column;gap:16px}
 .card{background:white;border-radius:18px;border:1px solid #e2e8f0;overflow:hidden}
 .card-head{padding:14px 16px;background:#fcfcfc;border-bottom:1px solid #f1f5f9;display:flex;justify-content:space-between}
-.card-head h2{font-size:12px;font-weight:900;text-transform:uppercase}
+.card-head h2{font-size:11px;font-weight:900;text-transform:uppercase}
 .badge{padding:5px 12px;border-radius:999px;font-size:10px;font-weight:900}
 .badge-bloq{background:#fee2e2;color:#991b1b}
 .badge-ok{background:#dcfce7;color:#166534}
@@ -29,16 +29,12 @@ body{background:#f8fafc;color:#0f172a;padding-bottom:30px}
 .item span{font-size:13px;font-weight:600;word-break:break-word}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
 .stat{background:#0f172a;color:white;border-radius:14px;padding:12px;text-align:center}
-.stat b{font-size:18px;display:block}
-.stat label{font-size:9px;opacity:0.7;text-transform:uppercase}
+.stat b{font-size:16px;display:block}
+.stat label{font-size:8px;opacity:.7;text-transform:uppercase}
 .pedido{border:1.5px solid #e2e8f0;border-radius:16px;padding:14px;margin-bottom:14px}
-.pedido-top{display:flex;justify-content:space-between}
-.estado{padding:5px 12px;border-radius:999px;font-size:10px;font-weight:900;text-transform:uppercase}
-.estado-cancelado{background:#fee2e2;color:#991b1b}
-.estado-entregado{background:#dcfce7;color:#166534}
 .prod-list{margin-top:10px;background:#f8fafc;border-radius:12px;padding:10px;border:1px solid #f1f5f9}
 .prod{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed #e2e8f0;font-size:12px}
-pre.json{background:#0f172a;color:#e2e8f0;border-radius:8px;padding:10px;font-size:10px;overflow:auto;max-height:200px;white-space:pre-wrap;margin-top:8px}
+pre.json{background:#0f172a;color:#e2e8f0;border-radius:8px;padding:10px;font-size:10px;overflow:auto;max-height:300px;white-space:pre-wrap;margin-top:8px}
 .btn-maps{background:#0f172a;color:white;padding:8px 12px;border-radius:999px;font-size:11px;text-decoration:none;display:inline-flex;margin-top:8px}
 </style>
 </head>
@@ -52,32 +48,29 @@ pre.json{background:#0f172a;color:#e2e8f0;border-radius:8px;padding:10px;font-si
 </div>
 
 <div class="wrap">
-<div class="card"><div class="card-head"><h2>Datos completos del cliente - de historial</h2><span id="badge" class="badge badge-ok">ACTIVO</span></div>
+<div class="card"><div class="card-head"><h2>Datos cliente - de pedidos</h2><span id="badge" class="badge badge-ok">ACTIVO</span></div>
 <div class="card-body">
-<div class="stats"><div class="stat"><b id="stTotal">0</b><label>Total pedidos</label></div><div class="stat"><b id="stEntregados">0</b><label>Entregados</label></div><div class="stat"><b id="stCancelados">0</b><label>Cancelados</label></div><div class="stat"><b id="stGastado">$0</b><label>Gastado</label></div></div>
+<div class="stats"><div class="stat"><b id="stTotal">0</b><label>Pedidos</label></div><div class="stat"><b id="stEnt">0</b><label>Entregados</label></div><div class="stat"><b id="stCan">0</b><label>Cancelados</label></div><div class="stat"><b id="stGast">$0</b><label>Gastado</label></div></div>
 <div class="grid2">
-<div class="item"><label>ClienteId REAL (de tu base)</label><span id="cId">-</span></div>
-<div class="item"><label>IP REAL</label><span id="cIp">-</span></div>
-<div class="item"><label>Celular / Telefono</label><span id="cCel">-</span></div>
+<div class="item"><label>ClienteID</label><span id="cId">-</span></div>
+<div class="item"><label>IP</label><span id="cIp">-</span></div>
+<div class="item"><label>Celular</label><span id="cCel">-</span></div>
 <div class="item"><label>Nombre</label><span id="cNom">-</span></div>
 <div class="item" style="grid-column:1/-1"><label>Dirección completa</label><span id="cDir">-</span></div>
 <div class="item"><label>Ciudad / Región / Postal</label><span id="cCiudad">-</span></div>
-<div class="item"><label>País / Org / IP Info</label><span id="cPais">-</span></div>
-<div class="item"><label>Lat / Lng / Accuracy GPS</label><span id="cGps">-</span><br><a id="cMaps" target="_blank" class="btn-maps" style="display:none">Ver Maps</a></div>
-<div class="item"><label>Dispositivo / Plataforma / Conexión</label><span id="cDisp">-</span></div>
-<div class="item"><label>Fecha último pedido</label><span id="cFecha">-</span></div>
-<div class="item"><label>Codigo / IdOriginal</label><span id="cCod">-</span></div>
+<div class="item"><label>País / Org</label><span id="cPais">-</span></div>
+<div class="item"><label>GPS Lat Lng Accuracy</label><span id="cGps">-</span><br><a id="cMaps" target="_blank" class="btn-maps" style="display:none">Ver Maps</a></div>
+<div class="item"><label>Dispositivo / Plataforma</label><span id="cDisp">-</span></div>
 </div>
-<div id="rawCliente"></div>
 </div></div>
 
-<div class="card"><div class="card-head"><h2>Pedidos - Entregados + Cancelados</h2><span id="countP" class="badge" style="background:#f1f5f9">0</span></div>
-<div class="card-body" id="listaP">Cargando pedidos de pedidos_entregados y pedidos_cancelados...</div></div>
+<div class="card"><div class="card-head"><h2>Pedidos encontrados</h2><span id="countP" class="badge" style="background:#f1f5f9">0</span></div>
+<div class="card-body" id="listaP">Iniciando...</div></div>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, getDocs, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const configHistorial = {
   apiKey: "AIzaSyCRx4B7mO444s0yU-WTnsqMjBHDWX4IRv8",
@@ -85,31 +78,120 @@ const configHistorial = {
   projectId: "doloya-historial",
   storageBucket: "doloya-historial.firebasestorage.app",
   messagingSenderId: "41258055121",
-  appId: "1:41258055121:web:19a443786320e04ebd9cf0",
-  measurementId: "G-ENELTJ1X6R"
+  appId: "1:41258055121:web:19a443786320e04ebd9cf0"
 };
 const app = initializeApp(configHistorial);
 const db = getFirestore(app);
 
 const params = new URLSearchParams(location.search);
+// ACEPTA CUALQUIER NOMBRE DE PARAMETRO
+const valorBusqueda = params.get('tel') || params.get('cel') || params.get('celular') || params.get('telefono') || params.get('id') || params.get('clienteId') || params.get('clienteid') || params.get('ip') || params.get('cliente') || "";
 const ipParam = params.get('ip');
-const idParam = params.get('id') || params.get('clienteId') || params.get('clienteid');
-const celularParam = params.get('cel') || params.get('celular');
+const idParam = params.get('id') || params.get('clienteId');
 
-let ipReal = ipParam;
-let clienteIdReal = idParam;
-let celularReal = celularParam;
+let ipReal = ipParam || "";
+let clienteIdReal = idParam || "";
 let bloqueado=false;
 
 const $=id=>document.getElementById(id);
 
-async function init(){
-  if(!ipParam && !idParam && !celularParam){
-    $("sub").textContent="Abre así: ?id=cli_xxx o ?ip=xxx o ?cel=xxx";
+$("sub").textContent = "Buscando: " + valorBusqueda;
+
+async function cargarTodo(){
+  if(!valorBusqueda){
+    $("listaP").innerHTML = "Falta ?tel= o ?id= o ?ip= - Ejemplo: paneladmin-clientes-resumen.html?tel=546378290";
     return;
   }
-  await cargarPedidosReales();
+
+  $("listaP").innerHTML = "Descargando colecciones...";
+  let todos=[];
+
+  // DESCARGA SIN WHERE - FILTRO LOCAL PARA QUE NO FALLE
+  try{
+    const snapE = await getDocs(collection(db, "pedidos_entregados"));
+    snapE.forEach(d=>{
+      const data = d.data();
+      const txt = JSON.stringify(data).toLowerCase();
+      if(txt.includes(valorBusqueda.toLowerCase())){
+        todos.push({idDoc:d.id, coleccion:"pedidos_entregados", ...data});
+      }
+    });
+  }catch(e){ $("listaP").innerHTML += "<br>Error entregados: "+e.message; }
+
+  try{
+    const snapC = await getDocs(collection(db, "pedidos_cancelados"));
+    snapC.forEach(d=>{
+      const data = d.data();
+      const txt = JSON.stringify(data).toLowerCase();
+      if(txt.includes(valorBusqueda.toLowerCase())){
+        todos.push({idDoc:d.id, coleccion:"pedidos_cancelados", ...data});
+      }
+    });
+  }catch(e){ $("listaP").innerHTML += "<br>Error cancelados: "+e.message; }
+
+  $("countP").textContent = todos.length+" encontrados";
+  $("stTotal").textContent = todos.length;
+  $("stEnt").textContent = todos.filter(p=>p.coleccion==="pedidos_entregados").length;
+  $("stCan").textContent = todos.filter(p=>p.coleccion==="pedidos_cancelados").length;
+
+  let total=0;
+  todos.forEach(p=> total+= Number(p.totales?.costoProductos||0)+Number(p.totales?.costoEnvio||0));
+  $("stGast").textContent = "$"+total.toFixed(2);
+
+  if(todos.length===0){
+    $("listaP").innerHTML = `No se encontró nada con "${valorBusqueda}" en pedidos_entregados ni pedidos_cancelados. Revisa que en tu base el celular 546378290 sí exista.`;
+    return;
+  }
+
+  // TOMAR DATOS DEL PRIMER PEDIDO (ESTRUCTURA REAL DE TUS FOTOS)
+  const primero = todos[0];
+  const c = primero.cliente || {};
+  ipReal = primero.ip || primero.gps?.ip || primero.idOriginal || ipParam || "";
+  clienteIdReal = c.clienteId || primero.clienteId || idParam || "";
+
+  $("titulo").textContent = c.clienteId || clienteIdReal || valorBusqueda;
+  $("sub").textContent = `Encontrado: ${todos.length} pedidos - IP ${ipReal} Cel ${c.celular||''}`;
+  $("cId").textContent = c.clienteId || "-";
+  $("cIp").textContent = primero.ip || "-";
+  $("cCel").textContent = c.celular || primero.celular || valorBusqueda;
+  $("cNom").textContent = primero.nombre || "-";
+  $("cDir").textContent = c.direccion || primero.direccion || "-";
+  $("cCiudad").textContent = `${primero.ipInfo?.ciudad||''} ${primero.ipInfo?.region||''} ${primero.ipInfo?.postal||''}`;
+  $("cPais").textContent = `${primero.ipInfo?.pais||''} ${primero.ipInfo?.org||''}`;
+  const gps = primero.gps || primero.gpsActualCliente || {};
+  $("cGps").textContent = `${gps.lat||primero.lat||''}, ${gps.lng||primero.lng||''} acc:${gps.accuracy||''}`;
+  $("cDisp").textContent = `${primero.dispositivo?.plataforma||primero.plataforma||''} ${primero.dispositivo?.conexion||''}`;
+  if(gps.lat){ const m=$("cMaps"); m.href=`https://www.google.com/maps?q=${gps.lat},${gps.lng}`; m.style.display='inline-flex'; }
+
+  // BLOQUEO
   await checkBloq();
+
+  // LISTAR PEDIDOS
+  const lista = $("listaP");
+  lista.innerHTML="";
+  todos.forEach((p,i)=>{
+    const cli = p.cliente||{};
+    const gps2 = p.gps || p.gpsActualCliente || {};
+    const prod = p.productos||[];
+    const rest = p.restaurante||{};
+    const tot = p.totales||{};
+    lista.innerHTML+=`
+    <div class="pedido">
+      <div style="display:flex;justify-content:space-between"><b>PEDIDO ${i+1} - ${p.coleccion.toUpperCase()} - ${p.idDoc}</b><span style="font-size:10px;background:${p.coleccion==='pedidos_cancelados'?'#fee2e2':'#dcfce7'};padding:4px 8px;border-radius:999px">${p.codigo||''} ${p.estado||''}</span></div>
+      <div class="grid2" style="margin-top:10px">
+        <div class="item"><label>Dirección</label><span>${cli.direccion||''}</span></div>
+        <div class="item"><label>Celular / Nombre</label><span>${cli.celular||''} - ${p.nombre||''}</span></div>
+        <div class="item"><label>Restaurante / Cat</label><span>${rest.nombre||''} / ${rest.cat||''}</span></div>
+        <div class="item"><label>Total Prod / Envio / Total</label><span>$${tot.costoProductos||''} / $${tot.costoEnvio||''} / $${tot.costoTotal||''}</span></div>
+        <div class="item"><label>GPS Cliente</label><span>${gps2.lat||''}, ${gps2.lng||''} acc ${gps2.accuracy||''}</span></div>
+        <div class="item"><label>Metodo Pago / Motivo Cancel</label><span>${p.metodoPago?.tipo||''} / ${p.motivoCancelacion||''}</span></div>
+        <div class="item"><label>IP / Ciudad / Org</label><span>${p.ip||''} ${p.ipInfo?.ciudad||''} ${p.ipInfo?.org||''}</span></div>
+        <div class="item"><label>Cancelado Por / Fecha</label><span>${p.canceladoPor||''} ${p.canceladoEn||p.timestamp||''}</span></div>
+      </div>
+      ${prod.length?`<div class="prod-list">${prod.map(pr=>`<div class="prod"><span>${pr.nombre} x${pr.cantidad}</span><span>$${pr.precio}</span></div>`).join('')}</div>`:''}
+      <pre class="json">${JSON.stringify(p,null,2)}</pre>
+    </div>`;
+  });
 }
 
 async function checkBloq(){
@@ -121,160 +203,23 @@ async function checkBloq(){
   }catch{}
   const badge=$("badge"); const btn=$("btnBloq"); const txt=$("txtBloq");
   btn.style.display='block';
-  if(bloqueado){ badge.textContent="BLOQUEADO"; badge.className="badge badge-bloq"; btn.className="btn-block desbloquear"; txt.textContent="Desbloquear IP"; }
-  else { badge.textContent="ACTIVO"; badge.className="badge badge-ok"; btn.className="btn-block bloquear"; txt.textContent="Bloquear IP"; }
-}
-
-async function cargarPedidosReales(){
-  const lista = $("listaP");
-  let todos=[];
-
-  // Función para traer de una colección filtrando por clienteId o ip o celular (según tu estructura real)
-  async function traerColeccion(nombreCol){
-    try{
-      const colRef = collection(db, nombreCol);
-      let snap;
-      // Intenta filtrar por cliente.clienteId si tenemos id
-      if(clienteIdReal){
-        try{
-          const q = query(colRef, where("cliente.clienteId","==",clienteIdReal));
-          snap = await getDocs(q);
-          snap.forEach(d=> todos.push({idDoc:d.id, coleccion:nombreCol, ...d.data()}));
-          if(snap.size>0) return;
-        }catch{}
-        try{
-          const q2 = query(colRef, where("clienteId","==",clienteIdReal));
-          snap = await getDocs(q2);
-          snap.forEach(d=>{ if(!todos.find(x=>x.idDoc===d.id)) todos.push({idDoc:d.id, coleccion:nombreCol, ...d.data()}); });
-        }catch{}
-      }
-      if(ipReal){
-        try{
-          const q = query(colRef, where("ip","==",ipReal));
-          snap = await getDocs(q);
-          snap.forEach(d=>{ if(!todos.find(x=>x.idDoc===d.id)) todos.push({idDoc:d.id, coleccion:nombreCol, ...d.data()}); });
-        }catch{}
-      }
-      if(celularReal){
-        try{
-          const q = query(colRef, where("cliente.celular","==",celularReal));
-          snap = await getDocs(q);
-          snap.forEach(d=>{ if(!todos.find(x=>x.idDoc===d.id)) todos.push({idDoc:d.id, coleccion:nombreCol, ...d.data()}); });
-        }catch{}
-      }
-      // Fallback: trae todo y filtra en JS por si guarda con otro nombre
-      if(todos.length===0){
-        snap = await getDocs(colRef);
-        snap.forEach(d=>{
-          const data=d.data();
-          const txt = JSON.stringify(data).toLowerCase();
-          if((ipReal && txt.includes(ipReal.toLowerCase())) || (clienteIdReal && txt.includes(clienteIdReal.toLowerCase())) || (celularReal && txt.includes(celularReal))){
-            todos.push({idDoc:d.id, coleccion:nombreCol, ...data});
-          }
-        });
-      }
-    }catch(e){ console.log("error col",nombreCol,e); }
-  }
-
-  await traerColeccion("pedidos_entregados");
-  await traerColeccion("pedidos_cancelados");
-
-  // Si aún no hay nada, intenta traer todos los de las dos colecciones (para que veas datos)
-  if(todos.length===0 && (ipReal||clienteIdReal)){
-    try{
-      const snap1 = await getDocs(collection(db, "pedidos_entregados"));
-      snap1.forEach(d=>{ if(todos.length<20) todos.push({idDoc:d.id, coleccion:"pedidos_entregados (muestra)", ...d.data()}); });
-    }catch{}
-  }
-
-  $("countP").textContent = todos.length+" pedidos";
-  $("stTotal").textContent = todos.length;
-  $("stEntregados").textContent = todos.filter(p=>p.coleccion.includes("entregados")).length;
-  $("stCancelados").textContent = todos.filter(p=>p.coleccion.includes("cancelados")).length;
-
-  let total=0;
-  todos.forEach(p=>{ total+= parseFloat(p.totales?.costoProductos||0) + parseFloat(p.totales?.costoEnvio||0); });
-
-  $("stGastado").textContent = "$"+total.toFixed(2);
-
-  if(todos.length===0){
-    lista.innerHTML=`<div style="padding:20px;color:#64748b">No se encontró nada para<br>ID: ${clienteIdReal}<br>IP: ${ipReal}<br>CEL: ${celularReal}<br>Revisa que el cliente tenga pedidos en pedidos_entregados / pedidos_cancelados</div>`;
-    return;
-  }
-
-  // Datos del cliente tomados del primer pedido (estructura real tuya)
-  const primero = todos[0];
-  const cli = primero.cliente || {};
-  ipReal = primero.ip || primero.idOriginal || primero.gps?.ip || ipReal;
-  clienteIdReal = cli.clienteId || primero.clienteId || clienteIdReal;
-  celularReal = cli.celular || primero.celular || primero.telefono || celularReal;
-
-  $("titulo").textContent = cli.clienteId || clienteIdReal || ipReal;
-  $("sub").textContent = `IP ${ipReal||''} • ${cli.celular||''} • ${primero.ipInfo?.ciudad||''}`;
-  $("cId").textContent = cli.clienteId || primero.clienteId || clienteIdReal || '-';
-  $("cIp").textContent = primero.ip || primero.ipInfo?.ip || ipReal || '-';
-  $("cCel").textContent = cli.celular || primero.telefono || primero.celular || '-';
-  $("cNom").textContent = primero.nombre || cli.nombre || '-';
-  $("cDir").textContent = cli.direccion || primero.direccion || '-';
-  $("cCiudad").textContent = `${primero.ipInfo?.ciudad||''} ${primero.ipInfo?.region||''} ${primero.ipInfo?.postal||''}`;
-  $("cPais").textContent = `${primero.ipInfo?.pais||''} ${primero.ipInfo?.org||''}`;
-  $("cGps").textContent = `${primero.gps?.lat||primero.gpsActualCliente?.lat||primero.lat||''}, ${primero.gps?.lng||primero.gpsActualCliente?.lng||primero.lng||''} acc:${primero.gps?.accuracy||primero.gpsActualCliente?.accuracy||''}`;
-  $("cDisp").textContent = `${primero.dispositivo?.plataforma||primero.plataforma||''} ${primero.dispositivo?.conexion||''} esMovil:${primero.dispositivo?.esMovil||''}`;
-  $("cFecha").textContent = primero.timestamp || primero.fecha || primero.timestampEnvio || '-';
-  $("cCod").textContent = primero.codigo || primero.idOriginal || primero.idDoc || '-';
-  if(primero.gps?.lat){ $("cMaps").href=`https://www.google.com/maps?q=${primero.gps.lat},${primero.gps.lng}`; $("cMaps").style.display='inline-flex'; }
-  else if(primero.gpsActualCliente?.lat){ $("cMaps").href=`https://www.google.com/maps?q=${primero.gpsActualCliente.lat},${primero.gpsActualCliente.lng}`; $("cMaps").style.display='inline-flex'; }
-
-  $("rawCliente").innerHTML=`<pre class="json">${JSON.stringify(primero,null,2).slice(0,3000)}</pre>`;
-
-  // Pintar cada pedido con TODA LA INFO REAL
-  lista.innerHTML="";
-  todos.sort((a,b)=> new Date(b.timestamp||b.fecha||0)-new Date(a.timestamp||a.fecha||0));
-  todos.forEach((p,i)=>{
-    const c = p.cliente||{};
-    const gps = p.gps || p.gpsActualCliente || {};
-    const prod = p.productos || [];
-    const rest = p.restaurante || {};
-    const tot = p.totales || {};
-    const estado = p.estado || p.coleccion || 'pendiente';
-    lista.innerHTML+=`
-    <div class="pedido">
-      <div class="pedido-top"><div><div style="font-weight:900;font-size:13px">PEDIDO ${i+1} • ${p.coleccion.toUpperCase()} • #${p.idDoc.slice(-6).toUpperCase()} • COD ${p.codigo||''}</div><div style="font-size:11px;color:#64748b">${p.timestamp||p.fecha||''} • CanceladoPor: ${p.canceladoPor||''} ${p.canceladoPorNombre||''} Motivo: ${p.motivoCancelacion||''}</div></div><span class="estado ${p.coleccion.includes('cancel')?'estado-cancelado':'estado-entregado'}">${estado}</span></div>
-      <div class="grid2">
-        <div class="item"><label>Dirección entrega</label><span>${c.direccion||p.direccion||'-'}</span></div>
-        <div class="item"><label>Celular / Tel / Nombre edificio</label><span>${c.celular||''} ${p.telefono||''} ${p.nombre||''} ${p.nombreEdificio||''}</span></div>
-        <div class="item"><label>Referencia / Piso / Tipo dirección</label><span>${p.referencia||''} Piso:${p.piso||''} Tipo:${p.tipoDireccion||''}</span></div>
-        <div class="item"><label>Método pago / Plataforma</label><span>${p.metodoPago?.tipo||''} / ${p.plataforma||''}</span></div>
-        <div class="item"><label>Restaurante / Cat / ID</label><span>${rest.nombre||''} / ${rest.cat||''} / ${rest.id||''} Lat:${rest.lat||''} Lng:${rest.lng||''}</span></div>
-        <div class="item"><label>Totales - Productos / Envío / Total</label><span>Prod $${tot.costoProductos||''} Env $${tot.costoEnvio||''} Total $${tot.costoTotal||''} Propina $${tot.propina||0}</span></div>
-        <div class="item"><label>IP / IpInfo / Ciudad / Org</label><span>${p.ip||''} ${p.ipInfo?.ciudad||''} ${p.ipInfo?.org||''} ${p.ipInfo?.region||''} ${p.ipInfo?.postal||''}</span></div>
-        <div class="item"><label>GPS Actual Cliente / Accuracy</label><span>Lat ${gps.lat||''} Lng ${gps.lng||''} Acc ${gps.accuracy||''} Time ${gps.timestamp||''}</span><br>${gps.lat?`<a class="btn-maps" target="_blank" href="https://www.google.com/maps?q=${gps.lat},${gps.lng}">Ver Maps</a>`:''}</div>
-        <div class="item"><label>Instrucciones / Estado / EstadoSuperTiro / Fecha</label><span>${p.instrucciones||''} ${p.estado||''} ${p.estadoSuperTiro||''}</span></div>
-        <div class="item"><label>Dispositivo / Conexión / Idioma / Pantalla</label><span>${p.dispositivo?.plataforma||''} ${p.dispositivo?.conexion||''} ${p.dispositivo?.idioma||''} ${p.dispositivo?.pantalla||''} ${p.dispositivo?.esMovil?'Movil':''}</span></div>
-      </div>
-      ${prod.length>0?`<div class="prod-list"><div style="font-size:10px;font-weight:900">PRODUCTOS (${prod.length})</div>${prod.map(pr=>`<div class="prod"><span>${pr.nombre||''} x${pr.cantidad||1}</span><span>$${pr.precio||''} Repart:${pr.repartidorId||''}</span></div>`).join('')}</div>`:''}
-      <pre class="json">${JSON.stringify(p,null,2).slice(0,4000)}</pre>
-    </div>`;
-  });
+  if(bloqueado){ badge.textContent="BLOQUEADO"; badge.className="badge badge-bloq"; btn.className="btn-block desbloquear"; txt.textContent="Desbloquear"; }
+  else { badge.textContent="ACTIVO"; badge.className="badge badge-ok"; btn.className="btn-block bloquear"; txt.textContent="Bloquear"; }
 }
 
 $("btnBloq").addEventListener('click', async ()=>{
-  if(!ipReal){ alert("No hay IP"); return; }
+  if(!ipReal){ alert("No hay IP, bloquea por IP del pedido: "+$("cIp").textContent); ipReal=$("cIp").textContent; if(!ipReal) return; }
   const nuevo = !bloqueado;
-  if(!confirm(`${nuevo?'Bloquear':'Desbloquear'} IP ${ipReal}?`)) return;
-  $("btnBloq").disabled=true;
+  if(!confirm((nuevo?"Bloquear":"Desbloquear")+" IP "+ipReal+"?")) return;
   try{
-    const data={ip:ipReal,bloqueado:nuevo,clienteId:clienteIdReal,fecha:new Date().toISOString(),motivo:nuevo?"Bloqueo desde resumen cliente":"Desbloqueo",ciudad:$("cCiudad").textContent};
+    const data={ip:ipReal,bloqueado:nuevo,clienteId:clienteIdReal,fecha:new Date().toISOString()};
     await setDoc(doc(db, "ips_bloqueadas", ipReal), data, {merge:true});
     await setDoc(doc(db, "bloqueos_ip", ipReal), data, {merge:true});
-    bloqueado=nuevo;
-    await checkBloq();
-    alert(nuevo?"IP bloqueada en tiempo real":"IP desbloqueada");
+    bloqueado=nuevo; checkBloq(); alert(nuevo?"Bloqueada":"Desbloqueada");
   }catch(e){ alert(e.message); }
-  $("btnBloq").disabled=false;
 });
 
-init();
+cargarTodo();
 </script>
 </body>
 </html>
