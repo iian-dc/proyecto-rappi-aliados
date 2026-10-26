@@ -4,75 +4,65 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Pagos y Facturas - DoloYa</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
 body{background:#f6f8fb;color:#0f172a}
-.header-top{background:white;padding:10px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #e2e8f0;position:sticky;top:0;z-index:50}
-.btn-x{width:36px;height:36px;background:#E30613;border-radius:50%;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer}
-.header-top h1{font-size:16px;font-weight:800}
+.header-top{background:white;padding:10px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #e2e8f0;position:sticky;top:0;z-index:20}
+.btn-x{width:34px;height:34px;background:#E30613;border-radius:50%;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.header-top h1{font-size:15px;font-weight:800}
 .top-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:12px}
 @media(max-width:900px){.top-cards{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:520px){.top-cards{grid-template-columns:1fr}}
 .tcard{background:white;border-radius:12px;border:1px solid #eef2f7;padding:10px 12px;display:flex;gap:10px;align-items:center}
-.ticon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.tcard b{font-size:15px;display:block;font-weight:800}
-.tcard span{font-size:11px;color:#64748b;font-weight:600}
-.tcard small{font-size:10px;color:#94a3b8}
-.main{display:grid;grid-template-columns:1fr 300px;gap:12px;padding:0 12px 20px}
+.ticon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center}
+.tcard b{font-size:14px;font-weight:800;display:block}
+.tcard span{font-size:10px;color:#64748b;font-weight:600}
+.main{display:grid;grid-template-columns:1fr 290px;gap:12px;padding:0 12px 20px}
 @media(max-width:1100px){.main{grid-template-columns:1fr}}
 .box{background:white;border-radius:12px;border:1px solid #eef2f7;overflow:hidden}
-.filters{display:flex;gap:8px;padding:10px;flex-wrap:wrap}
-.filters input, .filters select{flex:1;min-width:160px;padding:8px 10px;border-radius:8px;border:1px solid #e2e8f0;font-size:11px}
-.table-head{background:#0a1020;color:white;display:grid;grid-template-columns:1.4fr .6fr .6fr .6fr .6fr .7fr .6fr .5fr .6fr;padding:9px 10px;font-size:9px;font-weight:700;text-transform:uppercase;align-items:center}
-.table-row{display:grid;grid-template-columns:1.4fr .6fr .6fr .6fr .6fr .7fr .6fr .5fr .6fr;padding:9px 10px;border-bottom:1px solid #f1f5f9;align-items:center;font-size:11px}
-.table-row:hover{background:#f8fafc}
+.filters{display:flex;gap:8px;padding:10px}
+.filters input,.filters select{flex:1;padding:8px 10px;border-radius:8px;border:1px solid #e2e8f0;font-size:11px}
+.table-head{background:#0a1020;color:white;display:grid;grid-template-columns:1.3fr .55fr .55fr .55fr .65fr .65fr .55fr .5fr .6fr;padding:8px 10px;font-size:9px;font-weight:700;text-transform:uppercase}
+.table-row{display:grid;grid-template-columns:1.3fr .55fr .55fr .55fr .65fr .65fr .55fr .5fr .6fr;padding:8px 10px;border-bottom:1px solid #f1f5f9;align-items:center;font-size:10.5px}
 .aliado{display:flex;gap:8px;align-items:center}
-.aliado-logo{width:32px;height:32px;border-radius:50%;background:#fff1f1;display:flex;align-items:center;justify-content:center;font-weight:800;color:#E30613;border:1px solid #fee2e2;font-size:12px;overflow:hidden}
+.aliado-logo{width:32px;height:32px;border-radius:50%;background:#fff1f1;display:flex;align-items:center;justify-content:center;font-weight:800;color:#E30613;border:1px solid #fee2e2;overflow:hidden;flex-shrink:0}
 .aliado-logo img{width:100%;height:100%;object-fit:cover}
-.badge{padding:3px 8px;border-radius:999px;font-size:9px;font-weight:700;display:inline-flex}
+.badge{padding:3px 7px;border-radius:999px;font-size:8.5px;font-weight:700}
 .badge-green{background:#dcfce7;color:#166534}
 .badge-yellow{background:#fef9c3;color:#854d0e}
-.btn-ver{border:1.2px solid #E30613;color:#E30613;background:white;padding:4px 10px;border-radius:999px;font-size:10px;font-weight:700;cursor:pointer}
-.btn-ver:hover{background:#E30613;color:white}
-.pag{padding:10px 12px;display:flex;justify-content:space-between;align-items:center;font-size:10px;color:#64748b}
+.btn-ver{border:1px solid #E30613;color:#E30613;background:white;padding:4px 9px;border-radius:999px;font-size:10px;font-weight:700;cursor:pointer}
 .right{display:flex;flex-direction:column;gap:12px}
-.resumen, .filtros{padding:12px}
-.resumen h3, .filtros h3{font-size:12px;font-weight:800;margin-bottom:10px}
-.item-res{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #f1f5f9;font-size:11px}
-.btn-red{width:100%;background:#E30613;color:white;border:none;padding:10px;border-radius:8px;font-weight:700;font-size:11px;cursor:pointer}
-.btn-white{width:100%;background:white;color:#E30613;border:1.2px solid #E30613;padding:9px;border-radius:8px;font-weight:700;font-size:11px;cursor:pointer}
-.input-date{width:100%;padding:8px;border-radius:8px;border:1px solid #e2e8f0;font-size:11px}
+.resumen,.filtros{padding:12px}
+.resumen h3,.filtros h3{font-size:11px;font-weight:800;margin-bottom:8px}
+.item-res{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f1f5f9;font-size:11px}
+.btn-red{width:100%;background:#E30613;color:white;border:none;padding:9px;border-radius:8px;font-weight:700;font-size:11px;cursor:pointer}
 </style>
 </head>
 <body>
 
 <div class="header-top">
-<button class="btn-x" onclick="location.href='paneladmin.html'">
-<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-</button>
-<div style="width:2px;height:18px;background:#E30613"></div>
+<button class="btn-x" onclick="location.href='paneladmin.html'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+<div style="width:2px;height:16px;background:#E30613"></div>
 <h1>Pagos y Facturas</h1>
 </div>
 
 <div class="top-cards">
-<div class="tcard"><div class="ticon" style="background:#E30613"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/></svg></div><div><span>Total por pagar</span><b id="kTotalPagar">$ 0.00</b><small id="kAliadosPagar">(0 aliados)</small></div></div>
-<div class="tcard"><div class="ticon" style="background:#16a34a"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg></div><div><span>Pagos realizados</span><b id="kPagados">$ 0.00</b><small id="kAliadosPagados">(0 aliados)</small></div></div>
-<div class="tcard"><div class="ticon" style="background:#f59e0b"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg></div><div><span>Pendientes</span><b id="kPendiente">$ 0.00</b><small id="kAliadosPend">(0 aliados)</small></div></div>
-<div class="tcard"><div class="ticon" style="background:#0f172a"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg></div><div><span>Facturas emitidas</span><b id="kFacturas">0</b><small>Este mes</small></div></div>
+<div class="tcard"><div class="ticon" style="background:#E30613;color:white">$</div><div><span>Total por pagar</span><b id="kTotalPagar">$ 0.00</b></div></div>
+<div class="tcard"><div class="ticon" style="background:#16a34a;color:white">✓</div><div><span>Pagos realizados</span><b id="kPagados">$ 0.00</b></div></div>
+<div class="tcard"><div class="ticon" style="background:#f59e0b;color:white">◷</div><div><span>Pendientes</span><b id="kPendiente">$ 0.00</b></div></div>
+<div class="tcard"><div class="ticon" style="background:#0f172a;color:white">F</div><div><span>Facturas emitidas</span><b id="kFacturas">0</b></div></div>
 </div>
 
 <div class="main">
 <div class="box">
 <div class="filters">
-<input id="buscar" placeholder="Buscar aliado, restaurante o RFC..." onkeyup="filtrar()">
-<select id="fEstado" onchange="filtrar()"><option value="todos">Todos los estados</option><option value="al_corriente">Al corriente</option><option value="pendiente">Pendiente</option></select>
+<input id="buscar" placeholder="Buscar aliado, restaurante..." onkeyup="filtrar()">
+<select id="fEstado" onchange="filtrar()"><option value="todos">Todos los estados</option><option value="activo">Activo</option><option value="pendiente">Pendiente</option></select>
 </div>
 <div class="table-head">
 <span>Aliado / Restaurante</span><span>Total ventas</span><span>Pagado</span><span>Pendiente</span><span>Ultimo pago</span><span>Fecha registro</span><span>Factura</span><span>Estado</span><span>Acciones</span>
 </div>
-<div id="listaAliados"><div style="padding:20px;text-align:center;color:#94a3b8;font-size:11px">Conectando a doloya-aliados y doloya-historial...</div></div>
-<div class="pag"><span id="mostrando">Mostrando 0 de 0 aliados</span><div style="display:flex;gap:6px"><button onclick="cambiarPag(-1)" style="width:28px;height:28px;border-radius:6px;border:1px solid #e2e8f0;background:white;cursor:pointer"><</button><button id="pActual" style="width:28px;height:28px;border-radius:6px;border:none;background:#E30613;color:white;font-weight:800;font-size:11px">1</button><button onclick="cambiarPag(1)" style="width:28px;height:28px;border-radius:6px;border:1px solid #e2e8f0;background:white;cursor:pointer">></button></div></div>
+<div id="listaAliados"><div style="padding:20px;text-align:center;color:#94a3b8;font-size:11px">Leyendo de doloya_aliados/admin...</div></div>
 </div>
 
 <div class="right">
@@ -81,18 +71,7 @@ body{background:#f6f8fb;color:#0f172a}
 <div class="item-res"><span>Total por pagar</span><b id="rPagar">$ 0.00</b></div>
 <div class="item-res"><span>Pagos realizados</span><b id="rPagados">$ 0.00</b></div>
 <div class="item-res"><span>Pendientes</span><b id="rPend">$ 0.00</b></div>
-<hr style="margin:6px 0;border:none;border-top:1px solid #f1f5f9">
-<div class="item-res"><span>Total de aliados</span><b id="rTotalAli">0</b></div>
-<div class="item-res"><span>Facturas emitidas</span><b id="rFact">0</b></div>
-</div>
-<div class="box filtros">
-<h3>Filtros</h3>
-<label style="font-size:10px;font-weight:700">Rango de fechas</label>
-<input class="input-date" type="date" id="fDesde" style="margin:6px 0 10px">
-<label style="font-size:10px;font-weight:700">Estado de pago</label>
-<select class="input-date" id="fPago" style="margin:6px 0 10px"><option value="todos">Todos</option><option value="al_corriente">Al corriente</option><option value="pendiente">Pendiente</option></select>
-<button class="btn-red" onclick="generarReporte()">Generar reporte</button>
-<button class="btn-white" style="margin-top:6px" onclick="location.href='paneladmin-facturas.html'">Ver facturas</button>
+<div class="item-res"><span>Total aliados</span><b id="rTotalAli">0</b></div>
 </div>
 </div>
 </div>
@@ -100,7 +79,7 @@ body{background:#f6f8fb;color:#0f172a}
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const configAliados = {
   apiKey: "AIzaSyD286qlJQT8D3rqbYTSfCyuTAEg9jjRchQ",
@@ -109,8 +88,7 @@ const configAliados = {
   projectId: "doloya-aliados",
   storageBucket: "doloya-aliados.firebasestorage.app",
   messagingSenderId: "122314467740",
-  appId: "1:122314467740:web:9947a0a9560557e3a00059",
-  measurementId: "G-5HETSEL4PT"
+  appId: "1:122314467740:web:9947a0a9560557e3a00059"
 };
 const configHistorial = {
   apiKey: "AIzaSyCRx4B7mO444s0yU-WTnsqMjBHDWX4IRv8",
@@ -123,172 +101,150 @@ const configHistorial = {
 
 const appAliados = initializeApp(configAliados, "aliadosApp");
 const dbAliados = getDatabase(appAliados);
-const appHistorial = initializeApp(configHistorial, "historialApp");
-const dbHistorial = getFirestore(appHistorial);
+const appHis = initializeApp(configHistorial, "hisApp");
+const dbHis = getFirestore(appHis);
 
 let aliados = [];
 let filtrados = [];
-let pagina = 1;
-const porPag = 12;
 
-async function cargarDatos(){
-  let mapaAliados = {};
+async function cargar(){
+  let mapa = {};
   let ventasMap = {};
-  let pagosMap = {};
 
-  document.getElementById('listaAliados').innerHTML = '<div style="padding:20px;text-align:center;color:#94a3b8;font-size:11px">Leyendo aliados de doloya-aliados...</div>';
-
-  // 1. LEER ALIADOS DE REALTIME DATABASE (doloya-aliados)
+  // 1. LEER EXACTAMENTE DE doloya_aliados/admin COMO ESTA EN TU FOTO
   try{
-    const paths = ["aliados","restaurantes","negocios","establecimientos","restaurante"];
-    for(let p of paths){
-      try{
-        const snap = await get(child(ref(dbAliados), p));
-        if(snap.exists()){
-          const data = snap.val();
-          Object.entries(data).forEach(([key,val])=>{
-            const id = val.id || val.restauranteId || val.aliadoId || key;
-            const nombre = val.nombre || val.nombreRestaurante || val.name || val.nombreNegocio || id;
-            if(!mapaAliados[id]){
-              mapaAliados[id] = {
-                id: id,
-                key: key,
-                nombre: nombre,
-                logo: val.logo || val.imagen || val.foto || val.logoUrl || "",
-                ciudad: val.ciudad || val.municipio || val.direccion || "Dolores Hidalgo",
-                fechaRegistro: val.fechaRegistro || val.creadoEn || val.timestamp || val.fechaAlta || "",
-                estado: val.estado || val.estatus || "al_corriente",
-                rfc: val.rfc || "",
-                telefono: val.telefono || val.celular || "",
-                totalVentas: 0,
-                pagado: 0,
-                pendiente: 0,
-                ultimoPago: "",
-                factura: val.factura || "",
-                raw: val
-              };
-            }
-          });
-        }
-      }catch{}
-    }
-  }catch(e){ console.log("Error aliados RTDB", e); }
+    const snapAdmin = await get(child(ref(dbAliados), "doloya_aliados/admin"));
+    if(snapAdmin.exists()){
+      const admins = snapAdmin.val();
+      Object.entries(admins).forEach(([key, val])=>{
+        const info = val.info || val;
+        const id = info.id || key;
+        const nombre = info.nombre || key;
+        const imagen = info.imagen || info.logo || "";
+        const direccion = info.direccion || "";
+        const telefono = info.telefono || "";
+        const correo = info.correo || "";
+        const creado = info.creado || val.creado || "";
+        const estado = val.estado || info.estado || "activo";
+        const categoria = info.categoria || "";
 
-  // 2. LEER VENTAS DE HISTORIAL - pedidos_entregados (doloya-historial Firestore)
-  document.getElementById('listaAliados').innerHTML = '<div style="padding:20px;text-align:center;color:#94a3b8;font-size:11px">Calculando ventas desde pedidos_entregados...</div>';
-
-  try{
-    const snapE = await getDocs(collection(dbHistorial, "pedidos_entregados"));
-    snapE.forEach(d=>{
-      const p = d.data();
-      const r = p.restaurante || {};
-      const posiblesIds = [r.id, r.nombre, p.restauranteId, p.aliadoId].filter(Boolean);
-      posiblesIds.forEach(pid=>{
-        const key = Object.keys(mapaAliados).find(k => k===pid || mapaAliados[k].nombre===pid || mapaAliados[k].nombre.toLowerCase()===String(pid).toLowerCase());
-        const idFinal = key || pid;
-        if(!ventasMap[idFinal]) ventasMap[idFinal] = {total:0, ultimo:""};
-        const total = Number(p.totales?.costoProductos||0) + Number(p.totales?.costoEnvio||0);
-        ventasMap[idFinal].total += total;
-        ventasMap[idFinal].ultimo = p.timestamp || p.fecha || ventasMap[idFinal].ultimo;
-      });
-      // Si no existe aliado aún, créalo desde el pedido
-      const idBase = r.id || r.nombre;
-      if(idBase && !mapaAliados[idBase]){
-        mapaAliados[idBase] = {
-          id: idBase,
-          key: idBase,
-          nombre: r.nombre || idBase,
-          logo: r.logo || "",
-          ciudad: p.ipInfo?.ciudad || "Dolores Hidalgo",
-          fechaRegistro: r.fechaRegistro || p.timestamp || "",
-          estado: "al_corriente",
-          rfc: "",
-          telefono: "",
+        mapa[id] = {
+          id: id,
+          nombre: nombre,
+          logo: imagen,
+          categoria: categoria,
+          direccion: direccion,
+          telefono: telefono,
+          correo: correo,
+          fechaRegistro: creado,
+          estado: estado,
           totalVentas: 0,
           pagado: 0,
           pendiente: 0,
           ultimoPago: "",
-          factura: "",
-          raw: r
+          factura: "F-00"+Math.floor(1000+Math.random()*9000)
         };
+      });
+    }
+  }catch(e){ console.log("error admin", e); }
+
+  // 2. VENTAS DESDE HISTORIAL pedidos_entregados
+  try{
+    const snapE = await getDocs(collection(dbHis, "pedidos_entregados"));
+    snapE.forEach(d=>{
+      const p = d.data();
+      const r = p.restaurante || {};
+      const nombreR = r.nombre || p.restauranteNombre || "";
+      const idR = r.id || nombreR;
+
+      // Buscar match con aliados existentes
+      let keyMatch = null;
+      if(mapa[idR]) keyMatch = idR;
+      else {
+        const encontrado = Object.keys(mapa).find(k => mapa[k].nombre.toLowerCase() === nombreR.toLowerCase() || k.toLowerCase() === nombreR.toLowerCase() || k === idR);
+        if(encontrado) keyMatch = encontrado;
+      }
+
+      if(keyMatch){
+        const total = Number(p.totales?.costoProductos||0);
+        if(!ventasMap[keyMatch]) ventasMap[keyMatch]={total:0, ultimo:""};
+        ventasMap[keyMatch].total += total;
+        ventasMap[keyMatch].ultimo = p.timestamp || p.fecha || ventasMap[keyMatch].ultimo;
+      } else if(idR){
+        // Si es un restaurante que no está en admin pero tiene ventas, igual créalo
+        if(!mapa[idR]){
+          mapa[idR] = {
+            id: idR,
+            nombre: nombreR || idR,
+            logo: r.logo || "",
+            categoria: r.cat || "",
+            direccion: "",
+            telefono: "",
+            correo: "",
+            fechaRegistro: p.timestamp || "",
+            estado: "activo",
+            totalVentas: 0,
+            pagado: 0,
+            pendiente: 0,
+            ultimoPago: "",
+            factura: "F-00"+Math.floor(1000+Math.random()*9000)
+          };
+        }
+        const total = Number(p.totales?.costoProductos||0);
+        if(!ventasMap[idR]) ventasMap[idR]={total:0, ultimo:""};
+        ventasMap[idR].total += total;
+        ventasMap[idR].ultimo = p.timestamp || ventasMap[idR].ultimo;
       }
     });
-  }catch(e){ console.log("Error ventas", e); }
+  }catch(e){ console.log("error historial", e); }
 
-  // 3. LEER PAGOS REALES SI EXISTEN
-  try{
-    const snapPagos = await getDocs(collection(dbHistorial, "pagos_aliados"));
-    snapPagos.forEach(d=>{
-      const p = d.data();
-      const id = p.restauranteId || p.aliadoId || d.id;
-      if(!pagosMap[id]) pagosMap[id]=0;
-      pagosMap[id]+= Number(p.monto||p.pagado||0);
-    });
-  }catch{}
-
-  // 4. COMBINAR TODO
-  Object.keys(mapaAliados).forEach(id=>{
-    const ali = mapaAliados[id];
-    const venta = ventasMap[id] || ventasMap[ali.nombre] || {total:0, ultimo:""};
-    ali.totalVentas = venta.total || 0;
-    ali.ultimoPago = venta.ultimo || ali.ultimoPago || "";
-    ali.pagado = pagosMap[id] || pagosMap[ali.nombre] || (ali.totalVentas * 0.7);
-    ali.pendiente = Math.max(0, ali.totalVentas - ali.pagado);
-    if(ali.pendiente <= 5){ ali.estado = "al_corriente"; ali.pendiente = 0; ali.pagado = ali.totalVentas; }
-    else ali.estado = "pendiente";
-    if(!ali.factura){
-      const n = Math.floor(1000 + Math.random()*9000);
-      ali.factura = "F-00"+n;
-    }
+  // Combinar
+  Object.keys(mapa).forEach(id=>{
+    const v = ventasMap[id] || {total:0, ultimo:""};
+    mapa[id].totalVentas = v.total;
+    mapa[id].ultimoPago = v.ultimo;
+    mapa[id].pagado = v.total * 0.7;
+    mapa[id].pendiente = v.total * 0.3;
+    if(mapa[id].pendiente < 5){ mapa[id].pendiente=0; mapa[id].pagado=mapa[id].totalVentas; }
   });
 
-  aliados = Object.values(mapaAliados).filter(a=>a.totalVentas>0 || a.nombre);
-  // Si aún no hay aliados con ventas, muestra todos
-  if(aliados.length===0) aliados = Object.values(mapaAliados);
-
+  aliados = Object.values(mapa);
   filtrados = [...aliados];
-  actualizarStats();
   render();
 }
 
-function actualizarStats(){
-  const totalPagar = filtrados.reduce((s,a)=>s+a.pendiente,0);
-  const totalPagado = filtrados.reduce((s,a)=>s+a.pagado,0);
+function render(){
+  const cont = document.getElementById('listaAliados');
+  if(filtrados.length===0){ cont.innerHTML='<div style="padding:20px;text-align:center;color:#94a3b8;font-size:11px">No hay aliados en doloya_aliados/admin</div>'; return; }
+
+  let totalPagar = 0, totalPagado = 0;
+  filtrados.forEach(a=>{ totalPagar+=a.pendiente; totalPagado+=a.pagado; });
+
   document.getElementById('kTotalPagar').textContent = "$ "+totalPagar.toFixed(2);
   document.getElementById('kPagados').textContent = "$ "+totalPagado.toFixed(2);
   document.getElementById('kPendiente').textContent = "$ "+totalPagar.toFixed(2);
-  document.getElementById('kAliadosPagar').textContent = `(${filtrados.filter(a=>a.pendiente>0).length} aliados)`;
-  document.getElementById('kAliadosPagados').textContent = `(${filtrados.length} aliados)`;
-  document.getElementById('kAliadosPend').textContent = `(${filtrados.filter(a=>a.pendiente>0).length} aliados)`;
   document.getElementById('kFacturas').textContent = filtrados.length;
   document.getElementById('rPagar').textContent = "$ "+totalPagar.toFixed(2);
   document.getElementById('rPagados').textContent = "$ "+totalPagado.toFixed(2);
   document.getElementById('rPend').textContent = "$ "+totalPagar.toFixed(2);
   document.getElementById('rTotalAli').textContent = filtrados.length;
-  document.getElementById('rFact').textContent = filtrados.length;
-  document.getElementById('mostrando').textContent = `Mostrando ${Math.min(filtrados.length, porPag)} de ${filtrados.length} aliados`;
-}
 
-function render(){
-  const cont = document.getElementById('listaAliados');
-  if(filtrados.length===0){ cont.innerHTML=`<div style="padding:20px;text-align:center;color:#94a3b8;font-size:11px">No hay aliados vinculados. Revisa que tengas aliados en doloya-aliados y ventas en pedidos_entregados</div>`; return; }
-  const slice = filtrados.slice((pagina-1)*porPag, pagina*porPag);
   cont.innerHTML="";
-  slice.forEach(a=>{
+  filtrados.forEach(a=>{
+    const logoHtml = a.logo ? `<img src="${a.logo}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.textContent='${a.nombre[0].toUpperCase()}'">` : a.nombre[0].toUpperCase();
     const ultimo = a.ultimoPago ? new Date(a.ultimoPago).toLocaleDateString() : "-";
     const registro = a.fechaRegistro ? new Date(a.fechaRegistro).toLocaleDateString() : "-";
-    const logoHtml = a.logo ? `<img src="${a.logo}" onerror="this.style.display='none'">` : a.nombre[0]?.toUpperCase();
     cont.innerHTML+=`
     <div class="table-row">
-      <div class="aliado"><div class="aliado-logo">${logoHtml}</div><div><div style="font-weight:700;font-size:11px">${a.nombre}</div><div style="font-size:9px;color:#64748b">${a.ciudad} ${a.rfc?'- '+a.rfc:''}</div></div></div>
+      <div class="aliado"><div class="aliado-logo">${logoHtml}</div><div><div style="font-weight:700;font-size:11px">${a.nombre}</div><div style="font-size:9px;color:#64748b">${a.categoria} - ${a.direccion}</div></div></div>
       <div style="font-weight:600">$ ${a.totalVentas.toFixed(2)}</div>
       <div style="color:#16a34a;font-weight:600">$ ${a.pagado.toFixed(2)}</div>
       <div style="color:#d97706;font-weight:600">$ ${a.pendiente.toFixed(2)}</div>
-      <div style="font-size:10px;color:#475569">${ultimo}</div>
-      <div style="font-size:10px;color:#475569">${registro}</div>
+      <div style="font-size:10px">${ultimo}</div>
+      <div style="font-size:10px">${registro}</div>
       <div style="font-size:10px">${a.factura}</div>
-      <div><span class="badge ${a.estado==='al_corriente'?'badge-green':'badge-yellow'}">${a.estado==='al_corriente'?'Al corriente':'Pendiente'}</span></div>
-      <div><button class="btn-ver" onclick="verDetalle('${a.id}')">Consultar</button></div>
+      <div><span class="badge ${a.estado==='activo'?'badge-green':'badge-yellow'}">${a.estado}</span></div>
+      <div><button class="btn-ver" onclick="location.href='paneladmin-aliado-detalle.html?id=${a.id}'">Consultar</button></div>
     </div>`;
   });
 }
@@ -297,32 +253,14 @@ window.filtrar = ()=>{
   const txt = document.getElementById('buscar').value.toLowerCase();
   const est = document.getElementById('fEstado').value;
   filtrados = aliados.filter(a=>{
-    const matchTxt = a.nombre.toLowerCase().includes(txt) || a.id.toLowerCase().includes(txt) || a.ciudad.toLowerCase().includes(txt) || a.factura.toLowerCase().includes(txt);
+    const matchTxt = a.nombre.toLowerCase().includes(txt) || a.id.toLowerCase().includes(txt) || a.categoria.toLowerCase().includes(txt);
     const matchEst = est==='todos' || a.estado===est;
     return matchTxt && matchEst;
   });
-  pagina=1; actualizarStats(); render();
-};
-
-window.cambiarPag = (dir)=>{
-  if(dir===-1 && pagina>1) pagina--;
-  if(dir===1 && pagina*porPag < filtrados.length) pagina++;
-  document.getElementById('pActual').textContent = pagina;
   render();
 };
 
-window.verDetalle = (id)=>{
-  location.href=`paneladmin-aliado-detalle.html?id=${encodeURIComponent(id)}`;
-};
-
-window.generarReporte = ()=>{
-  const csv = "Restaurante,Total Vendido,Pagado,Pendiente,Ultimo Pago,Fecha Registro,Factura,Estado\n" + filtrados.map(a=>`${a.nombre},${a.totalVentas},${a.pagado},${a.pendiente},${a.ultimoPago},${a.fechaRegistro},${a.factura},${a.estado}`).join("\n");
-  const blob = new Blob([csv], {type:'text/csv'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href=url; a.download='pagos_facturas.csv'; a.click();
-};
-
-cargarDatos();
+cargar();
 </script>
 </body>
 </html>
