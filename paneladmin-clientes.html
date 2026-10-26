@@ -12,172 +12,166 @@ body{background:#fff;font-family:'Inter',sans-serif;color:#0f172a;overflow-x:hid
 .x-btn{width:38px;height:38px;background:#E30613;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;text-decoration:none;flex-shrink:0}
 .line{width:2px;height:26px;background:#E30613;margin:0 12px}
 .top h1{font-size:26px;font-weight:900;letter-spacing:-0.5px}
-.table-wrap{max-width:1280px;margin:18px auto;padding:0 16px}
+.table-wrap{max-width:1380px;margin:18px auto;padding:0 16px}
 .table{width:100%;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;background:white}
-.header-row{display:grid;grid-template-columns:1.3fr 1fr 1.3fr 0.6fr 1fr 0.9fr 1.1fr 0.9fr 1fr;background:#0b111c;color:white;padding:10px 0;font-size:12.5px;font-weight:700;align-items:center}
-.header-row div{display:flex;align-items:center;gap:8px;padding:0 14px}
+.header-row{display:grid;grid-template-columns:1.2fr 0.9fr 1.4fr 0.6fr 1fr 0.9fr 1.1fr 0.8fr 1fr;background:#0b111c;color:white;padding:10px 0;font-size:12.5px;font-weight:700;align-items:center}
+.header-row div{display:flex;align-items:center;gap:8px;padding:0 12px}
 .header-row .ip-badge{background:#E30613;color:white;border-radius:999px;padding:4px 14px;font-size:12px;font-weight:800;display:inline-flex;justify-content:center;min-width:46px}
-.row{display:grid;grid-template-columns:1.3fr 1fr 1.3fr 0.6fr 1fr 0.9fr 1.1fr 0.9fr 1fr;border-top:1px solid #eef2f7;padding:10px 0;align-items:center;background:white;font-size:12px}
-.row div{padding:0 14px;display:flex;align-items:center;gap:8px;min-height:32px}
-.row .client-name{font-weight:800;font-size:12.5px}
-.row .sub{font-size:11px;color:#64748b;display:block}
+.row{display:grid;grid-template-columns:1.2fr 0.9fr 1.4fr 0.6fr 1fr 0.9fr 1.1fr 0.8fr 1fr;border-top:1px solid #eef2f7;padding:10px 0;align-items:center;background:white;font-size:12px}
+.row div{padding:0 12px;display:flex;align-items:center;gap:8px;min-height:32px;overflow:hidden}
+.row .client-name{font-weight:800;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .row .addr{flex-direction:column;align-items:flex-start;gap:1px}
-.row .addr b{font-size:12px;font-weight:600}
-.row .addr span{font-size:11px;color:#64748b}
-.row .time{flex-direction:column;align-items:flex-start;line-height:1.2}
-.row .time span{font-size:11px;color:#64748b}
-.btn-resumen{border:1.8px solid #E30613;color:#E30613;background:white;border-radius:999px;padding:7px 14px;font-size:11px;font-weight:800;display:flex;align-items:center;gap:6px;cursor:pointer}
-.btn-bloq{border:none;border-radius:999px;padding:7px 12px;font-size:11px;font-weight:800;display:flex;align-items:center;gap:6px;cursor:pointer;color:white;min-width:118px;justify-content:center}
+.row .addr b{font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px}
+.row .addr span{font-size:10px;color:#64748b}
+.row .time{flex-direction:column;align-items:flex-start;line-height:1.2;font-size:11px}
+.btn-resumen{border:1.8px solid #E30613;color:#E30613;background:white;border-radius:999px;padding:7px 14px;font-size:11px;font-weight:800;display:flex;align-items:center;gap:6px;cursor:pointer;white-space:nowrap}
+.btn-bloq{border:none;border-radius:999px;padding:7px 10px;font-size:10px;font-weight:800;display:flex;align-items:center;gap:6px;cursor:pointer;color:white;min-width:116px;justify-content:center;white-space:nowrap}
 .btn-bloq.desbloqueado{background:#16a34a}
 .btn-bloq.bloqueado{background:#E30613}
-.ic{width:22px;height:22px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-@media(max-width:1100px){.header-row,.row{grid-template-columns:1fr;gap:6px}.header-row{display:none}.row{border:1px solid #eef2f7;border-radius:10px;margin-bottom:10px;padding:10px}.table{border:none}.table-wrap{padding:0 12px}}
-
-/* MODAL RESUMEN */
+.ic{width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+@media(max-width:1200px){.header-row,.row{grid-template-columns:1fr;gap:6px}.header-row{display:none}.row{border:1px solid #eef2f7;border-radius:10px;margin-bottom:10px;padding:10px}.table{border:none}}
 .modal{position:fixed;inset:0;background:rgba(15,23,42,0.6);display:none;align-items:center;justify-content:center;z-index:9999;padding:16px}
 .modal.active{display:flex}
 .modal-card{background:white;border-radius:14px;max-width:520px;width:100%;padding:16px;max-height:85vh;overflow:auto}
 .modal-card h3{font-size:14px;font-weight:900;margin-bottom:10px}
 .modal-card .pedido{border:1px solid #eef2f7;border-radius:10px;padding:8px 10px;margin-bottom:6px;display:flex;justify-content:space-between;font-size:11px}
-.btn-close{background:#0f172a;color:white;border:none;border-radius:999px;padding:6px 12px;font-size:11px;font-weight:800;cursor:pointer;margin-top:10px;width:100%}
+.btn-close{background:#0f172a;color:white;border:none;border-radius:999px;padding:8px 12px;font-size:11px;font-weight:800;cursor:pointer;margin-top:10px;width:100%}
 </style>
 </head>
 <body>
 <div class="top">
-  <a href="paneladmin.html" class="x-btn">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-  </a>
-  <div class="line"></div>
-  <h1>Clientes</h1>
+  <a href="paneladmin.html" class="x-btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></a>
+  <div class="line"></div><h1>Clientes</h1>
 </div>
 
 <div class="table-wrap">
   <div class="table">
     <div class="header-row">
-      <div><span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 20a8 8 0 0 1 16 0v1H4v-1z"/></svg></span> Cliente</div>
-      <div><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M6.5 2.5a1 1 0 0 0-1.3 1.3l2.5 8a1 1 0 0 0 .6.6l8 2.5a1 1 0 0 0 1.3-1.3l-2.5-8a1 1 0 0 0-.6-.6l-8-2.5z"/></svg></span> Teléfono</div>
-      <div><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 10a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/></svg></span> Dirección</div>
-      <div><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M21 8v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8"/><path d="M1 8h22v-2a2 2 0 0 0-2-2H3a2 2 0 0 0-2 2v2z"/><path d="M12 12l-4-2v4l4 2 4-2v-4l-4 2z"/></svg></span> Pedidos</div>
-      <div><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></span> Último pedido</div>
-      <div><span class="ip-badge">IP</span></div>
-      <div><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 10a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/></svg></span> Ciudad</div>
-      <div><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M10 12h4"/><path d="M10 16h4"/><path d="M10 8h1"/></svg></span> Resumen</div>
-      <div><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><circle cx="12" cy="16" r="1"/></svg></span> Bloqueado</div>
+      <div>Cliente</div><div>Teléfono</div><div>Dirección</div><div>Pedidos</div><div>Último pedido</div><div><span class="ip-badge">IP</span></div><div>Ciudad</div><div>Resumen</div><div>Bloqueado</div>
     </div>
-    <div id="lista"><div style="padding:20px;text-align:center;color:#64748b;font-size:12px">Cargando clientes de doloya-historial...</div></div>
+    <div id="lista"><div style="padding:20px;text-align:center;color:#64748b;font-size:12px">Cargando clientes de DoloYa-Historial...</div></div>
   </div>
 </div>
 
 <div class="modal" id="modalResumen">
-  <div class="modal-card">
-    <h3 id="resumenTitle">Resumen cliente</h3>
-    <div id="resumenBody"></div>
-    <button class="btn-close" onclick="document.getElementById('modalResumen').classList.remove('active')">Cerrar</button>
-  </div>
+  <div class="modal-card"><h3 id="resumenTitle">Resumen cliente</h3><div id="resumenBody"></div><button class="btn-close" onclick="document.getElementById('modalResumen').classList.remove('active')">Cerrar</button></div>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-import { getFirestore, collection, onSnapshot, doc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
-const configHistorial = { apiKey: "AIzaSyCRx4B7mO444s0yU-WTnsqMjBHDWX4IRv8", authDomain: "doloya-historial.firebaseapp.com", projectId: "doloya-historial", storageBucket: "doloya-historial.firebasestorage.app", messagingSenderId: "41258055121", appId: "1:41258055121:web:19a443786320e04ebd9cf0" };
-const app = initializeApp(configHistorial);
+const firebaseConfig = {
+  apiKey: "AIzaSyCRx4B7mO444s0yU-WTnsqMjBHDWX4IRv8",
+  authDomain: "doloya-historial.firebaseapp.com",
+  projectId: "doloya-historial",
+  storageBucket: "doloya-historial.firebasestorage.app",
+  messagingSenderId: "41258055121",
+  appId: "1:41258055121:web:19a443786320e04ebd9cf0"
+};
+const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 let clientesMap = {};
-let bloqueados = {};
+let reportadosMap = {};
 
-onSnapshot(collection(db, "clientes_bloqueados"), snap=>{
-  bloqueados={};
-  snap.forEach(d=>{ bloqueados[d.id]=true; });
-  render();
-});
-
-function extraerCliente(data){
-  return {
-    nombre: data.nombre || data.cliente?.nombre || data.datosCliente?.nombre || 'Cliente',
-    telefono: data.telefono || data.cliente?.telefono || data.datosCliente?.telefono || data.clienteCelular || '-',
-    direccion: data.direccionEntrega || data.direccion || data.cliente?.direccion || '-',
-    colonia: data.coloniaEntrega || data.cliente?.colonia || '',
-    ip: data.ip || data.ipCliente || data.cliente?.ip || data.datosCliente?.ip || '-',
-    ciudad: data.ciudad || data.cliente?.ciudad || data.municipio || 'Dolores Hidalgo, Gto.',
-    fecha: data.fechaEntrega || data.fechaCancelacion || data.enviadoAHistorialEn || data.timestamp || new Date()
-  };
+function buscar(obj, keys){
+  if(!obj) return null;
+  for(let k of Object.keys(obj)){
+    let kl=k.toLowerCase();
+    for(let s of keys){ if(kl.includes(s)) return obj[k]; }
+    if(typeof obj[k]==='object'){ let r=buscar(obj[k], keys); if(r) return r; }
+  }
+  return null;
 }
 
-function procesarSnapshot(snap){
-  snap.forEach(docSnap=>{
-    const data = docSnap.data();
-    const c = extraerCliente(data);
-    const key = (c.telefono && c.telefono!=='-' ? c.telefono : c.ip).replace(/\s/g,'');
+function extraer(data){
+  const clienteObj = data.cliente || {};
+  const ubic = clienteObj.ubicacion || data.ubicacion || {};
+  const ip = data.ip || data.ipCliente || clienteObj.ip || buscar(data, ['ip','ip_cliente']) || '-';
+  const ciudad = data.ciudad || clienteObj.ciudad || buscar(data, ['ciudad','municipio']) || `Dolores Hidalgo, Gto.`;
+  const nombre = clienteObj.nombre || data.nombre || data.clienteNombre || 'Cliente';
+  const celular = clienteObj.celular || clienteObj.telefono || data.telefono || data.celular || data.clienteCelular || '-';
+  const direccion = clienteObj.direccion || data.direccion || data.direccionEntrega || '-';
+  const fecha = data.actualizadoEn || data.enviadoAHistorialEn || data.fechaEntrega || data.fechaCancelacion || data.timestamp || new Date();
+  return { nombre, celular: String(celular), direccion, ip: String(ip), ciudad, lat: ubic.lat || buscar(data,['lat']) || null, lng: ubic.lng || buscar(data,['lng','longitud']) || null, fecha };
+}
+
+function addPedidos(snap){
+  snap.forEach(ds=>{
+    const d = ds.data();
+    const ex = extraer(d);
+    let key = ex.celular.replace(/\D/g,'');
+    if(!key || key.length<7) key = ex.ip;
     if(!key || key==='-') return;
     if(!clientesMap[key]){
-      clientesMap[key]={ nombre:c.nombre, telefono:c.telefono, direccion:c.direccion, colonia:c.colonia, ip:c.ip, ciudad:c.ciudad, pedidos:0, ultimo:null, lista:[] };
+      clientesMap[key]={ key, nombre:ex.nombre, telefono:ex.celular, direccion:ex.direccion, ip:ex.ip, ciudad:ex.ciudad, lat:ex.lat, lng:ex.lng, pedidos:0, ultimo:null, lista:[] };
     }
     clientesMap[key].pedidos++;
-    clientesMap[key].lista.push({ id:docSnap.id, fecha: c.fecha, total: data.totales?.total || data.total || 0, estado: data.estado || 'entregado' });
-    let f = c.fecha?.toDate ? c.fecha.toDate() : new Date(c.fecha);
-    if(!clientesMap[key].ultimo || f > clientesMap[key].ultimo) clientesMap[key].ultimo = f;
-    if(c.nombre && c.nombre!=='Cliente') clientesMap[key].nombre = c.nombre;
-    if(c.direccion && c.direccion!=='-') clientesMap[key].direccion = c.direccion;
-    if(c.ciudad) clientesMap[key].ciudad = c.ciudad;
-    if(c.ip && c.ip!=='-') clientesMap[key].ip = c.ip;
+    let f = ex.fecha?.toDate ? ex.fecha.toDate() : new Date(ex.fecha);
+    if(isNaN(f.getTime())) f = new Date();
+    if(!clientesMap[key].ultimo || f>clientesMap[key].ultimo) clientesMap[key].ultimo=f;
+    if(ex.nombre && ex.nombre!=='Cliente') clientesMap[key].nombre=ex.nombre;
+    if(ex.direccion && ex.direccion!=='-') clientesMap[key].direccion=ex.direccion;
+    if(ex.ip && ex.ip!=='-') clientesMap[key].ip=ex.ip;
+    if(ex.ciudad) clientesMap[key].ciudad=ex.ciudad;
+    if(ex.lat) clientesMap[key].lat=ex.lat;
+    if(ex.lng) clientesMap[key].lng=ex.lng;
+    clientesMap[key].lista.push({ id:ds.id, fecha:f, total: d.totales?.total || d.total || 0, estado: d.estado || ds.id });
   });
   render();
 }
 
-onSnapshot(collection(db, "pedidos_entregados"), procesarSnapshot);
-onSnapshot(collection(db, "pedidos_cancelados"), procesarSnapshot);
+onSnapshot(collection(db, "pedidos_entregados"), addPedidos);
+onSnapshot(collection(db, "pedidos_cancelados"), addPedidos);
+onSnapshot(collection(db, "clientes_reportados_no_recibe"), snap=>{
+  reportadosMap={};
+  snap.forEach(d=>{
+    const data=d.data();
+    const cel = String(data.celular || data.telefono || buscar(data,['celular','telefono']) || d.id).replace(/\D/g,'');
+    if(cel) reportadosMap[cel]=true;
+    const ip = String(data.ip || '').trim();
+    if(ip) reportadosMap[ip]=true;
+  });
+  render();
+});
 
 function formatFecha(d){
   if(!d) return '-';
-  const dia = String(d.getDate()).padStart(2,'0');
-  const mes = String(d.getMonth()+1).padStart(2,'0');
-  const anio = d.getFullYear();
-  let h = d.getHours(); const m = String(d.getMinutes()).padStart(2,'0');
-  const ampm = h>=12?'p.m.':'a.m.'; h = h%12||12;
-  return `${dia}/${mes}/${anio}<br><span style="color:#64748b">${String(h).padStart(2,'0')}:${m} ${ampm}</span>`;
+  const dd=String(d.getDate()).padStart(2,'0'); const mm=String(d.getMonth()+1).padStart(2,'0'); const yy=d.getFullYear();
+  let h=d.getHours(); const mi=String(d.getMinutes()).padStart(2,'0'); const ampm=h>=12?'p.m.':'a.m.'; h=h%12||12;
+  return `${dd}/${mm}/${yy}<br><span style="color:#64748b;font-size:10px">${String(h).padStart(2,'0')}:${mi} ${ampm}</span>`;
 }
 
 function render(){
-  const lista = Object.values(clientesMap).sort((a,b)=> b.ultimo - a.ultimo);
-  if(lista.length===0){
-    document.getElementById('lista').innerHTML=`<div style="padding:20px;text-align:center;color:#64748b;font-size:12px">Sin clientes aún</div>`; return;
-  }
-  document.getElementById('lista').innerHTML = lista.map((c,i)=>{
-    const bloqueado = bloqueados[c.telefono] || bloqueados[c.ip] || false;
-    const keySafe = c.telefono.replace(/[^0-9]/g,'') || c.ip;
+  const arr = Object.values(clientesMap).sort((a,b)=> b.ultimo - a.ultimo);
+  if(arr.length===0){ document.getElementById('lista').innerHTML=`<div style="padding:20px;text-align:center;color:#64748b;font-size:12px">Sin clientes aún</div>`; return; }
+  document.getElementById('lista').innerHTML = arr.map(c=>{
+    const keyTel = c.telefono.replace(/\D/g,'');
+    const bloqueado = reportadosMap[keyTel] || reportadosMap[c.ip] || false;
     return `
     <div class="row">
-      <div><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="#111"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 20a8 8 0 0 1 16 0v1H4v-1z"/></svg></span><span class="client-name">${c.nombre}</span></div>
-      <div><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="#111"><path d="M6.5 2.5a1 1 0 0 0-1.3 1.3l2.5 8a1 1 0 0 0 .6.6l8 2.5a1 1 0 0 0 1.3-1.3l-2.5-8a1 1 0 0 0-.6-.6l-8-2.5z"/></svg></span> ${c.telefono}</div>
-      <div><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="#111"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 10a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/></svg></span><div class="addr"><b>${c.direccion.substring(0,28)}</b><span>${c.colonia || 'Col. Centro'}</span></div></div>
-      <div><span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="1.8"><path d="M21 8v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8"/><path d="M1 8h22v-2a2 2 0 0 0-2-2H3a2 2 0 0 0-2 2v2z"/><path d="M12 12l-4-2v4l4 2 4-2v-4l-4 2z"/></svg></span> ${c.pedidos}</div>
-      <div><span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></span><div class="time" style="font-size:12px">${formatFecha(c.ultimo)}</div></div>
-      <div style="font-size:11px">${c.ip}</div>
-      <div><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="#111"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 10a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/></svg></span><div style="font-size:11px;line-height:1.2">${c.ciudad}</div></div>
-      <div><button class="btn-resumen" onclick="verResumen('${keySafe}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#E30613" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M10 12h4"/><path d="M10 16h4"/></svg> Resumen</button></div>
-      <div><button class="btn-bloq ${bloqueado?'bloqueado':'desbloqueado'}" onclick="toggleBloq('${c.telefono}','${c.ip}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5zm-3 5a3 3 0 0 1 6 0v3H9V7zm-3 5h12v8H6v-8zm6 2a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z"/></svg> ${bloqueado?'Bloqueado':'Desbloqueado'}</button></div>
+      <div><span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="#111"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 20a8 8 0 0 1 16 0v1H4v-1z"/></svg></span><span class="client-name">${c.nombre}</span></div>
+      <div><span class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="#111"><path d="M20 10.5a9 9 0 0 0-1-4.2L18 6l-2 .7A7 7 0 0 0 10.5 2 7.5 7.5 0 0 0 3 9.5c0 2.5 1.2 4.7 3 6.2L6 22l6.5-1.7A7.5 7.5 0 0 0 20 10.5z"/></svg></span>${c.telefono}</div>
+      <div><span class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="#111"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7z"/></svg></span><div class="addr"><b>${c.direccion.substring(0,32)}</b><span>${c.ciudad.includes('Dolores')? 'Col. Centro' : c.ciudad}</span></div></div>
+      <div><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="1.8"><path d="M3 7h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/><path d="M12 12l-3-2v4l3 2 3-2v-4l-3 2z"/></svg></span>${c.pedidos}</div>
+      <div><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg></span><div class="time">${formatFecha(c.ultimo)}</div></div>
+      <div style="font-size:10px;white-space:nowrap">${c.ip.substring(0,15)}</div>
+      <div><span class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="#111"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7z"/></svg></span><div style="font-size:10px;line-height:1.2">${c.ciudad}<br><span style="color:#64748b">${c.lat? c.lat.toString().substring(0,8):''} ${c.lng? c.lng.toString().substring(0,9):''}</span></div></div>
+      <div><button class="btn-resumen" onclick="verResumen('${c.key}')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#E30613" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg> Resumen</button></div>
+      <div><button class="btn-bloq ${bloqueado?'bloqueado':'desbloqueado'}"><svg width="12" height="12" viewBox="0 0 24 24" fill="white"><path d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5zm-3 5a3 3 0 0 1 6 0v3H9V7zm-3 5h12v8H6v-8z"/></svg> ${bloqueado?'Bloqueado':'Desbloqueado'}</button></div>
     </div>`;
   }).join('');
 }
 
 window.verResumen = (key)=>{
-  const cliente = Object.values(clientesMap).find(c=> (c.telefono.replace(/[^0-9]/g,'')===key) || c.ip===key);
-  if(!cliente) return;
-  document.getElementById('resumenTitle').textContent = `${cliente.nombre} - ${cliente.telefono}`;
-  document.getElementById('resumenBody').innerHTML = cliente.lista.sort((a,b)=> new Date(b.fecha)-new Date(a.fecha)).map(p=>`<div class="pedido"><span>#${p.id.substring(0,8)} - ${p.estado}</span><b>$${Number(p.total).toFixed(2)}</b></div>`).join('') + `<div style="margin-top:10px;font-size:12px"><b>Total pedidos:</b> ${cliente.pedidos} <br><b>IP:</b> ${cliente.ip}<br><b>Ciudad:</b> ${cliente.ciudad}</div>`;
+  const c = clientesMap[key]; if(!c) return;
+  document.getElementById('resumenTitle').textContent = `${c.nombre} - ${c.telefono}`;
+  document.getElementById('resumenBody').innerHTML = `
+    <div style="font-size:11px;margin-bottom:10px"><b>IP:</b> ${c.ip}<br><b>Ciudad:</b> ${c.ciudad}<br><b>GPS:</b> ${c.lat||'-'}, ${c.lng||'-'}<br><b>Dirección:</b> ${c.direccion}<br><b>Total pedidos:</b> ${c.pedidos}</div>
+    ${c.lista.sort((a,b)=>b.fecha-a.fecha).map(p=>`<div class="pedido"><span>#${p.id.substring(0,8)}</span><span>${p.fecha.toLocaleDateString()}</span><b>$${Number(p.total).toFixed(2)}</b></div>`).join('')}
+  `;
   document.getElementById('modalResumen').classList.add('active');
-}
-
-window.toggleBloq = async (tel, ip)=>{
-  const key = tel && tel!=='-' ? tel : ip;
-  if(!key) return;
-  if(bloqueados[key]){
-    await deleteDoc(doc(db, "clientes_bloqueados", key));
-  } else {
-    await setDoc(doc(db, "clientes_bloqueados", key), { telefono:tel, ip:ip, bloqueadoEn: new Date().toISOString() });
-  }
 }
 </script>
 </body>
