@@ -271,7 +271,7 @@ window.preguntarListo=(id)=>{
   card.classList.add('confirmando');
 }
 
-// === UNICO CAMBIO - VINCULADO A ADMIN ===
+// === UNICO CAMBIO - VINCULADO A ADMIN CON TODA LA INFO DEL CLIENTE ===
 window.confirmarListo=async(id)=>{
   try{ 
     const refOriginal = doc(db,"pedidos",id);
@@ -279,21 +279,66 @@ window.confirmarListo=async(id)=>{
     if(!snap.exists()){ alert("Pedido no encontrado"); return; }
     const data = snap.data();
 
-    // 1. Copiar a pedidos_admin
+    // CLIENTE COMPLETO - TODO LO QUE VIENE DEL TERMINAR Y PAGAR
+    const clienteFull = data.cliente || {};
+    const ubiCompleta = data.ubicacionCompleta || {};
+    const ipData = data.ip || ubiCompleta.ip || '0.0.0.0';
+
+    // 1. Copiar a pedidos_admin CON TODA LA INFO
     await setDoc(doc(db,"pedidos_admin",id),{
       ...data,
+      // FORZAMOS TODA LA INFO DEL CLIENTE PARA QUE NO SE PIERDA
+      clienteId: data.clienteId || clienteFull.clienteId || id,
+      nombre: data.cliente?.nombre || data.nombre || clienteFull.nombre || 'Cliente',
+      telefono: data.cliente?.celular || data.cliente?.telefono || clienteFull.celular || data.telefono || '',
+      celular: data.cliente?.celular || data.cliente?.telefono || clienteFull.celular || data.telefono || '',
+      direccionEntrega: clienteFull.direccion || data.direccionEntrega || data.cliente?.direccion || '',
+      cliente: {
+        clienteId: clienteFull.clienteId || data.clienteId || id,
+        nombre: clienteFull.nombre || data.nombre || 'Cliente',
+        celular: clienteFull.celular || clienteFull.telefono || data.telefono || '',
+        telefono: clienteFull.telefono || clienteFull.celular || data.telefono || '',
+        direccion: clienteFull.direccion || '',
+        referencia: clienteFull.referencia || '',
+        tipoDireccion: clienteFull.tipoDireccion || '',
+        nombreEdificio: clienteFull.nombreEdificio || '',
+        piso: clienteFull.piso || '',
+        ubicacion: {
+          lat: clienteFull.ubicacion?.lat || data.gps?.lat || 0,
+          lng: clienteFull.ubicacion?.lng || data.gps?.lng || 0,
+          accuracy: clienteFull.ubicacion?.accuracy || data.gps?.accuracy || 0,
+          googleMapsUrl: clienteFull.ubicacion?.googleMapsUrl || `https://www.google.com/maps?q=${clienteFull.ubicacion?.lat || data.gps?.lat || 0},${clienteFull.ubicacion?.lng || data.gps?.lng || 0}`
+        },
+        gpsActualCliente: clienteFull.gpsActualCliente || data.gps || {}
+      },
+      // UBICACION Y GPS COMPLETO
+      gps: data.gps || clienteFull.ubicacion || { lat: 0, lng: 0 },
+      latitud: data.gps?.lat || clienteFull.ubicacion?.lat || 0,
+      longitud: data.gps?.lng || clienteFull.ubicacion?.lng || 0,
+      ubicacionCompleta: ubiCompleta,
+      detalles: data.detalles || {},
+      // IP Y RED
+      ip: ipData,
+      ipInfo: data.ipInfo || ubiCompleta.ipInfo || {},
+      // DISPOSITIVO Y NAVEGADOR
+      dispositivo: data.dispositivo || {},
+      userAgent: data.userAgent || data.dispositivo?.userAgent || '',
+      plataforma: data.plataforma || data.dispositivo?.plataforma || '',
+      navegador: data.dispositivo?.navegador || data.dispositivo?.userAgent || '',
+      // ESTADOS
       estado:'listo_para_admin',
       listo:true,
       listoEn: new Date(),
       timestampAdmin: new Date(),
       actualizadoEn: new Date(),
       enviadoAAdmin:true,
-      idOriginal: id
+      idOriginal: id,
+      fechaListo: new Date().toISOString()
     });
     
     // 2. Borrar de pedidos (ya no aparece en restaurante)
     await deleteDoc(refOriginal);
-    console.log("✅ Movido a pedidos_admin");
+    console.log("✅ Movido a pedidos_admin con IP y GPS completo:", ipData);
   }catch(e){ alert("Error: "+e.message); console.error(e); }
 }
 
