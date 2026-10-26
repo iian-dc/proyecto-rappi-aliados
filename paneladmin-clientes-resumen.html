@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DoloYa - Resumen Cliente</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
+body{background:#f8fafc;min-height:100vh;color:#0f172a}
+.header{position:sticky;top:0;z-index:20;background:white;border-bottom:1px solid #e2e8f0;padding:12px 16px;display:flex;align-items:center;gap:14px}
+.btn-back{width:42px;height:42px;background:#E30613;border-radius:50%;display:flex;align-items:center;justify-content:center;border:none;cursor:pointer;box-shadow:0 4px 12px rgba(227,6,19,0.3);flex-shrink:0}
+.btn-back:active{transform:scale(0.94)}
+.header h1{font-size:16px;font-weight:800}
+.header p{font-size:11px;color:#64748b}
+.wrap{padding:16px;max-width:900px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+.card{background:white;border-radius:16px;border:1px solid #e2e8f0;box-shadow:0 1px 3px rgba(0,0,0,0.05);overflow:hidden}
+.card-head{padding:14px 16px;border-bottom:1px solid #f1f5f9;display:flex;justify-content:space-between;align-items:center}
+.card-head h2{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px}
+.badge{padding:4px 10px;border-radius:999px;font-size:10px;font-weight:800}
+.badge-bloq{background:#fee2e2;color:#991b1b}
+.badge-ok{background:#dcfce7;color:#166534}
+.card-body{padding:16px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:600px){.grid2{grid-template-columns:1fr}}
+.item{ background:#f8fafc; border:1px solid #f1f5f9; border-radius:12px; padding:10px 12px}
+.item label{font-size:10px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;display:block;margin-bottom:3px}
+.item span{font-size:13px;font-weight:600;color:#0f172a;word-break:break-all}
+.item span.link{color:#2563eb}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat{background:#0f172a;color:white;border-radius:14px;padding:12px;text-align:center}
+.stat b{font-size:22px;display:block}
+.stat label{font-size:10px;opacity:0.7;text-transform:uppercase;letter-spacing:0.5px}
+.pedido{background:white;border:1px solid #e2e8f0;border-radius:14px;padding:14px;margin-bottom:12px}
+.pedido-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px}
+.pedido-id{font-weight:800;font-size:13px}
+.estado{padding:4px 10px;border-radius:999px;font-size:10px;font-weight:800;text-transform:uppercase}
+.estado-pendiente{background:#fef3c7;color:#92400e}
+.estado-aceptado{background:#dbeafe;color:#1e40af}
+.estado-en_camino, .estado-enviado{background:#e0e7ff;color:#3730a3}
+.estado-entregado{background:#dcfce7;color:#166534}
+.estado-cancelado{background:#fee2e2;color:#991b1b}
+.pedido-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+@media(max-width:600px){.pedido-grid{grid-template-columns:1fr}}
+.prod-list{margin-top:8px;background:#f8fafc;border-radius:10px;padding:8px 10px}
+.prod{font-size:12px;padding:4px 0;border-bottom:1px dashed #e2e8f0;display:flex;justify-content:space-between}
+.prod:last-child{border:none}
+.btn-maps{display:inline-flex;align-items:center;gap:6px;background:#0f172a;color:white;padding:8px 12px;border-radius:999px;font-size:11px;font-weight:700;text-decoration:none;margin-top:6px}
+</style>
+</head>
+<body>
+
+<div class="header">
+<button class="btn-back" onclick="window.location.href='paneladmin-clientes.html'">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+</button>
+<div>
+<h1 id="tituloCliente">Resumen cliente</h1>
+<p id="subCliente">Cargando información...</p>
+</div>
+</div>
+
+<div class="wrap">
+
+<!-- DATOS CLIENTE -->
+<div class="card">
+<div class="card-head"><h2>Datos del cliente</h2><span id="badgeBloq" class="badge badge-ok">ACTIVO</span></div>
+<div class="card-body">
+<div class="stats" style="margin-bottom:14px">
+<div class="stat"><b id="stPedidos">0</b><label>Pedidos</label></div>
+<div class="stat"><b id="stGastado">$0</b><label>Total gastado</label></div>
+<div class="stat"><b id="stVisitas">0</b><label>Visitas</label></div>
+</div>
+<div class="grid2">
+<div class="item"><label>Cliente ID</label><span id="cId">-</span></div>
+<div class="item"><label>IP</label><span id="cIp">-</span></div>
+<div class="item"><label>Ciudad / Región</label><span id="cCiudad">-</span></div>
+<div class="item"><label>País / Org</label><span id="cPais">-</span></div>
+<div class="item"><label>Teléfono</label><span id="cTel">-</span></div>
+<div class="item"><label>Nombre</label><span id="cNombre">-</span></div>
+<div class="item"><label>Dispositivo</label><span id="cDisp">-</span></div>
+<div class="item"><label>Pantalla / Idioma</label><span id="cPantalla">-</span></div>
+<div class="item"><label>Última ubicación</label><span id="cUbi">-</span><br><a id="cMaps" target="_blank" class="btn-maps" style="display:none">Ver en Maps</a></div>
+<div class="item"><label>Fecha registro</label><span id="cFecha">-</span></div>
+<div class="item" style="grid-column:1/-1"><label>Dirección de entrega (última)</label><span id="cDireccion">-</span></div>
+</div>
+</div>
+</div>
+
+<!-- PEDIDOS -->
+<div class="card">
+<div class="card-head"><h2>Historial de pedidos</h2><span id="countPedidos" class="badge" style="background:#f1f5f9;color:#334155">0 pedidos</span></div>
+<div class="card-body" id="listaPedidos">
+<p style="color:#94a3b8;font-size:13px">Cargando pedidos...</p>
+</div>
+</div>
+
+<!-- ACCESOS -->
+<div class="card">
+<div class="card-head"><h2>Accesos / Ubicaciones</h2></div>
+<div class="card-body" id="listaAccesos"></div>
+</div>
+
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getFirestore, doc, getDoc, collection, query, where, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+// --- UBICACIONES ---
+const configUbi = {
+  apiKey: "AIzaSyCNL6ebow0VEJ4VfhI2ItVi4gFAjkOiMuo",
+  authDomain: "doloya-ubicaciones.firebaseapp.com",
+  databaseURL: "https://doloya-ubicaciones-default-rtdb.firebaseio.com",
+  projectId: "doloya-ubicaciones",
+  storageBucket: "doloya-ubicaciones.firebasestorage.app",
+  messagingSenderId: "864757091561",
+  appId: "1:864757091561:web:7d4f696b95fdc700dab478"
+};
+const appUbi = initializeApp(configUbi, "ubiApp");
+const dbUbi = getDatabase(appUbi);
+
+// --- HISTORIAL ---
+const configHistorial = {
+  apiKey: "AIzaSyCRx4B7mO444s0yU-WTnsqMjBHDWX4IRv8",
+  authDomain: "doloya-historial.firebaseapp.com",
+  projectId: "doloya-historial",
+  storageBucket: "doloya-historial.firebasestorage.app",
+  messagingSenderId: "41258055121",
+  appId: "1:41258055121:web:19a443786320e04ebd9cf0"
+};
+const appHis = initializeApp(configHistorial, "hisApp");
+const dbHis = getFirestore(appHis);
+
+const url = new URLSearchParams(window.location.search);
+const ipParam = url.get('ip');
+const idParam = url.get('id') || url.get('clienteId');
+
+let clienteData=null;
+let ipReal = ipParam;
+
+async function cargarCliente(){
+  if(!ipParam && !idParam){
+    document.getElementById('subCliente').textContent='Falta IP o clienteId en la URL';
+    return;
+  }
+  // 1. Buscar en doloya-ubicaciones / doloya_clientes
+  try{
+    if(idParam){
+      const snap = await get(child(ref(dbUbi), `doloya_clientes/${idParam}`));
+      if(snap.exists()){
+        clienteData=snap.val();
+        ipReal = clienteData.ip || ipParam;
+      }
+    }
+    // si no hay por id, buscar por IP escaneando clientes
+    if(!clienteData && ipParam){
+      const all = await get(child(ref(dbUbi), `doloya_clientes`));
+      if(all.exists()){
+        const vals = Object.values(all.val());
+        clienteData = vals.find(c=>c.ip===ipParam) || vals.find(c=>c.ipInfo && c.ipInfo.ip===ipParam);
+        if(clienteData) ipReal = clienteData.ip;
+      }
+    }
+    // accesos
+    const accesosSnap = await get(child(ref(dbUbi), `doloya_accesos`));
+    let accesos = [];
+    if(accesosSnap.exists()){
+      Object.values(accesosSnap.val()).forEach(a=>{
+        if((idParam && a.clienteId===idParam) || (ipReal && a.ip===ipReal)){
+          accesos.push(a);
+        }
+      });
+      renderAccesos(accesos);
+    }
+  }catch(e){ console.warn(e); }
+
+  // 2. Check bloqueo
+  try{
+    const b1 = await getDoc(doc(dbHis, "ips_bloqueadas", ipReal||ipParam||""));
+    const b2 = await getDoc(doc(dbHis, "bloqueos_ip", ipReal||ipParam||""));
+    const bloqueado = (b1.exists() && b1.data().bloqueado) || (b2.exists() && b2.data().bloqueado);
+    const badge = document.getElementById('badgeBloq');
+    if(bloqueado){ badge.textContent="BLOQUEADO"; badge.className="badge badge-bloq"; }
+    else { badge.textContent="ACTIVO"; badge.className="badge badge-ok"; }
+  }catch{}
+
+  // 3. Pintar datos cliente
+  if(clienteData){
+    document.getElementById('tituloCliente').textContent = clienteData.clienteId || idParam || ipReal;
+    document.getElementById('subCliente').textContent = `IP ${clienteData.ip} - ${clienteData.ipInfo?.ciudad||''}`;
+    document.getElementById('cId').textContent = clienteData.clienteId||'-';
+    document.getElementById('cIp').textContent = clienteData.ip||'-';
+    document.getElementById('cCiudad').textContent = `${clienteData.ipInfo?.ciudad||''} ${clienteData.ipInfo?.region||''}`;
+    document.getElementById('cPais').textContent = `${clienteData.ipInfo?.pais||''} ${clienteData.ipInfo?.org||''}`;
+    document.getElementById('cDisp').textContent = clienteData.dispositivo?.userAgent?.slice(0,80)||'-';
+    document.getElementById('cPantalla').textContent = `${clienteData.dispositivo?.pantalla||''} / ${clienteData.dispositivo?.idioma||''}`;
+    document.getElementById('cUbi').textContent = `${clienteData.ubicacion?.lat}, ${clienteData.ubicacion?.lng}`;
+    document.getElementById('cFecha').textContent = clienteData.fechaISO||'-';
+    document.getElementById('stVisitas').textContent = clienteData.contadorVisitas||clienteData.contador||'-';
+    if(clienteData.ubicacion?.googleMapsUrl){
+      const m=document.getElementById('cMaps'); m.href=clienteData.ubicacion.googleMapsUrl; m.style.display='inline-flex';
+    }
+  } else {
+    document.getElementById('cIp').textContent = ipReal||'-';
+    document.getElementById('tituloCliente').textContent = ipReal||idParam||'Cliente';
+  }
+
+  // 4. Cargar pedidos desde doloya-historial
+  cargarPedidos();
+}
+
+async function cargarPedidos(){
+  const lista = document.getElementById('listaPedidos');
+  let pedidos = [];
+  try{
+    // Intentar varias colecciones donde guardas pedidos
+    const posibles = ["pedidos", "historial_pedidos", "doloya_pedidos", "ordenes"];
+    for(let col of posibles){
+      try{
+        let q;
+        if(ipReal){
+          q = query(collection(dbHis, col), where("ip", "==", ipReal));
+          const snap = await getDocs(q);
+          snap.forEach(d=> pedidos.push({id:d.id, ...d.data()}));
+        }
+        if(idParam){
+          q = query(collection(dbHis, col), where("clienteId", "==", idParam));
+          const snap = await getDocs(q);
+          snap.forEach(d=>{ if(!pedidos.find(p=>p.id===d.id)) pedidos.push({id:d.id, ...d.data()}); });
+        }
+        if(clienteData?.clienteId){
+          q = query(collection(dbHis, col), where("clienteId", "==", clienteData.clienteId));
+          const snap = await getDocs(q);
+          snap.forEach(d=>{ if(!pedidos.find(p=>p.id===d.id)) pedidos.push({id:d.id, ...d.data()}); });
+        }
+      }catch(e){}
+    }
+    // También buscar en Realtime de aliados si tienes pedidos ahí
+    try{
+      const snap = await get(child(ref(dbUbi), `doloya_pedidos`));
+      if(snap.exists()){
+        Object.entries(snap.val()).forEach(([k,v])=>{
+          if((ipReal && v.ip===ipReal) || (idParam && v.clienteId===idParam) || (clienteData && v.clienteId===clienteData.clienteId)){
+            pedidos.push({id:k, ...v});
+          }
+        });
+      }
+    }catch{}
+
+  }catch(e){ console.warn(e); }
+
+  // Pintar
+  document.getElementById('stPedidos').textContent = pedidos.length;
+  document.getElementById('countPedidos').textContent = pedidos.length + " pedidos";
+  
+  let totalGastado=0;
+  pedidos.forEach(p=> totalGastado+= parseFloat(p.total||p.montoTotal||0));
+  document.getElementById('stGastado').textContent = "$"+ totalGastado.toFixed(2);
+
+  if(pedidos.length===0){
+    lista.innerHTML = `<p style="color:#94a3b8;font-size:13px">Este cliente aún no tiene pedidos registrados</p>`;
+    return;
+  }
+
+  // Ordenar por fecha desc
+  pedidos.sort((a,b)=> new Date(b.fechaISO||b.fecha||0) - new Date(a.fechaISO||a.fecha||0));
+
+  // Últimos datos para header
+  const ultimo = pedidos[0];
+  if(ultimo){
+    document.getElementById('cTel').textContent = ultimo.telefono||ultimo.celular||ultimo.phone||'-';
+    document.getElementById('cNombre').textContent = ultimo.nombre||ultimo.cliente||ultimo.nombreCliente||'-';
+    document.getElementById('cDireccion').textContent = ultimo.direccion||ultimo.direccionEntrega||ultimo.address||'-';
+  }
+
+  lista.innerHTML="";
+  pedidos.forEach((p,i)=>{
+    const estado = (p.estado||p.status||'pendiente').toLowerCase();
+    const productos = p.productos||p.items||p.carrito||[];
+    lista.innerHTML+=`
+    <div class="pedido">
+      <div class="pedido-top">
+        <div>
+          <div class="pedido-id">#${p.id.slice(-8).toUpperCase()} - Pedido ${i+1}</div>
+          <div style="font-size:11px;color:#64748b;margin-top:2px">${p.fechaISO||p.fecha||'-'} • ${p.aliado||p.restaurante||p.nombreRestaurante||'-'}</div>
+        </div>
+        <span class="estado estado-${estado}">${estado}</span>
+      </div>
+      <div class="pedido-grid">
+        <div class="item"><label>Dirección</label><span>${p.direccion||p.direccionEntrega||p.address||'-'}</span></div>
+        <div class="item"><label>Teléfono</label><span>${p.telefono||p.celular||'-'}</span></div>
+        <div class="item"><label>Nombre cliente</label><span>${p.nombre||p.cliente||'-'}</span></div>
+        <div class="item"><label>Método pago</label><span>${p.metodoPago||p.pago||'-'}</span></div>
+        <div class="item"><label>Total</label><span>$${p.total||p.montoTotal||'-'}</span></div>
+        <div class="item"><label>Envío</label><span>$${p.costoEnvio||p.envio||'-'} • ${p.distanciaKm||'-'} km</span></div>
+        <div class="item"><label>IP / Ciudad</label><span>${p.ip||'-'} ${p.ciudad||''}</span></div>
+        <div class="item"><label>Restaurante</label><span>${p.aliado||p.restaurante||'-'} (${p.categoria||''})</span></div>
+      </div>
+      ${productos.length>0? `<div class="prod-list"><label style="font-size:10px;font-weight:800;color:#64748b">PRODUCTOS</label>
+        ${productos.map(pr=>`<div class="prod"><span>${pr.nombre||pr.name||'-'} x${pr.cantidad||1}</span><span>$${pr.precio||pr.price||0}</span></div>`).join('')}
+      </div>`:''}
+      ${p.ubicacion?.googleMapsUrl? `<a href="${p.ubicacion.googleMapsUrl}" target="_blank" class="btn-maps">Ver ubicación pedido</a>`:''}
+    </div>`;
+  });
+}
+
+function renderAccesos(acc){
+  const el=document.getElementById('listaAccesos');
+  if(acc.length===0){ el.innerHTML='<p style="color:#94a3b8;font-size:13px">Sin accesos</p>'; return; }
+  el.innerHTML="";
+  acc.slice(-10).reverse().forEach(a=>{
+    el.innerHTML+=`<div class="item" style="margin-bottom:8px"><label>${a.fechaISO||''}</label><span>${a.ip} - ${a.lat},${a.lng} - ${a.dispositivo?.userAgent?.slice(0,60)||''}</span></div>`;
+  });
+}
+
+cargarCliente();
+</script>
+</body>
+</html>
