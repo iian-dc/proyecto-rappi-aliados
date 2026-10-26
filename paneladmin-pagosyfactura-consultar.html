@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Consultar Restaurante - Pagos</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
 body{background:#f6f8fb;color:#0f172a}
@@ -27,35 +28,32 @@ body{background:#f6f8fb;color:#0f172a}
 .stat label{font-size:9px;color:#64748b;font-weight:700;text-transform:uppercase;display:block;margin-bottom:2px}
 .stat b{font-size:13px}
 .wrap{padding:0 12px 20px;display:flex;flex-direction:column;gap:10px}
-.card-pedido{background:white;border-radius:12px;border:1px solid #eef2f7;padding:12px;display:grid;grid-template-columns:32px 1.2fr .8fr auto;gap:10px;align-items:center}
-@media(max-width:900px){.card-pedido{grid-template-columns:32px 1fr;}}
+.card-pedido{background:white;border-radius:12px;border:1px solid #eef2f7;padding:12px;position:relative}
+.card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.card-main{display:grid;grid-template-columns:32px 1.2fr .8fr auto;gap:10px;align-items:center}
+@media(max-width:900px){.card-main{grid-template-columns:32px 1fr}}
 .check{width:18px;height:18px;border:1.5px solid #cbd5e1;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .check.checked{background:#0f172a;border-color:#0f172a}
 .check.checked::after{content:'✓';color:white;font-size:12px;font-weight:800}
 .cli .t{font-size:10px;color:#64748b;font-weight:600}
 .cli .v{font-size:11px;color:#0f172a;font-weight:700}
 .venta{display:flex;flex-direction:column;gap:3px}
-.venta .row{ display:flex;justify-content:space-between;font-size:11px;}
-.venta .row b{font-size:11px}
+.venta .row{display:flex;justify-content:space-between;font-size:11px}
 .venta .net{border-top:1px dashed #e2e8f0;padding-top:4px;margin-top:2px;font-weight:800}
 .actions{display:flex;gap:6px;align-items:center}
 .btn-fact{padding:6px 10px;border-radius:999px;background:white;border:1px solid #E30613;color:#E30613;font-size:10px;font-weight:700;cursor:pointer}
-.btn-fact:hover{background:#E30613;color:white}
 .btn-pagar{padding:6px 10px;border-radius:999px;background:#0f172a;border:1px solid #0f172a;color:white;font-size:10px;font-weight:700;cursor:pointer}
-.badge-pagado{padding:3px 8px;border-radius:999px;font-size:9px;font-weight:700;background:#dcfce7;color:#166534}
-.badge-pend{padding:3px 8px;border-radius:999px;font-size:9px;font-weight:700;background:#fef9c3;color:#854d0e}
-
-/* MODAL FACTURA FULLSCREEN */
+.badge-pagado{padding:4px 10px;border-radius:999px;font-size:10px;font-weight:800;background:#00ff6a;color:#065f29;box-shadow:0 0 8px rgba(0,255,106,.5)}
+.badge-pend{padding:4px 10px;border-radius:999px;font-size:10px;font-weight:700;background:#fef9c3;color:#854d0e}
 .modal{position:fixed;inset:0;background:white;z-index:100;display:none;overflow:auto}
 .modal.show{display:block}
 .modal-head{padding:12px 16px;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:white}
 .modal-body{max-width:800px;margin:0 auto;padding:20px}
-.factura{border:1px solid #e2e8f0;border-radius:12px;padding:16px}
+.factura{border:1px solid #e2e8f0;border-radius:12px;padding:16px;background:white}
 .fact-head{display:flex;justify-content:space-between;margin-bottom:16px}
 .fact-table{width:100%;border-collapse:collapse;margin-top:12px}
 .fact-table th{background:#0f172a;color:white;padding:8px;font-size:10px;text-align:left}
 .fact-table td{padding:8px;border-bottom:1px solid #f1f5f9;font-size:11px}
-.total-box{margin-top:12px;border-top:2px solid #0f172a;padding-top:10px;display:flex;flex-direction:column;gap:6px;align-items:flex-end}
 .btn-download{background:#E30613;color:white;border:none;padding:10px 16px;border-radius:8px;font-weight:700;font-size:11px;cursor:pointer}
 .btn-close{width:34px;height:34px;background:#0f172a;border-radius:50%;border:none;color:white;display:flex;align-items:center;justify-content:center;cursor:pointer}
 </style>
@@ -68,8 +66,8 @@ body{background:#f6f8fb;color:#0f172a}
 <h1 id="tituloRest">Cargando restaurante...</h1>
 </div>
 <div class="right-h">
-<button id="btnPend" class="btn-filter active" onclick="filtrarEstado('pendiente')"><span style="width:8px;height:8px;background:#f59e0b;border-radius:50%;display:inline-block"></span> Pendientes por pagar</button>
-<button id="btnPag" class="btn-filter" onclick="filtrarEstado('pagado')"><span style="width:8px;height:8px;background:#16a34a;border-radius:50%;display:inline-block"></span> Pagados</button>
+<button id="btnPend" class="btn-filter active" onclick="filtrarEstado('pendiente')">Pendientes por pagar</button>
+<button id="btnPag" class="btn-filter" onclick="filtrarEstado('pagado')">Pagados</button>
 </div>
 </div>
 
@@ -77,7 +75,7 @@ body{background:#f6f8fb;color:#0f172a}
 <div class="logo-rest" id="logoRest">R</div>
 <div class="meta-rest">
 <b id="nombreRest">-</b>
-<span id="detalleRest">Cargando info de doloya-aliados...</span>
+<span id="detalleRest">-</span>
 </div>
 <div style="margin-left:auto;display:flex;gap:8px">
 <button class="btn-filter" onclick="seleccionarTodos()">Seleccionar todos</button>
@@ -92,11 +90,8 @@ body{background:#f6f8fb;color:#0f172a}
 <div class="stat"><label>Pedidos</label><b id="sPedidos">0</b></div>
 </div>
 
-<div class="wrap" id="listaPedidos">
-<div style="padding:20px;text-align:center;color:#94a3b8;font-size:11px">Cargando pedidos de doloya-historial...</div>
-</div>
+<div class="wrap" id="listaPedidos"></div>
 
-<!-- MODAL FACTURA -->
 <div class="modal" id="modalFactura">
 <div class="modal-head">
 <div style="display:flex;align-items:center;gap:10px">
@@ -108,7 +103,7 @@ body{background:#f6f8fb;color:#0f172a}
 <button class="btn-download" style="background:#0f172a" onclick="marcarPagado()">Marcar como pagado</button>
 </div>
 </div>
-<div class="modal-body" id="cuerpoFactura"></div>
+<div class="modal-body"><div id="cuerpoFactura"></div></div>
 </div>
 
 <script type="module">
@@ -140,219 +135,165 @@ const appHis = initializeApp(configHistorial, "hisApp");
 const dbHis = getFirestore(appHis);
 
 const params = new URLSearchParams(location.search);
-const idRest = params.get('id') || params.get('restaurante') || "";
+const idRest = params.get('id') || "";
+let restaurante=null;
+let pedidos=[];
+let filtro="pendiente";
+let seleccionados=new Set();
+let pedidoActual=null;
 
-let restaurante = null;
-let pedidos = [];
-let filtro = "pendiente";
-let seleccionados = new Set();
-let pedidoActualFactura = null;
+function formatearFechaHora(fechaStr){
+  if(!fechaStr) return "-";
+  try{
+    let d = new Date(fechaStr);
+    if(isNaN(d.getTime())){
+      // Si viene como timestamp numérico
+      d = new Date(Number(fechaStr));
+    }
+    if(isNaN(d.getTime())) return fechaStr;
+    const fecha = d.toLocaleDateString('es-MX', {day:'2-digit',month:'2-digit',year:'numeric'});
+    const hora = d.toLocaleTimeString('es-MX', {hour:'2-digit',minute:'2-digit',hour12:true});
+    return `${fecha} ${hora}`;
+  }catch{ return fechaStr; }
+}
 
 async function cargarRestaurante(){
-  if(!idRest){ document.getElementById('tituloRest').textContent="Falta ?id="; return; }
   try{
-    // Buscar en doloya_aliados/admin como en tu foto
     const snap = await get(child(ref(dbAliados), "doloya_aliados/admin/"+idRest));
     if(snap.exists()){
       const val = snap.val();
       const info = val.info || val;
-      restaurante = {
-        id: info.id || idRest,
-        nombre: info.nombre || idRest,
-        logo: info.imagen || "",
-        direccion: info.direccion || "",
-        telefono: info.telefono || "",
-        correo: info.correo || "",
-        categoria: info.categoria || "",
-        estado: val.estado || info.estado || "activo",
-        abierto: val.abierto,
-        creado: info.creado || ""
+      restaurante={
+        id: info.id||idRest,
+        nombre: info.nombre||idRest,
+        logo: info.imagen||"",
+        direccion: info.direccion||"",
+        categoria: info.categoria||""
       };
-    } else {
-      // Buscar en todo doloya_aliados recursivo
-      const snapRoot = await get(child(ref(dbAliados), "doloya_aliados"));
-      if(snapRoot.exists()){
-        const data = snapRoot.val();
-        const buscar = (obj)=>{
-          for(let k in obj){
-            if(typeof obj[k]==="object"){
-              if(obj[k].info && (obj[k].info.id===idRest || k===idRest || obj[k].info.nombre===idRest)){
-                const info = obj[k].info;
-                return {info, val:obj[k]};
-              }
-              let res = buscar(obj[k]);
-              if(res) return res;
-            }
-          }
-          return null;
-        };
-        let found = buscar(data);
-        if(found){
-          restaurante = {
-            id: found.info.id || idRest,
-            nombre: found.info.nombre || idRest,
-            logo: found.info.imagen || "",
-            direccion: found.info.direccion || "",
-            telefono: found.info.telefono || "",
-            correo: found.info.correo || "",
-            categoria: found.info.categoria || "",
-            estado: found.val.estado || found.info.estado || "activo",
-            abierto: found.val.abierto,
-            creado: found.info.creado || ""
-          };
-        }
-      }
+      document.getElementById('tituloRest').textContent=restaurante.nombre;
+      document.getElementById('nombreRest').textContent=restaurante.nombre;
+      document.getElementById('detalleRest').textContent=restaurante.direccion;
+      document.getElementById('logoRest').innerHTML=restaurante.logo?`<img src="${restaurante.logo}">`:restaurante.nombre[0].toUpperCase();
     }
-
-    if(restaurante){
-      document.getElementById('tituloRest').textContent = restaurante.nombre;
-      document.getElementById('nombreRest').textContent = restaurante.nombre;
-      document.getElementById('detalleRest').textContent = `${restaurante.categoria} - ${restaurante.direccion} - ${restaurante.telefono} - ${restaurante.abierto===true?'Abierto':'Cerrado'} - ${restaurante.estado}`;
-      document.getElementById('logoRest').innerHTML = restaurante.logo ? `<img src="${restaurante.logo}" style="width:100%;height:100%;object-fit:cover">` : restaurante.nombre[0].toUpperCase();
-    }
-  }catch(e){ console.log(e); }
+  }catch(e){console.log(e);}
 }
 
 async function cargarPedidos(){
   let todos=[];
-  try{
-    const snapE = await getDocs(collection(dbHis, "pedidos_entregados"));
-    snapE.forEach(d=>{
-      const p = d.data();
-      const r = p.restaurante || {};
-      const match = r.id===idRest || r.nombre===idRest || r.nombre===restaurante?.nombre || p.restauranteNombre===idRest;
-      if(match || r.id?.toLowerCase()===idRest.toLowerCase() || (r.nombre && r.nombre.toLowerCase()=== (restaurante?.nombre||"").toLowerCase())){
-        todos.push({idDoc:d.id, ...p});
-      }
-    });
-  }catch(e){ console.log(e); }
+  const snapE = await getDocs(collection(dbHis, "pedidos_entregados"));
+  snapE.forEach(d=>{
+    const p = d.data();
+    const r = p.restaurante||{};
+    if(r.id===idRest || r.nombre===idRest || r.nombre===restaurante?.nombre){
+      todos.push({idDoc:d.id, ...p});
+    }
+  });
 
-  // Cargar estado pagado desde Firestore pagos_aliados
+  // Cargar pagos reales
   for(let p of todos){
-    try{
-      const s = await getDoc(doc(dbHis, "pagos_aliados", p.idDoc));
-      p.pagado = s.exists() ? s.data().pagado : false;
-      p.fechaPago = s.exists() ? s.data().fechaPago : "";
-      p.facturaNum = s.exists() ? s.data().factura : "F-00"+Math.floor(1000+Math.random()*9000);
-    }catch{
+    const s = await getDoc(doc(dbHis, "pagos_aliados", p.idDoc));
+    if(s.exists()){
+      p.pagado = s.data().pagado;
+      p.fechaPago = s.data().fechaPago;
+      p.montoPagado = s.data().montoPagado;
+      p.facturaNum = s.data().factura;
+    } else {
       p.pagado=false;
       p.facturaNum="F-00"+Math.floor(1000+Math.random()*9000);
     }
   }
-
-  pedidos = todos.sort((a,b)=> new Date(b.timestamp||b.fecha||0)-new Date(a.timestamp||a.fecha||0));
+  pedidos = todos.sort((a,b)=> new Date(b.timestamp||b.fecha)-new Date(a.timestamp||a.fecha));
   render();
 }
 
 function render(){
   const cont = document.getElementById('listaPedidos');
   let filtrados = pedidos.filter(p=> filtro==="pendiente" ? !p.pagado : p.pagado);
-
-  let totalVentas = 0, totalComision = 0, totalNeto = 0;
+  let totalVentas=0,totalComision=0,totalNeto=0;
   filtrados.forEach(p=>{
     const venta = Number(p.totales?.costoProductos||0);
-    const comision = venta*0.10;
-    const neto = venta - comision;
     totalVentas+=venta;
-    totalComision+=comision;
-    totalNeto+=neto;
+    totalComision+=venta*0.10;
+    totalNeto+=venta*0.90;
   });
+  document.getElementById('sVentas').textContent="$ "+totalVentas.toFixed(2);
+  document.getElementById('sComision').textContent="$ "+totalComision.toFixed(2);
+  document.getElementById('sNeto').textContent="$ "+totalNeto.toFixed(2);
+  document.getElementById('sPedidos').textContent=filtrados.length;
 
-  document.getElementById('sVentas').textContent = "$ "+totalVentas.toFixed(2);
-  document.getElementById('sComision').textContent = "$ "+totalComision.toFixed(2);
-  document.getElementById('sNeto').textContent = "$ "+totalNeto.toFixed(2);
-  document.getElementById('sPedidos').textContent = filtrados.length;
-
-  if(filtrados.length===0){ cont.innerHTML=`<div style="padding:20px;text-align:center;color:#94a3b8;font-size:11px">No hay pedidos ${filtro}</div>`; return; }
+  if(filtrados.length===0){cont.innerHTML=`<div style="padding:20px;text-align:center;color:#94a3b8;font-size:11px">No hay pedidos ${filtro}</div>`;return;}
 
   cont.innerHTML="";
   filtrados.forEach(p=>{
-    const cliente = p.cliente || {};
+    const cliente = p.cliente||{};
     const venta = Number(p.totales?.costoProductos||0);
     const comision = venta*0.10;
-    const neto = venta - comision;
-    const fecha = p.timestamp ? new Date(p.timestamp).toLocaleString() : (p.fecha||"-");
+    const neto = venta-comision;
+    const fechaHora = formatearFechaHora(p.timestamp||p.fecha);
     const isChecked = seleccionados.has(p.idDoc);
 
     cont.innerHTML+=`
     <div class="card-pedido">
-      <div class="check ${isChecked?'checked':''}" onclick="toggleCheck('${p.idDoc}')"></div>
-      <div class="cli">
-        <div class="t">Cliente</div><div class="v">${p.nombre||cliente.clienteId||'Sin nombre'} - ${cliente.celular||p.telefono||''}</div>
-        <div class="t" style="margin-top:4px">Dirección</div><div class="v">${cliente.direccion||p.direccion||'-'}</div>
-        <div class="t" style="margin-top:4px">Productos</div><div class="v">${(p.productos||[]).map(pr=>pr.nombre+' x'+pr.cantidad).join(', ')||'-'}</div>
-        ${p.pagado?`<span class="badge-pagado">Pagado ${p.fechaPago?new Date(p.fechaPago).toLocaleDateString():''}</span>`:`<span class="badge-pend">Pendiente por pagar</span>`}
+      <div class="card-top">
+        <div style="font-size:10px;font-weight:700">Pedido ${p.codigo||p.idDoc.slice(-6)} - ${fechaHora}</div>
+        ${p.pagado?`<span class="badge-pagado">Pagado ${formatearFechaHora(p.fechaPago)}</span>`:`<span class="badge-pend">Pendiente por pagar</span>`}
       </div>
-      <div class="venta">
-        <div class="row"><span class="t">Total venta</span><b>$ ${venta.toFixed(2)}</b></div>
-        <div class="row"><span class="t">Menos 10% comisión</span><b>-$ ${comision.toFixed(2)}</b></div>
-        <div class="row net"><span>Neto a pagar restaurante</span><b>$ ${neto.toFixed(2)}</b></div>
-        <div class="row"><span class="t">Fecha pedido</span><b>${fecha}</b></div>
-        <div class="row"><span class="t">Factura</span><b>${p.facturaNum}</b></div>
-      </div>
-      <div class="actions">
-        <button class="btn-fact" onclick="verFactura('${p.idDoc}')">Ver factura</button>
-        ${!p.pagado?`<button class="btn-pagar" onclick="pagarUno('${p.idDoc}')">Pagar</button>`:''}
+      <div class="card-main">
+        <div class="check ${isChecked?'checked':''}" onclick="toggleCheck('${p.idDoc}')"></div>
+        <div class="cli">
+          <div class="t">Cliente</div><div class="v">${p.nombre||cliente.clienteId||'-'} - ${cliente.celular||''}</div>
+          <div class="t" style="margin-top:4px">Dirección</div><div class="v">${cliente.direccion||'-'}</div>
+          <div class="t" style="margin-top:4px">Productos</div><div class="v">${(p.productos||[]).map(pr=>pr.nombre+' x'+pr.cantidad).join(', ')}</div>
+        </div>
+        <div class="venta">
+          <div class="row"><span class="t">Total venta</span><b>$ ${venta.toFixed(2)}</b></div>
+          <div class="row"><span class="t">Menos 10% comisión</span><b>-$ ${comision.toFixed(2)}</b></div>
+          <div class="row net"><span>Neto a pagar restaurante</span><b>$ ${neto.toFixed(2)}</b></div>
+          <div class="row"><span class="t">Fecha pedido</span><b>${fechaHora}</b></div>
+          <div class="row"><span class="t">Factura</span><b>${p.facturaNum}</b></div>
+        </div>
+        <div class="actions">
+          <button class="btn-fact" onclick="verFactura('${p.idDoc}')">Ver factura</button>
+          ${!p.pagado?`<button class="btn-pagar" onclick="pagarUno('${p.idDoc}')">Pagar</button>`:''}
+        </div>
       </div>
     </div>`;
   });
 }
 
-window.toggleCheck = (id)=>{
-  if(seleccionados.has(id)) seleccionados.delete(id);
-  else seleccionados.add(id);
-  render();
-};
-
-window.seleccionarTodos = ()=>{
-  let filtrados = pedidos.filter(p=> filtro==="pendiente" ? !p.pagado : p.pagado);
-  filtrados.forEach(p=> seleccionados.add(p.idDoc));
-  render();
-};
-
-window.filtrarEstado = (est)=>{
-  filtro = est;
-  document.getElementById('btnPend').className = est==='pendiente' ? 'btn-filter active' : 'btn-filter';
-  document.getElementById('btnPag').className = est==='pagado' ? 'btn-filter active-green' : 'btn-filter';
-  seleccionados.clear();
-  render();
-};
+window.toggleCheck = (id)=>{ if(seleccionados.has(id)) seleccionados.delete(id); else seleccionados.add(id); render(); };
+window.seleccionarTodos = ()=>{ pedidos.filter(p=> filtro==="pendiente" ? !p.pagado : p.pagado).forEach(p=> seleccionados.add(p.idDoc)); render(); };
+window.filtrarEstado = (est)=>{ filtro=est; document.getElementById('btnPend').className= est==='pendiente' ? 'btn-filter active' : 'btn-filter'; document.getElementById('btnPag').className= est==='pagado' ? 'btn-filter active-green' : 'btn-filter'; seleccionados.clear(); render(); };
 
 window.verFactura = (idDoc)=>{
   const p = pedidos.find(x=>x.idDoc===idDoc);
   if(!p) return;
-  pedidoActualFactura = p;
+  pedidoActual=p;
   const venta = Number(p.totales?.costoProductos||0);
-  const envio = Number(p.totales?.costoEnvio||0);
   const comision = venta*0.10;
-  const neto = venta - comision;
+  const neto = venta-comision;
+  const fechaHora = formatearFechaHora(p.timestamp||p.fecha);
 
   document.getElementById('cuerpoFactura').innerHTML=`
   <div class="factura" id="facturaImprimible">
     <div class="fact-head">
       <div>
-        <b style="font-size:16px">${restaurante?.nombre||idRest}</b><br>
-        <span style="font-size:11px;color:#64748b">${restaurante?.direccion||''} - ${restaurante?.telefono||''} - ${restaurante?.correo||''}</span><br>
+        <b style="font-size:15px">${restaurante?.nombre||idRest}</b><br>
+        <span style="font-size:11px;color:#64748b">${restaurante?.direccion||''}</span><br>
         <span style="font-size:11px">Factura: ${p.facturaNum}</span><br>
-        <span style="font-size:11px">Fecha: ${new Date().toLocaleString()}</span>
+        <span style="font-size:11px">Emitida: ${formatearFechaHora(new Date().toISOString())}</span>
       </div>
-      <div style="text-align:right">
-        <b>DoloYa</b><br>
-        <span style="font-size:11px">Pagos y Facturas</span><br>
-        <span style="font-size:11px">Cliente: ${p.nombre||''}</span>
-      </div>
+      <div style="text-align:right"><b>DoloYa</b><br><span style="font-size:11px">Pagos y Facturas</span></div>
     </div>
     <table class="fact-table">
       <tr><th>Concepto</th><th>Monto</th></tr>
-      <tr><td>Venta productos</td><td>$ ${venta.toFixed(2)}</td></tr>
-      <tr><td>Envío</td><td>$ ${envio.toFixed(2)}</td></tr>
-      <tr><td>Subtotal</td><td>$ ${(venta+envio).toFixed(2)}</td></tr>
+      <tr><td>Total producto</td><td>$ ${venta.toFixed(2)}</td></tr>
       <tr><td>Comisión DoloYa 10%</td><td>-$ ${comision.toFixed(2)}</td></tr>
-      <tr><td><b>Neto a pagar a restaurante</b></td><td><b>$ ${neto.toFixed(2)}</b></td></tr>
+      <tr><td><b>Neto a pagar restaurante</b></td><td><b>$ ${neto.toFixed(2)}</b></td></tr>
     </table>
     <div style="margin-top:16px;font-size:11px">
       <b>Detalle pedido:</b><br>
-      Fecha pedido: ${p.timestamp||p.fecha||''}<br>
+      Fecha pedido: ${fechaHora}<br>
       Cliente: ${p.nombre||''} - ${p.cliente?.celular||''}<br>
       Dirección: ${p.cliente?.direccion||''}<br>
       Productos: ${(p.productos||[]).map(pr=>pr.nombre+' x'+pr.cantidad+' $'+pr.precio).join('<br>')}
@@ -365,47 +306,59 @@ window.verFactura = (idDoc)=>{
   document.getElementById('modalFactura').classList.add('show');
 };
 
-window.cerrarModal = ()=>{ document.getElementById('modalFactura').classList.remove('show'); };
+window.cerrarModal = ()=> document.getElementById('modalFactura').classList.remove('show');
 
 window.descargarFactura = ()=>{
-  const contenido = document.getElementById('facturaImprimible').innerHTML;
-  const w = window.open('','_blank');
-  w.document.write(`<html><head><title>Factura ${pedidoActualFactura?.facturaNum||''}</title><style>body{font-family:Arial;font-size:12px} table{width:100%;border-collapse:collapse} th{background:#000;color:#fff;padding:8px} td{padding:8px;border-bottom:1px solid #eee}</style></head><body>${contenido}<script>window.print()<\/script></body></html>`);
-  w.document.close();
+  const elemento = document.getElementById('facturaImprimible');
+  const nombre = `factura-${pedidoActual?.facturaNum||'doloya'}.pdf`;
+  // Genera PDF descargable funciona en celular y PC
+  html2pdf().set({
+    margin:10,
+    filename: nombre,
+    image:{type:'jpeg',quality:0.98},
+    html2canvas:{scale:2},
+    jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}
+  }).from(elemento).save();
 };
 
+async function pagarEnDB(idDoc){
+  const p = pedidos.find(x=>x.idDoc===idDoc);
+  const venta = Number(p.totales?.costoProductos||0);
+  const neto = venta*0.90;
+  await setDoc(doc(dbHis, "pagos_aliados", idDoc), {
+    pagado: true,
+    fechaPago: new Date().toISOString(),
+    montoPagado: neto,
+    montoVenta: venta,
+    comision: venta*0.10,
+    restauranteId: idRest,
+    restauranteNombre: restaurante?.nombre||idRest,
+    factura: p.facturaNum,
+    cliente: p.nombre||"",
+    fechaPedido: p.timestamp||p.fecha||""
+  }, {merge:true});
+}
+
 window.marcarPagado = async ()=>{
-  if(!pedidoActualFactura) return;
-  await pagarEnDB(pedidoActualFactura.idDoc);
+  if(!pedidoActual) return;
+  await pagarEnDB(pedidoActual.idDoc);
   cerrarModal();
   cargarPedidos();
 };
 
 window.pagarUno = async (idDoc)=>{
-  if(!confirm("¿Marcar este pedido como pagado?")) return;
+  if(!confirm("¿Marcar como pagado?")) return;
   await pagarEnDB(idDoc);
   cargarPedidos();
 };
 
 window.pagarSeleccionados = async ()=>{
   if(seleccionados.size===0){ alert("Selecciona pedidos"); return; }
-  if(!confirm(`¿Pagar ${seleccionados.size} pedidos seleccionados?`)) return;
+  if(!confirm(`¿Pagar ${seleccionados.size} pedidos?`)) return;
   for(let id of seleccionados){ await pagarEnDB(id); }
   seleccionados.clear();
   cargarPedidos();
 };
-
-async function pagarEnDB(idDoc){
-  try{
-    await setDoc(doc(dbHis, "pagos_aliados", idDoc), {
-      pagado: true,
-      fechaPago: new Date().toISOString(),
-      restauranteId: idRest,
-      restauranteNombre: restaurante?.nombre||idRest,
-      factura: pedidos.find(p=>p.idDoc===idDoc)?.facturaNum||""
-    }, {merge:true});
-  }catch(e){ console.log(e); }
-}
 
 await cargarRestaurante();
 await cargarPedidos();
