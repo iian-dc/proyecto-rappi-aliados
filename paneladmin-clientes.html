@@ -8,34 +8,33 @@
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#fff;font-family:'Inter',sans-serif;color:#0f172a;overflow-x:hidden}
 .top{position:relative;max-width:100%;padding:14px 22px 18px;display:flex;align-items:center;border-bottom:1px solid #f1f5f9;background:white}
-.top::after{content:"";position:absolute;top:0;right:0;width:110px;height:46px;background:linear-gradient(135deg,#E30613 0%,#E30613 55%,#0f172a 55%,#0f172a 100%);clip-path:polygon(25% 0,100% 0,100% 100%,0 100%)}
+.top::after{content:"";position:absolute;top:0;right:0;width:110px;height:46px;background:linear-gradient(135deg,#E30613 0%,#E30613 55%,#0f172a 100%);clip-path:polygon(25% 0,100% 0,100% 100%,0 100%)}
 .x-btn{width:38px;height:38px;background:#E30613;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;text-decoration:none;flex-shrink:0}
 .line{width:2px;height:26px;background:#E30613;margin:0 12px}
 .top h1{font-size:26px;font-weight:900;letter-spacing:-0.5px}
-.table-wrap{max-width:1550px;margin:18px auto;padding:0 12px}
+.table-wrap{width:100%;max-width:100%;margin:0 auto;padding:12px 14px}
 .table{width:100%;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;background:white}
-.header-row{display:grid;grid-template-columns:130px 110px 170px 55px 95px 125px 110px 70px 90px 95px;background:#0b111c;color:white;padding:0;font-size:10px;font-weight:700;align-items:center;height:42px}
-.header-row div{padding:0 10px;display:flex;align-items:center;height:100%;border-right:1px solid #1e293b;white-space:nowrap;overflow:hidden}
+.header-row{display:grid;grid-template-columns:13% 10% 17% 5% 10% 15% 9% 7% 8% 6%;background:#0b111c;color:white;padding:0;font-size:10px;font-weight:700;align-items:center;height:44px}
+.header-row div{padding:0 6px;display:flex;align-items:center;justify-content:center;text-align:center;height:100%;border-right:1px solid #1e293b;white-space:nowrap;overflow:hidden}
 .header-row div:last-child{border-right:none}
-.header-row .ip-badge{background:#E30613;color:white;border-radius:999px;padding:3px 10px;font-size:9px;font-weight:800;min-width:32px;justify-content:center}
-.row{display:grid;grid-template-columns:130px 110px 170px 55px 95px 125px 110px 70px 90px 95px;border-top:1px solid #e2e8f0;padding:0;align-items:center;background:white;font-size:10px;min-height:56px}
+.row{display:grid;grid-template-columns:13% 10% 17% 5% 10% 15% 9% 7% 8% 6%;border-top:1px solid #eef2f7;padding:0;align-items:center;background:white;font-size:10px;min-height:54px}
 .row:hover{background:#f8fafc}
-.row div{padding:0 10px;display:flex;align-items:center;height:100%;border-right:1px solid #f1f5f9;overflow:hidden;white-space:nowrap}
+.row div{padding:0 6px;display:flex;align-items:center;justify-content:center;text-align:center;height:100%;border-right:1px solid #f1f5f9;overflow:hidden;white-space:nowrap}
 .row div:last-child{border-right:none}
-.client-name{font-weight:800;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:100%}
-.addr{flex-direction:column !important;align-items:flex-start !important;justify-content:center;gap:1px;line-height:1.1}
-.addr b{font-size:10px;font-weight:600;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.time{flex-direction:column !important;align-items:flex-start !important;justify-content:center;line-height:1.1}
-.badge-origen{font-size:8px;font-weight:800;padding:4px 8px;border-radius:999px;white-space:nowrap;border:1px solid;display:inline-flex;align-items:center;justify-content:center;min-width:68px}
+.client-name{font-weight:800;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:100%;text-align:center}
+.addr{flex-direction:column !important;justify-content:center !important}
+.addr b{font-size:10px;font-weight:600;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center}
+.time{flex-direction:column !important;line-height:1.1;text-align:center}
+.badge-origen{font-size:8px;font-weight:800;padding:4px 8px;border-radius:999px;white-space:nowrap;border:1px solid;display:inline-flex;align-items:center;justify-content:center;min-width:62px}
 .badge-origen.entregado{background:#dcfce7;color:#166534;border-color:#bbf7d0}
 .badge-origen.cancelado{background:#fee2e2;color:#991b1b;border-color:#fecaca}
 .badge-origen.reportado{background:#fef3c7;color:#92400e;border-color:#fde68a}
-.btn-resumen{border:1.5px solid #E30613;color:#E30613;background:white;border-radius:999px;padding:4px 9px;font-size:9px;font-weight:800;text-decoration:none;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center}
-.btn-bloq{border:none;border-radius:999px;padding:5px 8px;font-size:8.5px;font-weight:800;color:white;min-width:80px;justify-content:center;cursor:pointer;display:flex;align-items:center;white-space:nowrap}
+.btn-resumen{border:1.5px solid #E30613;color:#E30613;background:white;border-radius:999px;padding:4px 8px;font-size:8.5px;font-weight:800;text-decoration:none;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center}
+.btn-bloq{border:none;border-radius:999px;padding:5px 8px;font-size:8px;font-weight:800;color:white;min-width:70px;justify-content:center;cursor:pointer;display:flex;align-items:center;white-space:nowrap}
 .btn-bloq.desbloqueado{background:#16a34a}
-.btn-bloq.bloqueado{background:#E30613;box-shadow:0 0 0 2px rgba(227,6,19,0.15)}
-.ip-cell{font-family:monospace;font-size:10px;font-weight:700;letter-spacing:-0.3px}
-@media(max-width:1300px){.header-row{display:none}.row{grid-template-columns:1fr;gap:0;border:1px solid #eef2f7;border-radius:10px;margin-bottom:10px;padding:10px;height:auto;min-height:auto}.row div{border:none;height:auto;padding:4px 0}.table{border:none}}
+.btn-bloq.bloqueado{background:#E30613}
+.ip-cell{font-family:monospace;font-size:9.5px;font-weight:700;letter-spacing:-0.2px}
+@media(max-width:1100px){.header-row{display:none}.row{grid-template-columns:1fr;gap:0;border:1px solid #eef2f7;border-radius:10px;margin-bottom:10px;padding:10px;height:auto;min-height:auto}.row div{border:none;height:auto;padding:4px 0;justify-content:flex-start;text-align:left}.table{border:none}}
 </style>
 </head>
 <body>
@@ -52,7 +51,7 @@ body{background:#fff;font-family:'Inter',sans-serif;color:#0f172a;overflow-x:hid
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-import { getFirestore, collection, onSnapshot, doc, updateDoc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+import { getFirestore, collection, onSnapshot, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCRx4B7mO444s0yU-WTnsqMjBHDWX4IRv8",
@@ -77,8 +76,7 @@ function getFecha(f){
 function formatFecha(d){
   if(!d || d.getTime()===0) return '-';
   const dd=String(d.getDate()).padStart(2,'0'); const mm=String(d.getMonth()+1).padStart(2,'0'); const yy=d.getFullYear();
-  let h=d.getHours(); const mi=String(d.getMinutes()).padStart(2,'0'); const ampm=h>=12?'p.m.':'a.m.'; h=h%12||12;
-  return `${dd}/${mm}/${yy} ${String(h).padStart(2,'0')}:${mi}${ampm}`;
+  return `${dd}/${mm}/${yy}`;
 }
 
 function asegurarCliente(keyTel, nombre, telefonoRaw, direccion, ip, ciudad, ipInfo, lat, lng, fecha, origen){
@@ -133,7 +131,7 @@ onSnapshot(collection(db, "clientes_reportados_no_recibe"), snap=>{
     const ipReal = data.ip && data.ip!=='null' && data.ip!=='0.0.0.0' ? data.ip : (data.ubicacionCompleta?.ip || '-');
     const ipInfo = data.ipInfo || data.ubicacionCompleta?.ipInfo || {};
     const fecha = getFecha(data.fechaReporte || data.ultimoPedido || data.timestamp);
-    const ciudad = ipInfo.city || data.ciudad || 'Dolores Hgo.';
+    const ciudad = ipInfo.city || 'Dolores Hgo.';
     const bloqueado = data.bloqueado===true || data.ipBloqueada===true;
     if(!clientesMap[key]) asegurarCliente(key, nombre, telefonoRaw, direccion, ipReal, ciudad, ipInfo, lat, lng, fecha, 'REPORTADO');
     if(clientesMap[key]){
@@ -186,7 +184,6 @@ onSnapshot(collection(db, "pedidos_cancelados"), snap=>{
   render();
 });
 
-// CARGAR IPS BLOQUEADAS PARA SINCRONIZAR ESTADO
 onSnapshot(collection(db, "ips_bloqueadas"), snap=>{
   snap.forEach(ds=>{
     const ip = ds.id;
@@ -212,11 +209,11 @@ function render(){
     <div class="row">
       <div><b class="client-name" title="${c.nombre}">${c.nombre}</b></div>
       <div>${c.telefono}</div>
-      <div><div class="addr"><b title="${c.direccion}">${c.direccion.substring(0,30)}</b></div></div>
-      <div style="justify-content:center"><b>${c.pedidos}</b></div>
+      <div><div class="addr"><b title="${c.direccion}">${c.direccion.substring(0,28)}</b></div></div>
+      <div><b>${c.pedidos}</b></div>
       <div><div class="time">${formatFecha(c.ultimo)}</div></div>
       <div class="ip-cell">${ipMostrar}</div>
-      <div style="font-size:9px">${ciudadMostrar}</div>
+      <div>${ciudadMostrar}</div>
       <div><a class="btn-resumen" href="paneladmin-clientes-resumen.html?tel=${c.key}">Resumen</a></div>
       <div><button class="btn-bloq ${c.bloqueado?'bloqueado':'desbloqueado'}" onclick="toggleBloq('${c.key}')">${c.bloqueado?'Bloqueado':'Desbloq.'}</button></div>
       <div><span class="badge-origen ${cls}">${carpetaBadge}</span></div>
@@ -228,32 +225,24 @@ window.toggleBloq = async (key)=>{
   const c = clientesMap[key];
   if(!c) return;
   const nuevo = !c.bloqueado;
-  const ipLimpia = (c.ip||'').replace(/\./g,'_') || key;
   try{
-    // 1. Bloquea por teléfono
     await setDoc(doc(db, "clientes_reportados_no_recibe", key), { 
       telefono: key, 
       bloqueado: nuevo, 
       ipBloqueada: nuevo, 
       ip: c.ip,
       ipInfo: c.ipInfo||{},
-      bloqueadoEn: new Date().toISOString(),
-      motivo: nuevo ? 'Bloqueado manual desde panel clientes' : ''
+      bloqueadoEn: new Date().toISOString()
     }, {merge:true});
 
-    // 2. BLOQUEA IP REAL - ESTO ES LO QUE IMPIDE QUE VUELVA A INGRESAR
     if(c.ip && c.ip!=='-' && c.ip!=='null' && c.ip!=='0.0.0.0'){
       await setDoc(doc(db, "ips_bloqueadas", c.ip), { 
         ip: c.ip, 
-        ipInfo: c.ipInfo||{},
         telefono: key, 
         nombre: c.nombre,
         bloqueado: nuevo, 
-        fecha: new Date().toISOString(),
-        origen: 'panel_clientes'
+        fecha: new Date().toISOString()
       }, {merge:true});
-
-      // También por si acaso en doloya-confirmacion para bloqueo rápido en checkout
       await setDoc(doc(db, "bloqueos_ip", c.ip), {
         ip: c.ip,
         bloqueado: nuevo,
@@ -261,10 +250,8 @@ window.toggleBloq = async (key)=>{
         timestamp: new Date().toISOString()
       }, {merge:true});
     }
-
     c.bloqueado = nuevo;
     render();
-    console.log(nuevo ? `🔴 IP ${c.ip} BLOQUEADA` : `🟢 IP ${c.ip} DESBLOQUEADA`);
   }catch(e){ alert(e.message); }
 }
 </script>
