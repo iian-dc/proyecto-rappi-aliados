@@ -74,14 +74,12 @@ body{background:#f6f8fb;color:#0f172a}
 <div class="right">
 <div class="box resumen">
 <h3>Resumen</h3>
-<div class="item-res"><span>Total restaurantes</span><b id="rTotalAli">0</b></div>
-<div class="item-res"><span>Abiertos</span><b id="rAbiertos">0</b></div>
-<div class="item-res"><span>Cerrados</span><b id="rCerrados">0</b></div>
-<div class="item-res" style="background:#f8fafc"><span>Total ingresos (ventas)</span><b id="rIngresos">$ 0.00</b></div>
+<div class="item-res" style="background:#f8fafc"><span>Total ingresos ventas (sin cancel)</span><b id="rIngresos">$ 0.00</b></div>
 <div class="item-res"><span>Total pagado aliados</span><b id="rPagadoAli">$ 0.00</b></div>
-<div class="item-res"><span>Total pendiente pagar</span><b id="rPendiente">$ 0.00</b></div>
+<div class="item-res"><span>Total pendiente por pagar</span><b id="rPendiente">$ 0.00</b></div>
 <div class="item-res" style="color:#E30613"><span>Total monto cancelación 40%</span><b id="rMontoCancel">$ 0.00</b></div>
 <div class="item-res" style="background:#fff1f2"><span>Cuánto nos queda (10% + 40%)</span><b id="rNosQueda">$ 0.00</b></div>
+<div class="item-res"><span>Total pedidos entregados</span><b id="rPedEnt">0</b></div>
 <div class="item-res"><span>Total pedidos cancelados</span><b id="rPedCancel">0</b></div>
 <div class="item-res"><span>Total facturas pendientes</span><b id="rFactPend">0</b></div>
 </div>
@@ -130,8 +128,9 @@ async function cargarVentasYPagos(){
       const r = p.restaurante || {};
       const id = (r.id || r.nombre || "").toLowerCase();
       if(!id) return;
-      if(!ventasMap[id]) ventasMap[id]={totalEnt:0, totalCanc:0, total:0, countCanc:0};
+      if(!ventasMap[id]) ventasMap[id]={totalEnt:0, totalCanc:0, total:0, countEnt:0, countCanc:0};
       ventasMap[id].totalEnt += Number(p.totales?.costoProductos||0);
+      ventasMap[id].countEnt += 1;
     });
   }catch(e){ console.log(e); }
   try{
@@ -141,7 +140,7 @@ async function cargarVentasYPagos(){
       const r = p.restaurante || {};
       const id = (r.id || r.nombre || "").toLowerCase();
       if(!id) return;
-      if(!ventasMap[id]) ventasMap[id]={totalEnt:0, totalCanc:0, total:0, countCanc:0};
+      if(!ventasMap[id]) ventasMap[id]={totalEnt:0, totalCanc:0, total:0, countEnt:0, countCanc:0};
       ventasMap[id].totalCanc += Number(p.totales?.costoProductos||0);
       ventasMap[id].countCanc += 1;
     });
@@ -210,15 +209,16 @@ async function iniciarTiempoReal(){
     restaurantes = restaurantes.map(r=>{
       const idLow = r.id.toLowerCase();
       const nombreLow = r.nombre.toLowerCase();
-      let v = ventasMap[idLow] || ventasMap[nombreLow] || {totalEnt:0, totalCanc:0, total:0, countCanc:0};
+      let v = ventasMap[idLow] || ventasMap[nombreLow] || {totalEnt:0, totalCanc:0, total:0, countEnt:0, countCanc:0};
       let p = pagosMap[idLow] || pagosMap[nombreLow] || {pagado:0, ultimo:"", count:0};
       const desgloseEnt = v.totalEnt * 0.9;
       const desgloseCanc = v.totalCanc * 0.5;
       const desglose = desgloseEnt + desgloseCanc;
-      const montoCancel = v.totalCanc * 0.4;
-      const comisionNosQueda = (v.totalEnt * 0.10) + (v.totalCanc * 0.10) + montoCancel;
+      const montoCancelProd = v.totalCanc;
+      const montoCancel40 = v.totalCanc * 0.4;
+      const comisionNosQueda = (v.totalEnt * 0.10) + montoCancel40;
       const pendiente = Math.max(0, desglose - (p.pagado||0));
-      return { ...r, totalVentas: v.total||0, totalEnt: v.totalEnt, totalCanc: v.totalCanc, desglose: desglose, montoCancel: montoCancel, comisionNosQueda: comisionNosQueda, pagado: p.pagado||0, pendiente: pendiente, ultimoPago: p.ultimo||"", facturas: p.count||0, countCanc: v.countCanc||0 };
+      return { ...r, totalVentas: v.totalEnt, totalEnt: v.totalEnt, totalCancProd: montoCancelProd, montoCancel: montoCancel40, desglose: desglose, comisionNosQueda: comisionNosQueda, pagado: p.pagado||0, pendiente: pendiente, ultimoPago: p.ultimo||"", facturas: p.count||0, countEnt: v.countEnt||0, countCanc: v.countCanc||0 };
     });
     aliados = restaurantes;
     filtrados = [...aliados];
@@ -231,9 +231,10 @@ function render(){
   const totalPagados = filtrados.reduce((s,a)=>s+a.pagado,0);
   const totalPend = filtrados.reduce((s,a)=>s+a.pendiente,0);
   const totalCancelMonto = filtrados.reduce((s,a)=>s+a.montoCancel,0);
-  const totalVentas = filtrados.reduce((s,a)=>s+a.totalVentas,0);
+  const totalVentasEnt = filtrados.reduce((s,a)=>s+a.totalVentas,0);
   const totalNosQueda = filtrados.reduce((s,a)=>s+a.comisionNosQueda,0);
   const totalPedCanc = filtrados.reduce((s,a)=>s+a.countCanc,0);
+  const totalPedEnt = filtrados.reduce((s,a)=>s+a.countEnt,0);
 
   document.getElementById('kPagados').textContent = "$ "+totalPagados.toFixed(2);
   document.getElementById('kPendiente').textContent = "$ "+totalPend.toFixed(2);
@@ -241,14 +242,12 @@ function render(){
   document.getElementById('kTotalRest').textContent = filtrados.length;
   document.getElementById('kFactPend').textContent = filtrados.filter(a=>a.pendiente>0).length;
 
-  document.getElementById('rTotalAli').textContent = filtrados.length;
-  document.getElementById('rAbiertos').textContent = filtrados.filter(a=>a.abierto===true || a.abierto==="true").length;
-  document.getElementById('rCerrados').textContent = filtrados.filter(a=>a.abierto===false || a.abierto==="false").length;
-  document.getElementById('rIngresos').textContent = "$ "+totalVentas.toFixed(2);
+  document.getElementById('rIngresos').textContent = "$ "+totalVentasEnt.toFixed(2);
   document.getElementById('rPagadoAli').textContent = "$ "+totalPagados.toFixed(2);
   document.getElementById('rPendiente').textContent = "$ "+totalPend.toFixed(2);
   document.getElementById('rMontoCancel').textContent = "$ "+totalCancelMonto.toFixed(2);
   document.getElementById('rNosQueda').textContent = "$ "+totalNosQueda.toFixed(2);
+  document.getElementById('rPedEnt').textContent = totalPedEnt;
   document.getElementById('rPedCancel').textContent = totalPedCanc;
   document.getElementById('rFactPend').textContent = filtrados.filter(a=>a.pendiente>0).length;
 
@@ -260,13 +259,13 @@ function render(){
     const badgeClass = estadoAbierto.toLowerCase().includes("abierto") ? "badge-green" : estadoAbierto.toLowerCase().includes("cerrado") ? "badge-red" : "badge-yellow";
     cont.innerHTML+=`
     <div class="table-row">
-      <div class="aliado"><div class="aliado-logo">${logoHtml}</div><div><div style="font-weight:700;font-size:11px;text-transform:capitalize">${limpiarNombre(a.nombre)}</div><div style="font-size:9px;color:#64748b">${a.categoria} ${a.direccion?'- '+a.direccion:''} ${a.countCanc>0?'<span style="color:#E30613">('+a.countCanc+' canc)</span>':''}</div></div></div>
+      <div class="aliado"><div class="aliado-logo">${logoHtml}</div><div><div style="font-weight:700;font-size:11px;text-transform:capitalize">${limpiarNombre(a.nombre)}</div><div style="font-size:9px;color:#64748b">${a.categoria} ${a.direccion?'- '+a.direccion:''}</div></div></div>
       <div style="font-weight:600">$ ${a.totalVentas.toFixed(2)}</div>
       <div style="font-weight:600">$ ${a.desglose.toFixed(2)}</div>
-      <div style="color:#E30613;font-weight:700">$ ${a.montoCancel.toFixed(2)}</div>
+      <div style="color:#E30613;font-weight:700">$ ${a.totalCancProd.toFixed(2)}<span style="font-size:8px;display:block">40%=$${a.montoCancel.toFixed(2)}</span></div>
       <div style="color:#16a34a;font-weight:600">$ ${a.pagado.toFixed(2)}</div>
       <div style="color:#d97706;font-weight:600">$ ${a.pendiente.toFixed(2)}</div>
-      <div style="font-size:10px">${ultimo}</div>
+      <div style="font-size:8.5px;line-height:1.2">${ultimo}</div>
       <div style="font-size:10px;text-align:center;justify-self:center;font-weight:700">${a.facturas}</div>
       <div><span class="badge ${badgeClass}">${estadoAbierto}</span></div>
       <div><button class="btn-ver" onclick="irConsulta('${a.id}')">Consultar</button></div>
