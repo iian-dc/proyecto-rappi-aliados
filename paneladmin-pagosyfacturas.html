@@ -22,8 +22,8 @@ body{background:#f6f8fb;color:#0f172a}
 .box{background:white;border-radius:12px;border:1px solid #eef2f7;overflow:hidden}
 .filters{display:flex;gap:8px;padding:10px}
 .filters input,.filters select{flex:1;padding:8px 10px;border-radius:8px;border:1px solid #e2e8f0;font-size:11px}
-.table-head{background:#0a1020;color:white;display:grid;grid-template-columns:1.3fr .5fr .5fr .5fr .5fr .5fr .6fr .5fr .5fr .6fr;padding:8px 10px;font-size:9px;font-weight:700;text-transform:uppercase;align-items:center}
-.table-row{display:grid;grid-template-columns:1.3fr .5fr .5fr .5fr .5fr .5fr .6fr .5fr .5fr .6fr;padding:8px 10px;border-bottom:1px solid #f1f5f9;align-items:center;font-size:10.5px}
+.table-head{background:#0a1020;color:white;display:grid;grid-template-columns:1.3fr .6fr .6fr .5fr .5fr .6fr .5fr .5fr .6fr;padding:8px 10px;font-size:9px;font-weight:700;text-transform:uppercase;align-items:center}
+.table-row{display:grid;grid-template-columns:1.3fr .6fr .6fr .5fr .5fr .6fr .5fr .5fr .6fr;padding:8px 10px;border-bottom:1px solid #f1f5f9;align-items:center;font-size:10.5px}
 .aliado{display:flex;gap:8px;align-items:center}
 .aliado-logo{width:32px;height:32px;border-radius:50%;background:#fff1f1;display:flex;align-items:center;justify-content:center;font-weight:800;color:#E30613;border:1px solid #fee2e2;overflow:hidden;flex-shrink:0}
 .aliado-logo img{width:100%;height:100%;object-fit:cover}
@@ -47,7 +47,7 @@ body{background:#f6f8fb;color:#0f172a}
 <div class="top-cards">
 <div class="tcard"><div class="ticon" style="background:#16a34a;color:white">$</div><div><span>Pagos realizados</span><b id="kPagados">$ 0.00</b></div></div>
 <div class="tcard"><div class="ticon" style="background:#f59e0b;color:white">$</div><div><span>Pagos pendientes</span><b id="kPendiente">$ 0.00</b></div></div>
-<div class="tcard"><div class="ticon" style="background:#E30613;color:white">$</div><div><span>Monto Cancelación 40%</span><b id="kCancel">$ 0.00</b></div></div>
+<div class="tcard"><div class="ticon" style="background:#E30613;color:white">$</div><div><span>Total Cancelado</span><b id="kCancel">$ 0.00</b></div></div>
 <div class="tcard"><div class="ticon" style="background:#0f172a;color:white">R</div><div><span>Total restaurantes</span><b id="kTotalRest">0</b></div></div>
 <div class="tcard"><div class="ticon" style="background:#0f172a;color:white">F</div><div><span>Total facturas pendientes</span><b id="kFactPend">0</b></div></div>
 </div>
@@ -60,8 +60,7 @@ body{background:#f6f8fb;color:#0f172a}
 <div class="table-head">
 <span>Aliado / Restaurante</span>
 <span>Total ventas</span>
-<span>Desglose -10%</span>
-<span>Monto Cancel.</span>
+<span>Total cancelado</span>
 <span>Pagado</span>
 <span>Pendiente</span>
 <span>Ultimo pago</span>
@@ -74,11 +73,12 @@ body{background:#f6f8fb;color:#0f172a}
 <div class="right">
 <div class="box resumen">
 <h3>Resumen</h3>
-<div class="item-res" style="background:#f8fafc"><span>Total ingresos ventas (sin cancel)</span><b id="rIngresos">$ 0.00</b></div>
-<div class="item-res"><span>Total pagado aliados</span><b id="rPagadoAli">$ 0.00</b></div>
-<div class="item-res"><span>Total pendiente por pagar</span><b id="rPendiente">$ 0.00</b></div>
-<div class="item-res" style="color:#E30613"><span>Total monto cancelación 40%</span><b id="rMontoCancel">$ 0.00</b></div>
-<div class="item-res" style="background:#fff1f2"><span>Cuánto nos queda (10% + 40%)</span><b id="rNosQueda">$ 0.00</b></div>
+<div class="item-res"><span>Total ingreso de venta</span><b id="rIngresos">$ 0.00</b></div>
+<div class="item-res" style="color:#E30613"><span>Total cancelado (negativo)</span><b id="rCancelNeg">- $ 0.00</b></div>
+<div class="item-res" style="color:#d97706"><span>Total pendiente por pagar (negativo)</span><b id="rPendNeg">- $ 0.00</b></div>
+<div class="item-res" style="color:#16a34a"><span>Total pagado (restado)</span><b id="rPagadoNeg">- $ 0.00</b></div>
+<div class="item-res" style="background:#0f172a;color:white"><span>Total balance</span><b id="rBalance">$ 0.00</b></div>
+<div class="item-res"><span>Total pedidos</span><b id="rTotalPed">0</b></div>
 <div class="item-res"><span>Total pedidos entregados</span><b id="rPedEnt">0</b></div>
 <div class="item-res"><span>Total pedidos cancelados</span><b id="rPedCancel">0</b></div>
 <div class="item-res"><span>Total facturas pendientes</span><b id="rFactPend">0</b></div>
@@ -128,7 +128,7 @@ async function cargarVentasYPagos(){
       const r = p.restaurante || {};
       const id = (r.id || r.nombre || "").toLowerCase();
       if(!id) return;
-      if(!ventasMap[id]) ventasMap[id]={totalEnt:0, totalCanc:0, total:0, countEnt:0, countCanc:0};
+      if(!ventasMap[id]) ventasMap[id]={totalEnt:0, totalCanc:0, countEnt:0, countCanc:0};
       ventasMap[id].totalEnt += Number(p.totales?.costoProductos||0);
       ventasMap[id].countEnt += 1;
     });
@@ -140,14 +140,11 @@ async function cargarVentasYPagos(){
       const r = p.restaurante || {};
       const id = (r.id || r.nombre || "").toLowerCase();
       if(!id) return;
-      if(!ventasMap[id]) ventasMap[id]={totalEnt:0, totalCanc:0, total:0, countEnt:0, countCanc:0};
+      if(!ventasMap[id]) ventasMap[id]={totalEnt:0, totalCanc:0, countEnt:0, countCanc:0};
       ventasMap[id].totalCanc += Number(p.totales?.costoProductos||0);
       ventasMap[id].countCanc += 1;
     });
   }catch(e){ console.log(e); }
-  Object.keys(ventasMap).forEach(k=>{
-    ventasMap[k].total = ventasMap[k].totalEnt + ventasMap[k].totalCanc;
-  });
   try{
     const snapP = await getDocs(collection(dbHis, "pagos_aliados"));
     snapP.forEach(d=>{
@@ -209,16 +206,13 @@ async function iniciarTiempoReal(){
     restaurantes = restaurantes.map(r=>{
       const idLow = r.id.toLowerCase();
       const nombreLow = r.nombre.toLowerCase();
-      let v = ventasMap[idLow] || ventasMap[nombreLow] || {totalEnt:0, totalCanc:0, total:0, countEnt:0, countCanc:0};
+      let v = ventasMap[idLow] || ventasMap[nombreLow] || {totalEnt:0, totalCanc:0, countEnt:0, countCanc:0};
       let p = pagosMap[idLow] || pagosMap[nombreLow] || {pagado:0, ultimo:"", count:0};
-      const desgloseEnt = v.totalEnt * 0.9;
-      const desgloseCanc = v.totalCanc * 0.5;
-      const desglose = desgloseEnt + desgloseCanc;
-      const montoCancelProd = v.totalCanc;
-      const montoCancel40 = v.totalCanc * 0.4;
-      const comisionNosQueda = (v.totalEnt * 0.10) + montoCancel40;
-      const pendiente = Math.max(0, desglose - (p.pagado||0));
-      return { ...r, totalVentas: v.totalEnt, totalEnt: v.totalEnt, totalCancProd: montoCancelProd, montoCancel: montoCancel40, desglose: desglose, comisionNosQueda: comisionNosQueda, pagado: p.pagado||0, pendiente: pendiente, ultimoPago: p.ultimo||"", facturas: p.count||0, countEnt: v.countEnt||0, countCanc: v.countCanc||0 };
+      const totalVentas = v.totalEnt;
+      const totalCancelado = v.totalCanc;
+      const desgloseReal = (v.totalEnt * 0.9) + (v.totalCanc * 0.5);
+      const pendiente = Math.max(0, desgloseReal - (p.pagado||0));
+      return { ...r, totalVentas: totalVentas, totalCancelado: totalCancelado, pagado: p.pagado||0, pendiente: pendiente, ultimoPago: p.ultimo||"", facturas: p.count||0, countEnt: v.countEnt||0, countCanc: v.countCanc||0 };
     });
     aliados = restaurantes;
     filtrados = [...aliados];
@@ -230,23 +224,24 @@ function render(){
   if(filtrados.length===0){ cont.innerHTML='<div style="padding:20px;text-align:center;color:#94a3b8;font-size:11px">No hay restaurantes</div>'; return; }
   const totalPagados = filtrados.reduce((s,a)=>s+a.pagado,0);
   const totalPend = filtrados.reduce((s,a)=>s+a.pendiente,0);
-  const totalCancelMonto = filtrados.reduce((s,a)=>s+a.montoCancel,0);
-  const totalVentasEnt = filtrados.reduce((s,a)=>s+a.totalVentas,0);
-  const totalNosQueda = filtrados.reduce((s,a)=>s+a.comisionNosQueda,0);
+  const totalCancelado = filtrados.reduce((s,a)=>s+a.totalCancelado,0);
+  const totalVentas = filtrados.reduce((s,a)=>s+a.totalVentas,0);
   const totalPedCanc = filtrados.reduce((s,a)=>s+a.countCanc,0);
   const totalPedEnt = filtrados.reduce((s,a)=>s+a.countEnt,0);
+  const balance = totalVentas - totalCancelado - totalPagados - totalPend;
 
   document.getElementById('kPagados').textContent = "$ "+totalPagados.toFixed(2);
   document.getElementById('kPendiente').textContent = "$ "+totalPend.toFixed(2);
-  document.getElementById('kCancel').textContent = "$ "+totalCancelMonto.toFixed(2);
+  document.getElementById('kCancel').textContent = "$ "+totalCancelado.toFixed(2);
   document.getElementById('kTotalRest').textContent = filtrados.length;
   document.getElementById('kFactPend').textContent = filtrados.filter(a=>a.pendiente>0).length;
 
-  document.getElementById('rIngresos').textContent = "$ "+totalVentasEnt.toFixed(2);
-  document.getElementById('rPagadoAli').textContent = "$ "+totalPagados.toFixed(2);
-  document.getElementById('rPendiente').textContent = "$ "+totalPend.toFixed(2);
-  document.getElementById('rMontoCancel').textContent = "$ "+totalCancelMonto.toFixed(2);
-  document.getElementById('rNosQueda').textContent = "$ "+totalNosQueda.toFixed(2);
+  document.getElementById('rIngresos').textContent = "$ "+totalVentas.toFixed(2);
+  document.getElementById('rCancelNeg').textContent = "- $ "+totalCancelado.toFixed(2);
+  document.getElementById('rPendNeg').textContent = "- $ "+totalPend.toFixed(2);
+  document.getElementById('rPagadoNeg').textContent = "- $ "+totalPagados.toFixed(2);
+  document.getElementById('rBalance').textContent = "$ "+balance.toFixed(2);
+  document.getElementById('rTotalPed').textContent = totalPedEnt + totalPedCanc;
   document.getElementById('rPedEnt').textContent = totalPedEnt;
   document.getElementById('rPedCancel').textContent = totalPedCanc;
   document.getElementById('rFactPend').textContent = filtrados.filter(a=>a.pendiente>0).length;
@@ -259,10 +254,9 @@ function render(){
     const badgeClass = estadoAbierto.toLowerCase().includes("abierto") ? "badge-green" : estadoAbierto.toLowerCase().includes("cerrado") ? "badge-red" : "badge-yellow";
     cont.innerHTML+=`
     <div class="table-row">
-      <div class="aliado"><div class="aliado-logo">${logoHtml}</div><div><div style="font-weight:700;font-size:11px;text-transform:capitalize">${limpiarNombre(a.nombre)}</div><div style="font-size:9px;color:#64748b">${a.categoria} ${a.direccion?'- '+a.direccion:''}</div></div></div>
+      <div class="aliado"><div class="aliado-logo">${logoHtml}</div><div><div style="font-weight:700;font-size:11px;text-transform:capitalize">${limpiarNombre(a.nombre)}</div><div style="font-size:9px;color:#64748b">${a.categoria}</div></div></div>
       <div style="font-weight:600">$ ${a.totalVentas.toFixed(2)}</div>
-      <div style="font-weight:600">$ ${a.desglose.toFixed(2)}</div>
-      <div style="color:#E30613;font-weight:700">$ ${a.totalCancProd.toFixed(2)}<span style="font-size:8px;display:block">40%=$${a.montoCancel.toFixed(2)}</span></div>
+      <div style="color:#E30613;font-weight:700">$ ${a.totalCancelado.toFixed(2)}</div>
       <div style="color:#16a34a;font-weight:600">$ ${a.pagado.toFixed(2)}</div>
       <div style="color:#d97706;font-weight:600">$ ${a.pendiente.toFixed(2)}</div>
       <div style="font-size:8.5px;line-height:1.2">${ultimo}</div>
