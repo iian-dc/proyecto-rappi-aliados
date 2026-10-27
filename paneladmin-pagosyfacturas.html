@@ -11,7 +11,7 @@ body{background:#f6f8fb;color:#0f172a}
 .header-top{background:white;padding:10px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #e2e8f0;position:sticky;top:0;z-index:20}
 .btn-x{width:34px;height:34px;background:#E30613;border-radius:50%;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer}
 .header-top h1{font-size:15px;font-weight:800}
-.top-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:12px}
+.top-cards{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;padding:12px}
 @media(max-width:900px){.top-cards{grid-template-columns:repeat(2,1fr)}}
 .tcard{background:white;border-radius:12px;border:1px solid #eef2f7;padding:10px 12px;display:flex;gap:10px;align-items:center}
 .ticon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center}
@@ -22,8 +22,8 @@ body{background:#f6f8fb;color:#0f172a}
 .box{background:white;border-radius:12px;border:1px solid #eef2f7;overflow:hidden}
 .filters{display:flex;gap:8px;padding:10px}
 .filters input,.filters select{flex:1;padding:8px 10px;border-radius:8px;border:1px solid #e2e8f0;font-size:11px}
-.table-head{background:#0a1020;color:white;display:grid;grid-template-columns:1.3fr .5fr .5fr .5fr .5fr .6fr .5fr .5fr .6fr;padding:8px 10px;font-size:9px;font-weight:700;text-transform:uppercase;align-items:center}
-.table-row{display:grid;grid-template-columns:1.3fr .5fr .5fr .5fr .5fr .6fr .5fr .5fr .6fr;padding:8px 10px;border-bottom:1px solid #f1f5f9;align-items:center;font-size:10.5px}
+.table-head{background:#0a1020;color:white;display:grid;grid-template-columns:1.3fr .5fr .5fr .5fr .5fr .5fr .6fr .5fr .5fr .6fr;padding:8px 10px;font-size:9px;font-weight:700;text-transform:uppercase;align-items:center}
+.table-row{display:grid;grid-template-columns:1.3fr .5fr .5fr .5fr .5fr .5fr .6fr .5fr .5fr .6fr;padding:8px 10px;border-bottom:1px solid #f1f5f9;align-items:center;font-size:10.5px}
 .aliado{display:flex;gap:8px;align-items:center}
 .aliado-logo{width:32px;height:32px;border-radius:50%;background:#fff1f1;display:flex;align-items:center;justify-content:center;font-weight:800;color:#E30613;border:1px solid #fee2e2;overflow:hidden;flex-shrink:0}
 .aliado-logo img{width:100%;height:100%;object-fit:cover}
@@ -47,8 +47,9 @@ body{background:#f6f8fb;color:#0f172a}
 <div class="top-cards">
 <div class="tcard"><div class="ticon" style="background:#16a34a;color:white">$</div><div><span>Pagos realizados</span><b id="kPagados">$ 0.00</b></div></div>
 <div class="tcard"><div class="ticon" style="background:#f59e0b;color:white">$</div><div><span>Pagos pendientes</span><b id="kPendiente">$ 0.00</b></div></div>
+<div class="tcard"><div class="ticon" style="background:#E30613;color:white">$</div><div><span>Monto Cancelación 40%</span><b id="kCancel">$ 0.00</b></div></div>
 <div class="tcard"><div class="ticon" style="background:#0f172a;color:white">R</div><div><span>Total restaurantes</span><b id="kTotalRest">0</b></div></div>
-<div class="tcard"><div class="ticon" style="background:#E30613;color:white">F</div><div><span>Total facturas pendientes</span><b id="kFactPend">0</b></div></div>
+<div class="tcard"><div class="ticon" style="background:#0f172a;color:white">F</div><div><span>Total facturas pendientes</span><b id="kFactPend">0</b></div></div>
 </div>
 <div class="main">
 <div class="box">
@@ -60,6 +61,7 @@ body{background:#f6f8fb;color:#0f172a}
 <span>Aliado / Restaurante</span>
 <span>Total ventas</span>
 <span>Desglose -10%</span>
+<span>Monto Cancel.</span>
 <span>Pagado</span>
 <span>Pendiente</span>
 <span>Ultimo pago</span>
@@ -75,6 +77,13 @@ body{background:#f6f8fb;color:#0f172a}
 <div class="item-res"><span>Total restaurantes</span><b id="rTotalAli">0</b></div>
 <div class="item-res"><span>Abiertos</span><b id="rAbiertos">0</b></div>
 <div class="item-res"><span>Cerrados</span><b id="rCerrados">0</b></div>
+<div class="item-res" style="background:#f8fafc"><span>Total ingresos (ventas)</span><b id="rIngresos">$ 0.00</b></div>
+<div class="item-res"><span>Total pagado aliados</span><b id="rPagadoAli">$ 0.00</b></div>
+<div class="item-res"><span>Total pendiente pagar</span><b id="rPendiente">$ 0.00</b></div>
+<div class="item-res" style="color:#E30613"><span>Total monto cancelación 40%</span><b id="rMontoCancel">$ 0.00</b></div>
+<div class="item-res" style="background:#fff1f2"><span>Cuánto nos queda (10% + 40%)</span><b id="rNosQueda">$ 0.00</b></div>
+<div class="item-res"><span>Total pedidos cancelados</span><b id="rPedCancel">0</b></div>
+<div class="item-res"><span>Total facturas pendientes</span><b id="rFactPend">0</b></div>
 </div>
 </div>
 </div>
@@ -121,10 +130,25 @@ async function cargarVentasYPagos(){
       const r = p.restaurante || {};
       const id = (r.id || r.nombre || "").toLowerCase();
       if(!id) return;
-      if(!ventasMap[id]) ventasMap[id]={total:0};
-      ventasMap[id].total += Number(p.totales?.costoProductos||0);
+      if(!ventasMap[id]) ventasMap[id]={totalEnt:0, totalCanc:0, total:0, countCanc:0};
+      ventasMap[id].totalEnt += Number(p.totales?.costoProductos||0);
     });
   }catch(e){ console.log(e); }
+  try{
+    const snapC = await getDocs(collection(dbHis, "pedidos_cancelados"));
+    snapC.forEach(d=>{
+      const p = d.data();
+      const r = p.restaurante || {};
+      const id = (r.id || r.nombre || "").toLowerCase();
+      if(!id) return;
+      if(!ventasMap[id]) ventasMap[id]={totalEnt:0, totalCanc:0, total:0, countCanc:0};
+      ventasMap[id].totalCanc += Number(p.totales?.costoProductos||0);
+      ventasMap[id].countCanc += 1;
+    });
+  }catch(e){ console.log(e); }
+  Object.keys(ventasMap).forEach(k=>{
+    ventasMap[k].total = ventasMap[k].totalEnt + ventasMap[k].totalCanc;
+  });
   try{
     const snapP = await getDocs(collection(dbHis, "pagos_aliados"));
     snapP.forEach(d=>{
@@ -134,7 +158,7 @@ async function cargarVentasYPagos(){
       if(!pagosMap[id]) pagosMap[id]={pagado:0, ultimo:"", count:0};
       pagosMap[id].pagado += Number(p.montoPagado||0);
       pagosMap[id].count += 1;
-      if(!pagosMap[id].ultimo || new Date(p.fechaPago) > new Date(pagosMap[id].ultimo)) pagosMap[id].ultimo = p.fechaPago;
+      if(p.fechaPago && (!pagosMap[id].ultimo || new Date(p.fechaPago) > new Date(pagosMap[id].ultimo))) pagosMap[id].ultimo = p.fechaPago;
     });
   }catch(e){ console.log(e); }
 }
@@ -186,11 +210,15 @@ async function iniciarTiempoReal(){
     restaurantes = restaurantes.map(r=>{
       const idLow = r.id.toLowerCase();
       const nombreLow = r.nombre.toLowerCase();
-      let v = ventasMap[idLow] || ventasMap[nombreLow] || {total:0};
+      let v = ventasMap[idLow] || ventasMap[nombreLow] || {totalEnt:0, totalCanc:0, total:0, countCanc:0};
       let p = pagosMap[idLow] || pagosMap[nombreLow] || {pagado:0, ultimo:"", count:0};
-      const desglose = (v.total||0)*0.9;
+      const desgloseEnt = v.totalEnt * 0.9;
+      const desgloseCanc = v.totalCanc * 0.5;
+      const desglose = desgloseEnt + desgloseCanc;
+      const montoCancel = v.totalCanc * 0.4;
+      const comisionNosQueda = (v.totalEnt * 0.10) + (v.totalCanc * 0.10) + montoCancel;
       const pendiente = Math.max(0, desglose - (p.pagado||0));
-      return { ...r, totalVentas: v.total||0, desglose: desglose, pagado: p.pagado||0, pendiente: pendiente, ultimoPago: p.ultimo||"", facturas: p.count||0 };
+      return { ...r, totalVentas: v.total||0, totalEnt: v.totalEnt, totalCanc: v.totalCanc, desglose: desglose, montoCancel: montoCancel, comisionNosQueda: comisionNosQueda, pagado: p.pagado||0, pendiente: pendiente, ultimoPago: p.ultimo||"", facturas: p.count||0, countCanc: v.countCanc||0 };
     });
     aliados = restaurantes;
     filtrados = [...aliados];
@@ -202,13 +230,28 @@ function render(){
   if(filtrados.length===0){ cont.innerHTML='<div style="padding:20px;text-align:center;color:#94a3b8;font-size:11px">No hay restaurantes</div>'; return; }
   const totalPagados = filtrados.reduce((s,a)=>s+a.pagado,0);
   const totalPend = filtrados.reduce((s,a)=>s+a.pendiente,0);
+  const totalCancelMonto = filtrados.reduce((s,a)=>s+a.montoCancel,0);
+  const totalVentas = filtrados.reduce((s,a)=>s+a.totalVentas,0);
+  const totalNosQueda = filtrados.reduce((s,a)=>s+a.comisionNosQueda,0);
+  const totalPedCanc = filtrados.reduce((s,a)=>s+a.countCanc,0);
+
   document.getElementById('kPagados').textContent = "$ "+totalPagados.toFixed(2);
   document.getElementById('kPendiente').textContent = "$ "+totalPend.toFixed(2);
+  document.getElementById('kCancel').textContent = "$ "+totalCancelMonto.toFixed(2);
   document.getElementById('kTotalRest').textContent = filtrados.length;
   document.getElementById('kFactPend').textContent = filtrados.filter(a=>a.pendiente>0).length;
+
   document.getElementById('rTotalAli').textContent = filtrados.length;
   document.getElementById('rAbiertos').textContent = filtrados.filter(a=>a.abierto===true || a.abierto==="true").length;
   document.getElementById('rCerrados').textContent = filtrados.filter(a=>a.abierto===false || a.abierto==="false").length;
+  document.getElementById('rIngresos').textContent = "$ "+totalVentas.toFixed(2);
+  document.getElementById('rPagadoAli').textContent = "$ "+totalPagados.toFixed(2);
+  document.getElementById('rPendiente').textContent = "$ "+totalPend.toFixed(2);
+  document.getElementById('rMontoCancel').textContent = "$ "+totalCancelMonto.toFixed(2);
+  document.getElementById('rNosQueda').textContent = "$ "+totalNosQueda.toFixed(2);
+  document.getElementById('rPedCancel').textContent = totalPedCanc;
+  document.getElementById('rFactPend').textContent = filtrados.filter(a=>a.pendiente>0).length;
+
   cont.innerHTML="";
   filtrados.forEach(a=>{
     const logoHtml = a.logo ? `<img src="${a.logo}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.textContent='${limpiarNombre(a.nombre)[0].toUpperCase()}'">` : limpiarNombre(a.nombre)[0].toUpperCase();
@@ -217,9 +260,10 @@ function render(){
     const badgeClass = estadoAbierto.toLowerCase().includes("abierto") ? "badge-green" : estadoAbierto.toLowerCase().includes("cerrado") ? "badge-red" : "badge-yellow";
     cont.innerHTML+=`
     <div class="table-row">
-      <div class="aliado"><div class="aliado-logo">${logoHtml}</div><div><div style="font-weight:700;font-size:11px;text-transform:capitalize">${limpiarNombre(a.nombre)}</div><div style="font-size:9px;color:#64748b">${a.categoria} ${a.direccion?'- '+a.direccion:''}</div></div></div>
+      <div class="aliado"><div class="aliado-logo">${logoHtml}</div><div><div style="font-weight:700;font-size:11px;text-transform:capitalize">${limpiarNombre(a.nombre)}</div><div style="font-size:9px;color:#64748b">${a.categoria} ${a.direccion?'- '+a.direccion:''} ${a.countCanc>0?'<span style="color:#E30613">('+a.countCanc+' canc)</span>':''}</div></div></div>
       <div style="font-weight:600">$ ${a.totalVentas.toFixed(2)}</div>
       <div style="font-weight:600">$ ${a.desglose.toFixed(2)}</div>
+      <div style="color:#E30613;font-weight:700">$ ${a.montoCancel.toFixed(2)}</div>
       <div style="color:#16a34a;font-weight:600">$ ${a.pagado.toFixed(2)}</div>
       <div style="color:#d97706;font-weight:600">$ ${a.pendiente.toFixed(2)}</div>
       <div style="font-size:10px">${ultimo}</div>
