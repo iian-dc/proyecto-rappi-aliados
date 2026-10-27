@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pagos y Facturas - DoloYa</title>
+<title>Pagos y Facturas</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
@@ -14,7 +14,7 @@ body{background:#f6f8fb;color:#0f172a}
 .top-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:12px}
 @media(max-width:900px){.top-cards{grid-template-columns:repeat(2,1fr)}}
 .tcard{background:white;border-radius:12px;border:1px solid #eef2f7;padding:10px 12px;display:flex;gap:10px;align-items:center}
-.ticon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:14px}
+.ticon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:white;font-weight:800}
 .tcard b{font-size:14px;font-weight:800;display:block}
 .tcard span{font-size:10px;color:#64748b;font-weight:600}
 .main{display:grid;grid-template-columns:1fr 290px;gap:12px;padding:0 12px 20px}
@@ -61,7 +61,7 @@ body{background:#f6f8fb;color:#0f172a}
 <div class="table-head">
 <span>Aliado / Restaurante</span><span>Total ventas</span><span>Desglose -10%</span><span>Pagado</span><span>Pendiente</span><span>Ultimo pago</span><span>Facturas</span><span>Estado</span><span>Acciones</span>
 </div>
-<div id="listaAliados"><div style="padding:20px;text-align:center;color:#94a3b8;font-size:11px">Cargando restaurantes y pagos reales...</div></div>
+<div id="listaAliados"><div style="padding:20px;text-align:center;color:#94a3b8;font-size:11px">Cargando doloya_aliados/admin...</div></div>
 </div>
 
 <div class="right">
@@ -70,8 +70,6 @@ body{background:#f6f8fb;color:#0f172a}
 <div class="item-res"><span>Total restaurantes</span><b id="rTotal">0</b></div>
 <div class="item-res"><span>Abiertos</span><b id="rAbiertos">0</b></div>
 <div class="item-res"><span>Cerrados</span><b id="rCerrados">0</b></div>
-<div class="item-res"><span>Pagos realizados</span><b id="rPagados">$ 0.00</b></div>
-<div class="item-res"><span>Pagos pendientes</span><b id="rPend">$ 0.00</b></div>
 </div>
 </div>
 </div>
@@ -104,106 +102,82 @@ const dbAliados = getDatabase(appAliados);
 const appHis = initializeApp(configHistorial, "hisApp");
 const dbHis = getFirestore(appHis);
 
-let aliados=[];
-let filtrados=[];
-
+let aliados=[]; let filtrados=[];
 function limpiarNombre(s){ return (s||"").replace(/_/g," ").trim(); }
-function formatearFechaHora(f){
+function fechaHora(f){
   if(!f) return "-";
-  try{
-    let d=new Date(f);
-    if(isNaN(d.getTime())) d=new Date(Number(f));
-    if(isNaN(d.getTime())) return "-";
-    return d.toLocaleDateString('es-MX')+" "+d.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'});
-  }catch{ return "-"; }
+  try{ let d=new Date(f); if(isNaN(d.getTime())) d=new Date(Number(f)); if(isNaN(d.getTime())) return "-"; return d.toLocaleDateString('es-MX')+" "+d.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'}); }catch{ return "-"; }
 }
 
 async function cargar(){
-  let mapa={};
-  let ventasMap={};
-  let pagosMap={};
+  let mapa={}; let ventasMap={}; let pagosMap={};
 
-  // 1. Restaurantes de doloya_aliados/admin
-  const snapAdmin = await get(child(ref(dbAliados), "doloya_aliados/admin"));
-  if(snapAdmin.exists()){
-    const data=snapAdmin.val();
-    for(let k in data){
-      const val=data[k];
-      const info=val.info||{};
-      mapa[k]={
-        id: info.id||k,
-        key: k,
-        nombre: info.nombre||limpiarNombre(k),
-        logo: info.imagen||info.logo||"",
-        direccion: info.direccion||"",
-        abierto: val.abierto,
-        estado: val.estado||info.estado||"activo",
-        totalVentas:0,
-        desglose:0,
-        pagado:0,
-        pendiente:0,
-        ultimoPago:"",
-        facturas:0,
-        pedidosPend:0
-      };
-    }
-  }
-
-  // 2. Ventas reales de pedidos_entregados
-  const snapVentas = await getDocs(collection(dbHis, "pedidos_entregados"));
-  snapVentas.forEach(d=>{
-    const p=d.data();
-    const r=p.restaurante||{};
-    const idR=r.id||r.nombre||"";
-    const idLimpio = limpiarNombre(idR).toLowerCase();
-    let keyMatch = null;
-    for(let k in mapa){
-      if(k.toLowerCase()===idR.toLowerCase() || mapa[k].nombre.toLowerCase()===idR.toLowerCase() || limpiarNombre(k).toLowerCase()===idLimpio || mapa[k].nombre.toLowerCase()===idLimpio){
-        keyMatch=k; break;
+  try{
+    const snapAdmin = await get(child(ref(dbAliados), "doloya_aliados/admin"));
+    if(snapAdmin.exists()){
+      const data=snapAdmin.val();
+      for(let k in data){
+        const val=data[k]; const info=val.info||{};
+        mapa[k]={
+          id: info.id||k,
+          key: k,
+          nombre: info.nombre||limpiarNombre(k),
+          logo: info.imagen||info.logo||"",
+          direccion: info.direccion||"",
+          abierto: val.abierto,
+          estado: val.estado||info.estado||"activo",
+          totalVentas:0, desglose:0, pagado:0, pendiente:0, ultimoPago:"", facturas:0
+        };
       }
     }
-    if(keyMatch){
-      if(!ventasMap[keyMatch]) ventasMap[keyMatch]={total:0};
-      ventasMap[keyMatch].total += Number(p.totales?.costoProductos||0);
-    }
-  });
+  }catch(e){ console.log(e); }
 
-  // 3. Pagos reales de pagos_aliados
-  const snapPagos = await getDocs(collection(dbHis, "pagos_aliados"));
-  snapPagos.forEach(d=>{
-    const p=d.data();
-    const idR=p.restauranteId||p.restauranteNombre||"";
-    const idLimpio = limpiarNombre(idR).toLowerCase();
-    let keyMatch=null;
-    for(let k in mapa){
-      if(k.toLowerCase()===idR.toLowerCase() || mapa[k].nombre.toLowerCase()===idR.toLowerCase() || limpiarNombre(k).toLowerCase()===idLimpio){
-        keyMatch=k; break;
+  try{
+    const snapVentas = await getDocs(collection(dbHis, "pedidos_entregados"));
+    snapVentas.forEach(d=>{
+      const p=d.data(); const r=p.restaurante||{}; const idR=(r.id||r.nombre||"").toLowerCase();
+      let key=null;
+      for(let k in mapa){
+        if(k.toLowerCase()===idR || (mapa[k].nombre||"").toLowerCase()===idR || limpiarNombre(k).toLowerCase()===idR){
+          key=k; break;
+        }
       }
-    }
-    if(keyMatch){
-      if(!pagosMap[keyMatch]) pagosMap[keyMatch]={pagado:0, ultimo:"", count:0};
-      pagosMap[keyMatch].pagado += Number(p.montoPagado||0);
-      pagosMap[keyMatch].count += 1;
-      if(!pagosMap[keyMatch].ultimo || new Date(p.fechaPago) > new Date(pagosMap[keyMatch].ultimo)){
-        pagosMap[keyMatch].ultimo = p.fechaPago;
+      if(key){
+        if(!ventasMap[key]) ventasMap[key]={total:0};
+        ventasMap[key].total += Number(p.totales?.costoProductos||0);
       }
-    }
-  });
+    });
+  }catch(e){ console.log(e); }
 
-  // 4. Combinar
+  try{
+    const snapPagos = await getDocs(collection(dbHis, "pagos_aliados"));
+    snapPagos.forEach(d=>{
+      const p=d.data(); const idR=(p.restauranteId||"").toLowerCase();
+      let key=null;
+      for(let k in mapa){
+        if(k.toLowerCase()===idR || (mapa[k].nombre||"").toLowerCase()===idR){
+          key=k; break;
+        }
+      }
+      if(key){
+        if(!pagosMap[key]) pagosMap[key]={pagado:0, ultimo:"", count:0};
+        pagosMap[key].pagado += Number(p.montoPagado||0);
+        pagosMap[key].count += 1;
+        if(!pagosMap[key].ultimo || new Date(p.fechaPago) > new Date(pagosMap[key].ultimo)) pagosMap[key].ultimo=p.fechaPago;
+      }
+    });
+  }catch(e){ console.log(e); }
+
   for(let k in mapa){
-    const v = ventasMap[k]?.total||0;
-    const desglose = v*0.9;
-    const pag = pagosMap[k]?.pagado||0;
-    const pend = Math.max(0, desglose - pag);
+    const v=ventasMap[k]?.total||0;
+    const des=v*0.9;
+    const pag=pagosMap[k]?.pagado||0;
     mapa[k].totalVentas=v;
-    mapa[k].desglose=desglose;
+    mapa[k].desglose=des;
     mapa[k].pagado=pag;
-    mapa[k].pendiente=pend;
+    mapa[k].pendiente=Math.max(0, des-pag);
     mapa[k].ultimoPago=pagosMap[k]?.ultimo||"";
     mapa[k].facturas=pagosMap[k]?.count||0;
-    // pedidos pendientes = ventas sin pagar
-    const totalPedidosRestaurante = Object.values(ventasMap).length;
   }
 
   aliados=Object.values(mapa).sort((a,b)=> a.nombre.toLowerCase().localeCompare(b.nombre.toLowerCase()));
@@ -213,39 +187,34 @@ async function cargar(){
 
 function render(){
   const cont=document.getElementById('listaAliados');
-  if(filtrados.length===0){ cont.innerHTML='<div style="padding:20px;text-align:center;color:#94a3b8;font-size:11px">No hay restaurantes</div>'; return; }
+  if(filtrados.length===0){ cont.innerHTML='<div style="padding:20px;text-align:center;color:#94a3b8;font-size:11px">No hay restaurantes en doloya_aliados/admin</div>'; return; }
 
-  const totalPagados = filtrados.reduce((s,a)=>s+a.pagado,0);
-  const totalPend = filtrados.reduce((s,a)=>s+a.pendiente,0);
-  const totalRest = filtrados.length;
-  const abiertos = filtrados.filter(a=>a.abierto===true).length;
-  const cerrados = filtrados.filter(a=>a.abierto===false).length;
-  const facturasPend = filtrados.reduce((s,a)=> s + (a.totalVentas>0 && a.pendiente>0 ? 1 : 0), 0);
-  // contar pedidos pendientes reales
-  const factPendCount = filtrados.filter(a=>a.pendiente>0).length;
+  const totalPagados=filtrados.reduce((s,a)=>s+a.pagado,0);
+  const totalPend=filtrados.reduce((s,a)=>s+a.pendiente,0);
+  const totalRest=filtrados.length;
+  const abiertos=filtrados.filter(a=>a.abierto===true).length;
+  const cerrados=filtrados.filter(a=>a.abierto===false).length;
+  const factPend=filtrados.filter(a=>a.pendiente>0).length;
 
   document.getElementById('kPagados').textContent="$ "+totalPagados.toFixed(2);
   document.getElementById('kPendiente').textContent="$ "+totalPend.toFixed(2);
   document.getElementById('kTotalRest').textContent=totalRest;
-  document.getElementById('kFactPend').textContent=factPendCount;
-
+  document.getElementById('kFactPend').textContent=factPend;
   document.getElementById('rTotal').textContent=totalRest;
   document.getElementById('rAbiertos').textContent=abiertos;
   document.getElementById('rCerrados').textContent=cerrados;
-  document.getElementById('rPagados').textContent="$ "+totalPagados.toFixed(2);
-  document.getElementById('rPend').textContent="$ "+totalPend.toFixed(2);
 
   cont.innerHTML="";
   filtrados.forEach(a=>{
-    const logoHtml = a.logo ? `<img src="${a.logo}">` : limpiarNombre(a.nombre)[0].toUpperCase();
-    const ultimo = a.ultimoPago ? formatearFechaHora(a.ultimoPago) : "-";
-    const estadoTxt = a.abierto===true ? "Abierto" : a.abierto===false ? "Cerrado" : a.estado;
-    const badgeClass = a.abierto===true ? "badge-green" : "badge-red";
+    const logoHtml=a.logo?`<img src="${a.logo}">`:limpiarNombre(a.nombre)[0].toUpperCase();
+    const ultimo=a.ultimoPago?fechaHora(a.ultimoPago):"-";
+    const estadoTxt=a.abierto===true?"Abierto":a.abierto===false?"Cerrado":a.estado;
+    const badgeClass=a.abierto===true?"badge-green":"badge-red";
     cont.innerHTML+=`
     <div class="table-row">
       <div class="aliado"><div class="aliado-logo">${logoHtml}</div><div><div style="font-weight:700;font-size:11px;text-transform:capitalize">${limpiarNombre(a.nombre)}</div><div style="font-size:9px;color:#64748b">${a.direccion}</div></div></div>
       <div style="font-weight:600">$ ${a.totalVentas.toFixed(2)}</div>
-      <div style="font-weight:600;color:#0f172a">$ ${a.desglose.toFixed(2)}</div>
+      <div style="font-weight:600">$ ${a.desglose.toFixed(2)}</div>
       <div style="color:#16a34a;font-weight:600">$ ${a.pagado.toFixed(2)}</div>
       <div style="color:#d97706;font-weight:600">$ ${a.pendiente.toFixed(2)}</div>
       <div style="font-size:10px">${ultimo}</div>
@@ -260,7 +229,7 @@ window.filtrar=()=>{
   const txt=document.getElementById('buscar').value.toLowerCase();
   const est=document.getElementById('fEstado').value;
   filtrados=aliados.filter(a=>{
-    const matchTxt = limpiarNombre(a.nombre).toLowerCase().includes(txt) || a.key.toLowerCase().includes(txt);
+    const matchTxt=limpiarNombre(a.nombre).toLowerCase().includes(txt) || a.key.toLowerCase().includes(txt);
     let matchEst=true;
     if(est==="abierto") matchEst=a.abierto===true;
     else if(est==="cerrado") matchEst=a.abierto===false;
