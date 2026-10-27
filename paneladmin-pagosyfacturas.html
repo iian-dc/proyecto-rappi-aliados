@@ -77,7 +77,7 @@ body{background:#f6f8fb;color:#0f172a}
 <div class="item-res" style="color:#E30613"><span>Total cancelado (negativo)</span><b id="rCancelNeg">- $ 0.00</b></div>
 <div class="item-res" style="color:#d97706"><span>Total pendiente por pagar (negativo)</span><b id="rPendNeg">- $ 0.00</b></div>
 <div class="item-res" style="color:#16a34a"><span>Total pagado (restado)</span><b id="rPagadoNeg">- $ 0.00</b></div>
-<div class="item-res" style="background:#0f172a;color:white"><span>Total balance</span><b id="rBalance">$ 0.00</b></div>
+<div class="item-res" id="rowBalance" style="background:#0f172a;color:white"><span>Total balance</span><b id="rBalance">$ 0.00</b></div>
 <div class="item-res"><span>Total pedidos</span><b id="rTotalPed">0</b></div>
 <div class="item-res"><span>Total pedidos entregados</span><b id="rPedEnt">0</b></div>
 <div class="item-res"><span>Total pedidos cancelados</span><b id="rPedCancel">0</b></div>
@@ -228,7 +228,7 @@ function render(){
   const totalVentas = filtrados.reduce((s,a)=>s+a.totalVentas,0);
   const totalPedCanc = filtrados.reduce((s,a)=>s+a.countCanc,0);
   const totalPedEnt = filtrados.reduce((s,a)=>s+a.countEnt,0);
-  const balance = totalVentas - totalCancelado - totalPagados - totalPend;
+  const balance = totalVentas - totalPend - totalPagados;
 
   document.getElementById('kPagados').textContent = "$ "+totalPagados.toFixed(2);
   document.getElementById('kPendiente').textContent = "$ "+totalPend.toFixed(2);
@@ -240,7 +240,20 @@ function render(){
   document.getElementById('rCancelNeg').textContent = "- $ "+totalCancelado.toFixed(2);
   document.getElementById('rPendNeg').textContent = "- $ "+totalPend.toFixed(2);
   document.getElementById('rPagadoNeg').textContent = "- $ "+totalPagados.toFixed(2);
-  document.getElementById('rBalance').textContent = "$ "+balance.toFixed(2);
+  
+  const balanceEl = document.getElementById('rBalance');
+  const rowBalance = document.getElementById('rowBalance');
+  balanceEl.textContent = "$ "+balance.toFixed(2);
+  if(balance >= 0){
+    rowBalance.style.background = "#00ff6a";
+    rowBalance.style.color = "#065f29";
+    rowBalance.style.boxShadow = "0 0 8px rgba(0,255,106,.6)";
+  } else {
+    rowBalance.style.background = "#fee2e2";
+    rowBalance.style.color = "#991b1b";
+    rowBalance.style.boxShadow = "0 0 8px rgba(239,68,68,.5)";
+  }
+
   document.getElementById('rTotalPed').textContent = totalPedEnt + totalPedCanc;
   document.getElementById('rPedEnt').textContent = totalPedEnt;
   document.getElementById('rPedCancel').textContent = totalPedCanc;
