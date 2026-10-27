@@ -174,20 +174,19 @@ function limpiarNombre(str){
 
 async function cargarRestaurante(){
   try{
-    // 1. Intento directo exacto como está en tu foto: doloya_aliados/admin/las_tortas_de_migue
     const snapDirecto = await get(child(ref(dbAliados), "doloya_aliados/admin/"+idRest));
     if(snapDirecto.exists()){
       const val = snapDirecto.val();
       const info = val.info || val;
+      const logo = info.imagen || info.logo || info.logoUrl || info.foto || info.imagenUrl || info.image || val.imagen || val.logo || "";
       restaurante={
         id: info.id || idRest,
         nombre: info.nombre || limpiarNombre(idRest),
-        logo: info.imagen || info.logo || "",
-        direccion: info.direccion || "",
+        logo: logo,
+        direccion: info.direccion || val.direccion || "",
         categoria: info.categoria || ""
       };
     } else {
-      // 2. Si no, recorre todos y busca por id o nombre ignorando _
       const snapRoot = await get(child(ref(dbAliados), "doloya_aliados/admin"));
       if(snapRoot.exists()){
         const data = snapRoot.val();
@@ -199,11 +198,12 @@ async function cargarRestaurante(){
           const idInfo = (info.id||k).toLowerCase();
           const kLimpio = limpiarNombre(k).toLowerCase();
           if(idInfo===idRest.toLowerCase() || k.toLowerCase()===idRest.toLowerCase() || nombreInfo===idRest.toLowerCase() || nombreInfo===idLimpio || kLimpio===idLimpio){
+            const logo = info.imagen || info.logo || info.logoUrl || info.foto || info.imagenUrl || val.imagen || val.logo || "";
             restaurante={
               id: info.id || k,
               nombre: info.nombre || limpiarNombre(k),
-              logo: info.imagen || info.logo || "",
-              direccion: info.direccion || "",
+              logo: logo,
+              direccion: info.direccion || val.direccion || "",
               categoria: info.categoria || ""
             };
             break;
@@ -215,8 +215,8 @@ async function cargarRestaurante(){
     if(restaurante){
       document.getElementById('nombreRest').textContent = limpiarNombre(restaurante.nombre);
       document.getElementById('direccionRest').textContent = restaurante.direccion || "Sin dirección";
-      if(restaurante.logo){
-        document.getElementById('logoRest').innerHTML = `<img src="${restaurante.logo}" alt="logo">`;
+      if(restaurante.logo && restaurante.logo.length > 5){
+        document.getElementById('logoRest').innerHTML = `<img src="${restaurante.logo}" alt="logo" onerror="this.outerHTML='${limpiarNombre(restaurante.nombre)[0].toUpperCase()}'">`;
       } else {
         document.getElementById('logoRest').textContent = limpiarNombre(restaurante.nombre)[0].toUpperCase();
       }
@@ -358,10 +358,13 @@ window.verFactura = (idDoc)=>{
     </div>
   </div>`;
 
-  // AHORA LA FACTURA SUBIDA ABAJO, NO ARRIBA
   let htmlSubida="";
-  if(p.facturaSubidaUrl){
-    htmlSubida=`<div class="upload-preview"><div style="font-size:11px;font-weight:700;margin-bottom:6px">Factura subida por ti:</div><img src="${p.facturaSubidaUrl}" style="max-width:100%;max-height:500px;object-fit:contain"></div>`;
+  if(p.facturaSubidaUrl && p.facturaSubidaUrl.length > 10){
+    if(p.facturaSubidaUrl.startsWith("data:") || p.facturaSubidaUrl.includes(".jpg") || p.facturaSubidaUrl.includes(".png") || p.facturaSubidaUrl.includes(".jpeg") || p.facturaSubidaUrl.includes("firebasestorage")){
+       htmlSubida=`<div class="upload-preview"><div style="font-size:11px;font-weight:700;margin-bottom:6px">Factura subida por ti - ${p.facturaSubidaNombre||''}:</div><img src="${p.facturaSubidaUrl}" style="max-width:100%;max-height:600px;object-fit:contain;border-radius:8px"></div>`;
+    } else {
+       htmlSubida=`<div class="upload-preview"><div style="font-size:11px;font-weight:700;margin-bottom:6px">Factura subida:</div><a href="${p.facturaSubidaUrl}" target="_blank" style="font-size:11px;color:#E30613;font-weight:700">Ver archivo ${p.facturaSubidaNombre||''}</a></div>`;
+    }
   } else {
     htmlSubida=`<div class="upload-preview" style="text-align:center;color:#94a3b8;font-size:11px">No hay factura subida aún. Usa el botón Subir factura.</div>`;
   }
@@ -394,13 +397,10 @@ window.subirFactura = (idDoc)=>{
 document.getElementById('fileInput').addEventListener('change', async (e)=>{
   const file=e.target.files[0];
   if(!file || !facturaParaSubir) return;
-
   try{
-    // Convertir a URL comprimida para que no pese tanto
     const reader = new FileReader();
     reader.onload = async ()=>{
       let base64 = reader.result;
-      // Si es imagen, comprimir a 800px ancho
       if(file.type.startsWith("image/")){
         const img = new Image();
         img.onload = async ()=>{
@@ -412,37 +412,35 @@ document.getElementById('fileInput').addEventListener('change', async (e)=>{
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img,0,0,canvas.width,canvas.height);
           const compressed = canvas.toDataURL('image/jpeg', 0.7);
-
-          // Subir comprimida a Storage para obtener URL ligera
+          let urlFinal = compressed;
           try{
             const blob = await (await fetch(compressed)).blob();
             const storageRef = sRef(storageAliados, `facturas/${idRest}/${facturaParaSubir}/${Date.now()}.jpg`);
             await uploadBytes(storageRef, blob);
-            const url = await getDownloadURL(storageRef);
-            await setDoc(doc(dbHis, "pagos_aliados", facturaParaSubir), {
-              facturaSubidaUrl: url,
-              facturaSubidaNombre: file.name,
-              restauranteId: idRest,
-              restauranteNombre: restaurante?.nombre||idRest,
-              factura: pedidos.find(x=>x.idDoc===facturaParaSubir)?.facturaNum||"",
-              fechaSubida: new Date().toISOString()
-            }, {merge:true});
-          }catch{
-            // Fallback guarda base64 comprimido
-            await setDoc(doc(dbHis, "pagos_aliados", facturaParaSubir), {
-              facturaSubidaUrl: compressed,
-              facturaSubidaNombre: file.name,
-              restauranteId: idRest,
-              factura: pedidos.find(x=>x.idDoc===facturaParaSubir)?.facturaNum||"",
-              fechaSubida: new Date().toISOString()
-            }, {merge:true});
+            urlFinal = await getDownloadURL(storageRef);
+          }catch(err){ console.log("Storage fallback base64", err); }
+          
+          await setDoc(doc(dbHis, "pagos_aliados", facturaParaSubir), {
+            facturaSubidaUrl: urlFinal,
+            facturaSubidaNombre: file.name,
+            restauranteId: idRest,
+            restauranteNombre: restaurante?.nombre||idRest,
+            factura: pedidos.find(x=>x.idDoc===facturaParaSubir)?.facturaNum||"",
+            fechaSubida: new Date().toISOString()
+          }, {merge:true});
+
+          const idx = pedidos.findIndex(x=>x.idDoc===facturaParaSubir);
+          if(idx>=0){ pedidos[idx].facturaSubidaUrl = urlFinal; pedidos[idx].facturaSubidaNombre = file.name; }
+
+          alert("Factura subida correctamente - Ahora dale a Ver factura y la verás abajo");
+          if(pedidoActual && pedidoActual.idDoc===facturaParaSubir){
+             verFactura(facturaParaSubir);
+          } else {
+             cargarPedidos();
           }
-          alert("Factura subida correctamente");
-          cargarPedidos();
         };
         img.src = base64;
       } else {
-        // PDF u otro
         const storageRef = sRef(storageAliados, `facturas/${idRest}/${facturaParaSubir}/${file.name}`);
         await uploadBytes(storageRef, file);
         const url = await getDownloadURL(storageRef);
@@ -453,6 +451,8 @@ document.getElementById('fileInput').addEventListener('change', async (e)=>{
           factura: pedidos.find(x=>x.idDoc===facturaParaSubir)?.facturaNum||"",
           fechaSubida: new Date().toISOString()
         }, {merge:true});
+        const idx = pedidos.findIndex(x=>x.idDoc===facturaParaSubir);
+        if(idx>=0){ pedidos[idx].facturaSubidaUrl = url; pedidos[idx].facturaSubidaNombre = file.name; }
         alert("Factura subida");
         cargarPedidos();
       }
