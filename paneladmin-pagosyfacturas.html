@@ -22,8 +22,8 @@ body{background:#f6f8fb;color:#0f172a}
 .box{background:white;border-radius:12px;border:1px solid #eef2f7;overflow:hidden}
 .filters{display:flex;gap:8px;padding:10px}
 .filters input,.filters select{flex:1;padding:8px 10px;border-radius:8px;border:1px solid #e2e8f0;font-size:11px}
-.table-head{background:#0a1020;color:white;display:grid;grid-template-columns:1.3fr .55fr .55fr .55fr .65fr .65fr .55fr .5fr .6fr;padding:8px 10px;font-size:9px;font-weight:700;text-transform:uppercase}
-.table-row{display:grid;grid-template-columns:1.3fr .55fr .55fr .55fr .65fr .65fr .55fr .5fr .6fr;padding:8px 10px;border-bottom:1px solid #f1f5f9;align-items:center;font-size:10.5px}
+.table-head{background:#0a1020;color:white;display:grid;grid-template-columns:1.3fr .5fr .5fr .5fr .5fr .6fr .45fr .5fr .6fr;padding:8px 10px;font-size:9px;font-weight:700;text-transform:uppercase}
+.table-row{display:grid;grid-template-columns:1.3fr .5fr .5fr .5fr .5fr .6fr .45fr .5fr .6fr;padding:8px 10px;border-bottom:1px solid #f1f5f9;align-items:center;font-size:10.5px}
 .aliado{display:flex;gap:8px;align-items:center}
 .aliado-logo{width:32px;height:32px;border-radius:50%;background:#fff1f1;display:flex;align-items:center;justify-content:center;font-weight:800;color:#E30613;border:1px solid #fee2e2;overflow:hidden;flex-shrink:0}
 .aliado-logo img{width:100%;height:100%;object-fit:cover}
@@ -45,14 +45,13 @@ body{background:#f6f8fb;color:#0f172a}
 <button class="btn-x" onclick="location.href='paneladmin.html'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
 <div style="width:2px;height:16px;background:#E30613"></div>
 <h1>Pagos y Facturas</h1>
-<span id="estadoLive" style="margin-left:auto;font-size:10px;color:#16a34a;font-weight:700">● En vivo</span>
 </div>
 
 <div class="top-cards">
-<div class="tcard"><div class="ticon" style="background:#E30613;color:white">$</div><div><span>Total por pagar</span><b id="kTotalPagar">$ 0.00</b></div></div>
-<div class="tcard"><div class="ticon" style="background:#16a34a;color:white">✓</div><div><span>Pagos realizados</span><b id="kPagados">$ 0.00</b></div></div>
-<div class="tcard"><div class="ticon" style="background:#f59e0b;color:white">◷</div><div><span>Pendientes</span><b id="kPendiente">$ 0.00</b></div></div>
-<div class="tcard"><div class="ticon" style="background:#0f172a;color:white">F</div><div><span>Total restaurantes</span><b id="kFacturas">0</b></div></div>
+<div class="tcard"><div class="ticon" style="background:#16a34a;color:white">$</div><div><span>Pagos realizados</span><b id="kPagados">$ 0.00</b></div></div>
+<div class="tcard"><div class="ticon" style="background:#f59e0b;color:white">$</div><div><span>Pagos pendientes</span><b id="kPendiente">$ 0.00</b></div></div>
+<div class="tcard"><div class="ticon" style="background:#0f172a;color:white">R</div><div><span>Total restaurantes</span><b id="kTotalRest">0</b></div></div>
+<div class="tcard"><div class="ticon" style="background:#E30613;color:white">F</div><div><span>Total facturas pendientes</span><b id="kFactPend">0</b></div></div>
 </div>
 
 <div class="main">
@@ -62,7 +61,7 @@ body{background:#f6f8fb;color:#0f172a}
 <select id="fEstado" onchange="filtrar()"><option value="todos">Todos los estados</option><option value="abierto">Abierto</option><option value="cerrado">Cerrado</option><option value="activo">Activo</option></select>
 </div>
 <div class="table-head">
-<span>Aliado / Restaurante</span><span>Total ventas</span><span>Pagado</span><span>Pendiente</span><span>Ultimo pago</span><span>Fecha registro</span><span>Factura</span><span>Estado</span><span>Acciones</span>
+<span>Aliado / Restaurante</span><span>Total ventas</span><span>Desglose -10%</span><span>Pagado</span><span>Pendiente</span><span>Ultimo pago</span><span>Facturas</span><span>Estado</span><span>Acciones</span>
 </div>
 <div id="listaAliados"><div style="padding:20px;text-align:center;color:#94a3b8;font-size:11px">Conectando en tiempo real a doloya-aliados...</div></div>
 </div>
@@ -108,33 +107,49 @@ const dbHis = getFirestore(appHis);
 let aliados = [];
 let filtrados = [];
 let ventasMap = {};
+let pagosMap = {};
 
-async function cargarVentas(){
+function limpiarNombre(s){ return (s||"").replace(/_/g," ").trim(); }
+function fechaHora(f){
+  if(!f) return "-";
+  try{ let d=new Date(f); if(isNaN(d.getTime())) d=new Date(Number(f)); if(isNaN(d.getTime())) return "-"; return d.toLocaleDateString('es-MX')+" "+d.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'}); }catch{ return "-"; }
+}
+
+async function cargarVentasYPagos(){
   ventasMap = {};
+  pagosMap = {};
   try{
     const snapE = await getDocs(collection(dbHis, "pedidos_entregados"));
     snapE.forEach(d=>{
       const p = d.data();
       const r = p.restaurante || {};
-      const id = r.id || r.nombre || "";
+      const id = (r.id || r.nombre || "").toLowerCase();
       if(!id) return;
-      if(!ventasMap[id]) ventasMap[id]={total:0, ultimo:""};
+      if(!ventasMap[id]) ventasMap[id]={total:0};
       ventasMap[id].total += Number(p.totales?.costoProductos||0);
-      ventasMap[id].ultimo = p.timestamp || ventasMap[id].ultimo;
+    });
+  }catch(e){ console.log(e); }
+  try{
+    const snapP = await getDocs(collection(dbHis, "pagos_aliados"));
+    snapP.forEach(d=>{
+      const p = d.data();
+      const id = (p.restauranteId || p.restauranteNombre || "").toLowerCase();
+      if(!id) return;
+      if(!pagosMap[id]) pagosMap[id]={pagado:0, ultimo:"", count:0};
+      pagosMap[id].pagado += Number(p.montoPagado||0);
+      pagosMap[id].count += 1;
+      if(!pagosMap[id].ultimo || new Date(p.fechaPago) > new Date(pagosMap[id].ultimo)) pagosMap[id].ultimo = p.fechaPago;
     });
   }catch(e){ console.log(e); }
 }
 
 function extraerRestaurantes(data){
   let lista = [];
-  // Tu estructura real: doloya_aliados / admin / las_tortas_de_migue
-  // Y también puede haber otros niveles, así que recorremos recursivo
   function recorrer(obj, path=""){
     if(!obj || typeof obj!=="object") return;
-    // Si este objeto tiene info con nombre e imagen, es un restaurante
     if(obj.info && obj.info.nombre){
       const info = obj.info;
-      const abierto = obj.abierto !== undefined ? obj.abierto : obj.info.abierto;
+      const abierto = obj.abierto !== undefined ? obj.abierto : info.abierto;
       const estado = obj.estado || info.estado || "activo";
       lista.push({
         id: info.id || path.split("/").pop() || "sin_id",
@@ -142,8 +157,6 @@ function extraerRestaurantes(data){
         logo: info.imagen || info.logo || "",
         categoria: info.categoria || "",
         direccion: info.direccion || "",
-        telefono: info.telefono || "",
-        correo: info.correo || "",
         fechaRegistro: info.creado || "",
         estado: estado,
         abierto: abierto,
@@ -151,24 +164,20 @@ function extraerRestaurantes(data){
       });
       return;
     }
-    // Si es un contenedor de restaurantes (ej: admin tiene muchos hijos)
     Object.entries(obj).forEach(([k,v])=>{
       if(typeof v==="object" && v!==null){
-        // Evitar config_global
         if(k==="config_global" || k==="config-global") return;
         recorrer(v, path ? path+"/"+k : k);
       }
     });
   }
-
   recorrer(data);
   return lista;
 }
 
 async function iniciarTiempoReal(){
-  await cargarVentas();
+  await cargarVentasYPagos();
 
-  // ESCUCHA EN TIEMPO REAL TODA LA BASE doloya_aliados
   const refRoot = ref(dbAliados, "doloya_aliados");
   onValue(refRoot, (snapshot)=>{
     if(!snapshot.exists()){
@@ -178,32 +187,34 @@ async function iniciarTiempoReal(){
     const data = snapshot.val();
     let restaurantes = extraerRestaurantes(data);
 
-    // Eliminar duplicados por id
     const unicos = {};
-    restaurantes.forEach(r=>{
-      if(!unicos[r.id]) unicos[r.id]=r;
-    });
+    restaurantes.forEach(r=>{ if(!unicos[r.id]) unicos[r.id]=r; });
     restaurantes = Object.values(unicos);
-
-    // Orden alfabético como pediste
     restaurantes.sort((a,b)=> a.nombre.toLowerCase().localeCompare(b.nombre.toLowerCase()));
 
-    // Agregar ventas (si tiene, si no 0 igual aparece)
     restaurantes = restaurantes.map(r=>{
-      const v = ventasMap[r.id] || ventasMap[r.nombre] || {total:0, ultimo:""};
-      // Buscar también por nombre en minúsculas
-      let ventaMatch = v;
+      const idLow = r.id.toLowerCase();
+      const nombreLow = r.nombre.toLowerCase();
+      let v = ventasMap[idLow] || ventasMap[nombreLow] || {total:0};
       if(v.total===0){
-        const keyVenta = Object.keys(ventasMap).find(k=> k.toLowerCase()===r.nombre.toLowerCase() || k.toLowerCase()===r.id.toLowerCase());
-        if(keyVenta) ventaMatch = ventasMap[keyVenta];
+        const keyVenta = Object.keys(ventasMap).find(k=> k===nombreLow || k===limpiarNombre(nombreLow));
+        if(keyVenta) v = ventasMap[keyVenta];
       }
+      let p = pagosMap[idLow] || pagosMap[nombreLow] || {pagado:0, ultimo:"", count:0};
+      if(p.pagado===0){
+        const keyPago = Object.keys(pagosMap).find(k=> k===nombreLow);
+        if(keyPago) p = pagosMap[keyPago];
+      }
+      const desglose = (v.total||0)*0.9;
+      const pendiente = Math.max(0, desglose - (p.pagado||0));
       return {
         ...r,
-        totalVentas: ventaMatch.total || 0,
-        pagado: (ventaMatch.total || 0)*0.7,
-        pendiente: (ventaMatch.total || 0)*0.3,
-        ultimoPago: ventaMatch.ultimo || "",
-        factura: "F-00"+Math.floor(1000+Math.random()*9000)
+        totalVentas: v.total||0,
+        desglose: desglose,
+        pagado: p.pagado||0,
+        pendiente: pendiente,
+        ultimoPago: p.ultimo||"",
+        facturas: p.count||0
       };
     });
 
@@ -217,36 +228,38 @@ function render(){
   const cont = document.getElementById('listaAliados');
   if(filtrados.length===0){ cont.innerHTML='<div style="padding:20px;text-align:center;color:#94a3b8;font-size:11px">No hay restaurantes</div>'; return; }
 
-  document.getElementById('kFacturas').textContent = filtrados.length;
-  document.getElementById('rTotalAli').textContent = filtrados.length;
+  const totalPagados = filtrados.reduce((s,a)=>s+a.pagado,0);
+  const totalPend = filtrados.reduce((s,a)=>s+a.pendiente,0);
+  const totalRest = filtrados.length;
+  const factPend = filtrados.filter(a=>a.pendiente>0).length;
+
+  document.getElementById('kPagados').textContent = "$ "+totalPagados.toFixed(2);
+  document.getElementById('kPendiente').textContent = "$ "+totalPend.toFixed(2);
+  document.getElementById('kTotalRest').textContent = totalRest;
+  document.getElementById('kFactPend').textContent = factPend;
+
+  document.getElementById('rTotalAli').textContent = totalRest;
   document.getElementById('rAbiertos').textContent = filtrados.filter(a=>a.abierto===true || a.abierto==="true").length;
   document.getElementById('rCerrados').textContent = filtrados.filter(a=>a.abierto===false || a.abierto==="false").length;
 
-  const totalPagar = filtrados.reduce((s,a)=>s+a.pendiente,0);
-  const totalPagado = filtrados.reduce((s,a)=>s+a.pagado,0);
-  document.getElementById('kTotalPagar').textContent = "$ "+totalPagar.toFixed(2);
-  document.getElementById('kPagados').textContent = "$ "+totalPagado.toFixed(2);
-  document.getElementById('kPendiente').textContent = "$ "+totalPagar.toFixed(2);
-
   cont.innerHTML="";
   filtrados.forEach(a=>{
-    const logoHtml = a.logo ? `<img src="${a.logo}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.textContent='${a.nombre[0].toUpperCase()}'">` : a.nombre[0].toUpperCase();
-    const ultimo = a.ultimoPago ? new Date(a.ultimoPago).toLocaleDateString() : "-";
-    const registro = a.fechaRegistro ? new Date(a.fechaRegistro).toLocaleDateString() : "-";
+    const logoHtml = a.logo ? `<img src="${a.logo}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.textContent='${limpiarNombre(a.nombre)[0].toUpperCase()}'">` : limpiarNombre(a.nombre)[0].toUpperCase();
+    const ultimo = a.ultimoPago ? fechaHora(a.ultimoPago) : "-";
     const estadoAbierto = a.abierto===true || a.abierto==="true" ? "Abierto" : a.abierto===false || a.abierto==="false" ? "Cerrado" : a.estado;
     const badgeClass = estadoAbierto.toLowerCase().includes("abierto") ? "badge-green" : estadoAbierto.toLowerCase().includes("cerrado") ? "badge-red" : "badge-yellow";
 
     cont.innerHTML+=`
     <div class="table-row">
-      <div class="aliado"><div class="aliado-logo">${logoHtml}</div><div><div style="font-weight:700;font-size:11px">${a.nombre}</div><div style="font-size:9px;color:#64748b">${a.categoria} ${a.direccion?'- '+a.direccion:''}</div></div></div>
+      <div class="aliado"><div class="aliado-logo">${logoHtml}</div><div><div style="font-weight:700;font-size:11px;text-transform:capitalize">${limpiarNombre(a.nombre)}</div><div style="font-size:9px;color:#64748b">${a.categoria} ${a.direccion?'- '+a.direccion:''}</div></div></div>
       <div style="font-weight:600">$ ${a.totalVentas.toFixed(2)}</div>
+      <div style="font-weight:600;color:#0f172a">$ ${a.desglose.toFixed(2)}</div>
       <div style="color:#16a34a;font-weight:600">$ ${a.pagado.toFixed(2)}</div>
       <div style="color:#d97706;font-weight:600">$ ${a.pendiente.toFixed(2)}</div>
       <div style="font-size:10px">${ultimo}</div>
-      <div style="font-size:10px">${registro}</div>
-      <div style="font-size:10px">${a.factura}</div>
+      <div style="font-size:10px">${a.facturas}</div>
       <div><span class="badge ${badgeClass}">${estadoAbierto}</span></div>
-      <div><button class="btn-ver" onclick="location.href='paneladmin-aliado-detalle.html?id=${a.id}'">Consultar</button></div>
+      <div><button class="btn-ver" onclick="location.href='paneladmin-pagosyfacturas-consultar.html?id=${a.id}'">Consultar</button></div>
     </div>`;
   });
 }
