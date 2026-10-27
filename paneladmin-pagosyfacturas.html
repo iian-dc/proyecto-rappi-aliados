@@ -22,8 +22,8 @@ body{background:#f6f8fb;color:#0f172a}
 .box{background:white;border-radius:12px;border:1px solid #eef2f7;overflow:hidden}
 .filters{display:flex;gap:8px;padding:10px}
 .filters input,.filters select{flex:1;padding:8px 10px;border-radius:8px;border:1px solid #e2e8f0;font-size:11px}
-.table-head{background:#0a1020;color:white;display:grid;grid-template-columns:1.3fr .5fr .5fr .5fr .5fr .6fr .45fr .5fr .6fr;padding:8px 10px;font-size:9px;font-weight:700;text-transform:uppercase}
-.table-row{display:grid;grid-template-columns:1.3fr .5fr .5fr .5fr .5fr .6fr .45fr .5fr .6fr;padding:8px 10px;border-bottom:1px solid #f1f5f9;align-items:center;font-size:10.5px}
+.table-head{background:#0a1020;color:white;display:grid;grid-template-columns:1.3fr .5fr .5fr .5fr .5fr .6fr .5fr .5fr .6fr;padding:8px 10px;font-size:9px;font-weight:700;text-transform:uppercase;align-items:center}
+.table-row{display:grid;grid-template-columns:1.3fr .5fr .5fr .5fr .5fr .6fr .5fr .5fr .6fr;padding:8px 10px;border-bottom:1px solid #f1f5f9;align-items:center;font-size:10.5px}
 .aliado{display:flex;gap:8px;align-items:center}
 .aliado-logo{width:32px;height:32px;border-radius:50%;background:#fff1f1;display:flex;align-items:center;justify-content:center;font-weight:800;color:#E30613;border:1px solid #fee2e2;overflow:hidden;flex-shrink:0}
 .aliado-logo img{width:100%;height:100%;object-fit:cover}
@@ -33,10 +33,9 @@ body{background:#f6f8fb;color:#0f172a}
 .badge-red{background:#fee2e2;color:#991b1b}
 .btn-ver{border:1px solid #E30613;color:#E30613;background:white;padding:4px 9px;border-radius:999px;font-size:10px;font-weight:700;cursor:pointer}
 .right{display:flex;flex-direction:column;gap:12px}
-.resumen,.filtros{padding:12px}
-.resumen h3,.filtros h3{font-size:11px;font-weight:800;margin-bottom:8px}
+.resumen{padding:12px}
+.resumen h3{font-size:11px;font-weight:800;margin-bottom:8px}
 .item-res{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f1f5f9;font-size:11px}
-.btn-red{width:100%;background:#E30613;color:white;border:none;padding:9px;border-radius:8px;font-weight:700;font-size:11px;cursor:pointer}
 </style>
 </head>
 <body>
@@ -61,7 +60,15 @@ body{background:#f6f8fb;color:#0f172a}
 <select id="fEstado" onchange="filtrar()"><option value="todos">Todos los estados</option><option value="abierto">Abierto</option><option value="cerrado">Cerrado</option><option value="activo">Activo</option></select>
 </div>
 <div class="table-head">
-<span>Aliado / Restaurante</span><span>Total ventas</span><span>Desglose -10%</span><span>Pagado</span><span>Pendiente</span><span>Ultimo pago</span><span style="text-align:center">Facturas</span><span>Estado</span><span>Acciones</span>
+<span>Aliado / Restaurante</span>
+<span>Total ventas</span>
+<span>Desglose -10%</span>
+<span>Pagado</span>
+<span>Pendiente</span>
+<span>Ultimo pago</span>
+<span style="text-align:center;justify-self:center">Facturas</span>
+<span>Estado</span>
+<span>Acciones</span>
 </div>
 <div id="listaAliados"><div style="padding:20px;text-align:center;color:#94a3b8;font-size:11px">Conectando en tiempo real a doloya-aliados...</div></div>
 </div>
@@ -132,7 +139,7 @@ async function cargarVentasYPagos(){
     const snapP = await getDocs(collection(dbHis, "pagos_aliados"));
     snapP.forEach(d=>{
       const p = d.data();
-      const id = (p.restauranteId || "").toLowerCase() || (p.restauranteNombre||"").toLowerCase();
+      const id = (p.restauranteId || p.restauranteNombre || "").toLowerCase();
       if(!id) return;
       if(!pagosMap[id]) pagosMap[id]={pagado:0, ultimo:"", count:0};
       pagosMap[id].pagado += Number(p.montoPagado||0);
@@ -153,15 +160,13 @@ function extraerRestaurantes(data){
       const keyReal = path.split("/").pop();
       lista.push({
         id: keyReal,
-        idInfo: info.id || keyReal,
         nombre: info.nombre || limpiarNombre(keyReal),
         logo: info.imagen || info.logo || "",
         categoria: info.categoria || "",
         direccion: info.direccion || "",
         fechaRegistro: info.creado || "",
         estado: estado,
-        abierto: abierto,
-        rawPath: path
+        abierto: abierto
       });
       return;
     }
@@ -198,15 +203,7 @@ async function iniciarTiempoReal(){
       let p = pagosMap[idLow] || pagosMap[nombreLow] || {pagado:0, ultimo:"", count:0};
       const desglose = (v.total||0)*0.9;
       const pendiente = Math.max(0, desglose - (p.pagado||0));
-      return {
-        ...r,
-        totalVentas: v.total||0,
-        desglose: desglose,
-        pagado: p.pagado||0,
-        pendiente: pendiente,
-        ultimoPago: p.ultimo||"",
-        facturas: p.count||0
-      };
+      return { ...r, totalVentas: v.total||0, desglose: desglose, pagado: p.pagado||0, pendiente: pendiente, ultimoPago: p.ultimo||"", facturas: p.count||0 };
     });
 
     aliados = restaurantes;
@@ -221,15 +218,13 @@ function render(){
 
   const totalPagados = filtrados.reduce((s,a)=>s+a.pagado,0);
   const totalPend = filtrados.reduce((s,a)=>s+a.pendiente,0);
-  const totalRest = filtrados.length;
-  const factPend = filtrados.filter(a=>a.pendiente>0).length;
 
   document.getElementById('kPagados').textContent = "$ "+totalPagados.toFixed(2);
   document.getElementById('kPendiente').textContent = "$ "+totalPend.toFixed(2);
-  document.getElementById('kTotalRest').textContent = totalRest;
-  document.getElementById('kFactPend').textContent = factPend;
+  document.getElementById('kTotalRest').textContent = filtrados.length;
+  document.getElementById('kFactPend').textContent = filtrados.filter(a=>a.pendiente>0).length;
 
-  document.getElementById('rTotalAli').textContent = totalRest;
+  document.getElementById('rTotalAli').textContent = filtrados.length;
   document.getElementById('rAbiertos').textContent = filtrados.filter(a=>a.abierto===true || a.abierto==="true").length;
   document.getElementById('rCerrados').textContent = filtrados.filter(a=>a.abierto===false || a.abierto==="false").length;
 
@@ -244,16 +239,20 @@ function render(){
     <div class="table-row">
       <div class="aliado"><div class="aliado-logo">${logoHtml}</div><div><div style="font-weight:700;font-size:11px;text-transform:capitalize">${limpiarNombre(a.nombre)}</div><div style="font-size:9px;color:#64748b">${a.categoria} ${a.direccion?'- '+a.direccion:''}</div></div></div>
       <div style="font-weight:600">$ ${a.totalVentas.toFixed(2)}</div>
-      <div style="font-weight:600;color:#0f172a">$ ${a.desglose.toFixed(2)}</div>
+      <div style="font-weight:600">$ ${a.desglose.toFixed(2)}</div>
       <div style="color:#16a34a;font-weight:600">$ ${a.pagado.toFixed(2)}</div>
       <div style="color:#d97706;font-weight:600">$ ${a.pendiente.toFixed(2)}</div>
       <div style="font-size:10px">${ultimo}</div>
-      <div style="font-size:10px;text-align:center;font-weight:700">${a.facturas}</div>
+      <div style="font-size:10px;text-align:center;justify-self:center;font-weight:700">${a.facturas}</div>
       <div><span class="badge ${badgeClass}">${estadoAbierto}</span></div>
-      <div><button class="btn-ver" onclick="location.href='paneladmin-pagosyfacturas-consultar.html?id='+encodeURIComponent('${a.id}')">Consultar</button></div>
+      <div><button class="btn-ver" onclick="irConsulta('${a.id}')">Consultar</button></div>
     </div>`;
   });
 }
+
+window.irConsulta = (id)=>{
+  window.location.href = 'paneladmin-pagosyfacturas-consultar.html?id=' + encodeURIComponent(id);
+};
 
 window.filtrar = ()=>{
   const txt = document.getElementById('buscar').value.toLowerCase();
