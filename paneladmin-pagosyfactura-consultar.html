@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Consultar Restaurante - Pagos</title>
+<title>Consultas de pago</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
@@ -12,16 +12,16 @@ body{background:#f6f8fb;color:#0f172a}
 .header-top{background:white;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #e2e8f0;position:sticky;top:0;z-index:20}
 .left-h{display:flex;align-items:center;gap:10px}
 .btn-x{width:34px;height:34px;background:#E30613;border-radius:50%;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer}
-.header-top h1{font-size:14px;font-weight:800;max-width:320px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.header-top h1{font-size:14px;font-weight:800}
 .right-h{display:flex;gap:8px}
-.btn-filter{padding:7px 12px;border-radius:999px;border:1px solid #e2e8f0;background:white;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px}
+.btn-filter{padding:7px 12px;border-radius:999px;border:1px solid #e2e8f0;background:white;font-size:11px;font-weight:700;cursor:pointer}
 .btn-filter.active{background:#0f172a;color:white;border-color:#0f172a}
 .btn-filter.active-green{background:#16a34a;color:white;border-color:#16a34a}
 .info-rest{background:white;border:1px solid #eef2f7;border-radius:12px;margin:12px;padding:12px;display:flex;gap:12px;align-items:center}
 .logo-rest{width:56px;height:56px;border-radius:50%;background:#fff1f1;border:1px solid #fee2e2;overflow:hidden;display:flex;align-items:center;justify-content:center;font-weight:800;color:#E30613;flex-shrink:0}
 .logo-rest img{width:100%;height:100%;object-fit:cover}
 .meta-rest b{font-size:13px;display:block}
-.meta-rest span{font-size:11px;color:#64748b}
+.meta-rest span{font-size:11px;color:#64748b;display:block}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:0 12px 12px}
 @media(max-width:700px){.stats{grid-template-columns:repeat(2,1fr)}}
 .stat{background:white;border-radius:10px;border:1px solid #eef2f7;padding:10px}
@@ -40,14 +40,15 @@ body{background:#f6f8fb;color:#0f172a}
 .venta{display:flex;flex-direction:column;gap:3px}
 .venta .row{display:flex;justify-content:space-between;font-size:11px}
 .venta .net{border-top:1px dashed #e2e8f0;padding-top:4px;margin-top:2px;font-weight:800}
-.actions{display:flex;gap:6px;align-items:center}
+.actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 .btn-fact{padding:6px 10px;border-radius:999px;background:white;border:1px solid #E30613;color:#E30613;font-size:10px;font-weight:700;cursor:pointer}
+.btn-subir{padding:6px 10px;border-radius:999px;background:white;border:1px solid #0f172a;color:#0f172a;font-size:10px;font-weight:700;cursor:pointer}
 .btn-pagar{padding:6px 10px;border-radius:999px;background:#0f172a;border:1px solid #0f172a;color:white;font-size:10px;font-weight:700;cursor:pointer}
 .badge-pagado{padding:4px 10px;border-radius:999px;font-size:10px;font-weight:800;background:#00ff6a;color:#065f29;box-shadow:0 0 8px rgba(0,255,106,.5)}
 .badge-pend{padding:4px 10px;border-radius:999px;font-size:10px;font-weight:700;background:#fef9c3;color:#854d0e}
 .modal{position:fixed;inset:0;background:white;z-index:100;display:none;overflow:auto}
 .modal.show{display:block}
-.modal-head{padding:12px 16px;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:white}
+.modal-head{padding:12px 16px;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:white;flex-wrap:wrap;gap:8px}
 .modal-body{max-width:800px;margin:0 auto;padding:20px}
 .factura{border:1px solid #e2e8f0;border-radius:12px;padding:16px;background:white}
 .fact-head{display:flex;justify-content:space-between;margin-bottom:16px}
@@ -56,6 +57,8 @@ body{background:#f6f8fb;color:#0f172a}
 .fact-table td{padding:8px;border-bottom:1px solid #f1f5f9;font-size:11px}
 .btn-download{background:#E30613;color:white;border:none;padding:10px 16px;border-radius:8px;font-weight:700;font-size:11px;cursor:pointer}
 .btn-close{width:34px;height:34px;background:#0f172a;border-radius:50%;border:none;color:white;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.upload-preview{width:100%;border:2px dashed #e2e8f0;border-radius:12px;padding:10px;margin-bottom:14px;background:#f8fafc}
+.upload-preview img{max-width:100%;border-radius:8px}
 </style>
 </head>
 <body>
@@ -63,7 +66,7 @@ body{background:#f6f8fb;color:#0f172a}
 <div class="header-top">
 <div class="left-h">
 <button class="btn-x" onclick="location.href='paneladmin-pagosyfacturas.html'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-<h1 id="tituloRest">Cargando restaurante...</h1>
+<h1>Consultas de pago</h1>
 </div>
 <div class="right-h">
 <button id="btnPend" class="btn-filter active" onclick="filtrarEstado('pendiente')">Pendientes por pagar</button>
@@ -74,8 +77,8 @@ body{background:#f6f8fb;color:#0f172a}
 <div class="info-rest" id="infoRest">
 <div class="logo-rest" id="logoRest">R</div>
 <div class="meta-rest">
-<b id="nombreRest">-</b>
-<span id="detalleRest">-</span>
+<b id="nombreRest">Cargando...</b>
+<span id="direccionRest">Cargando dirección...</span>
 </div>
 <div style="margin-left:auto;display:flex;gap:8px">
 <button class="btn-filter" onclick="seleccionarTodos()">Seleccionar todos</button>
@@ -92,24 +95,34 @@ body{background:#f6f8fb;color:#0f172a}
 
 <div class="wrap" id="listaPedidos"></div>
 
+<input type="file" id="fileInput" style="display:none" accept="image/*,application/pdf">
+
 <div class="modal" id="modalFactura">
 <div class="modal-head">
 <div style="display:flex;align-items:center;gap:10px">
 <button class="btn-close" onclick="cerrarModal()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
 <b style="font-size:13px">Factura de pago</b>
 </div>
-<div style="display:flex;gap:8px">
-<button class="btn-download" onclick="descargarFactura()">Descargar factura</button>
+<div style="display:flex;gap:8px;flex-wrap:wrap">
+<button class="btn-download" onclick="descargarFactura()">Descargar</button>
 <button class="btn-download" style="background:#0f172a" onclick="marcarPagado()">Marcar como pagado</button>
 </div>
 </div>
-<div class="modal-body"><div id="cuerpoFactura"></div></div>
+<div class="modal-body">
+<div id="facturaSubidaPreview"></div>
+<div id="cuerpoFactura"></div>
+<div style="margin-top:14px;display:flex;gap:8px">
+<button class="btn-download" onclick="descargarFactura()">Descargar factura</button>
+<button class="btn-download" style="background:#0f172a" onclick="descargarFacturaSubida()">Descargar factura subida</button>
+</div>
+</div>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 import { getFirestore, collection, getDocs, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
 const configAliados = {
   apiKey: "AIzaSyD286qlJQT8D3rqbYTSfCyuTAEg9jjRchQ",
@@ -131,6 +144,7 @@ const configHistorial = {
 
 const appAliados = initializeApp(configAliados, "aliadosApp");
 const dbAliados = getDatabase(appAliados);
+const storageAliados = getStorage(appAliados);
 const appHis = initializeApp(configHistorial, "hisApp");
 const dbHis = getFirestore(appHis);
 
@@ -141,15 +155,13 @@ let pedidos=[];
 let filtro="pendiente";
 let seleccionados=new Set();
 let pedidoActual=null;
+let facturaParaSubir=null;
 
 function formatearFechaHora(fechaStr){
   if(!fechaStr) return "-";
   try{
     let d = new Date(fechaStr);
-    if(isNaN(d.getTime())){
-      // Si viene como timestamp numérico
-      d = new Date(Number(fechaStr));
-    }
+    if(isNaN(d.getTime())) d = new Date(Number(fechaStr));
     if(isNaN(d.getTime())) return fechaStr;
     const fecha = d.toLocaleDateString('es-MX', {day:'2-digit',month:'2-digit',year:'numeric'});
     const hora = d.toLocaleTimeString('es-MX', {hour:'2-digit',minute:'2-digit',hour12:true});
@@ -159,23 +171,45 @@ function formatearFechaHora(fechaStr){
 
 async function cargarRestaurante(){
   try{
-    const snap = await get(child(ref(dbAliados), "doloya_aliados/admin/"+idRest));
-    if(snap.exists()){
-      const val = snap.val();
-      const info = val.info || val;
-      restaurante={
-        id: info.id||idRest,
-        nombre: info.nombre||idRest,
-        logo: info.imagen||"",
-        direccion: info.direccion||"",
-        categoria: info.categoria||""
-      };
-      document.getElementById('tituloRest').textContent=restaurante.nombre;
-      document.getElementById('nombreRest').textContent=restaurante.nombre;
-      document.getElementById('detalleRest').textContent=restaurante.direccion;
-      document.getElementById('logoRest').innerHTML=restaurante.logo?`<img src="${restaurante.logo}">`:restaurante.nombre[0].toUpperCase();
+    const snapRoot = await get(child(ref(dbAliados), "doloya_aliados/admin"));
+    if(snapRoot.exists()){
+      const data = snapRoot.val();
+      for(let k in data){
+        const val = data[k];
+        const info = val.info || val;
+        const idMatch = (info.id||k).toLowerCase()===idRest.toLowerCase() || k.toLowerCase()===idRest.toLowerCase() || (info.nombre||"").toLowerCase()===idRest.toLowerCase();
+        if(idMatch || k===idRest){
+          restaurante={
+            id: info.id||k,
+            nombre: info.nombre||k,
+            logo: info.imagen||"",
+            direccion: info.direccion||"",
+            categoria: info.categoria||""
+          };
+          break;
+        }
+      }
+      // Si no encontró por id exacto, busca el primero que contenga
+      if(!restaurante){
+        for(let k in data){
+          const info = data[k].info||{};
+          if(info.id===idRest || info.nombre===idRest){
+            restaurante={id:info.id||k,nombre:info.nombre||k,logo:info.imagen||"",direccion:info.direccion||"",categoria:info.categoria||""};
+            break;
+          }
+        }
+      }
     }
-  }catch(e){console.log(e);}
+    if(restaurante){
+      document.getElementById('nombreRest').textContent=restaurante.nombre;
+      document.getElementById('direccionRest').textContent=restaurante.direccion||"Sin dirección";
+      document.getElementById('logoRest').innerHTML=restaurante.logo?`<img src="${restaurante.logo}">`:restaurante.nombre[0].toUpperCase();
+    } else {
+      document.getElementById('nombreRest').textContent=idRest;
+      document.getElementById('direccionRest').textContent="Restaurante "+idRest;
+      document.getElementById('logoRest').textContent=idRest[0]?.toUpperCase()||"R";
+    }
+  }catch(e){console.log(e); document.getElementById('nombreRest').textContent=idRest; document.getElementById('direccionRest').textContent=""; }
 }
 
 async function cargarPedidos(){
@@ -184,54 +218,52 @@ async function cargarPedidos(){
   snapE.forEach(d=>{
     const p = d.data();
     const r = p.restaurante||{};
-    if(r.id===idRest || r.nombre===idRest || r.nombre===restaurante?.nombre){
+    const nomRest = restaurante?.nombre?.toLowerCase()||"";
+    if(r.id===idRest || r.nombre===idRest || (nomRest && r.nombre?.toLowerCase()===nomRest) || r.id?.toLowerCase()===idRest.toLowerCase()){
       todos.push({idDoc:d.id, ...p});
     }
   });
-
-  // Cargar pagos reales
   for(let p of todos){
     const s = await getDoc(doc(dbHis, "pagos_aliados", p.idDoc));
     if(s.exists()){
-      p.pagado = s.data().pagado;
-      p.fechaPago = s.data().fechaPago;
-      p.montoPagado = s.data().montoPagado;
-      p.facturaNum = s.data().factura;
+      const data=s.data();
+      p.pagado=data.pagado;
+      p.fechaPago=data.fechaPago;
+      p.montoPagado=data.montoPagado;
+      p.facturaNum=data.factura;
+      p.facturaSubidaUrl=data.facturaSubidaUrl||"";
+      p.facturaSubidaNombre=data.facturaSubidaNombre||"";
     } else {
       p.pagado=false;
       p.facturaNum="F-00"+Math.floor(1000+Math.random()*9000);
+      p.facturaSubidaUrl="";
     }
   }
-  pedidos = todos.sort((a,b)=> new Date(b.timestamp||b.fecha)-new Date(a.timestamp||a.fecha));
+  pedidos=todos.sort((a,b)=> new Date(b.timestamp||b.fecha)-new Date(a.timestamp||a.fecha));
   render();
 }
 
 function render(){
-  const cont = document.getElementById('listaPedidos');
-  let filtrados = pedidos.filter(p=> filtro==="pendiente" ? !p.pagado : p.pagado);
+  const cont=document.getElementById('listaPedidos');
+  let filtrados=pedidos.filter(p=> filtro==="pendiente" ? !p.pagado : p.pagado);
   let totalVentas=0,totalComision=0,totalNeto=0;
   filtrados.forEach(p=>{
-    const venta = Number(p.totales?.costoProductos||0);
-    totalVentas+=venta;
-    totalComision+=venta*0.10;
-    totalNeto+=venta*0.90;
+    const venta=Number(p.totales?.costoProductos||0);
+    totalVentas+=venta; totalComision+=venta*0.10; totalNeto+=venta*0.90;
   });
   document.getElementById('sVentas').textContent="$ "+totalVentas.toFixed(2);
   document.getElementById('sComision').textContent="$ "+totalComision.toFixed(2);
   document.getElementById('sNeto').textContent="$ "+totalNeto.toFixed(2);
   document.getElementById('sPedidos').textContent=filtrados.length;
-
   if(filtrados.length===0){cont.innerHTML=`<div style="padding:20px;text-align:center;color:#94a3b8;font-size:11px">No hay pedidos ${filtro}</div>`;return;}
-
   cont.innerHTML="";
   filtrados.forEach(p=>{
-    const cliente = p.cliente||{};
-    const venta = Number(p.totales?.costoProductos||0);
-    const comision = venta*0.10;
-    const neto = venta-comision;
-    const fechaHora = formatearFechaHora(p.timestamp||p.fecha);
-    const isChecked = seleccionados.has(p.idDoc);
-
+    const cliente=p.cliente||{};
+    const venta=Number(p.totales?.costoProductos||0);
+    const comision=venta*0.10;
+    const neto=venta-comision;
+    const fechaHora=formatearFechaHora(p.timestamp||p.fecha);
+    const isChecked=seleccionados.has(p.idDoc);
     cont.innerHTML+=`
     <div class="card-pedido">
       <div class="card-top">
@@ -254,6 +286,7 @@ function render(){
         </div>
         <div class="actions">
           <button class="btn-fact" onclick="verFactura('${p.idDoc}')">Ver factura</button>
+          <button class="btn-subir" onclick="subirFactura('${p.idDoc}')">Subir factura</button>
           ${!p.pagado?`<button class="btn-pagar" onclick="pagarUno('${p.idDoc}')">Pagar</button>`:''}
         </div>
       </div>
@@ -266,13 +299,26 @@ window.seleccionarTodos = ()=>{ pedidos.filter(p=> filtro==="pendiente" ? !p.pag
 window.filtrarEstado = (est)=>{ filtro=est; document.getElementById('btnPend').className= est==='pendiente' ? 'btn-filter active' : 'btn-filter'; document.getElementById('btnPag').className= est==='pagado' ? 'btn-filter active-green' : 'btn-filter'; seleccionados.clear(); render(); };
 
 window.verFactura = (idDoc)=>{
-  const p = pedidos.find(x=>x.idDoc===idDoc);
+  const p=pedidos.find(x=>x.idDoc===idDoc);
   if(!p) return;
   pedidoActual=p;
-  const venta = Number(p.totales?.costoProductos||0);
-  const comision = venta*0.10;
-  const neto = venta-comision;
-  const fechaHora = formatearFechaHora(p.timestamp||p.fecha);
+  const venta=Number(p.totales?.costoProductos||0);
+  const comision=venta*0.10;
+  const neto=venta-comision;
+  const fechaHora=formatearFechaHora(p.timestamp||p.fecha);
+
+  let htmlSubida="";
+  if(p.facturaSubidaUrl){
+    if(p.facturaSubidaUrl.startsWith("data:image") || p.facturaSubidaUrl.match(/\.(jpg|jpeg|png|webp)$/i) || p.facturaSubidaUrl.includes("firebasestorage")){
+      htmlSubida=`<div class="upload-preview"><div style="font-size:11px;font-weight:700;margin-bottom:6px">Factura subida:</div><img src="${p.facturaSubidaUrl}" style="max-width:100%"><br><button class="btn-download" style="margin-top:8px" onclick="descargarFacturaSubida()">Descargar factura subida</button></div>`;
+    } else {
+      htmlSubida=`<div class="upload-preview"><div style="font-size:11px;font-weight:700;margin-bottom:6px">Factura subida:</div><a href="${p.facturaSubidaUrl}" target="_blank" style="font-size:11px;color:#E30613">${p.facturaSubidaNombre||'Ver documento'}</a><br><button class="btn-download" style="margin-top:8px" onclick="descargarFacturaSubida()">Descargar factura subida</button></div>`;
+    }
+  } else {
+    htmlSubida=`<div class="upload-preview" style="text-align:center;color:#94a3b8;font-size:11px">No hay factura subida aún. Usa el botón Subir factura.</div>`;
+  }
+
+  document.getElementById('facturaSubidaPreview').innerHTML=htmlSubida;
 
   document.getElementById('cuerpoFactura').innerHTML=`
   <div class="factura" id="facturaImprimible">
@@ -309,33 +355,80 @@ window.verFactura = (idDoc)=>{
 window.cerrarModal = ()=> document.getElementById('modalFactura').classList.remove('show');
 
 window.descargarFactura = ()=>{
-  const elemento = document.getElementById('facturaImprimible');
-  const nombre = `factura-${pedidoActual?.facturaNum||'doloya'}.pdf`;
-  // Genera PDF descargable funciona en celular y PC
-  html2pdf().set({
-    margin:10,
-    filename: nombre,
-    image:{type:'jpeg',quality:0.98},
-    html2canvas:{scale:2},
-    jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}
-  }).from(elemento).save();
+  const elemento=document.getElementById('facturaImprimible');
+  const nombre=`factura-${pedidoActual?.facturaNum||'doloya'}.pdf`;
+  html2pdf().set({margin:10,filename:nombre,image:{type:'jpeg',quality:0.98},html2canvas:{scale:2},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}}).from(elemento).save();
 };
 
+window.descargarFacturaSubida = ()=>{
+  if(!pedidoActual?.facturaSubidaUrl) { alert("No hay factura subida"); return; }
+  const a=document.createElement('a');
+  a.href=pedidoActual.facturaSubidaUrl;
+  a.download=pedidoActual.facturaSubidaNombre||"factura-subida";
+  a.target="_blank";
+  a.click();
+};
+
+window.subirFactura = (idDoc)=>{
+  facturaParaSubir=idDoc;
+  document.getElementById('fileInput').click();
+};
+
+document.getElementById('fileInput').addEventListener('change', async (e)=>{
+  const file=e.target.files[0];
+  if(!file || !facturaParaSubir) return;
+  try{
+    // Subir a Storage
+    const storageRef = sRef(storageAliados, `facturas/${idRest}/${facturaParaSubir}/${file.name}`);
+    await uploadBytes(storageRef, file);
+    const url = await getDownloadURL(storageRef);
+    // Guardar referencia en Firestore
+    const p=pedidos.find(x=>x.idDoc===facturaParaSubir);
+    await setDoc(doc(dbHis, "pagos_aliados", facturaParaSubir), {
+      facturaSubidaUrl: url,
+      facturaSubidaNombre: file.name,
+      restauranteId: idRest,
+      restauranteNombre: restaurante?.nombre||idRest,
+      factura: p?.facturaNum||"",
+      fechaSubida: new Date().toISOString()
+    }, {merge:true});
+    alert("Factura subida correctamente");
+    cargarPedidos();
+  }catch(err){
+    console.log(err);
+    // Fallback guardar como base64 si falla storage
+    const reader=new FileReader();
+    reader.onload=async ()=>{
+      await setDoc(doc(dbHis, "pagos_aliados", facturaParaSubir), {
+        facturaSubidaUrl: reader.result,
+        facturaSubidaNombre: file.name,
+        restauranteId: idRest,
+        factura: pedidos.find(x=>x.idDoc===facturaParaSubir)?.facturaNum||"",
+        fechaSubida: new Date().toISOString()
+      }, {merge:true});
+      alert("Factura subida (base64)");
+      cargarPedidos();
+    };
+    reader.readAsDataURL(file);
+  }
+  e.target.value="";
+});
+
 async function pagarEnDB(idDoc){
-  const p = pedidos.find(x=>x.idDoc===idDoc);
-  const venta = Number(p.totales?.costoProductos||0);
-  const neto = venta*0.90;
+  const p=pedidos.find(x=>x.idDoc===idDoc);
+  const venta=Number(p.totales?.costoProductos||0);
+  const neto=venta*0.90;
   await setDoc(doc(dbHis, "pagos_aliados", idDoc), {
-    pagado: true,
-    fechaPago: new Date().toISOString(),
-    montoPagado: neto,
-    montoVenta: venta,
-    comision: venta*0.10,
-    restauranteId: idRest,
-    restauranteNombre: restaurante?.nombre||idRest,
-    factura: p.facturaNum,
-    cliente: p.nombre||"",
-    fechaPedido: p.timestamp||p.fecha||""
+    pagado:true,
+    fechaPago:new Date().toISOString(),
+    montoPagado:neto,
+    montoVenta:venta,
+    comision:venta*0.10,
+    restauranteId:idRest,
+    restauranteNombre:restaurante?.nombre||idRest,
+    factura:p.facturaNum,
+    cliente:p.nombre||"",
+    fechaPedido:p.timestamp||p.fecha||""
   }, {merge:true});
 }
 
