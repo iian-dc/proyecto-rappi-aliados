@@ -61,7 +61,7 @@ body{background:#f6f8fb;color:#0f172a}
 <select id="fEstado" onchange="filtrar()"><option value="todos">Todos los estados</option><option value="abierto">Abierto</option><option value="cerrado">Cerrado</option><option value="activo">Activo</option></select>
 </div>
 <div class="table-head">
-<span>Aliado / Restaurante</span><span>Total ventas</span><span>Desglose -10%</span><span>Pagado</span><span>Pendiente</span><span>Ultimo pago</span><span>Facturas</span><span>Estado</span><span>Acciones</span>
+<span>Aliado / Restaurante</span><span>Total ventas</span><span>Desglose -10%</span><span>Pagado</span><span>Pendiente</span><span>Ultimo pago</span><span style="text-align:center">Facturas</span><span>Estado</span><span>Acciones</span>
 </div>
 <div id="listaAliados"><div style="padding:20px;text-align:center;color:#94a3b8;font-size:11px">Conectando en tiempo real a doloya-aliados...</div></div>
 </div>
@@ -116,8 +116,7 @@ function fechaHora(f){
 }
 
 async function cargarVentasYPagos(){
-  ventasMap = {};
-  pagosMap = {};
+  ventasMap = {}; pagosMap = {};
   try{
     const snapE = await getDocs(collection(dbHis, "pedidos_entregados"));
     snapE.forEach(d=>{
@@ -133,7 +132,7 @@ async function cargarVentasYPagos(){
     const snapP = await getDocs(collection(dbHis, "pagos_aliados"));
     snapP.forEach(d=>{
       const p = d.data();
-      const id = (p.restauranteId || p.restauranteNombre || "").toLowerCase();
+      const id = (p.restauranteId || "").toLowerCase() || (p.restauranteNombre||"").toLowerCase();
       if(!id) return;
       if(!pagosMap[id]) pagosMap[id]={pagado:0, ultimo:"", count:0};
       pagosMap[id].pagado += Number(p.montoPagado||0);
@@ -151,9 +150,11 @@ function extraerRestaurantes(data){
       const info = obj.info;
       const abierto = obj.abierto !== undefined ? obj.abierto : info.abierto;
       const estado = obj.estado || info.estado || "activo";
+      const keyReal = path.split("/").pop();
       lista.push({
-        id: info.id || path.split("/").pop() || "sin_id",
-        nombre: info.nombre || "Sin nombre",
+        id: keyReal,
+        idInfo: info.id || keyReal,
+        nombre: info.nombre || limpiarNombre(keyReal),
         logo: info.imagen || info.logo || "",
         categoria: info.categoria || "",
         direccion: info.direccion || "",
@@ -177,7 +178,6 @@ function extraerRestaurantes(data){
 
 async function iniciarTiempoReal(){
   await cargarVentasYPagos();
-
   const refRoot = ref(dbAliados, "doloya_aliados");
   onValue(refRoot, (snapshot)=>{
     if(!snapshot.exists()){
@@ -186,7 +186,6 @@ async function iniciarTiempoReal(){
     }
     const data = snapshot.val();
     let restaurantes = extraerRestaurantes(data);
-
     const unicos = {};
     restaurantes.forEach(r=>{ if(!unicos[r.id]) unicos[r.id]=r; });
     restaurantes = Object.values(unicos);
@@ -196,15 +195,7 @@ async function iniciarTiempoReal(){
       const idLow = r.id.toLowerCase();
       const nombreLow = r.nombre.toLowerCase();
       let v = ventasMap[idLow] || ventasMap[nombreLow] || {total:0};
-      if(v.total===0){
-        const keyVenta = Object.keys(ventasMap).find(k=> k===nombreLow || k===limpiarNombre(nombreLow));
-        if(keyVenta) v = ventasMap[keyVenta];
-      }
       let p = pagosMap[idLow] || pagosMap[nombreLow] || {pagado:0, ultimo:"", count:0};
-      if(p.pagado===0){
-        const keyPago = Object.keys(pagosMap).find(k=> k===nombreLow);
-        if(keyPago) p = pagosMap[keyPago];
-      }
       const desglose = (v.total||0)*0.9;
       const pendiente = Math.max(0, desglose - (p.pagado||0));
       return {
@@ -257,9 +248,9 @@ function render(){
       <div style="color:#16a34a;font-weight:600">$ ${a.pagado.toFixed(2)}</div>
       <div style="color:#d97706;font-weight:600">$ ${a.pendiente.toFixed(2)}</div>
       <div style="font-size:10px">${ultimo}</div>
-      <div style="font-size:10px">${a.facturas}</div>
+      <div style="font-size:10px;text-align:center;font-weight:700">${a.facturas}</div>
       <div><span class="badge ${badgeClass}">${estadoAbierto}</span></div>
-      <div><button class="btn-ver" onclick="location.href='paneladmin-pagosyfacturas-consultar.html?id=${a.id}'">Consultar</button></div>
+      <div><button class="btn-ver" onclick="location.href='paneladmin-pagosyfacturas-consultar.html?id='+encodeURIComponent('${a.id}')">Consultar</button></div>
     </div>`;
   });
 }
