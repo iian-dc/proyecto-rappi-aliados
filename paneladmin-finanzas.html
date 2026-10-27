@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Finanzas - DoloYa</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
+body{background:#f6f8fb;color:#0f172a}
+.header-top{background:white;padding:10px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #e2e8f0;position:sticky;top:0;z-index:20}
+.btn-x{width:34px;height:34px;background:#E30613;border-radius:50%;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.header-top h1{font-size:15px;font-weight:800}
+.top-filters{display:flex;gap:8px;padding:12px;flex-wrap:wrap}
+.btn-f{padding:8px 14px;border-radius:999px;border:1px solid #e2e8f0;background:white;font-size:11px;font-weight:700;cursor:pointer}
+.btn-f.active{background:#0f172a;color:white;border-color:#0f172a}
+.top-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:0 12px 12px}
+@media(max-width:900px){.top-cards{grid-template-columns:repeat(2,1fr)}}
+.tcard{background:white;border-radius:12px;border:1px solid #eef2f7;padding:12px}
+.tcard label{font-size:9px;color:#64748b;font-weight:700;text-transform:uppercase;display:block;margin-bottom:4px}
+.tcard b{font-size:15px;font-weight:800;display:block}
+.tcard span{font-size:10px;color:#64748b}
+.tcard.bruto{background:#0a1020;color:white;border-color:#0a1020}
+.tcard.bruto label{color:#94a3b8}
+.tcard.bruto b{font-size:18px}
+.second-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:0 12px 12px}
+@media(max-width:900px){.second-cards{grid-template-columns:1fr}}
+.box{background:white;border-radius:12px;border:1px solid #eef2f7;overflow:hidden}
+.chart-box{padding:12px;margin:0 12px 12px}
+.table-head{background:#0a1020;color:white;display:grid;grid-template-columns:90px 1fr .6fr .5fr .5fr .5fr .6fr .5fr .5fr;padding:8px 10px;font-size:9px;font-weight:700;text-transform:uppercase;align-items:center}
+.table-row{display:grid;grid-template-columns:90px 1fr .6fr .5fr .5fr .5fr .6fr .5fr .5fr;padding:8px 10px;border-bottom:1px solid #f1f5f9;align-items:center;font-size:10.5px}
+.balance-verde{background:#00ff6a !important;color:#065f29 !important;box-shadow:0 0 12px rgba(0,255,106,.6);border:1px solid #00ff6a}
+.balance-rojo{background:#fee2e2 !important;color:#991b1b !important;box-shadow:0 0 12px rgba(239,68,68,.5);border:1px solid #fecaca}
+</style>
+</head>
+<body>
+<div class="header-top">
+<button class="btn-x" onclick="location.href='paneladmin.html'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+<div style="width:2px;height:16px;background:#E30613"></div>
+<h1>Finanzas</h1>
+</div>
+
+<div class="top-filters">
+<button id="fHoy" class="btn-f active" onclick="setFiltro('hoy')">Hoy</button>
+<button id="fSemana" class="btn-f" onclick="setFiltro('semana')">Esta Semana</button>
+<button id="fMes" class="btn-f" onclick="setFiltro('mes')">Este Mes</button>
+<button id="fTodo" class="btn-f" onclick="setFiltro('todo')">Todo</button>
+</div>
+
+<div class="top-cards">
+<div class="tcard"><label>Ventas totales productos</label><b id="kVentasProd">$ 0.00</b><span>Valor $108 ejemplo, solo informativo</span></div>
+<div class="tcard"><label>Ganancia 10% restaurantes</label><b id="kGan10" style="color:#16a34a">$ 0.00</b><span>10% de cada venta</span></div>
+<div class="tcard"><label>Ganancia tarifa servicio cliente</label><b id="kTarifa" style="color:#0ea5e9">$ 0.00</b><span>Lo que pagó el cliente final</span></div>
+<div class="tcard"><label>Ganancia % repartidor</label><b id="kRepartidor" style="color:#f59e0b">$ 0.00</b><span>% por envío</span></div>
+<div class="tcard"><label>Ganancia cancelados 50%</label><b id="kGanCanc" style="color:#E30613">$ 0.00</b><span>10% + 40% cancelación</span></div>
+<div class="tcard bruto"><label>Total ingreso bruto</label><b id="kBruto">$ 0.00</b><span>10% + tarifa + % repartidor + cancelados</span></div>
+</div>
+
+<div class="second-cards">
+<div class="tcard"><label>Total pagado aliados</label><b id="kPagado" style="color:#16a34a">$ 0.00</b></div>
+<div class="tcard"><label>Total pendiente por pagar</label><b id="kPendiente" style="color:#d97706">$ 0.00</b></div>
+<div class="tcard" id="cardBalance"><label>Balance neto real</label><b id="kBalance">$ 0.00</b><span>Bruto - pagado - pendiente</span></div>
+</div>
+
+<div class="box chart-box">
+<canvas id="chartFinanzas" height="90"></canvas>
+</div>
+
+<div class="box" style="margin:0 12px 20px">
+<div class="table-head">
+<span>Fecha</span>
+<span>Restaurante / Pedido</span>
+<span>Venta</span>
+<span>Mi 10%</span>
+<span>Tarifa Cliente</span>
+<span>% Repartidor</span>
+<span>Total mío</span>
+<span>Pagado aliado</span>
+<span>Balance</span>
+</div>
+<div id="listaFinanzas"><div style="padding:20px;text-align:center;color:#94a3b8;font-size:11px">Cargando finanzas...</div></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const configHistorial = {
+  apiKey: "AIzaSyCRx4B7mO444s0yU-WTnsqMjBHDWX4IRv8",
+  authDomain: "doloya-historial.firebaseapp.com",
+  projectId: "doloya-historial",
+  storageBucket: "doloya-historial.firebasestorage.app",
+  messagingSenderId: "41258055121",
+  appId: "1:41258055121:web:19a443786320e04ebd9cf0"
+};
+const appHis = initializeApp(configHistorial, "hisApp");
+const dbHis = getFirestore(appHis);
+
+let todosPedidos = [];
+let pagosMap = {};
+let filtro = "hoy";
+let chart;
+
+function limpiarNombre(s){ return (s||"").replace(/_/g," ").trim(); }
+function fechaCorta(f){
+  try{ let d=new Date(f); if(isNaN(d.getTime())) d=new Date(Number(f)); return d.toLocaleDateString('es-MX'); }catch{ return "-"; }
+}
+function getInicio(filtro){
+  const now = new Date();
+  if(filtro==="hoy"){ const d=new Date(); d.setHours(0,0,0,0); return d; }
+  if(filtro==="semana"){ const d=new Date(); const day=d.getDay(); const diff=d.getDate()-day + (day===0?-6:1); d.setDate(diff); d.setHours(0,0,0,0); return d; }
+  if(filtro==="mes"){ const d=new Date(now.getFullYear(), now.getMonth(), 1); return d; }
+  return new Date(0);
+}
+
+async function cargarDatos(){
+  todosPedidos=[]; pagosMap={};
+  const snapE = await getDocs(collection(dbHis, "pedidos_entregados"));
+  snapE.forEach(d=>{
+    const p=d.data();
+    const fecha = p.timestamp || p.fecha || p.creado;
+    const venta = Number(p.totales?.costoProductos || p.total || 0);
+    const tarifa = Number(p.totales?.tarifaServicio || p.totales?.servicio || p.totales?.costoServicio || p.tarifaServicio || p.servicio || 0);
+    const porcRep = Number(p.totales?.comisionRepartidor || p.totales?.porcentajeRepartidor || p.totales?.costoEnvioComision || p.totales?.envioComision || 0);
+    const envio = Number(p.totales?.costoEnvio || p.totales?.envio || 0);
+    const comisionRepCalculada = porcRep > 0 ? porcRep : (envio * 0.20);
+    todosPedidos.push({
+      id:d.id, tipo:"entregado", fecha:fecha, restaurante: p.restaurante?.nombre || p.restaurante?.id || "Sin nombre",
+      venta: venta, gan10: venta*0.10, tarifa: tarifa, rep: comisionRepCalculada, totalMio: (venta*0.10)+tarifa+comisionRepCalculada
+    });
+  });
+  const snapC = await getDocs(collection(dbHis, "pedidos_cancelados"));
+  snapC.forEach(d=>{
+    const p=d.data();
+    const fecha = p.timestamp || p.fecha || p.creado;
+    const venta = Number(p.totales?.costoProductos || p.total || 0);
+    todosPedidos.push({
+      id:d.id, tipo:"cancelado", fecha:fecha, restaurante: p.restaurante?.nombre || p.restaurante?.id || "Sin nombre",
+      venta: venta, gan10: 0, tarifa: 0, rep: 0, totalMio: venta*0.50
+    });
+  });
+  const snapP = await getDocs(collection(dbHis, "pagos_aliados"));
+  snapP.forEach(d=>{
+    const p=d.data();
+    const id = (p.restauranteId || p.restauranteNombre || "").toLowerCase();
+    if(!pagosMap[id]) pagosMap[id]={pagado:0};
+    pagosMap[id].pagado += Number(p.montoPagado||0);
+  });
+  render();
+}
+
+window.setFiltro = (f)=>{
+  filtro=f;
+  document.querySelectorAll('.btn-f').forEach(b=>b.classList.remove('active'));
+  document.getElementById('f'+f.charAt(0).toUpperCase()+f.slice(1)).classList.add('active');
+  if(f==="hoy") document.getElementById('fHoy').classList.add('active');
+  render();
+};
+
+function render(){
+  const inicio = getInicio(filtro);
+  let filtrados = todosPedidos.filter(p=>{
+    try{ let d=new Date(p.fecha); if(isNaN(d.getTime())) d=new Date(Number(p.fecha)); return d >= inicio; }catch{ return true; }
+  });
+  filtrados.sort((a,b)=> new Date(b.fecha)-new Date(a.fecha));
+
+  const ventasProd = filtrados.filter(p=>p.tipo==="entregado").reduce((s,p)=>s+p.venta,0);
+  const gan10 = filtrados.filter(p=>p.tipo==="entregado").reduce((s,p)=>s+p.gan10,0);
+  const tarifa = filtrados.filter(p=>p.tipo==="entregado").reduce((s,p)=>s+p.tarifa,0);
+  const rep = filtrados.filter(p=>p.tipo==="entregado").reduce((s,p)=>s+p.rep,0);
+  const ganCanc = filtrados.filter(p=>p.tipo==="cancelado").reduce((s,p)=>s+p.totalMio,0);
+  const bruto = gan10 + tarifa + rep + ganCanc;
+
+  let totalPagado = 0;
+  Object.values(pagosMap).forEach(v=> totalPagado+=v.pagado);
+  if(filtro!=="todo"){
+    totalPagado = totalPagado * (filtrados.length / Math.max(1,todosPedidos.length));
+  }
+  const desglosePend = filtrados.reduce((s,p)=>{
+    if(p.tipo==="entregado") return s + (p.venta*0.9);
+    return s + (p.venta*0.5);
+  },0);
+  const pendiente = Math.max(0, desglosePend - (totalPagado / (filtro==="todo"?1:1)));
+  const balance = bruto - totalPagado - pendiente;
+
+  document.getElementById('kVentasProd').textContent = "$ "+ventasProd.toFixed(2);
+  document.getElementById('kGan10').textContent = "$ "+gan10.toFixed(2);
+  document.getElementById('kTarifa').textContent = "$ "+tarifa.toFixed(2);
+  document.getElementById('kRepartidor').textContent = "$ "+rep.toFixed(2);
+  document.getElementById('kGanCanc').textContent = "$ "+ganCanc.toFixed(2);
+  document.getElementById('kBruto').textContent = "$ "+bruto.toFixed(2);
+  document.getElementById('kPagado').textContent = "$ "+totalPagado.toFixed(2);
+  document.getElementById('kPendiente').textContent = "$ "+pendiente.toFixed(2);
+  
+  const kBal = document.getElementById('kBalance');
+  const cardBal = document.getElementById('cardBalance');
+  kBal.textContent = "$ "+balance.toFixed(2);
+  cardBal.className = "tcard " + (balance>=0 ? "balance-verde" : "balance-rojo");
+
+  const cont = document.getElementById('listaFinanzas');
+  if(filtrados.length===0){ cont.innerHTML='<div style="padding:20px;text-align:center;color:#94a3b8">No hay datos en este periodo</div>'; return; }
+  cont.innerHTML="";
+  filtrados.forEach(p=>{
+    const esCanc = p.tipo==="cancelado";
+    cont.innerHTML+=`
+    <div class="table-row" style="${esCanc?'background:#fff1f2':''}">
+      <span style="font-size:8.5px">${fechaCorta(p.fecha)}<br>${esCanc?'<b style="color:#E30613">CANCEL</b>':'<b style="color:#16a34a">ENTREG</b>'}</span>
+      <span><b style="font-size:11px">${limpiarNombre(p.restaurante)}</b><br><span style="font-size:8px;color:#64748b">${p.id.slice(-6)}</span></span>
+      <span>$ ${p.venta.toFixed(2)}</span>
+      <span style="color:#16a34a">$ ${p.gan10.toFixed(2)}</span>
+      <span style="color:#0ea5e9">$ ${p.tarifa.toFixed(2)}</span>
+      <span style="color:#f59e0b">$ ${p.rep.toFixed(2)}</span>
+      <span style="font-weight:800">$ ${p.totalMio.toFixed(2)}</span>
+      <span style="font-size:10px">-</span>
+      <span style="font-weight:700">${esCanc?'-':''}$ ${p.totalMio.toFixed(2)}</span>
+    </div>`;
+  });
+
+  // Chart
+  const labels = filtrados.slice(0,10).reverse().map(p=> fechaCorta(p.fecha));
+  const dataGan = filtrados.slice(0,10).reverse().map(p=> p.totalMio);
+  if(chart) chart.destroy();
+  chart = new Chart(document.getElementById('chartFinanzas'), {
+    type:'line',
+    data:{ labels: labels, datasets:[{ label:'Mi ganancia', data: dataGan, borderColor:'#0f172a', backgroundColor:'rgba(15,23,42,0.1)', tension:0.3, fill:true }] },
+    options:{ plugins:{ legend:{display:false} }, scales:{ y:{ beginAtZero:true } } }
+  });
+}
+
+cargarDatos();
+</script>
+</body>
+</html>
