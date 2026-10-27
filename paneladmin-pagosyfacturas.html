@@ -39,20 +39,17 @@ body{background:#f6f8fb;color:#0f172a}
 </style>
 </head>
 <body>
-
 <div class="header-top">
 <button class="btn-x" onclick="location.href='paneladmin.html'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
 <div style="width:2px;height:16px;background:#E30613"></div>
 <h1>Pagos y Facturas</h1>
 </div>
-
 <div class="top-cards">
 <div class="tcard"><div class="ticon" style="background:#16a34a;color:white">$</div><div><span>Pagos realizados</span><b id="kPagados">$ 0.00</b></div></div>
 <div class="tcard"><div class="ticon" style="background:#f59e0b;color:white">$</div><div><span>Pagos pendientes</span><b id="kPendiente">$ 0.00</b></div></div>
 <div class="tcard"><div class="ticon" style="background:#0f172a;color:white">R</div><div><span>Total restaurantes</span><b id="kTotalRest">0</b></div></div>
 <div class="tcard"><div class="ticon" style="background:#E30613;color:white">F</div><div><span>Total facturas pendientes</span><b id="kFactPend">0</b></div></div>
 </div>
-
 <div class="main">
 <div class="box">
 <div class="filters">
@@ -72,7 +69,6 @@ body{background:#f6f8fb;color:#0f172a}
 </div>
 <div id="listaAliados"><div style="padding:20px;text-align:center;color:#94a3b8;font-size:11px">Conectando en tiempo real a doloya-aliados...</div></div>
 </div>
-
 <div class="right">
 <div class="box resumen">
 <h3>Resumen</h3>
@@ -82,12 +78,10 @@ body{background:#f6f8fb;color:#0f172a}
 </div>
 </div>
 </div>
-
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
 const configAliados = {
   apiKey: "AIzaSyD286qlJQT8D3rqbYTSfCyuTAEg9jjRchQ",
   authDomain: "doloya-aliados.firebaseapp.com",
@@ -105,23 +99,19 @@ const configHistorial = {
   messagingSenderId: "41258055121",
   appId: "1:41258055121:web:19a443786320e04ebd9cf0"
 };
-
 const appAliados = initializeApp(configAliados, "aliadosApp");
 const dbAliados = getDatabase(appAliados);
 const appHis = initializeApp(configHistorial, "hisApp");
 const dbHis = getFirestore(appHis);
-
 let aliados = [];
 let filtrados = [];
 let ventasMap = {};
 let pagosMap = {};
-
 function limpiarNombre(s){ return (s||"").replace(/_/g," ").trim(); }
 function fechaHora(f){
   if(!f) return "-";
   try{ let d=new Date(f); if(isNaN(d.getTime())) d=new Date(Number(f)); if(isNaN(d.getTime())) return "-"; return d.toLocaleDateString('es-MX')+" "+d.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'}); }catch{ return "-"; }
 }
-
 async function cargarVentasYPagos(){
   ventasMap = {}; pagosMap = {};
   try{
@@ -148,7 +138,6 @@ async function cargarVentasYPagos(){
     });
   }catch(e){ console.log(e); }
 }
-
 function extraerRestaurantes(data){
   let lista = [];
   function recorrer(obj, path=""){
@@ -180,7 +169,6 @@ function extraerRestaurantes(data){
   recorrer(data);
   return lista;
 }
-
 async function iniciarTiempoReal(){
   await cargarVentasYPagos();
   const refRoot = ref(dbAliados, "doloya_aliados");
@@ -195,7 +183,6 @@ async function iniciarTiempoReal(){
     restaurantes.forEach(r=>{ if(!unicos[r.id]) unicos[r.id]=r; });
     restaurantes = Object.values(unicos);
     restaurantes.sort((a,b)=> a.nombre.toLowerCase().localeCompare(b.nombre.toLowerCase()));
-
     restaurantes = restaurantes.map(r=>{
       const idLow = r.id.toLowerCase();
       const nombreLow = r.nombre.toLowerCase();
@@ -205,36 +192,29 @@ async function iniciarTiempoReal(){
       const pendiente = Math.max(0, desglose - (p.pagado||0));
       return { ...r, totalVentas: v.total||0, desglose: desglose, pagado: p.pagado||0, pendiente: pendiente, ultimoPago: p.ultimo||"", facturas: p.count||0 };
     });
-
     aliados = restaurantes;
     filtrados = [...aliados];
     render();
   });
 }
-
 function render(){
   const cont = document.getElementById('listaAliados');
   if(filtrados.length===0){ cont.innerHTML='<div style="padding:20px;text-align:center;color:#94a3b8;font-size:11px">No hay restaurantes</div>'; return; }
-
   const totalPagados = filtrados.reduce((s,a)=>s+a.pagado,0);
   const totalPend = filtrados.reduce((s,a)=>s+a.pendiente,0);
-
   document.getElementById('kPagados').textContent = "$ "+totalPagados.toFixed(2);
   document.getElementById('kPendiente').textContent = "$ "+totalPend.toFixed(2);
   document.getElementById('kTotalRest').textContent = filtrados.length;
   document.getElementById('kFactPend').textContent = filtrados.filter(a=>a.pendiente>0).length;
-
   document.getElementById('rTotalAli').textContent = filtrados.length;
   document.getElementById('rAbiertos').textContent = filtrados.filter(a=>a.abierto===true || a.abierto==="true").length;
   document.getElementById('rCerrados').textContent = filtrados.filter(a=>a.abierto===false || a.abierto==="false").length;
-
   cont.innerHTML="";
   filtrados.forEach(a=>{
     const logoHtml = a.logo ? `<img src="${a.logo}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.textContent='${limpiarNombre(a.nombre)[0].toUpperCase()}'">` : limpiarNombre(a.nombre)[0].toUpperCase();
     const ultimo = a.ultimoPago ? fechaHora(a.ultimoPago) : "-";
     const estadoAbierto = a.abierto===true || a.abierto==="true" ? "Abierto" : a.abierto===false || a.abierto==="false" ? "Cerrado" : a.estado;
     const badgeClass = estadoAbierto.toLowerCase().includes("abierto") ? "badge-green" : estadoAbierto.toLowerCase().includes("cerrado") ? "badge-red" : "badge-yellow";
-
     cont.innerHTML+=`
     <div class="table-row">
       <div class="aliado"><div class="aliado-logo">${logoHtml}</div><div><div style="font-weight:700;font-size:11px;text-transform:capitalize">${limpiarNombre(a.nombre)}</div><div style="font-size:9px;color:#64748b">${a.categoria} ${a.direccion?'- '+a.direccion:''}</div></div></div>
@@ -249,11 +229,9 @@ function render(){
     </div>`;
   });
 }
-
 window.irConsulta = (id)=>{
   window.location.href = 'paneladmin-pagosyfacturas-consultar.html?id=' + encodeURIComponent(id);
 };
-
 window.filtrar = ()=>{
   const txt = document.getElementById('buscar').value.toLowerCase();
   const est = document.getElementById('fEstado').value;
@@ -267,7 +245,6 @@ window.filtrar = ()=>{
   });
   render();
 };
-
 iniciarTiempoReal();
 </script>
 </body>
