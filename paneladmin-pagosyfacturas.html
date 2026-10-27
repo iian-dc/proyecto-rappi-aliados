@@ -26,7 +26,6 @@ body{background:#f6f8fb;color:#0f172a}
 .table-row{display:grid;grid-template-columns:1.3fr .55fr .55fr .55fr .65fr .65fr .55fr .5fr .6fr;padding:8px 10px;border-bottom:1px solid #f1f5f9;align-items:center;font-size:10.5px}
 .aliado{display:flex;gap:8px;align-items:center}
 .aliado-logo{width:32px;height:32px;border-radius:50%;background:#fff1f1;display:flex;align-items:center;justify-content:center;font-weight:800;color:#E30613;border:1px solid #fee2e2;overflow:hidden;flex-shrink:0}
-.aliado-logo img{width:100%;height:100%;object-fit:cover}
 .badge{padding:3px 7px;border-radius:999px;font-size:8.5px;font-weight:700}
 .badge-green{background:#dcfce7;color:#166534}
 .badge-yellow{background:#fef9c3;color:#854d0e}
@@ -36,25 +35,21 @@ body{background:#f6f8fb;color:#0f172a}
 .resumen,.filtros{padding:12px}
 .resumen h3,.filtros h3{font-size:11px;font-weight:800;margin-bottom:8px}
 .item-res{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f1f5f9;font-size:11px}
-.btn-red{width:100%;background:#E30613;color:white;border:none;padding:9px;border-radius:8px;font-weight:700;font-size:11px;cursor:pointer}
 </style>
 </head>
 <body>
-
 <div class="header-top">
 <button class="btn-x" onclick="location.href='paneladmin.html'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
 <div style="width:2px;height:16px;background:#E30613"></div>
 <h1>Pagos y Facturas</h1>
 <span id="estadoLive" style="margin-left:auto;font-size:10px;color:#16a34a;font-weight:700">● En vivo</span>
 </div>
-
 <div class="top-cards">
 <div class="tcard"><div class="ticon" style="background:#E30613;color:white">$</div><div><span>Total por pagar</span><b id="kTotalPagar">$ 0.00</b></div></div>
 <div class="tcard"><div class="ticon" style="background:#16a34a;color:white">✓</div><div><span>Pagos realizados</span><b id="kPagados">$ 0.00</b></div></div>
 <div class="tcard"><div class="ticon" style="background:#f59e0b;color:white">◷</div><div><span>Pendientes</span><b id="kPendiente">$ 0.00</b></div></div>
 <div class="tcard"><div class="ticon" style="background:#0f172a;color:white">F</div><div><span>Total restaurantes</span><b id="kFacturas">0</b></div></div>
 </div>
-
 <div class="main">
 <div class="box">
 <div class="filters">
@@ -62,11 +57,10 @@ body{background:#f6f8fb;color:#0f172a}
 <select id="fEstado" onchange="filtrar()"><option value="todos">Todos los estados</option><option value="abierto">Abierto</option><option value="cerrado">Cerrado</option><option value="activo">Activo</option></select>
 </div>
 <div class="table-head">
-<span>Aliado / Restaurante</span><span>Total ventas</span><span>Pagado</span><span>Pendiente</span><span>Ultimo pago</span><span>Fecha registro</span><span style="text-align:center">Factura</span><span>Estado</span><span>Acciones</span>
+<span>Aliado / Restaurante</span><span>Total ventas</span><span>Pagado</span><span>Pendiente</span><span>Ultimo pago</span><span>Fecha registro</span><span>Factura</span><span>Estado</span><span>Acciones</span>
 </div>
 <div id="listaAliados"><div style="padding:20px;text-align:center;color:#94a3b8;font-size:11px">Conectando en tiempo real a doloya-aliados...</div></div>
 </div>
-
 <div class="right">
 <div class="box resumen">
 <h3>Resumen</h3>
@@ -76,12 +70,10 @@ body{background:#f6f8fb;color:#0f172a}
 </div>
 </div>
 </div>
-
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
 const configAliados = {
   apiKey: "AIzaSyD286qlJQT8D3rqbYTSfCyuTAEg9jjRchQ",
   authDomain: "doloya-aliados.firebaseapp.com",
@@ -99,16 +91,13 @@ const configHistorial = {
   messagingSenderId: "41258055121",
   appId: "1:41258055121:web:19a443786320e04ebd9cf0"
 };
-
 const appAliados = initializeApp(configAliados, "aliadosApp");
 const dbAliados = getDatabase(appAliados);
 const appHis = initializeApp(configHistorial, "hisApp");
 const dbHis = getFirestore(appHis);
-
 let aliados = [];
 let filtrados = [];
 let ventasMap = {};
-
 async function cargarVentas(){
   ventasMap = {};
   try{
@@ -124,7 +113,6 @@ async function cargarVentas(){
     });
   }catch(e){ console.log(e); }
 }
-
 function extraerRestaurantes(data){
   let lista = [];
   function recorrer(obj, path=""){
@@ -139,8 +127,6 @@ function extraerRestaurantes(data){
         logo: info.imagen || info.logo || "",
         categoria: info.categoria || "",
         direccion: info.direccion || "",
-        telefono: info.telefono || "",
-        correo: info.correo || "",
         fechaRegistro: info.creado || "",
         estado: estado,
         abierto: abierto,
@@ -158,7 +144,6 @@ function extraerRestaurantes(data){
   recorrer(data);
   return lista;
 }
-
 async function iniciarTiempoReal(){
   await cargarVentas();
   const refRoot = ref(dbAliados, "doloya_aliados");
@@ -170,12 +155,9 @@ async function iniciarTiempoReal(){
     const data = snapshot.val();
     let restaurantes = extraerRestaurantes(data);
     const unicos = {};
-    restaurantes.forEach(r=>{
-      if(!unicos[r.id]) unicos[r.id]=r;
-    });
+    restaurantes.forEach(r=>{ if(!unicos[r.id]) unicos[r.id]=r; });
     restaurantes = Object.values(unicos);
     restaurantes.sort((a,b)=> a.nombre.toLowerCase().localeCompare(b.nombre.toLowerCase()));
-
     restaurantes = restaurantes.map(r=>{
       const v = ventasMap[r.id] || ventasMap[r.nombre] || {total:0, ultimo:""};
       let ventaMatch = v;
@@ -192,28 +174,23 @@ async function iniciarTiempoReal(){
         factura: "F-00"+Math.floor(1000+Math.random()*9000)
       };
     });
-
     aliados = restaurantes;
     filtrados = [...aliados];
     render();
   });
 }
-
 function render(){
   const cont = document.getElementById('listaAliados');
   if(filtrados.length===0){ cont.innerHTML='<div style="padding:20px;text-align:center;color:#94a3b8;font-size:11px">No hay restaurantes</div>'; return; }
-
   document.getElementById('kFacturas').textContent = filtrados.length;
   document.getElementById('rTotalAli').textContent = filtrados.length;
   document.getElementById('rAbiertos').textContent = filtrados.filter(a=>a.abierto===true || a.abierto==="true").length;
   document.getElementById('rCerrados').textContent = filtrados.filter(a=>a.abierto===false || a.abierto==="false").length;
-
   const totalPagar = filtrados.reduce((s,a)=>s+a.pendiente,0);
   const totalPagado = filtrados.reduce((s,a)=>s+a.pagado,0);
   document.getElementById('kTotalPagar').textContent = "$ "+totalPagar.toFixed(2);
   document.getElementById('kPagados').textContent = "$ "+totalPagado.toFixed(2);
   document.getElementById('kPendiente').textContent = "$ "+totalPagar.toFixed(2);
-
   cont.innerHTML="";
   filtrados.forEach(a=>{
     const logoHtml = a.logo ? `<img src="${a.logo}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.textContent='${a.nombre[0].toUpperCase()}'">` : a.nombre[0].toUpperCase();
@@ -221,7 +198,6 @@ function render(){
     const registro = a.fechaRegistro ? new Date(a.fechaRegistro).toLocaleDateString() : "-";
     const estadoAbierto = a.abierto===true || a.abierto==="true" ? "Abierto" : a.abierto===false || a.abierto==="false" ? "Cerrado" : a.estado;
     const badgeClass = estadoAbierto.toLowerCase().includes("abierto") ? "badge-green" : estadoAbierto.toLowerCase().includes("cerrado") ? "badge-red" : "badge-yellow";
-
     cont.innerHTML+=`
     <div class="table-row">
       <div class="aliado"><div class="aliado-logo">${logoHtml}</div><div><div style="font-weight:700;font-size:11px">${a.nombre}</div><div style="font-size:9px;color:#64748b">${a.categoria} ${a.direccion?'- '+a.direccion:''}</div></div></div>
@@ -230,13 +206,12 @@ function render(){
       <div style="color:#d97706;font-weight:600">$ ${a.pendiente.toFixed(2)}</div>
       <div style="font-size:10px">${ultimo}</div>
       <div style="font-size:10px">${registro}</div>
-      <div style="font-size:10px;text-align:center;font-weight:700">${a.factura}</div>
+      <div style="font-size:10px">${a.factura}</div>
       <div><span class="badge ${badgeClass}">${estadoAbierto}</span></div>
       <div><button class="btn-ver" onclick="location.href='paneladmin-pagosyfacturas-consultar.html?id='+encodeURIComponent(a.id)">Consultar</button></div>
     </div>`;
   });
 }
-
 window.filtrar = ()=>{
   const txt = document.getElementById('buscar').value.toLowerCase();
   const est = document.getElementById('fEstado').value;
@@ -250,7 +225,6 @@ window.filtrar = ()=>{
   });
   render();
 };
-
 iniciarTiempoReal();
 </script>
 </body>
