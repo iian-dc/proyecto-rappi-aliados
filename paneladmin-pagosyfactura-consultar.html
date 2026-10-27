@@ -20,8 +20,8 @@ body{background:#f6f8fb;color:#0f172a}
 .info-rest{background:white;border:1px solid #eef2f7;border-radius:12px;margin:12px;padding:12px;display:flex;gap:12px;align-items:center}
 .logo-rest{width:56px;height:56px;border-radius:50%;background:#fff1f1;border:1px solid #fee2e2;overflow:hidden;display:flex;align-items:center;justify-content:center;font-weight:800;color:#E30613;flex-shrink:0}
 .logo-rest img{width:100%;height:100%;object-fit:cover}
-.meta-rest b{font-size:13px;display:block}
-.meta-rest span{font-size:11px;color:#64748b;display:block}
+.meta-rest b{font-size:13px;display:block;text-transform:capitalize}
+.meta-rest span{font-size:11px;color:#64748b;display:block;text-transform:capitalize}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:0 12px 12px}
 @media(max-width:700px){.stats{grid-template-columns:repeat(2,1fr)}}
 .stat{background:white;border-radius:10px;border:1px solid #eef2f7;padding:10px}
@@ -57,7 +57,7 @@ body{background:#f6f8fb;color:#0f172a}
 .fact-table td{padding:8px;border-bottom:1px solid #f1f5f9;font-size:11px}
 .btn-download{background:#E30613;color:white;border:none;padding:10px 16px;border-radius:8px;font-weight:700;font-size:11px;cursor:pointer}
 .btn-close{width:34px;height:34px;background:#0f172a;border-radius:50%;border:none;color:white;display:flex;align-items:center;justify-content:center;cursor:pointer}
-.upload-preview{width:100%;border:2px dashed #e2e8f0;border-radius:12px;padding:10px;margin-bottom:14px;background:#f8fafc}
+.upload-preview{width:100%;border:2px dashed #e2e8f0;border-radius:12px;padding:10px;margin-top:14px;background:#f8fafc}
 .upload-preview img{max-width:100%;border-radius:8px}
 </style>
 </head>
@@ -74,7 +74,7 @@ body{background:#f6f8fb;color:#0f172a}
 </div>
 </div>
 
-<div class="info-rest" id="infoRest">
+<div class="info-rest">
 <div class="logo-rest" id="logoRest">R</div>
 <div class="meta-rest">
 <b id="nombreRest">Cargando...</b>
@@ -104,17 +104,14 @@ body{background:#f6f8fb;color:#0f172a}
 <b style="font-size:13px">Factura de pago</b>
 </div>
 <div style="display:flex;gap:8px;flex-wrap:wrap">
-<button class="btn-download" onclick="descargarFactura()">Descargar</button>
-<button class="btn-download" style="background:#0f172a" onclick="marcarPagado()">Marcar como pagado</button>
+<button class="btn-download" onclick="descargarFactura()">Descargar factura</button>
+<button class="btn-download" style="background:#0f172a" onclick="descargarFacturaSubida()">Descargar factura subida</button>
+<button class="btn-download" style="background:#16a34a" onclick="marcarPagado()">Marcar como pagado</button>
 </div>
 </div>
 <div class="modal-body">
-<div id="facturaSubidaPreview"></div>
 <div id="cuerpoFactura"></div>
-<div style="margin-top:14px;display:flex;gap:8px">
-<button class="btn-download" onclick="descargarFactura()">Descargar factura</button>
-<button class="btn-download" style="background:#0f172a" onclick="descargarFacturaSubida()">Descargar factura subida</button>
-</div>
+<div id="facturaSubidaPreview"></div>
 </div>
 </div>
 
@@ -149,7 +146,8 @@ const appHis = initializeApp(configHistorial, "hisApp");
 const dbHis = getFirestore(appHis);
 
 const params = new URLSearchParams(location.search);
-const idRest = params.get('id') || "";
+const idRestRaw = params.get('id') || "";
+const idRest = idRestRaw.trim();
 let restaurante=null;
 let pedidos=[];
 let filtro="pendiente";
@@ -169,47 +167,69 @@ function formatearFechaHora(fechaStr){
   }catch{ return fechaStr; }
 }
 
+function limpiarNombre(str){
+  if(!str) return "";
+  return str.replace(/_/g, " ").replace(/\s+/g, " ").trim();
+}
+
 async function cargarRestaurante(){
   try{
-    const snapRoot = await get(child(ref(dbAliados), "doloya_aliados/admin"));
-    if(snapRoot.exists()){
-      const data = snapRoot.val();
-      for(let k in data){
-        const val = data[k];
-        const info = val.info || val;
-        const idMatch = (info.id||k).toLowerCase()===idRest.toLowerCase() || k.toLowerCase()===idRest.toLowerCase() || (info.nombre||"").toLowerCase()===idRest.toLowerCase();
-        if(idMatch || k===idRest){
-          restaurante={
-            id: info.id||k,
-            nombre: info.nombre||k,
-            logo: info.imagen||"",
-            direccion: info.direccion||"",
-            categoria: info.categoria||""
-          };
-          break;
-        }
-      }
-      // Si no encontró por id exacto, busca el primero que contenga
-      if(!restaurante){
+    // 1. Intento directo exacto como está en tu foto: doloya_aliados/admin/las_tortas_de_migue
+    const snapDirecto = await get(child(ref(dbAliados), "doloya_aliados/admin/"+idRest));
+    if(snapDirecto.exists()){
+      const val = snapDirecto.val();
+      const info = val.info || val;
+      restaurante={
+        id: info.id || idRest,
+        nombre: info.nombre || limpiarNombre(idRest),
+        logo: info.imagen || info.logo || "",
+        direccion: info.direccion || "",
+        categoria: info.categoria || ""
+      };
+    } else {
+      // 2. Si no, recorre todos y busca por id o nombre ignorando _
+      const snapRoot = await get(child(ref(dbAliados), "doloya_aliados/admin"));
+      if(snapRoot.exists()){
+        const data = snapRoot.val();
+        const idLimpio = limpiarNombre(idRest).toLowerCase();
         for(let k in data){
-          const info = data[k].info||{};
-          if(info.id===idRest || info.nombre===idRest){
-            restaurante={id:info.id||k,nombre:info.nombre||k,logo:info.imagen||"",direccion:info.direccion||"",categoria:info.categoria||""};
+          const val = data[k];
+          const info = val.info || {};
+          const nombreInfo = (info.nombre||"").toLowerCase();
+          const idInfo = (info.id||k).toLowerCase();
+          const kLimpio = limpiarNombre(k).toLowerCase();
+          if(idInfo===idRest.toLowerCase() || k.toLowerCase()===idRest.toLowerCase() || nombreInfo===idRest.toLowerCase() || nombreInfo===idLimpio || kLimpio===idLimpio){
+            restaurante={
+              id: info.id || k,
+              nombre: info.nombre || limpiarNombre(k),
+              logo: info.imagen || info.logo || "",
+              direccion: info.direccion || "",
+              categoria: info.categoria || ""
+            };
             break;
           }
         }
       }
     }
+
     if(restaurante){
-      document.getElementById('nombreRest').textContent=restaurante.nombre;
-      document.getElementById('direccionRest').textContent=restaurante.direccion||"Sin dirección";
-      document.getElementById('logoRest').innerHTML=restaurante.logo?`<img src="${restaurante.logo}">`:restaurante.nombre[0].toUpperCase();
+      document.getElementById('nombreRest').textContent = limpiarNombre(restaurante.nombre);
+      document.getElementById('direccionRest').textContent = restaurante.direccion || "Sin dirección";
+      if(restaurante.logo){
+        document.getElementById('logoRest').innerHTML = `<img src="${restaurante.logo}" alt="logo">`;
+      } else {
+        document.getElementById('logoRest').textContent = limpiarNombre(restaurante.nombre)[0].toUpperCase();
+      }
     } else {
-      document.getElementById('nombreRest').textContent=idRest;
-      document.getElementById('direccionRest').textContent="Restaurante "+idRest;
-      document.getElementById('logoRest').textContent=idRest[0]?.toUpperCase()||"R";
+      document.getElementById('nombreRest').textContent = limpiarNombre(idRest);
+      document.getElementById('direccionRest').textContent = "Restaurante "+limpiarNombre(idRest);
+      document.getElementById('logoRest').textContent = limpiarNombre(idRest)[0].toUpperCase();
     }
-  }catch(e){console.log(e); document.getElementById('nombreRest').textContent=idRest; document.getElementById('direccionRest').textContent=""; }
+  }catch(e){ 
+    console.log(e);
+    document.getElementById('nombreRest').textContent = limpiarNombre(idRest);
+    document.getElementById('direccionRest').textContent = "";
+  }
 }
 
 async function cargarPedidos(){
@@ -218,8 +238,9 @@ async function cargarPedidos(){
   snapE.forEach(d=>{
     const p = d.data();
     const r = p.restaurante||{};
-    const nomRest = restaurante?.nombre?.toLowerCase()||"";
-    if(r.id===idRest || r.nombre===idRest || (nomRest && r.nombre?.toLowerCase()===nomRest) || r.id?.toLowerCase()===idRest.toLowerCase()){
+    const nomRest = (restaurante?.nombre||"").toLowerCase();
+    const idCompare = idRest.toLowerCase();
+    if((r.id && r.id.toLowerCase()===idCompare) || (r.nombre && r.nombre.toLowerCase()===idCompare) || (r.nombre && r.nombre.toLowerCase()===nomRest) || (r.id && r.id.toLowerCase()===limpiarNombre(idRest).toLowerCase())){
       todos.push({idDoc:d.id, ...p});
     }
   });
@@ -307,24 +328,11 @@ window.verFactura = (idDoc)=>{
   const neto=venta-comision;
   const fechaHora=formatearFechaHora(p.timestamp||p.fecha);
 
-  let htmlSubida="";
-  if(p.facturaSubidaUrl){
-    if(p.facturaSubidaUrl.startsWith("data:image") || p.facturaSubidaUrl.match(/\.(jpg|jpeg|png|webp)$/i) || p.facturaSubidaUrl.includes("firebasestorage")){
-      htmlSubida=`<div class="upload-preview"><div style="font-size:11px;font-weight:700;margin-bottom:6px">Factura subida:</div><img src="${p.facturaSubidaUrl}" style="max-width:100%"><br><button class="btn-download" style="margin-top:8px" onclick="descargarFacturaSubida()">Descargar factura subida</button></div>`;
-    } else {
-      htmlSubida=`<div class="upload-preview"><div style="font-size:11px;font-weight:700;margin-bottom:6px">Factura subida:</div><a href="${p.facturaSubidaUrl}" target="_blank" style="font-size:11px;color:#E30613">${p.facturaSubidaNombre||'Ver documento'}</a><br><button class="btn-download" style="margin-top:8px" onclick="descargarFacturaSubida()">Descargar factura subida</button></div>`;
-    }
-  } else {
-    htmlSubida=`<div class="upload-preview" style="text-align:center;color:#94a3b8;font-size:11px">No hay factura subida aún. Usa el botón Subir factura.</div>`;
-  }
-
-  document.getElementById('facturaSubidaPreview').innerHTML=htmlSubida;
-
   document.getElementById('cuerpoFactura').innerHTML=`
   <div class="factura" id="facturaImprimible">
     <div class="fact-head">
       <div>
-        <b style="font-size:15px">${restaurante?.nombre||idRest}</b><br>
+        <b style="font-size:15px">${limpiarNombre(restaurante?.nombre||idRest)}</b><br>
         <span style="font-size:11px;color:#64748b">${restaurante?.direccion||''}</span><br>
         <span style="font-size:11px">Factura: ${p.facturaNum}</span><br>
         <span style="font-size:11px">Emitida: ${formatearFechaHora(new Date().toISOString())}</span>
@@ -349,6 +357,15 @@ window.verFactura = (idDoc)=>{
       <div style="text-align:center"><div style="width:180px;border-top:1px solid #000;margin-bottom:4px"></div><span style="font-size:10px">Firma DoloYa</span></div>
     </div>
   </div>`;
+
+  // AHORA LA FACTURA SUBIDA ABAJO, NO ARRIBA
+  let htmlSubida="";
+  if(p.facturaSubidaUrl){
+    htmlSubida=`<div class="upload-preview"><div style="font-size:11px;font-weight:700;margin-bottom:6px">Factura subida por ti:</div><img src="${p.facturaSubidaUrl}" style="max-width:100%;max-height:500px;object-fit:contain"></div>`;
+  } else {
+    htmlSubida=`<div class="upload-preview" style="text-align:center;color:#94a3b8;font-size:11px">No hay factura subida aún. Usa el botón Subir factura.</div>`;
+  }
+  document.getElementById('facturaSubidaPreview').innerHTML=htmlSubida;
   document.getElementById('modalFactura').classList.add('show');
 };
 
@@ -361,10 +378,10 @@ window.descargarFactura = ()=>{
 };
 
 window.descargarFacturaSubida = ()=>{
-  if(!pedidoActual?.facturaSubidaUrl) { alert("No hay factura subida"); return; }
+  if(!pedidoActual?.facturaSubidaUrl){ alert("No hay factura subida"); return; }
   const a=document.createElement('a');
   a.href=pedidoActual.facturaSubidaUrl;
-  a.download=pedidoActual.facturaSubidaNombre||"factura-subida";
+  a.download=pedidoActual.facturaSubidaNombre||"factura-subida.jpg";
   a.target="_blank";
   a.click();
 };
@@ -377,39 +394,73 @@ window.subirFactura = (idDoc)=>{
 document.getElementById('fileInput').addEventListener('change', async (e)=>{
   const file=e.target.files[0];
   if(!file || !facturaParaSubir) return;
+
   try{
-    // Subir a Storage
-    const storageRef = sRef(storageAliados, `facturas/${idRest}/${facturaParaSubir}/${file.name}`);
-    await uploadBytes(storageRef, file);
-    const url = await getDownloadURL(storageRef);
-    // Guardar referencia en Firestore
-    const p=pedidos.find(x=>x.idDoc===facturaParaSubir);
-    await setDoc(doc(dbHis, "pagos_aliados", facturaParaSubir), {
-      facturaSubidaUrl: url,
-      facturaSubidaNombre: file.name,
-      restauranteId: idRest,
-      restauranteNombre: restaurante?.nombre||idRest,
-      factura: p?.facturaNum||"",
-      fechaSubida: new Date().toISOString()
-    }, {merge:true});
-    alert("Factura subida correctamente");
-    cargarPedidos();
-  }catch(err){
-    console.log(err);
-    // Fallback guardar como base64 si falla storage
-    const reader=new FileReader();
-    reader.onload=async ()=>{
-      await setDoc(doc(dbHis, "pagos_aliados", facturaParaSubir), {
-        facturaSubidaUrl: reader.result,
-        facturaSubidaNombre: file.name,
-        restauranteId: idRest,
-        factura: pedidos.find(x=>x.idDoc===facturaParaSubir)?.facturaNum||"",
-        fechaSubida: new Date().toISOString()
-      }, {merge:true});
-      alert("Factura subida (base64)");
-      cargarPedidos();
+    // Convertir a URL comprimida para que no pese tanto
+    const reader = new FileReader();
+    reader.onload = async ()=>{
+      let base64 = reader.result;
+      // Si es imagen, comprimir a 800px ancho
+      if(file.type.startsWith("image/")){
+        const img = new Image();
+        img.onload = async ()=>{
+          const canvas = document.createElement('canvas');
+          const maxW = 1000;
+          const scale = Math.min(1, maxW / img.width);
+          canvas.width = img.width * scale;
+          canvas.height = img.height * scale;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img,0,0,canvas.width,canvas.height);
+          const compressed = canvas.toDataURL('image/jpeg', 0.7);
+
+          // Subir comprimida a Storage para obtener URL ligera
+          try{
+            const blob = await (await fetch(compressed)).blob();
+            const storageRef = sRef(storageAliados, `facturas/${idRest}/${facturaParaSubir}/${Date.now()}.jpg`);
+            await uploadBytes(storageRef, blob);
+            const url = await getDownloadURL(storageRef);
+            await setDoc(doc(dbHis, "pagos_aliados", facturaParaSubir), {
+              facturaSubidaUrl: url,
+              facturaSubidaNombre: file.name,
+              restauranteId: idRest,
+              restauranteNombre: restaurante?.nombre||idRest,
+              factura: pedidos.find(x=>x.idDoc===facturaParaSubir)?.facturaNum||"",
+              fechaSubida: new Date().toISOString()
+            }, {merge:true});
+          }catch{
+            // Fallback guarda base64 comprimido
+            await setDoc(doc(dbHis, "pagos_aliados", facturaParaSubir), {
+              facturaSubidaUrl: compressed,
+              facturaSubidaNombre: file.name,
+              restauranteId: idRest,
+              factura: pedidos.find(x=>x.idDoc===facturaParaSubir)?.facturaNum||"",
+              fechaSubida: new Date().toISOString()
+            }, {merge:true});
+          }
+          alert("Factura subida correctamente");
+          cargarPedidos();
+        };
+        img.src = base64;
+      } else {
+        // PDF u otro
+        const storageRef = sRef(storageAliados, `facturas/${idRest}/${facturaParaSubir}/${file.name}`);
+        await uploadBytes(storageRef, file);
+        const url = await getDownloadURL(storageRef);
+        await setDoc(doc(dbHis, "pagos_aliados", facturaParaSubir), {
+          facturaSubidaUrl: url,
+          facturaSubidaNombre: file.name,
+          restauranteId: idRest,
+          factura: pedidos.find(x=>x.idDoc===facturaParaSubir)?.facturaNum||"",
+          fechaSubida: new Date().toISOString()
+        }, {merge:true});
+        alert("Factura subida");
+        cargarPedidos();
+      }
     };
     reader.readAsDataURL(file);
+  }catch(err){
+    console.log(err);
+    alert("Error subiendo factura");
   }
   e.target.value="";
 });
@@ -426,9 +477,7 @@ async function pagarEnDB(idDoc){
     comision:venta*0.10,
     restauranteId:idRest,
     restauranteNombre:restaurante?.nombre||idRest,
-    factura:p.facturaNum,
-    cliente:p.nombre||"",
-    fechaPedido:p.timestamp||p.fecha||""
+    factura:p.facturaNum
   }, {merge:true});
 }
 
