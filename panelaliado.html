@@ -11,8 +11,8 @@ body{background:#f9f9fb;min-height:100vh;display:flex}
 :root{--rojo:#C50D1F}
 .sidebar{width:250px;background:var(--rojo);min-height:100vh;display:flex;flex-direction:column;justify-content:space-between;position:fixed;left:0;top:0;bottom:0;z-index:100;transition:0.3s}
 .sidebar-top{padding:18px 16px}
-.logo{display:flex;flex-direction:column;align-items:center;margin-bottom:16px;padding:6px 0}
-.logo img{width:140px;height:auto;object-fit:contain;filter:brightness(0) invert(1); /* blanco para que se vea en fondo rojo */}
+.logo{display:flex;align-items:center;justify-content:center;margin-bottom:16px;padding:4px 0}
+.logo img{width:160px;height:auto;object-fit:contain;display:block}
 .estado-wrap{background:white;border-radius:14px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,0.15)}
 .estado-info b{font-size:13px;color:#111;display:block;line-height:1}
 .estado-info span{font-size:10px;color:#6b7280;font-weight:600}
@@ -59,11 +59,9 @@ body{background:#f9f9fb;min-height:100vh;display:flex}
 <div class="mobile-overlay" id="overlay" onclick="toggleMenu()"></div>
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-top">
-    <!-- LOGO VINCULADO -->
     <div class="logo">
       <img src="logo-doloya.png" alt="DoloYa">
     </div>
-
     <div class="estado-wrap"><div class="estado-info"><b id="estadoTexto">Abierto</b><span id="estadoSub">Tu negocio</span></div><div style="display:flex;align-items:center"><span class="estado-badge abierto" id="estadoBadge">ABIERTO</span><div class="switch on" id="switchEstado" onclick="toggleEstado()"></div></div></div>
     <div class="sidebar-label">Panel de aliados</div>
     <ul class="menu">
@@ -119,7 +117,6 @@ else {
   const badgeEstado = document.getElementById('estadoBadge');
   const textoEstado = document.getElementById('estadoTexto');
   const idNegocio = (sesion.id || sesion.negocio || 'alitas_factory').toLowerCase();
-
   function getCategoriaReal(id){
     const n = normalize(id);
     if(n.includes('alitas')) return 'alitas';
@@ -130,11 +127,8 @@ else {
     return n.split('_')[0].split('-')[0];
   }
   const catBuscada = getCategoriaReal(idNegocio);
-
   let primerCarga = true; let ultimoCount = 0; let estadoActual = true; let refEstadoReal = null; let categoriaReal = catBuscada; let idReal = idNegocio;
-
   sub.textContent = formatearNombreBonito(sesion.nombre || idNegocio);
-
   get(ref(dbAliados, 'doloya_aliados')).then(allSnap=>{
     if(!allSnap.exists()){
       refEstadoReal = ref(dbAliados, `doloya_aliados/${idReal}/categorias/disponibilidad`);
@@ -163,7 +157,6 @@ else {
     }
     refEstadoReal = ref(dbAliados, `doloya_aliados/${idReal}/categorias/disponibilidad`);
     escucharEstado();
-
     const refMala1 = ref(dbAliados, `doloya_aliados/${idReal}/categorias/categorias/disponibilidad`);
     get(refMala1).then(s=>{
       if(s.exists()){
@@ -177,7 +170,6 @@ else {
       }
     });
   });
-
   function escucharEstado(){ 
     if(!refEstadoReal) return; 
     onValue(refEstadoReal, (snap)=>{ 
@@ -199,7 +191,6 @@ else {
     }); 
   }
   function actualizarUIEstado(abierto){ if(abierto){ switchEl.classList.add('on'); badgeEstado.textContent='ABIERTO'; badgeEstado.className='estado-badge abierto'; textoEstado.textContent='Abierto'; } else { switchEl.classList.remove('on'); badgeEstado.textContent='CERRADO'; badgeEstado.className='estado-badge cerrado'; textoEstado.textContent='Cerrado'; } }
-  
   window.toggleEstado = function(){ 
     const nuevo = !estadoActual; 
     actualizarUIEstado(nuevo); 
@@ -207,13 +198,11 @@ else {
     if(!refEstadoReal) refEstadoReal = ref(dbAliados, `doloya_aliados/${idReal}/categorias/disponibilidad`); 
     update(refEstadoReal, { abierto: nuevo, estado: nuevo ? 'activo' : 'cerrado' });
   }
-
   function sonarDoloYa(){ bell.classList.add('vibrar'); setTimeout(()=>bell.classList.remove('vibrar'),3000); try{ window.speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance("¡DoloYa! ¡DoloYa! ¡Pedido!"); u.lang='es-MX'; u.rate=1.25; window.speechSynthesis.speak(u); }catch(e){} }
   function actualizarBadges(count){
     badge.style.display='flex'; badge.textContent=count;
     bellBadge.style.display='flex'; bellBadge.textContent=count;
   }
-
   function esPedidoDeEsteRestaurante(d){
     const r = d.restaurante || {};
     const cat = normalize(r.cat || r.categoria || '');
@@ -227,7 +216,6 @@ else {
     if(cat.includes(targetCat)) return true;
     return false;
   }
-
   if(sesion.rol==='administrador'){
     onSnapshot(collection(dbFirestore, "pedidos"), (snap)=>{
       const nuevo = snap.size;
