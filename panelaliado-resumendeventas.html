@@ -91,7 +91,7 @@ const configHistorial = {
 const appHis = initializeApp(configHistorial, "hisApp");
 const dbHis = getFirestore(appHis);
 
-// ESTE ES EL ID DEL RESTAURANTE LOGUEADO EN panelaliado.html
+// ID DEL RESTAURANTE LOGUEADO - VIENE DE panelaliado.html
 let restauranteId = localStorage.getItem('restauranteId') || localStorage.getItem('aliadoId') || localStorage.getItem('idRestaurante') || localStorage.getItem('restaurantId') || new URLSearchParams(location.search).get('id') || "";
 let restauranteNombre = localStorage.getItem('restauranteNombre') || localStorage.getItem('nombreRestaurante') || localStorage.getItem('nombreNegocio') || restauranteId;
 
@@ -102,48 +102,44 @@ let filtrados = [];
 function limpiarNombre(s){ return (s||"").replace(/_/g," ").replace(/-/g," ").trim(); }
 function fechaCorta(f){ try{ let d=new Date(f); if(isNaN(d.getTime())) d=new Date(Number(f)); if(isNaN(d.getTime())) return "-"; return `<span style="font-size:7px">${d.toLocaleDateString('es-MX')}</span><br><span style="font-size:6.5px;color:#64748b">${d.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'})}</span>`; }catch{ return "-"; } }
 
-function esDeEsteRestaurante(data){
-  if(!restauranteId && !restauranteNombre) return false;
-  const idBaja = (restauranteId||"").toLowerCase().trim();
-  const nombreBaja = (restauranteNombre||"").toLowerCase().trim();
-  const r = data.restaurante || {};
-  const valores = [
-    r.id, r.nombre, 
-    data.restauranteId, data.restauranteNombre,
-    data.idRestaurante, data.restaurante_id,
-    data.restaurante?.id, data.restaurante?.nombre
-  ].filter(Boolean).map(v=> v.toString().toLowerCase().trim());
-  return valores.some(v=> v===idBaja || v===nombreBaja);
-}
-
 async function cargar(){
   if(!restauranteId){
-    document.getElementById('listaPedidos').innerHTML='<div style="padding:20px;text-align:center;color:#E30613;font-size:11px">No se detectó tu restaurante.<br>Entra desde panelaliado.html para que se guarde tu sesión.</div>';
+    document.getElementById('listaPedidos').innerHTML='<div style="padding:20px;text-align:center;color:#E30613;font-size:11px">No se detectó tu restaurante.<br>Entra desde panelaliado.html<br><small style="color:#64748b">Se necesita localStorage restauranteId = las_tortas_de_migue o santillos etc</small></div>';
     return;
   }
+
+  // Normalizamos a minusculas como está en tu Firestore: restaurante.id = "las_tortas_de_migue"
+  const miId = restauranteId.toLowerCase().trim();
+  const miNombre = restauranteNombre.toLowerCase().trim();
+
   document.getElementById('nombreNegocio').textContent = "- " + limpiarNombre(restauranteNombre);
   document.getElementById('kNombreSpan').textContent = limpiarNombre(restauranteNombre);
 
-  // Trae SOLO de este restaurante
   const snapE = await getDocs(collection(dbHis, "pedidos_entregados"));
   snapE.forEach(d=>{
     const data=d.data();
-    if(!esDeEsteRestaurante(data)) return;
+    const rid = (data.restaurante?.id || "").toLowerCase().trim();
+    const rnombre = (data.restaurante?.nombre || "").toLowerCase().trim();
+    if(rid !== miId && rnombre !== miNombre) return; // SOLO DE ESTE NEGOCIO
     const venta = Number(data.totales?.costoProductos || data.total || data.monto || 0);
-    pedidos.push({ id:d.id, tipo:"entregado", fecha: data.timestamp || data.fecha || data.creado || data.actualizadoEn || Date.now(), venta: venta, gana: venta*0.9, cliente: data.cliente?.nombre || data.clienteNombre || data.nombreCliente || "Cliente" });
+    pedidos.push({ id:d.id, tipo:"entregado", fecha: data.timestampEnvio || data.timestampAdmin || data.fecha || Date.now(), venta: venta, gana: venta*0.9, cliente: data.cliente?.nombre || "Cliente" });
   });
+
   const snapC = await getDocs(collection(dbHis, "pedidos_cancelados"));
   snapC.forEach(d=>{
     const data=d.data();
-    if(!esDeEsteRestaurante(data)) return;
+    const rid = (data.restaurante?.id || "").toLowerCase().trim();
+    const rnombre = (data.restaurante?.nombre || "").toLowerCase().trim();
+    if(rid !== miId && rnombre !== miNombre) return; // SOLO DE ESTE NEGOCIO
     const venta = Number(data.totales?.costoProductos || data.total || data.monto || 0);
-    pedidos.push({ id:d.id, tipo:"cancelado", fecha: data.timestamp || data.canceladoEn || data.fecha || data.creado || Date.now(), venta: venta, gana: venta*0.5, cliente: data.cliente?.nombre || data.clienteNombre || "Cliente" });
+    pedidos.push({ id:d.id, tipo:"cancelado", fecha: data.timestampEnvio || data.timestampAdmin || data.fecha || Date.now(), venta: venta, gana: venta*0.5, cliente: data.cliente?.nombre || "Cliente" });
   });
+
   const snapP = await getDocs(collection(dbHis, "pagos_aliados"));
   snapP.forEach(d=>{
     const data=d.data();
-    const id = (data.restauranteId || data.restauranteNombre || "").toLowerCase().trim();
-    if(id !== restauranteId.toLowerCase().trim() && id !== restauranteNombre.toLowerCase().trim()) return;
+    const id = (data.restauranteId || data.restaurante?.id || data.restauranteNombre || "").toLowerCase().trim();
+    if(id !== miId && id !== miNombre) return;
     pagos.push({ id:d.id, monto:Number(data.montoPagado||data.monto||0), fecha:data.fechaPago||data.fecha||data.timestamp, factura:data.facturaId||d.id });
   });
 
@@ -188,7 +184,7 @@ function render(){
   }
 
   const cont = document.getElementById('listaPedidos');
-  if(filtrados.length===0){ cont.innerHTML='<div style="padding:20px;text-align:center;color:#94a3b8">No hay pedidos para '+limpiarNombre(restauranteNombre)+' en DoloYa-Historial</div>'; return; }
+  if(filtrados.length===0){ cont.innerHTML='<div style="padding:20px;text-align:center;color:#94a3b8">No hay pedidos para '+limpiarNombre(restauranteNombre)+' en DoloYa-Historial<br><small>ID buscado: '+restauranteId+'</small></div>'; return; }
   cont.innerHTML="";
   filtrados.forEach(p=>{
     const esCanc = p.tipo==="cancelado";
