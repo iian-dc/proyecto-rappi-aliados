@@ -29,8 +29,9 @@ body{background:#f6f8fb;color:#0f172a;min-height:100vh}
 @media(max-width:600px){.input-group{grid-template-columns:1fr}}
 .btn-save{position:fixed;bottom:16px;left:14px;right:14px;max-width:720px;margin:0 auto;background:#0a1020;color:white;border:none;border-radius:999px;padding:14px;font-size:14px;font-weight:800;cursor:pointer;box-shadow:0 8px 20px rgba(0,0,0,.2)}
 .btn-save:disabled{opacity:.6}
-.preview-url{font-size:10px;color:#94a3b8;margin-top:4px;word-break:break-all}
 .ok{padding:10px;background:#dcfce7;color:#166534;border-radius:10px;font-size:12px;font-weight:700;margin-bottom:10px;display:none}
+.mapa-wrap{width:100%;height:240px;border-radius:12px;border:1px solid #e2e8f0;overflow:hidden;margin-top:10px}
+.hidden{display:none !important}
 </style>
 </head>
 <body>
@@ -56,12 +57,9 @@ body{background:#f6f8fb;color:#0f172a;min-height:100vh}
 <div style="padding-bottom:10px"><b id="nombrePreview" style="font-size:15px">Cargando...</b><br><span id="catPreview" style="font-size:11px;color:#64748b">-</span></div>
 </div>
 <div style="padding:14px">
-<label class="label">URL Imagen de perfil (o sube archivo)</label>
-<input id="inpPerfilUrl" class="input" placeholder="https://...">
+<input id="inpPerfilUrl" class="hidden">
 <input type="file" id="filePerfil" accept="image/*" hidden>
-<div id="previewPerfilUrl" class="preview-url"></div>
-<label class="label" style="margin-top:10px">URL Imagen de portada</label>
-<input id="inpPortadaUrl" class="input" placeholder="https://...">
+<input id="inpPortadaUrl" class="hidden">
 <input type="file" id="filePortada" accept="image/*" hidden>
 </div>
 </div>
@@ -72,10 +70,8 @@ body{background:#f6f8fb;color:#0f172a;min-height:100vh}
 <input id="inpNombre" class="input" placeholder="Ej: Alitas Factory">
 <div class="input-group" style="margin-top:10px">
 <div><label class="label">Categoría</label><input id="inpCategoria" class="input" placeholder="burgers, pizzas..."></div>
-<div><label class="label">Estado (abierto/cerrado)</label><select id="inpEstado" class="input"><option value="activo">Abierto</option><option value="cerrado">Cerrado</option></select></div>
+<div><label class="label">Estado</label><select id="inpEstado" class="input"><option value="activo">Abierto</option><option value="cerrado">Cerrado</option></select></div>
 </div>
-<label class="label" style="margin-top:10px">Descripción</label>
-<textarea id="inpDesc" class="input" rows="3" placeholder="Describe tu restaurante..."></textarea>
 </div>
 
 <div class="card">
@@ -85,24 +81,21 @@ body{background:#f6f8fb;color:#0f172a;min-height:100vh}
 <div><label class="label">Teléfono</label><input id="inpTelefono" class="input" placeholder="Teléfono"></div>
 </div>
 <label class="label" style="margin-top:10px">Dirección / Ubicación</label>
-<input id="inpDireccion" class="input" placeholder="Calle, colonia, ciudad">
+<input id="inpDireccion" class="input" placeholder="Escribe tu dirección...">
+<div id="map" class="mapa-wrap"></div>
+<div style="font-size:10px;color:#64748b;margin-top:6px">Arrastra el marcador o haz clic en el mapa para confirmar ubicación</div>
 <div class="input-group" style="margin-top:10px">
 <div><label class="label">Latitud</label><input id="inpLat" class="input" placeholder="21.123"></div>
 <div><label class="label">Longitud</label><input id="inpLng" class="input" placeholder="-100.123"></div>
 </div>
 </div>
 
-<div class="card">
-<h3><span></span>ID vinculado</h3>
-<label class="label">ID en DoloYa-Aliados</label>
-<input id="inpIdReal" class="input" disabled style="background:#f1f5f9">
-<label class="label" style="margin-top:8px">Ruta en Firebase</label>
-<input id="inpRuta" class="input" disabled style="background:#f1f5f9;font-size:11px">
-</div>
+<div class="hidden"><input id="inpIdReal"><input id="inpRuta"></div>
 </div>
 
 <button id="btnGuardar" class="btn-save">Guardar cambios</button>
 
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCTV1sm6McEIkv-cheaVFCD_svp_a--6wg&libraries=places"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
 import { getDatabase, ref, get, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js";
@@ -116,9 +109,8 @@ const sesion = JSON.parse(localStorage.getItem('doloya_aliado_sesion')||'null');
 if(!sesion){ location.href='panelaliado.html'; }
 
 const idNegocio = (sesion.id || sesion.negocio || '').toLowerCase();
-let refReal = null;
-let rutaReal = '';
-let datosOriginal = null;
+let refReal = null; let rutaReal = '';
+let map, marker, autocomplete;
 
 async function encontrarRestaurante(){
   const snap = await get(ref(db, 'doloya_aliados'));
@@ -131,29 +123,19 @@ async function encontrarRestaurante(){
       if(normalize(key)===normalize(idNegocio)){
         return { categoria: cat, id: key, data: nivel[key], ruta: `doloya_aliados/${cat}/${key}` };
       }
-      // tambien puede estar en doloya_aliados/{id} directo
-      if(nivel[key] && typeof nivel[key]==='object'){
-        // busca anidado
-      }
     }
   }
-  // Intento directo doloya_aliados/{id}
   const direct = await get(ref(db, `doloya_aliados/${idNegocio}`));
   if(direct.exists()){
     return { categoria: 'direct', id: idNegocio, data: direct.val(), ruta: `doloya_aliados/${idNegocio}` };
   }
   return null;
 }
-
 function fileToDataURL(file){
   return new Promise((res,rej)=>{
-    const r=new FileReader();
-    r.onload=()=>res(r.result);
-    r.onerror=rej;
-    r.readAsDataURL(file);
+    const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(file);
   });
 }
-
 document.getElementById('filePerfil').addEventListener('change', async (e)=>{
   const f=e.target.files[0]; if(!f) return;
   const url=await fileToDataURL(f);
@@ -166,62 +148,77 @@ document.getElementById('filePortada').addEventListener('change', async (e)=>{
   document.getElementById('imgPortada').src=url;
   document.getElementById('inpPortadaUrl').value=url;
 });
-
-document.getElementById('inpPerfilUrl').addEventListener('input', e=>{
-  if(e.target.value) document.getElementById('imgPerfil').src=e.target.value;
-});
-document.getElementById('inpPortadaUrl').addEventListener('input', e=>{
-  if(e.target.value) document.getElementById('imgPortada').src=e.target.value;
-});
 document.getElementById('inpNombre').addEventListener('input', e=>{
   document.getElementById('nombrePreview').textContent=e.target.value||'Mi restaurante';
 });
+
+function initMap(lat=21.389, lng=-100.934){
+  const pos={lat,lng};
+  map=new google.maps.Map(document.getElementById('map'),{center:pos,zoom:15,disableDefaultUI:false});
+  marker=new google.maps.Marker({position:pos,map:map,draggable:true,title:"Arrastra para ajustar"});
+  marker.addListener('dragend', ()=>{
+    const p=marker.getPosition();
+    document.getElementById('inpLat').value=p.lat().toFixed(6);
+    document.getElementById('inpLng').value=p.lng().toFixed(6);
+  });
+  map.addListener('click', (e)=>{
+    marker.setPosition(e.latLng);
+    document.getElementById('inpLat').value=e.latLng.lat().toFixed(6);
+    document.getElementById('inpLng').value=e.latLng.lng().toFixed(6);
+  });
+  // Autocomplete
+  autocomplete=new google.maps.places.Autocomplete(document.getElementById('inpDireccion'));
+  autocomplete.addListener('place_changed', ()=>{
+    const place=autocomplete.getPlace();
+    if(!place.geometry) return;
+    const loc=place.geometry.location;
+    map.setCenter(loc); map.setZoom(16);
+    marker.setPosition(loc);
+    document.getElementById('inpLat').value=loc.lat().toFixed(6);
+    document.getElementById('inpLng').value=loc.lng().toFixed(6);
+    document.getElementById('inpDireccion').value=place.formatted_address||document.getElementById('inpDireccion').value;
+  });
+}
 
 async function cargar(){
   const encontrado = await encontrarRestaurante();
   if(!encontrado){
     document.getElementById('nombrePreview').textContent=idNegocio;
     document.getElementById('inpIdReal').value=idNegocio;
-    document.getElementById('inpRuta').value='No encontrado - se creará';
     rutaReal=`doloya_aliados/${idNegocio}`;
     refReal=ref(db, rutaReal);
+    initMap();
     return;
   }
-  rutaReal=encontrado.ruta;
-  refReal=ref(db, rutaReal);
-  datosOriginal=encontrado.data;
-  
+  rutaReal=encontrado.ruta; refReal=ref(db, rutaReal);
   document.getElementById('inpIdReal').value=encontrado.id;
   document.getElementById('inpRuta').value=rutaReal;
   document.getElementById('catPreview').textContent=encontrado.categoria;
 
-  // Escucha en tiempo real
   onValue(refReal, (snap)=>{
     if(!snap.exists()) return;
     const d=snap.val();
-    // Soporta diferentes estructuras
     const info = d.categorias?.info || d.info || d.datos || d;
     const disp = d.categorias?.disponibilidad || d.disponibilidad || {};
-    
     document.getElementById('inpNombre').value = info.nombre || d.nombre || sesion.nombre || encontrado.id;
     document.getElementById('nombrePreview').textContent = info.nombre || d.nombre || encontrado.id;
     document.getElementById('inpCategoria').value = encontrado.categoria;
-    document.getElementById('inpDesc').value = info.descripcion || d.descripcion || '';
-    document.getElementById('inpWhatsapp').value = info.whatsapp || d.whatsapp || d.telefono || '';
+    document.getElementById('inpWhatsapp').value = info.whatsapp || d.whatsapp || '';
     document.getElementById('inpTelefono').value = info.telefono || d.telefono || '';
-    document.getElementById('inpDireccion').value = info.direccion || d.direccion || info.ubicacion || d.ubicacion || '';
+    document.getElementById('inpDireccion').value = info.direccion || d.direccion || '';
     document.getElementById('inpLat').value = info.lat || d.lat || '';
     document.getElementById('inpLng').value = info.lng || d.lng || '';
-    
-    const imgPerfil = info.logo || info.imagen || info.imagenPerfil || d.logo || d.imagen || '';
-    const imgPortada = info.portada || info.banner || d.portada || '';
+    const imgPerfil = info.logo || info.imagen || d.logo || '';
+    const imgPortada = info.portada || d.portada || '';
     if(imgPerfil){ document.getElementById('imgPerfil').src=imgPerfil; document.getElementById('inpPerfilUrl').value=imgPerfil; }
     if(imgPortada){ document.getElementById('imgPortada').src=imgPortada; document.getElementById('inpPortadaUrl').value=imgPortada; }
-    
     const estado = disp.estado || d.estado || 'activo';
     document.getElementById('inpEstado').value = estado==='abierto'?'activo':estado;
     document.getElementById('estadoTxt').textContent = estado==='activo'?'● ABIERTO':'● CERRADO';
     document.getElementById('estadoTxt').style.color = estado==='activo'?'#16a34a':'#E30613';
+    const lat=parseFloat(info.lat||d.lat)||21.389;
+    const lng=parseFloat(info.lng||d.lng)||-100.934;
+    if(!map){ initMap(lat,lng); } else { const p=new google.maps.LatLng(lat,lng); marker.setPosition(p); map.setCenter(p); }
   });
 }
 
@@ -231,7 +228,6 @@ document.getElementById('btnGuardar').addEventListener('click', async ()=>{
   try{
     const payload={
       nombre: document.getElementById('inpNombre').value.trim(),
-      descripcion: document.getElementById('inpDesc').value.trim(),
       logo: document.getElementById('inpPerfilUrl').value.trim(),
       imagen: document.getElementById('inpPerfilUrl').value.trim(),
       imagenPerfil: document.getElementById('inpPerfilUrl').value.trim(),
@@ -247,21 +243,13 @@ document.getElementById('btnGuardar').addEventListener('click', async ()=>{
       estado: document.getElementById('inpEstado').value,
       ultimaActualizacion: new Date().toISOString()
     };
-    // Guarda en la ruta real y también en subrutas que usa tu panel
     await update(refReal, payload);
     await update(ref(db, `${rutaReal}/categorias/info`), payload);
     await update(ref(db, `${rutaReal}/categorias/disponibilidad`), { estado: payload.estado, abierto: payload.estado==='activo' });
-    
-    // Actualiza sesión local
     sesion.nombre=payload.nombre;
     localStorage.setItem('doloya_aliado_sesion', JSON.stringify(sesion));
-    
-    const ok=document.getElementById('msgOk');
-    ok.style.display='block';
-    setTimeout(()=>ok.style.display='none',2500);
-  }catch(e){
-    alert('Error: '+e.message);
-  }
+    const ok=document.getElementById('msgOk'); ok.style.display='block'; setTimeout(()=>ok.style.display='none',2500);
+  }catch(e){ alert('Error: '+e.message); }
   btn.textContent='Guardar cambios'; btn.disabled=false;
 });
 
