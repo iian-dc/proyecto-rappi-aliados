@@ -145,20 +145,22 @@ async function cargar(){
 function render(){
   const totalPagadoGlobal = pagos.reduce((s,p)=>s+Number(p.monto||0),0);
   
-  // TOTAL INGRESOS RESTAURANTE - valores de ingresos (entregados)
+  // TOTAL INGRESOS RESTAURANTE - incluye entregados menos 10% + cancelados 50% que le diste
   const ingresosEntregados = pedidos.filter(p=>p.tipo==="entregado").reduce((s,p)=>s+p.venta,0);
   const ingresosEntregadosMenos10 = ingresosEntregados * 0.9;
+  const ingresosCancelados = pedidos.filter(p=>p.tipo==="cancelado").reduce((s,p)=>s+p.valorCancelado,0); // 50%
+  const totalIngresosReal = ingresosEntregadosMenos10 + ingresosCancelados;
   
-  // PERDIDA POR CANCELACION - valor de pedidos cancelados
-  const canceladosValor = pedidos.filter(p=>p.tipo==="cancelado").reduce((s,p)=>s+p.venta,0);
+  // PERDIDA POR CANCELACION - solo 40% real, no el total del pedido
+  const canceladosPerdida40 = pedidos.filter(p=>p.tipo==="cancelado").reduce((s,p)=>s+(p.venta * 0.4),0);
   const countCanc = pedidos.filter(p=>p.tipo==="cancelado").length;
   const countEnt = pedidos.filter(p=>p.tipo==="entregado").length;
 
-  document.getElementById('kIngresos').textContent = "$ "+ingresosEntregadosMenos10.toFixed(2);
-  document.getElementById('kSubIngresos').textContent = countEnt+" pedidos entregados";
+  document.getElementById('kIngresos').textContent = "$ "+totalIngresosReal.toFixed(2);
+  document.getElementById('kSubIngresos').textContent = countEnt+" entregados + "+countCanc+" cancelados (50%)";
   
-  document.getElementById('kPerdidas').textContent = "- $ "+canceladosValor.toFixed(2);
-  document.getElementById('kSubPerd').textContent = countCanc+" cancelados";
+  document.getElementById('kPerdidas').textContent = "- $ "+canceladosPerdida40.toFixed(2);
+  document.getElementById('kSubPerd').textContent = countCanc+" cancelados - pérdida 40%";
 
   document.getElementById('kTotalPed').textContent = pedidos.length;
   document.getElementById('kNombreSpan').textContent = countEnt+" entregados, "+countCanc+" cancelados";
@@ -251,7 +253,6 @@ window.abrirGraficaPedido = (idPedido)=>{
     labels = ['Valor producto', 'Ingresos', 'Pendiente'];
     data = [valorProductoMenos10, ingresosPedido, pendientePedido];
     colors = ['#3b82f6', '#16a34a', '#f59e0b'];
-    // PAGADO: solo ingresos
     totalTexto = ingresosPedido;
     colorTotal = '#16a34a';
     resumenHtml = `
