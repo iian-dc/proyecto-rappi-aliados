@@ -272,36 +272,37 @@ window.abrirGraficaPedido = (idPedido)=>{
   
   let ingresosPedido = estaPagado ? p.gana : 0;
   let pendientePedido = estaPagado ? 0 : p.gana;
-  // 40% REAL - 58.50 * 0.4 = 23.40
   const perdida40Real = valorProducto * 0.4;
 
-  let labels, data, colors, resumenHtml, totalTexto;
+  let labels, data, colors, resumenHtml, totalTexto, colorTotal;
 
   if(p.tipo==="cancelado"){
     labels = ['Valor producto', 'Ingresos', 'Pérdida 40%', 'Pendiente'];
     data = [valorProductoMenos10, ingresosPedido, perdida40Real, pendientePedido];
     colors = ['#3b82f6', '#16a34a', '#E30613', '#f59e0b'];
-    // FORMULA CANCELADO: valor producto - ingresos = total
-    const totalCancel = valorProducto - ingresosPedido;
+    // FORMULA CANCELADO: ingresos - valor producto
+    const totalCancel = ingresosPedido - valorProducto;
     totalTexto = totalCancel;
+    colorTotal = totalCancel < 0 ? '#E30613' : '#16a34a';
     resumenHtml = `
       <div><span style="color:#3b82f6">● Valor producto menos 10%</span><b>$ ${valorProductoMenos10.toFixed(2)}</b></div>
       <div><span style="color:#16a34a">● Ingresos</span><b>$ ${ingresosPedido.toFixed(2)}</b></div>
       <div><span style="color:#E30613">● Pérdida por cancelación 40%</span><b>$ ${perdida40Real.toFixed(2)}</b></div>
       <div><span style="color:#f59e0b">● Pendiente por pagar</span><b>$ ${pendientePedido.toFixed(2)}</b></div>
-      <div style="border-top:2px solid #0f172a;margin-top:6px;padding-top:8px;font-weight:800"><span>Total</span><b style="font-size:13px">$ ${totalTexto.toFixed(2)}</b></div>
+      <div style="border-top:2px solid #0f172a;margin-top:6px;padding-top:8px;font-weight:800"><span>Total</span><b style="font-size:13px;color:${colorTotal}">$ ${totalTexto.toFixed(2)}</b></div>
     `;
   }else{
     labels = ['Valor producto', 'Ingresos', 'Pendiente'];
     data = [valorProductoMenos10, ingresosPedido, pendientePedido];
     colors = ['#3b82f6', '#16a34a', '#f59e0b'];
-    const totalPagadoCalc = ingresosPedido;
+    const totalPagadoCalc = ingresosPedido - valorProductoMenos10;
     totalTexto = totalPagadoCalc;
+    colorTotal = totalTexto < 0 ? '#E30613' : '#16a34a';
     resumenHtml = `
       <div><span style="color:#3b82f6">● Valor producto menos 10%</span><b>$ ${valorProductoMenos10.toFixed(2)}</b></div>
       <div><span style="color:#16a34a">● Ingresos</span><b>$ ${ingresosPedido.toFixed(2)}</b></div>
       <div><span style="color:#f59e0b">● Pendiente por pagar</span><b>$ ${pendientePedido.toFixed(2)}</b></div>
-      <div style="border-top:2px solid #0f172a;margin-top:6px;padding-top:8px;font-weight:800"><span>Total</span><b style="font-size:13px">$ ${totalTexto.toFixed(2)}</b></div>
+      <div style="border-top:2px solid #0f172a;margin-top:6px;padding-top:8px;font-weight:800"><span>Total</span><b style="font-size:13px;color:${colorTotal}">$ ${totalTexto.toFixed(2)}</b></div>
     `;
   }
 
