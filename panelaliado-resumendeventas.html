@@ -168,7 +168,6 @@ async function cargar(){
 function render(){
   const totalPagadoGlobal = pagos.reduce((s,p)=>s+Number(p.monto||0),0);
   const totalPerdidas50 = pedidos.filter(p=>p.tipo==="cancelado").reduce((s,p)=>s+p.valorCancelado,0);
-  const totalVentaCancelados = pedidos.filter(p=>p.tipo==="cancelado").reduce((s,p)=>s+p.venta,0);
   const countEnt = pedidos.filter(p=>p.tipo==="entregado").length;
   const countCanc = pedidos.filter(p=>p.tipo==="cancelado").length;
 
@@ -255,22 +254,29 @@ window.descargarFactura = ()=>{
 window.abrirGraficas = ()=>{
   document.getElementById('modalGraficas').style.display='flex';
   const totalPagado = pagos.reduce((s,p)=>s+Number(p.monto||0),0);
-  const totalPerdidas50 = pedidos.filter(p=>p.tipo==="cancelado").reduce((s,p)=>s+p.valorCancelado,0);
   const totalGana = pedidos.reduce((s,p)=>s+p.gana,0);
   const pendiente = Math.max(0, totalGana - totalPagado);
-  const valorProducto = pedidos.reduce((s,p)=>s+p.venta,0);
-  // FORMULA QUE PEDISTE: valor producto - ingresos + perdida
-  const totalNeto = valorProducto - totalPagado + totalPerdidas50;
+
+  // VALOR PRODUCTO MENOS 10% - EJEMPLO 108 = 97.2
+  const valorProductoBruto = pedidos.reduce((s,p)=>s+p.venta,0);
+  const valorProductoMenos10 = valorProductoBruto * 0.9;
+
+  // PERDIDA POR CANCELACION DESCONTANDO 40% - EJEMPLO 100 = 60
+  const perdidaBruta = pedidos.filter(p=>p.tipo==="cancelado").reduce((s,p)=>s+p.venta,0);
+  const perdidaDescuento40 = perdidaBruta * 0.6;
+
+  // TOTAL REAL: valor producto menos 10% - lo pagado
+  const totalNeto = valorProductoMenos10 - totalPagado;
 
   const ctx = document.getElementById('chartIngresos').getContext('2d');
   if(chartInstance) chartInstance.destroy();
   chartInstance = new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: ['Valor producto', 'Ingresos', 'Pérdidas 50%', 'Pendiente'],
+      labels: ['Valor producto -10%', 'Ingresos', 'Pérdida -40%', 'Pendiente'],
       datasets: [{
         label: 'Montos',
-        data: [valorProducto, totalPagado, totalPerdidas50, pendiente],
+        data: [valorProductoMenos10, totalPagado, perdidaDescuento40, pendiente],
         backgroundColor: ['#3b82f6', '#16a34a', '#E30613', '#f59e0b'],
         borderRadius: 6,
         barThickness: 22
@@ -285,12 +291,11 @@ window.abrirGraficas = ()=>{
   });
 
   document.getElementById('resumenGrafica').innerHTML=`
-    <div><span style="color:#3b82f6">● Valor producto (total costo)</span><b>$ ${valorProducto.toFixed(2)}</b></div>
-    <div><span style="color:#16a34a">● Ingresos (pagado)</span><b>$ ${totalPagado.toFixed(2)}</b></div>
-    <div><span style="color:#E30613">● Pérdida por cancelación (50%)</span><b>- $ ${totalPerdidas50.toFixed(2)}</b></div>
+    <div><span style="color:#3b82f6">● Valor producto menos 10%</span><b>$ ${valorProductoMenos10.toFixed(2)}</b></div>
+    <div><span style="color:#16a34a">● Ingresos</span><b>$ ${totalPagado.toFixed(2)}</b></div>
+    <div><span style="color:#E30613">● Pérdida por cancelación menos 40%</span><b>$ ${perdidaDescuento40.toFixed(2)}</b></div>
     <div><span style="color:#f59e0b">● Pendiente por pagar</span><b>$ ${pendiente.toFixed(2)}</b></div>
-    <div style="border-top:2px solid #0f172a;margin-top:6px;padding-top:8px;font-weight:800"><span>Total = Valor producto - Ingresos + Pérdida</span><b style="font-size:12px">$ ${totalNeto.toFixed(2)}</b></div>
-    <div style="font-size:8.5px;color:#64748b;border:none">Fórmula: $${valorProducto.toFixed(2)} - $${totalPagado.toFixed(2)} + $${totalPerdidas50.toFixed(2)} = $${totalNeto.toFixed(2)}</div>
+    <div style="border-top:2px solid #0f172a;margin-top:6px;padding-top:8px;font-weight:800"><span>Total</span><b style="font-size:13px">$ ${totalNeto.toFixed(2)}</b></div>
   `;
 };
 
