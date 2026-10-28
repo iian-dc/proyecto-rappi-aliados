@@ -9,58 +9,69 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
 body{background:#f6f8fb;color:#0f172a}
-.header-top{background:white;padding:10px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #e2e8f0;position:sticky;top:0;z-index:20}
+.header-top{background:white;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #e2e8f0;position:sticky;top:0;z-index:20;flex-wrap:wrap;gap:8px}
+.header-left{display:flex;align-items:center;gap:10px}
 .btn-x{width:34px;height:34px;background:#E30613;border-radius:50%;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer}
 .header-top h1{font-size:15px;font-weight:800}
-.top-filters{display:flex;gap:8px;padding:12px;flex-wrap:wrap}
-.btn-f{padding:8px 14px;border-radius:999px;border:1px solid #e2e8f0;background:white;font-size:11px;font-weight:700;cursor:pointer}
+.header-right{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.header-right input{padding:6px 8px;border-radius:8px;border:1px solid #e2e8f0;font-size:10px}
+.btn-f{padding:6px 10px;border-radius:999px;border:1px solid #e2e8f0;background:white;font-size:10px;font-weight:700;cursor:pointer}
 .btn-f.active{background:#0f172a;color:white;border-color:#0f172a}
+.stats-small{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;padding:12px}
+@media(max-width:900px){.stats-small{grid-template-columns:repeat(2,1fr)}}
+.scard{border-radius:10px;padding:10px;border:1px solid #eef2f7;background:white}
+.scard label{font-size:8px;font-weight:800;text-transform:uppercase;display:block;margin-bottom:3px}
+.scard b{font-size:13px;font-weight:800}
 .top-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:0 12px 12px}
-@media(max-width:900px){.top-cards{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:900px){.top-cards{grid-template-columns:1fr}}
 .tcard{background:white;border-radius:12px;border:1px solid #eef2f7;padding:12px}
 .tcard label{font-size:9px;color:#64748b;font-weight:700;text-transform:uppercase;display:block;margin-bottom:4px}
 .tcard b{font-size:15px;font-weight:800;display:block}
-.tcard span{font-size:10px;color:#64748b}
-.tcard.bruto{background:#0a1020;color:white;border-color:#0a1020}
-.tcard.bruto label{color:#94a3b8}
+.tcard.bruto{border:2px solid #0f172a}
 .tcard.bruto b{font-size:18px}
-.second-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:0 12px 12px}
-@media(max-width:900px){.second-cards{grid-template-columns:1fr}}
+.second-cards{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:0 12px 12px}
 .box{background:white;border-radius:12px;border:1px solid #eef2f7;overflow:hidden}
 .chart-box{padding:12px;margin:0 12px 12px}
 .table-head{background:#0a1020;color:white;display:grid;grid-template-columns:90px 1fr .6fr .5fr .5fr .5fr .6fr .5fr .5fr;padding:8px 10px;font-size:9px;font-weight:700;text-transform:uppercase;align-items:center}
 .table-row{display:grid;grid-template-columns:90px 1fr .6fr .5fr .5fr .5fr .6fr .5fr .5fr;padding:8px 10px;border-bottom:1px solid #f1f5f9;align-items:center;font-size:10.5px}
-.balance-verde{background:#00ff6a !important;color:#065f29 !important;box-shadow:0 0 12px rgba(0,255,106,.6);border:1px solid #00ff6a}
-.balance-rojo{background:#fee2e2 !important;color:#991b1b !important;box-shadow:0 0 12px rgba(239,68,68,.5);border:1px solid #fecaca}
+.balance-verde{background:#00ff6a !important;color:#065f29 !important;box-shadow:0 0 12px rgba(0,255,106,.7);border:1px solid #00ff6a}
+.balance-rojo{background:#ff0033 !important;color:white !important;box-shadow:0 0 12px rgba(255,0,51,.7);border:1px solid #ff0033}
 </style>
 </head>
 <body>
 <div class="header-top">
+<div class="header-left">
 <button class="btn-x" onclick="location.href='paneladmin.html'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
 <div style="width:2px;height:16px;background:#E30613"></div>
 <h1>Finanzas</h1>
 </div>
-
-<div class="top-filters">
+<div class="header-right">
+<input type="date" id="fechaDesde"><input type="date" id="fechaHasta">
+<button class="btn-f" onclick="filtrarFechas()">Buscar</button>
 <button id="fHoy" class="btn-f active" onclick="setFiltro('hoy')">Hoy</button>
-<button id="fSemana" class="btn-f" onclick="setFiltro('semana')">Esta Semana</button>
-<button id="fMes" class="btn-f" onclick="setFiltro('mes')">Este Mes</button>
+<button id="fSemana" class="btn-f" onclick="setFiltro('semana')">Semana</button>
+<button id="fMes" class="btn-f" onclick="setFiltro('mes')">Mes</button>
 <button id="fTodo" class="btn-f" onclick="setFiltro('todo')">Todo</button>
+</div>
+</div>
+
+<div class="stats-small">
+<div class="scard" style="border-left:4px solid #0f172a"><label style="color:#0f172a">Estadística Ingreso</label><b id="sIngreso" style="color:#0f172a">$ 0.00</b></div>
+<div class="scard" style="border-left:4px solid #16a34a"><label style="color:#16a34a">Ganancia Restaurantes 10%</label><b id="sGan10" style="color:#16a34a">$ 0.00</b></div>
+<div class="scard" style="border-left:4px solid #0ea5e9"><label style="color:#0ea5e9">Ganancia Tarifa Servicio</label><b id="sTarifa" style="color:#0ea5e9">$ 0.00</b></div>
+<div class="scard" style="border-left:4px solid #f59e0b"><label style="color:#f59e0b">Ganancia Repartidor</label><b id="sRep" style="color:#f59e0b">$ 0.00</b></div>
+<div class="scard" style="border-left:4px solid #E30613"><label style="color:#E30613">Cancelados (a pagar)</label><b id="sCanc" style="color:#E30613">- $ 0.00</b></div>
 </div>
 
 <div class="top-cards">
-<div class="tcard"><label>Ventas totales productos</label><b id="kVentasProd">$ 0.00</b><span>Valor $108 ejemplo, solo informativo</span></div>
-<div class="tcard"><label>Ganancia 10% restaurantes</label><b id="kGan10" style="color:#16a34a">$ 0.00</b><span>10% de cada venta</span></div>
-<div class="tcard"><label>Ganancia tarifa servicio cliente</label><b id="kTarifa" style="color:#0ea5e9">$ 0.00</b><span>Lo que pagó el cliente final</span></div>
-<div class="tcard"><label>Ganancia % repartidor</label><b id="kRepartidor" style="color:#f59e0b">$ 0.00</b><span>% por envío</span></div>
-<div class="tcard"><label>Ganancia cancelados 50%</label><b id="kGanCanc" style="color:#E30613">$ 0.00</b><span>10% + 40% cancelación</span></div>
-<div class="tcard bruto"><label>Total ingreso bruto</label><b id="kBruto">$ 0.00</b><span>10% + tarifa + % repartidor + cancelados</span></div>
+<div class="tcard"><label>Ventas totales productos</label><b id="kVentasProd">$ 0.00</b></div>
+<div class="tcard"><label>Total pagado aliados</label><b id="kPagado">$ 0.00</b></div>
+<div class="tcard bruto" id="cardBruto"><label>Total ingreso bruto (10% + tarifa + repartidor - cancelados)</label><b id="kBruto">$ 0.00</b></div>
 </div>
 
 <div class="second-cards">
-<div class="tcard"><label>Total pagado aliados</label><b id="kPagado" style="color:#16a34a">$ 0.00</b></div>
 <div class="tcard"><label>Total pendiente por pagar</label><b id="kPendiente" style="color:#d97706">$ 0.00</b></div>
-<div class="tcard" id="cardBalance"><label>Balance neto real</label><b id="kBalance">$ 0.00</b><span>Bruto - pagado - pendiente</span></div>
+<div class="tcard"><label>Pedidos en el periodo</label><b id="kCount">0 pedidos</b></div>
 </div>
 
 <div class="box chart-box">
@@ -76,7 +87,7 @@ body{background:#f6f8fb;color:#0f172a}
 <span>Tarifa Cliente</span>
 <span>% Repartidor</span>
 <span>Total mío</span>
-<span>Pagado aliado</span>
+<span>Cancel a pagar</span>
 <span>Balance</span>
 </div>
 <div id="listaFinanzas"><div style="padding:20px;text-align:center;color:#94a3b8;font-size:11px">Cargando finanzas...</div></div>
@@ -85,7 +96,6 @@ body{background:#f6f8fb;color:#0f172a}
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
 const configHistorial = {
   apiKey: "AIzaSyCRx4B7mO444s0yU-WTnsqMjBHDWX4IRv8",
   authDomain: "doloya-historial.firebaseapp.com",
@@ -96,16 +106,13 @@ const configHistorial = {
 };
 const appHis = initializeApp(configHistorial, "hisApp");
 const dbHis = getFirestore(appHis);
-
 let todosPedidos = [];
 let pagosMap = {};
 let filtro = "hoy";
+let fechaDesde=null, fechaHasta=null;
 let chart;
-
 function limpiarNombre(s){ return (s||"").replace(/_/g," ").trim(); }
-function fechaCorta(f){
-  try{ let d=new Date(f); if(isNaN(d.getTime())) d=new Date(Number(f)); return d.toLocaleDateString('es-MX'); }catch{ return "-"; }
-}
+function fechaCorta(f){ try{ let d=new Date(f); if(isNaN(d.getTime())) d=new Date(Number(f)); return d.toLocaleDateString('es-MX'); }catch{ return "-"; } }
 function getInicio(filtro){
   const now = new Date();
   if(filtro==="hoy"){ const d=new Date(); d.setHours(0,0,0,0); return d; }
@@ -113,7 +120,6 @@ function getInicio(filtro){
   if(filtro==="mes"){ const d=new Date(now.getFullYear(), now.getMonth(), 1); return d; }
   return new Date(0);
 }
-
 async function cargarDatos(){
   todosPedidos=[]; pagosMap={};
   const snapE = await getDocs(collection(dbHis, "pedidos_entregados"));
@@ -125,20 +131,15 @@ async function cargarDatos(){
     const porcRep = Number(p.totales?.comisionRepartidor || p.totales?.porcentajeRepartidor || p.totales?.costoEnvioComision || p.totales?.envioComision || 0);
     const envio = Number(p.totales?.costoEnvio || p.totales?.envio || 0);
     const comisionRepCalculada = porcRep > 0 ? porcRep : (envio * 0.20);
-    todosPedidos.push({
-      id:d.id, tipo:"entregado", fecha:fecha, restaurante: p.restaurante?.nombre || p.restaurante?.id || "Sin nombre",
-      venta: venta, gan10: venta*0.10, tarifa: tarifa, rep: comisionRepCalculada, totalMio: (venta*0.10)+tarifa+comisionRepCalculada
-    });
+    todosPedidos.push({ id:d.id, tipo:"entregado", fecha:fecha, restaurante: p.restaurante?.nombre || p.restaurante?.id || "Sin nombre", venta: venta, gan10: venta*0.10, tarifa: tarifa, rep: comisionRepCalculada, totalMio: (venta*0.10)+tarifa+comisionRepCalculada, cancelPagar:0 });
   });
   const snapC = await getDocs(collection(dbHis, "pedidos_cancelados"));
   snapC.forEach(d=>{
     const p=d.data();
     const fecha = p.timestamp || p.fecha || p.creado;
     const venta = Number(p.totales?.costoProductos || p.total || 0);
-    todosPedidos.push({
-      id:d.id, tipo:"cancelado", fecha:fecha, restaurante: p.restaurante?.nombre || p.restaurante?.id || "Sin nombre",
-      venta: venta, gan10: 0, tarifa: 0, rep: 0, totalMio: venta*0.50
-    });
+    const aPagar = venta*0.50;
+    todosPedidos.push({ id:d.id, tipo:"cancelado", fecha:fecha, restaurante: p.restaurante?.nombre || p.restaurante?.id || "Sin nombre", venta: venta, gan10: 0, tarifa: 0, rep: 0, totalMio: 0, cancelPagar: aPagar });
   });
   const snapP = await getDocs(collection(dbHis, "pagos_aliados"));
   snapP.forEach(d=>{
@@ -149,57 +150,61 @@ async function cargarDatos(){
   });
   render();
 }
-
 window.setFiltro = (f)=>{
-  filtro=f;
+  filtro=f; fechaDesde=null; fechaHasta=null;
   document.querySelectorAll('.btn-f').forEach(b=>b.classList.remove('active'));
   document.getElementById('f'+f.charAt(0).toUpperCase()+f.slice(1)).classList.add('active');
   if(f==="hoy") document.getElementById('fHoy').classList.add('active');
   render();
 };
-
+window.filtrarFechas = ()=>{
+  const d = document.getElementById('fechaDesde').value;
+  const h = document.getElementById('fechaHasta').value;
+  if(!d || !h){ alert('Selecciona desde y hasta'); return; }
+  fechaDesde = new Date(d); fechaDesde.setHours(0,0,0,0);
+  fechaHasta = new Date(h); fechaHasta.setHours(23,59,59,999);
+  filtro="custom";
+  document.querySelectorAll('.btn-f').forEach(b=>b.classList.remove('active'));
+  render();
+};
 function render(){
-  const inicio = getInicio(filtro);
+  let inicio = getInicio(filtro);
+  let fin = new Date();
+  if(filtro==="custom"){ inicio=fechaDesde; fin=fechaHasta; }
   let filtrados = todosPedidos.filter(p=>{
-    try{ let d=new Date(p.fecha); if(isNaN(d.getTime())) d=new Date(Number(p.fecha)); return d >= inicio; }catch{ return true; }
+    try{ let d=new Date(p.fecha); if(isNaN(d.getTime())) d=new Date(Number(p.fecha)); if(filtro==="custom") return d>=inicio && d<=fin; return d>=inicio; }catch{ return true; }
   });
   filtrados.sort((a,b)=> new Date(b.fecha)-new Date(a.fecha));
-
   const ventasProd = filtrados.filter(p=>p.tipo==="entregado").reduce((s,p)=>s+p.venta,0);
   const gan10 = filtrados.filter(p=>p.tipo==="entregado").reduce((s,p)=>s+p.gan10,0);
   const tarifa = filtrados.filter(p=>p.tipo==="entregado").reduce((s,p)=>s+p.tarifa,0);
   const rep = filtrados.filter(p=>p.tipo==="entregado").reduce((s,p)=>s+p.rep,0);
-  const ganCanc = filtrados.filter(p=>p.tipo==="cancelado").reduce((s,p)=>s+p.totalMio,0);
-  const bruto = gan10 + tarifa + rep + ganCanc;
+  const totalCancelPagar = filtrados.filter(p=>p.tipo==="cancelado").reduce((s,p)=>s+p.cancelPagar,0);
+  const bruto = gan10 + tarifa + rep - totalCancelPagar;
 
-  let totalPagado = 0;
-  Object.values(pagosMap).forEach(v=> totalPagado+=v.pagado);
-  if(filtro!=="todo"){
-    totalPagado = totalPagado * (filtrados.length / Math.max(1,todosPedidos.length));
-  }
-  const desglosePend = filtrados.reduce((s,p)=>{
-    if(p.tipo==="entregado") return s + (p.venta*0.9);
-    return s + (p.venta*0.5);
-  },0);
-  const pendiente = Math.max(0, desglosePend - (totalPagado / (filtro==="todo"?1:1)));
-  const balance = bruto - totalPagado - pendiente;
+  let totalPagado = 0; Object.values(pagosMap).forEach(v=> totalPagado+=v.pagado);
+  if(filtro!=="todo" && filtro!=="custom"){ totalPagado = totalPagado * (filtrados.length / Math.max(1,todosPedidos.length)); }
+  const desglosePend = filtrados.reduce((s,p)=>{ if(p.tipo==="entregado") return s + (p.venta*0.9); return s + (p.venta*0.5); },0);
+  const pendiente = Math.max(0, desglosePend - totalPagado);
+
+  document.getElementById('sIngreso').textContent = "$ "+ventasProd.toFixed(2);
+  document.getElementById('sGan10').textContent = "$ "+gan10.toFixed(2);
+  document.getElementById('sTarifa').textContent = "$ "+tarifa.toFixed(2);
+  document.getElementById('sRep').textContent = "$ "+rep.toFixed(2);
+  document.getElementById('sCanc').textContent = "- $ "+totalCancelPagar.toFixed(2);
 
   document.getElementById('kVentasProd').textContent = "$ "+ventasProd.toFixed(2);
-  document.getElementById('kGan10').textContent = "$ "+gan10.toFixed(2);
-  document.getElementById('kTarifa').textContent = "$ "+tarifa.toFixed(2);
-  document.getElementById('kRepartidor').textContent = "$ "+rep.toFixed(2);
-  document.getElementById('kGanCanc').textContent = "$ "+ganCanc.toFixed(2);
-  document.getElementById('kBruto').textContent = "$ "+bruto.toFixed(2);
   document.getElementById('kPagado').textContent = "$ "+totalPagado.toFixed(2);
   document.getElementById('kPendiente').textContent = "$ "+pendiente.toFixed(2);
+  document.getElementById('kCount').textContent = filtrados.length+" pedidos";
   
-  const kBal = document.getElementById('kBalance');
-  const cardBal = document.getElementById('cardBalance');
-  kBal.textContent = "$ "+balance.toFixed(2);
-  cardBal.className = "tcard " + (balance>=0 ? "balance-verde" : "balance-rojo");
+  const kBruto = document.getElementById('kBruto');
+  const cardBruto = document.getElementById('cardBruto');
+  kBruto.textContent = "$ "+bruto.toFixed(2);
+  if(bruto>=0){ cardBruto.className="tcard bruto balance-verde"; } else { cardBruto.className="tcard bruto balance-rojo"; }
 
   const cont = document.getElementById('listaFinanzas');
-  if(filtrados.length===0){ cont.innerHTML='<div style="padding:20px;text-align:center;color:#94a3b8">No hay datos en este periodo</div>'; return; }
+  if(filtrados.length===0){ cont.innerHTML='<div style="padding:20px;text-align:center;color:#94a3b8">No hay datos</div>'; return; }
   cont.innerHTML="";
   filtrados.forEach(p=>{
     const esCanc = p.tipo==="cancelado";
@@ -211,23 +216,20 @@ function render(){
       <span style="color:#16a34a">$ ${p.gan10.toFixed(2)}</span>
       <span style="color:#0ea5e9">$ ${p.tarifa.toFixed(2)}</span>
       <span style="color:#f59e0b">$ ${p.rep.toFixed(2)}</span>
-      <span style="font-weight:800">$ ${p.totalMio.toFixed(2)}</span>
-      <span style="font-size:10px">-</span>
-      <span style="font-weight:700">${esCanc?'-':''}$ ${p.totalMio.toFixed(2)}</span>
+      <span style="font-weight:800">$ ${(p.gan10+p.tarifa+p.rep).toFixed(2)}</span>
+      <span style="color:#E30613;font-weight:700">- $ ${p.cancelPagar.toFixed(2)}</span>
+      <span style="font-weight:700">$ ${(p.gan10+p.tarifa+p.rep - p.cancelPagar).toFixed(2)}</span>
     </div>`;
   });
-
-  // Chart
   const labels = filtrados.slice(0,10).reverse().map(p=> fechaCorta(p.fecha));
-  const dataGan = filtrados.slice(0,10).reverse().map(p=> p.totalMio);
+  const dataGan = filtrados.slice(0,10).reverse().map(p=> p.tipo==="entregado" ? (p.gan10+p.tarifa+p.rep) : -p.cancelPagar);
   if(chart) chart.destroy();
   chart = new Chart(document.getElementById('chartFinanzas'), {
     type:'line',
-    data:{ labels: labels, datasets:[{ label:'Mi ganancia', data: dataGan, borderColor:'#0f172a', backgroundColor:'rgba(15,23,42,0.1)', tension:0.3, fill:true }] },
+    data:{ labels: labels, datasets:[{ label:'Ganancia neta', data: dataGan, borderColor:'#0f172a', backgroundColor:'rgba(15,23,42,0.1)', tension:0.3, fill:true }] },
     options:{ plugins:{ legend:{display:false} }, scales:{ y:{ beginAtZero:true } } }
   });
 }
-
 cargarDatos();
 </script>
 </body>
