@@ -31,14 +31,12 @@ body{background:#f6f8fb;color:#0f172a}
 .badge-pend{background:#fef9c3;color:#854d0e;border:1px solid #f59e0b}
 .btn{padding:5px 10px;border-radius:999px;font-size:9px;font-weight:700;cursor:pointer;border:none}
 .btn-ver{border:1px solid #0f172a;background:white;color:#0f172a}
-.btn-fact{border:1px solid #16a34a;background:#dcfce7;color:#166534}
 .btn-pago{background:#00ff6a;color:#065f29;box-shadow:0 0 8px rgba(0,255,106,.6)}
 .btn-pend{background:#E30613;color:white}
 .btn-graf{background:#0a1020;color:white;border:1px solid #0a1020;font-size:7.5px;padding:4px 8px}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;z-index:50;padding:12px}
 .modal-box{background:white;border-radius:12px;padding:16px;max-width:480px;width:100%;max-height:90vh;overflow:auto}
 .modal-grafica .modal-box{max-width:520px}
-.img-factura{width:100%;border-radius:10px;border:1px solid #e2e8f0;margin-top:10px}
 .resumen-grafica{margin-top:10px;padding:10px;background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0}
 .resumen-grafica div{display:flex;justify-content:space-between;padding:5px 0;font-size:10.5px;border-bottom:1px dashed #e2e8f0}
 </style>
@@ -230,7 +228,6 @@ window.filtrar = ()=>{
   render();
 };
 
-// GRAFICA GENERAL (ARRIBA DERECHA)
 window.abrirGraficas = ()=>{
   document.getElementById('modalGraficas').style.display='flex';
   const totalPagado = pagos.reduce((s,p)=>s+Number(p.monto||0),0);
@@ -262,59 +259,49 @@ window.abrirGraficas = ()=>{
   `;
 };
 
-// GRAFICA INDEPENDIENTE POR PEDIDO
 window.abrirGraficaPedido = (idPedido)=>{
   const p = pedidos.find(x=>x.id===idPedido);
   if(!p) return;
   document.getElementById('modalGraficaPedido').style.display='flex';
-  document.getElementById('tituloGraficaPedido').textContent = "Gráfica del pedido "+p.codigo+" - "+p.cliente;
+  document.getElementById('tituloGraficaPedido').textContent = "Gráfica del pedido";
 
   const valorProducto = p.venta;
   const valorProductoMenos10 = valorProducto * 0.9;
-  const diezPorciento = valorProducto * 0.1;
   const totalPagadoGlobal = pagos.reduce((s,pa)=>s+Number(pa.monto||0),0);
   const estaPagado = pagos.length>0 && totalPagadoGlobal>0;
   
-  // INGRESOS DE ESE PEDIDO
   let ingresosPedido = estaPagado ? p.gana : 0;
-  // PENDIENTE DE ESE PEDIDO
   let pendientePedido = estaPagado ? 0 : p.gana;
-  // PERDIDA - 40% DEL PRODUCTO TOTAL (no del descontado)
-  const perdidaMenos40 = valorProducto * 0.6;
+  // 40% REAL - 58.50 * 0.4 = 23.40
+  const perdida40Real = valorProducto * 0.4;
 
   let labels, data, colors, resumenHtml, totalTexto;
 
   if(p.tipo==="cancelado"){
-    // CANCELADO: valor producto -10%, 10% valor, ingresos, perdida -40%, pendiente
-    labels = ['Valor prod -10%', '10% valor', 'Ingresos', 'Pérdida -40%', 'Pendiente'];
-    data = [valorProductoMenos10, diezPorciento, ingresosPedido, perdidaMenos40, pendientePedido];
-    colors = ['#3b82f6', '#60a5fa', '#16a34a', '#E30613', '#f59e0b'];
-    // TOTAL = valor producto - ingreso (ej 50 - 20 = 30)
+    labels = ['Valor producto', 'Ingresos', 'Pérdida 40%', 'Pendiente'];
+    data = [valorProductoMenos10, ingresosPedido, perdida40Real, pendientePedido];
+    colors = ['#3b82f6', '#16a34a', '#E30613', '#f59e0b'];
+    // FORMULA CANCELADO: valor producto - ingresos = total
     const totalCancel = valorProducto - ingresosPedido;
     totalTexto = totalCancel;
     resumenHtml = `
       <div><span style="color:#3b82f6">● Valor producto menos 10%</span><b>$ ${valorProductoMenos10.toFixed(2)}</b></div>
-      <div><span style="color:#60a5fa">● 10% del valor total</span><b>$ ${diezPorciento.toFixed(2)}</b></div>
       <div><span style="color:#16a34a">● Ingresos</span><b>$ ${ingresosPedido.toFixed(2)}</b></div>
-      <div><span style="color:#E30613">● Pérdida por cancelación menos 40% (del total)</span><b>$ ${perdidaMenos40.toFixed(2)}</b></div>
+      <div><span style="color:#E30613">● Pérdida por cancelación 40%</span><b>$ ${perdida40Real.toFixed(2)}</b></div>
       <div><span style="color:#f59e0b">● Pendiente por pagar</span><b>$ ${pendientePedido.toFixed(2)}</b></div>
-      <div style="border-top:2px solid #0f172a;margin-top:6px;padding-top:8px;font-weight:800"><span>Total (valor prod - ingresos)</span><b style="font-size:13px">$ ${totalTexto.toFixed(2)}</b></div>
-      <div style="font-size:8px;color:#64748b;border:none">Ej: Si vale $${valorProducto.toFixed(0)} y diste $${ingresosPedido.toFixed(0)}, total = $${totalTexto.toFixed(0)}</div>
+      <div style="border-top:2px solid #0f172a;margin-top:6px;padding-top:8px;font-weight:800"><span>Total</span><b style="font-size:13px">$ ${totalTexto.toFixed(2)}</b></div>
     `;
   }else{
-    // PAGADO / ENTREGADO: solo valor producto -10%, ingresos, pendiente (sin perdida)
-    labels = ['Valor prod -10%', 'Ingresos', 'Pendiente'];
+    labels = ['Valor producto', 'Ingresos', 'Pendiente'];
     data = [valorProductoMenos10, ingresosPedido, pendientePedido];
     colors = ['#3b82f6', '#16a34a', '#f59e0b'];
-    // TOTAL = ingresos - valor producto (como pediste para pagados)
-    const totalPagadoCalc = ingresosPedido - valorProductoMenos10;
-    totalTexto = ingresosPedido; // mostrar cantidad de ingresos como indicaste
+    const totalPagadoCalc = ingresosPedido;
+    totalTexto = totalPagadoCalc;
     resumenHtml = `
       <div><span style="color:#3b82f6">● Valor producto menos 10%</span><b>$ ${valorProductoMenos10.toFixed(2)}</b></div>
-      <div><span style="color:#16a34a">● Ingresos (cuánto le diste)</span><b>$ ${ingresosPedido.toFixed(2)}</b></div>
+      <div><span style="color:#16a34a">● Ingresos</span><b>$ ${ingresosPedido.toFixed(2)}</b></div>
       <div><span style="color:#f59e0b">● Pendiente por pagar</span><b>$ ${pendientePedido.toFixed(2)}</b></div>
-      <div style="border-top:2px solid #0f172a;margin-top:6px;padding-top:8px;font-weight:800"><span>Total ingresos</span><b style="font-size:13px">$ ${totalTexto.toFixed(2)}</b></div>
-      <div style="font-size:8px;color:#64748b;border:none">Ingresos - Valor prod: $${ingresosPedido.toFixed(2)} - $${valorProductoMenos10.toFixed(2)} = $${totalPagadoCalc.toFixed(2)}</div>
+      <div style="border-top:2px solid #0f172a;margin-top:6px;padding-top:8px;font-weight:800"><span>Total</span><b style="font-size:13px">$ ${totalTexto.toFixed(2)}</b></div>
     `;
   }
 
