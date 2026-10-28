@@ -11,10 +11,8 @@ body{background:#f9f9fb;min-height:100vh;display:flex}
 :root{--rojo:#C50D1F}
 .sidebar{width:250px;background:var(--rojo);min-height:100vh;display:flex;flex-direction:column;justify-content:space-between;position:fixed;left:0;top:0;bottom:0;z-index:100;transition:0.3s}
 .sidebar-top{padding:18px 16px}
-.logo{display:flex;flex-direction:column;align-items:center;margin-bottom:16px}
-.logo-D{font-size:64px;font-weight:900;color:white;line-height:0.8;letter-spacing:-3px;position:relative}
-.logo-D::after{content:'';position:absolute;left:-4px;top:46%;width:82%;height:4px;background:white;transform:rotate(-12deg)}
-.logo-text{font-size:28px;font-weight:900;color:white;font-style:italic;margin-top:2px}
+.logo{display:flex;flex-direction:column;align-items:center;margin-bottom:16px;padding:6px 0}
+.logo img{width:140px;height:auto;object-fit:contain;filter:brightness(0) invert(1); /* blanco para que se vea en fondo rojo */}
 .estado-wrap{background:white;border-radius:14px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,0.15)}
 .estado-info b{font-size:13px;color:#111;display:block;line-height:1}
 .estado-info span{font-size:10px;color:#6b7280;font-weight:600}
@@ -61,7 +59,11 @@ body{background:#f9f9fb;min-height:100vh;display:flex}
 <div class="mobile-overlay" id="overlay" onclick="toggleMenu()"></div>
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-top">
-    <div class="logo"><div class="logo-D">D</div><div class="logo-text">DoloYa</div></div>
+    <!-- LOGO VINCULADO -->
+    <div class="logo">
+      <img src="logo-doloya.png" alt="DoloYa">
+    </div>
+
     <div class="estado-wrap"><div class="estado-info"><b id="estadoTexto">Abierto</b><span id="estadoSub">Tu negocio</span></div><div style="display:flex;align-items:center"><span class="estado-badge abierto" id="estadoBadge">ABIERTO</span><div class="switch on" id="switchEstado" onclick="toggleEstado()"></div></div></div>
     <div class="sidebar-label">Panel de aliados</div>
     <ul class="menu">
@@ -69,7 +71,7 @@ body{background:#f9f9fb;min-height:100vh;display:flex}
       <li><a href="panelaliado-menu.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18"/></svg>Menú/Carta</a></li>
       <li><a href="panelaliado-historial.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M10 13h4M10 17h4"/></svg>Historial de órdenes</a></li>
       <li><a href="panelaliado-resumendeventas.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>Resumen de ventas</a></li>
-      <li><a href="panelaliado-mirestaurante.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Mi restaurante</a></li>
+      <li><a href="mi-restaurante.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Mi restaurante</a></li>
       <li><a href="configuracion.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06A1.65 1.65 0 0 0 15 19.4a1.65 1.65 0 0 0-1 .6A2 2 0 0 1 12 22a2 2 0 0 1-2-2 1.65 1.65 0 0 0-1-.6 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-.6-1 2 2 0 0 1-2-2 2 2 0 0 1 2-2c.26 0 .51.1.7.28A1.65 1.65 0 0 0 6.5 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6c.26 0 .51.1.7.28A1.65 1.65 0 0 0 11.5 5a2 2 0 0 1 2 0c.26 0 .51-.1.7-.28A1.65 1.65 0 0 0 15 4.6a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c0 .26-.1.51-.28.7A1.65 1.65 0 0 0 20 11.5a2 2 0 0 1 0 2c0 .26-.1.51-.28.7-.18.19-.28.44-.28.7A1.65 1.65 0 0 0 19.4 15z"/></svg>Configuración</a></li>
       <li><a href="centro-ayuda.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Centro de ayuda</a></li>
     </ul>
@@ -117,7 +119,6 @@ else {
   const badgeEstado = document.getElementById('estadoBadge');
   const textoEstado = document.getElementById('estadoTexto');
   const idNegocio = (sesion.id || sesion.negocio || 'alitas_factory').toLowerCase();
-  const nombreSesion = (sesion.nombre || idNegocio).toLowerCase();
 
   function getCategoriaReal(id){
     const n = normalize(id);
