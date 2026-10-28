@@ -15,13 +15,17 @@ body{background:#f6f8fb;color:#0f172a;min-height:100vh}
 .card{background:white;border-radius:16px;border:1px solid #eef2f7;padding:16px;margin-bottom:14px;box-shadow:0 2px 10px rgba(0,0,0,.04)}
 .card h3{font-size:13px;font-weight:800;margin-bottom:12px;text-transform:uppercase;color:#0f172a;display:flex;align-items:center;gap:8px}
 .card h3 span{width:4px;height:14px;background:#E30613;border-radius:2px;display:inline-block}
-.portada-wrap{width:100%;height:160px;border-radius:12px;background:#f1f5f9;overflow:hidden;position:relative;border:1px solid #e2e8f0;cursor:pointer}
-.portada-wrap img{width:100%;height:100%;object-fit:cover}
-.portada-wrap .edit-tag{position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,.7);color:white;font-size:10px;padding:5px 10px;border-radius:999px;font-weight:700}
-.perfil-wrap{margin-top:-36px;margin-left:16px;display:flex;align-items:end;gap:12px}
-.avatar{width:72px;height:72px;border-radius:16px;background:white;border:3px solid white;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,.15);cursor:pointer;position:relative}
-.avatar img{width:100%;height:100%;object-fit:cover}
-.avatar .cam{position:absolute;bottom:-2px;right:-2px;width:22px;height:22px;background:#0a1020;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid white}
+.preview-cliente{width:100%;height:190px;border-radius:16px;overflow:hidden;position:relative;background:#0f172a;border:1px solid #e2e8f0;cursor:pointer}
+.preview-cliente .portada-bg{position:absolute;inset:0;z-index:1}
+.preview-cliente .portada-bg img{width:100%;height:100%;object-fit:cover}
+.preview-cliente .overlay{position:absolute;inset:0;z-index:2;background:linear-gradient(0deg, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0.1) 100%)}
+.preview-cliente .contenido{position:absolute;z-index:3;bottom:0;left:0;right:0;padding:14px;display:flex;align-items:center;gap:12px}
+.preview-cliente .logo-cliente{width:58px;height:58px;border-radius:14px;background:white;border:2px solid white;overflow:hidden;flex-shrink:0;box-shadow:0 4px 12px rgba(0,0,0,.3)}
+.preview-cliente .logo-cliente img{width:100%;height:100%;object-fit:cover}
+.preview-cliente .info-cliente{flex:1;min-width:0}
+.preview-cliente .info-cliente b{color:white;font-size:16px;font-weight:800;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 3px rgba(0,0,0,.8)}
+.preview-cliente .info-cliente span{color:rgba(255,255,255,.85);font-size:11px;font-weight:600;text-transform:capitalize;text-shadow:0 1px 2px rgba(0,0,0,.6)}
+.preview-cliente .edit-tag{position:absolute;top:10px;right:10px;z-index:4;background:rgba(0,0,0,.65);color:white;font-size:10px;padding:5px 10px;border-radius:999px;font-weight:700;backdrop-filter:blur(4px)}
 .label{font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;margin-bottom:6px;display:block}
 .input{width:100%;padding:12px 12px;border:1px solid #e2e8f0;border-radius:10px;font-size:13px;outline:none;background:#f8fafc;transition:.2s}
 .input:focus{border-color:#E30613;background:white}
@@ -30,7 +34,7 @@ body{background:#f6f8fb;color:#0f172a;min-height:100vh}
 .btn-save{position:fixed;bottom:16px;left:14px;right:14px;max-width:720px;margin:0 auto;background:#0a1020;color:white;border:none;border-radius:999px;padding:14px;font-size:14px;font-weight:800;cursor:pointer;box-shadow:0 8px 20px rgba(0,0,0,.2)}
 .btn-save:disabled{opacity:.6}
 .ok{padding:10px;background:#dcfce7;color:#166534;border-radius:10px;font-size:12px;font-weight:700;margin-bottom:10px;display:none}
-.mapa-wrap{width:100%;height:240px;border-radius:12px;border:1px solid #e2e8f0;overflow:hidden;margin-top:10px}
+.mapa-wrap{width:100%;height:260px;border-radius:12px;border:1px solid #e2e8f0;overflow:hidden;margin-top:10px}
 .hidden{display:none !important}
 </style>
 </head>
@@ -45,22 +49,19 @@ body{background:#f6f8fb;color:#0f172a;min-height:100vh}
 <div id="msgOk" class="ok">✅ Guardado en tiempo real</div>
 
 <div class="card" style="padding:0;overflow:hidden">
-<div class="portada-wrap" onclick="document.getElementById('filePortada').click()">
-<img id="imgPortada" src="https://via.placeholder.com/720x160?text=Portada">
+<div class="preview-cliente" onclick="document.getElementById('filePortada').click()">
+<div class="portada-bg"><img id="imgPortada" src="https://via.placeholder.com/720x190?text=Portada"></div>
+<div class="overlay"></div>
 <div class="edit-tag">Cambiar portada</div>
+<div class="contenido">
+<div class="logo-cliente" onclick="event.stopPropagation(); document.getElementById('filePerfil').click()"><img id="imgPerfil" src="https://via.placeholder.com/100?text=Logo"></div>
+<div class="info-cliente"><b id="nombrePreview">Cargando...</b><span id="catPreview">Vista previa cliente</span></div>
 </div>
-<div class="perfil-wrap">
-<div class="avatar" onclick="document.getElementById('filePerfil').click()">
-<img id="imgPerfil" src="https://via.placeholder.com/100?text=Logo">
-<div class="cam"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div>
 </div>
-<div style="padding-bottom:10px"><b id="nombrePreview" style="font-size:15px">Cargando...</b><br><span id="catPreview" style="font-size:11px;color:#64748b">-</span></div>
-</div>
-<div style="padding:14px">
-<input id="inpPerfilUrl" class="hidden">
-<input type="file" id="filePerfil" accept="image/*" hidden>
-<input id="inpPortadaUrl" class="hidden">
-<input type="file" id="filePortada" accept="image/*" hidden>
+<div style="padding:10px 14px;background:#fffbeb;border-top:1px solid #fef3c7;display:flex;gap:8px;align-items:center"><span style="font-size:10px">👁️ Así te ven los clientes</span><span style="margin-left:auto;font-size:9px;background:#0a1020;color:white;padding:3px 8px;border-radius:999px;cursor:pointer" onclick="document.getElementById('filePerfil').click()">Cambiar logo</span></div>
+<div class="hidden">
+<input id="inpPerfilUrl"><input type="file" id="filePerfil" accept="image/*" hidden>
+<input id="inpPortadaUrl"><input type="file" id="filePortada" accept="image/*" hidden>
 </div>
 </div>
 
@@ -81,15 +82,14 @@ body{background:#f6f8fb;color:#0f172a;min-height:100vh}
 <div><label class="label">Teléfono</label><input id="inpTelefono" class="input" placeholder="Teléfono"></div>
 </div>
 <label class="label" style="margin-top:10px">Dirección / Ubicación</label>
-<input id="inpDireccion" class="input" placeholder="Escribe tu dirección...">
+<input id="inpDireccion" class="input" placeholder="Escribe tu dirección o toca el mapa">
 <div id="map" class="mapa-wrap"></div>
-<div style="font-size:10px;color:#64748b;margin-top:6px">Arrastra el marcador o haz clic en el mapa para confirmar ubicación</div>
+<div style="font-size:10px;color:#64748b;margin-top:6px;display:flex;gap:6px"><span>📍</span><span id="txtDirMap">Toca el mapa o escribe arriba - se autocompleta la dirección</span></div>
 <div class="input-group" style="margin-top:10px">
 <div><label class="label">Latitud</label><input id="inpLat" class="input" placeholder="21.123"></div>
 <div><label class="label">Longitud</label><input id="inpLng" class="input" placeholder="-100.123"></div>
 </div>
 </div>
-
 <div class="hidden"><input id="inpIdReal"><input id="inpRuta"></div>
 </div>
 
@@ -99,19 +99,14 @@ body{background:#f6f8fb;color:#0f172a;min-height:100vh}
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
 import { getDatabase, ref, get, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js";
-
 const configAliados = { apiKey: "AIzaSyD286qlJQT8D3rqbYTSfCyuTAEg9jjRchQ", authDomain: "doloya-aliados.firebaseapp.com", databaseURL: "https://doloya-aliados-default-rtdb.firebaseio.com", projectId: "doloya-aliados", storageBucket: "doloya-aliados.firebasestorage.app", messagingSenderId: "122314467740", appId: "1:122314467740:web:9947a0a9560557e3a00059" };
 const appAliados = initializeApp(configAliados, "aliados");
 const db = getDatabase(appAliados);
-
 function normalize(t){ return String(t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim(); }
 const sesion = JSON.parse(localStorage.getItem('doloya_aliado_sesion')||'null');
 if(!sesion){ location.href='panelaliado.html'; }
-
 const idNegocio = (sesion.id || sesion.negocio || '').toLowerCase();
-let refReal = null; let rutaReal = '';
-let map, marker, autocomplete;
-
+let refReal=null, rutaReal='', map, marker, autocomplete, geocoder;
 async function encontrarRestaurante(){
   const snap = await get(ref(db, 'doloya_aliados'));
   if(!snap.exists()) return null;
@@ -126,75 +121,69 @@ async function encontrarRestaurante(){
     }
   }
   const direct = await get(ref(db, `doloya_aliados/${idNegocio}`));
-  if(direct.exists()){
-    return { categoria: 'direct', id: idNegocio, data: direct.val(), ruta: `doloya_aliados/${idNegocio}` };
-  }
+  if(direct.exists()){ return { categoria: 'direct', id: idNegocio, data: direct.val(), ruta: `doloya_aliados/${idNegocio}` }; }
   return null;
 }
-function fileToDataURL(file){
-  return new Promise((res,rej)=>{
-    const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(file);
-  });
-}
+function fileToDataURL(file){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(file); }); }
 document.getElementById('filePerfil').addEventListener('change', async (e)=>{
   const f=e.target.files[0]; if(!f) return;
   const url=await fileToDataURL(f);
-  document.getElementById('imgPerfil').src=url;
-  document.getElementById('inpPerfilUrl').value=url;
+  document.getElementById('imgPerfil').src=url; document.getElementById('inpPerfilUrl').value=url;
 });
 document.getElementById('filePortada').addEventListener('change', async (e)=>{
   const f=e.target.files[0]; if(!f) return;
   const url=await fileToDataURL(f);
-  document.getElementById('imgPortada').src=url;
-  document.getElementById('inpPortadaUrl').value=url;
+  document.getElementById('imgPortada').src=url; document.getElementById('inpPortadaUrl').value=url;
 });
 document.getElementById('inpNombre').addEventListener('input', e=>{
   document.getElementById('nombrePreview').textContent=e.target.value||'Mi restaurante';
 });
-
 function initMap(lat=21.389, lng=-100.934){
+  geocoder=new google.maps.Geocoder();
   const pos={lat,lng};
-  map=new google.maps.Map(document.getElementById('map'),{center:pos,zoom:15,disableDefaultUI:false});
-  marker=new google.maps.Marker({position:pos,map:map,draggable:true,title:"Arrastra para ajustar"});
+  map=new google.maps.Map(document.getElementById('map'),{center:pos,zoom:15});
+  marker=new google.maps.Marker({position:pos,map:map,draggable:true});
+  function reverseGeocode(latlng){
+    geocoder.geocode({location:latlng}, (results,status)=>{
+      if(status==='OK' && results[0]){
+        document.getElementById('inpDireccion').value=results[0].formatted_address;
+        document.getElementById('txtDirMap').textContent=results[0].formatted_address;
+      }
+    });
+  }
   marker.addListener('dragend', ()=>{
     const p=marker.getPosition();
     document.getElementById('inpLat').value=p.lat().toFixed(6);
     document.getElementById('inpLng').value=p.lng().toFixed(6);
+    reverseGeocode({lat:p.lat(),lng:p.lng()});
   });
   map.addListener('click', (e)=>{
     marker.setPosition(e.latLng);
     document.getElementById('inpLat').value=e.latLng.lat().toFixed(6);
     document.getElementById('inpLng').value=e.latLng.lng().toFixed(6);
+    reverseGeocode({lat:e.latLng.lat(),lng:e.latLng.lng()});
   });
-  // Autocomplete
   autocomplete=new google.maps.places.Autocomplete(document.getElementById('inpDireccion'));
   autocomplete.addListener('place_changed', ()=>{
     const place=autocomplete.getPlace();
     if(!place.geometry) return;
     const loc=place.geometry.location;
-    map.setCenter(loc); map.setZoom(16);
-    marker.setPosition(loc);
+    map.setCenter(loc); map.setZoom(16); marker.setPosition(loc);
     document.getElementById('inpLat').value=loc.lat().toFixed(6);
     document.getElementById('inpLng').value=loc.lng().toFixed(6);
     document.getElementById('inpDireccion').value=place.formatted_address||document.getElementById('inpDireccion').value;
+    document.getElementById('txtDirMap').textContent=place.formatted_address;
   });
 }
-
 async function cargar(){
   const encontrado = await encontrarRestaurante();
   if(!encontrado){
     document.getElementById('nombrePreview').textContent=idNegocio;
     document.getElementById('inpIdReal').value=idNegocio;
-    rutaReal=`doloya_aliados/${idNegocio}`;
-    refReal=ref(db, rutaReal);
-    initMap();
-    return;
+    rutaReal=`doloya_aliados/${idNegocio}`; refReal=ref(db, rutaReal); initMap(); return;
   }
   rutaReal=encontrado.ruta; refReal=ref(db, rutaReal);
-  document.getElementById('inpIdReal').value=encontrado.id;
-  document.getElementById('inpRuta').value=rutaReal;
-  document.getElementById('catPreview').textContent=encontrado.categoria;
-
+  document.getElementById('inpIdReal').value=encontrado.id; document.getElementById('inpRuta').value=rutaReal; document.getElementById('catPreview').textContent=encontrado.categoria+' • vista previa cliente';
   onValue(refReal, (snap)=>{
     if(!snap.exists()) return;
     const d=snap.val();
@@ -216,15 +205,13 @@ async function cargar(){
     document.getElementById('inpEstado').value = estado==='abierto'?'activo':estado;
     document.getElementById('estadoTxt').textContent = estado==='activo'?'● ABIERTO':'● CERRADO';
     document.getElementById('estadoTxt').style.color = estado==='activo'?'#16a34a':'#E30613';
-    const lat=parseFloat(info.lat||d.lat)||21.389;
-    const lng=parseFloat(info.lng||d.lng)||-100.934;
+    const lat=parseFloat(info.lat||d.lat)||21.389; const lng=parseFloat(info.lng||d.lng)||-100.934;
     if(!map){ initMap(lat,lng); } else { const p=new google.maps.LatLng(lat,lng); marker.setPosition(p); map.setCenter(p); }
+    if(info.direccion||d.direccion){ document.getElementById('txtDirMap').textContent=info.direccion||d.direccion; }
   });
 }
-
 document.getElementById('btnGuardar').addEventListener('click', async ()=>{
-  const btn=document.getElementById('btnGuardar');
-  btn.textContent='Guardando...'; btn.disabled=true;
+  const btn=document.getElementById('btnGuardar'); btn.textContent='Guardando...'; btn.disabled=true;
   try{
     const payload={
       nombre: document.getElementById('inpNombre').value.trim(),
@@ -246,13 +233,11 @@ document.getElementById('btnGuardar').addEventListener('click', async ()=>{
     await update(refReal, payload);
     await update(ref(db, `${rutaReal}/categorias/info`), payload);
     await update(ref(db, `${rutaReal}/categorias/disponibilidad`), { estado: payload.estado, abierto: payload.estado==='activo' });
-    sesion.nombre=payload.nombre;
-    localStorage.setItem('doloya_aliado_sesion', JSON.stringify(sesion));
+    sesion.nombre=payload.nombre; localStorage.setItem('doloya_aliado_sesion', JSON.stringify(sesion));
     const ok=document.getElementById('msgOk'); ok.style.display='block'; setTimeout(()=>ok.style.display='none',2500);
   }catch(e){ alert('Error: '+e.message); }
   btn.textContent='Guardar cambios'; btn.disabled=false;
 });
-
 cargar();
 </script>
 </body>
