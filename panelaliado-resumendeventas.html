@@ -57,13 +57,7 @@ body{background:#f6f8fb;color:#0f172a}
 <input type="date" id="fechaDesde"><input type="date" id="fechaHasta"><button class="btn btn-ver" onclick="filtrar()">Filtrar</button>
 </div>
 <div class="table-head">
-<span>Fecha / Hora</span>
-<span>Pedido</span>
-<span>Cliente</span>
-<span>Venta total</span>
-<span>90% / 50%</span>
-<span>Estado / Pago</span>
-<span>Factura</span>
+<span>Fecha / Hora</span><span>Pedido</span><span>Cliente</span><span>Venta total</span><span>90% / 50%</span><span>Estado / Pago</span><span>Factura</span>
 </div>
 <div id="listaPedidos"><div style="padding:20px;text-align:center;color:#94a3b8;font-size:11px">Cargando tus ventas...</div></div>
 </div>
@@ -78,18 +72,8 @@ body{background:#f6f8fb;color:#0f172a}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const configAliados = {
-  apiKey: "AIzaSyD286qlJQT8D3rqbYTSfCyuTAEg9jjRchQ",
-  authDomain: "doloya-aliados.firebaseapp.com",
-  databaseURL: "https://doloya-aliados-default-rtdb.firebaseio.com",
-  projectId: "doloya-aliados",
-  storageBucket: "doloya-aliados.firebasestorage.app",
-  messagingSenderId: "122314467740",
-  appId: "1:122314467740:web:9947a0a9560557e3a00059"
-};
 const configHistorial = {
   apiKey: "AIzaSyCRx4B7mO444s0yU-WTnsqMjBHDWX4IRv8",
   authDomain: "doloya-historial.firebaseapp.com",
@@ -98,9 +82,6 @@ const configHistorial = {
   messagingSenderId: "41258055121",
   appId: "1:41258055121:web:19a443786320e04ebd9cf0"
 };
-
-const appAliados = initializeApp(configAliados, "aliadosApp");
-const dbAliados = getDatabase(appAliados);
 const appHis = initializeApp(configHistorial, "hisApp");
 const dbHis = getFirestore(appHis);
 
@@ -113,106 +94,56 @@ let filtrados = [];
 function limpiarNombre(s){ return (s||"").replace(/_/g," ").replace(/-/g," ").trim(); }
 function fechaCorta(f){ try{ let d=new Date(f); if(isNaN(d.getTime())) d=new Date(Number(f)); if(isNaN(d.getTime())) return "-"; return `<span style="font-size:7px">${d.toLocaleDateString('es-MX')}</span><br><span style="font-size:6.5px;color:#64748b">${d.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'})}</span>`; }catch{ return "-"; } }
 
-// 1. DETECTA EL ALIADO LOGUEADO Y BUSCA SU RESTAURANTE EN doloya-aliados
-async function obtenerRestauranteDelAliadoLogueado(){
-  // Lo que guardas en panelaliado.html cuando inicia sesión
-  const posiblesKeys = ['aliadoEmail','emailAliado','usuarioAliado','restauranteEmail','email','aliadoUid','uid'];
-  let emailLogueado = "";
-  let uidLogueado = "";
-  for(let k of posiblesKeys){
-    const v = localStorage.getItem(k);
-    if(v && v.includes('@')) emailLogueado = v.toLowerCase().trim();
-    if(v && v.length>10 && !v.includes('@') && !v.includes('_')) uidLogueado = v;
-  }
-  // También de URL
-  const idUrl = new URLSearchParams(location.search).get('id') || "";
-  if(idUrl){
-    restauranteIdReal = idUrl.toLowerCase().trim();
-    restauranteNombreReal = localStorage.getItem('restauranteNombre') || restauranteIdReal;
-    return;
-  }
-
-  // Si no hay URL, busca en doloya-aliados por email
+function obtenerSesionAliado(){
   try{
-    const snap = await get(ref(dbAliados, "doloya_aliados"));
-    const data = snap.val();
-    let encontrado = null;
-
-    function recorrer(obj, path=""){
-      if(!obj || typeof obj!=="object") return;
-      // Si tiene info.nombre y email coincide
-      if(obj.info && obj.info.nombre){
-        const keyReal = path.split("/").pop(); // este es el id como las_tortas_de_migue
-        const info = obj.info;
-        const emailInfo = (info.email || info.correo || "").toLowerCase();
-        const uidInfo = (info.uid || info.aliadoUid || "").toLowerCase();
-        if((emailLogueado && emailInfo === emailLogueado) || (uidLogueado && uidInfo === uidLogueado.toLowerCase()) || (!emailLogueado && !uidLogueado)){
-          // Si no hay email para comparar, toma el primero que coincida con el restauranteId guardado
-          const guardado = (localStorage.getItem('restauranteId')||"").toLowerCase();
-          if(guardado && keyReal.toLowerCase() === guardado){
-            encontrado = { id:keyReal, nombre:info.nombre };
-          } else if(!encontrado && !guardado){
-            // Si no hay nada guardado, no podemos decidir aún, guardamos temporal
-            encontrado = encontrado || { id:keyReal, nombre:info.nombre };
-          } else if(guardado && keyReal.toLowerCase() === guardado){
-            encontrado = { id:keyReal, nombre:info.nombre };
-          }
-          if(emailLogueado && emailInfo === emailLogueado) encontrado = { id:keyReal, nombre:info.nombre };
-        }
-        return;
-      }
-      Object.entries(obj).forEach(([k,v])=>{ if(typeof v==="object" && v!==null) recorrer(v, path?path+"/"+k:k); });
-    }
-    recorrer(data);
-
-    // Fallback directo a localStorage si no encontró por email
-    if(!encontrado){
-      const rid = localStorage.getItem('restauranteId') || localStorage.getItem('aliadoId') || localStorage.getItem('idRestaurante') || "";
-      if(rid){
-        encontrado = { id:rid, nombre: localStorage.getItem('restauranteNombre') || rid };
-      }
-    }
-
-    if(encontrado){
-      restauranteIdReal = encontrado.id.toLowerCase().trim();
-      restauranteNombreReal = encontrado.nombre;
-    }
-  }catch(e){ console.log("Error aliados",e); }
+    const sesionRaw = localStorage.getItem('doloya_aliado_sesion');
+    if(!sesionRaw) return null;
+    return JSON.parse(sesionRaw);
+  }catch{ return null; }
 }
 
 async function cargar(){
-  await obtenerRestauranteDelAliadoLogueado();
+  const sesion = obtenerSesionAliado();
+  if(!sesion){
+    document.getElementById('listaPedidos').innerHTML='<div style="padding:20px;text-align:center;color:#E30613">No hay sesión. Entra desde el login de aliados.</div>';
+    return;
+  }
+  // ESTA ES LA CLAVE: negocio = key de doloya_aliados = restaurante.id en historial
+  restauranteIdReal = (sesion.negocio || sesion.id || "").toLowerCase().trim();
+  restauranteNombreReal = sesion.nombre || sesion.negocio || restauranteIdReal;
 
   if(!restauranteIdReal){
-    document.getElementById('listaPedidos').innerHTML='<div style="padding:20px;text-align:center;color:#E30613">No se detectó tu restaurante.<br>Abre este resumen desde panelaliado.html logueado.</div>';
+    document.getElementById('listaPedidos').innerHTML='<div style="padding:20px;text-align:center;color:#E30613">Sesión sin negocio.</div>';
     return;
   }
 
-  document.getElementById('nombreNegocio').textContent = "- " + limpiarNombre(restauranteNombreReal);
+  document.getElementById('nombreNegocio').textContent = "- " + limpiarNombre(restauranteNombreReal) + " ("+restauranteIdReal+")";
   document.getElementById('kNombreSpan').textContent = limpiarNombre(restauranteNombreReal);
+
+  console.log("FILTRANDO POR restaurante.id =", restauranteIdReal);
 
   const snapE = await getDocs(collection(dbHis, "pedidos_entregados"));
   snapE.forEach(d=>{
     const data=d.data();
-    const rid = (data.restaurante?.id || "").toLowerCase().trim();
-    if(rid !== restauranteIdReal) return;
-    const venta = Number(data.totales?.costoProductos || data.total || 0);
+    const rid = (data.restaurante?.id || data.restaurante?.cat || "").toLowerCase().trim();
+    if(rid !== restauranteIdReal) return; // INDEPENDIENTE POR RESTAURANTE
+    const venta = Number(data.totales?.costoProductos || data.total || data.monto || 0);
     pedidos.push({ id:d.id, tipo:"entregado", fecha: data.timestampEnvio || data.timestampAdmin || data.fecha || Date.now(), venta: venta, gana: venta*0.9, cliente: data.cliente?.nombre || "Cliente" });
   });
 
   const snapC = await getDocs(collection(dbHis, "pedidos_cancelados"));
   snapC.forEach(d=>{
     const data=d.data();
-    const rid = (data.restaurante?.id || "").toLowerCase().trim();
-    if(rid !== restauranteIdReal) return;
-    const venta = Number(data.totales?.costoProductos || data.total || 0);
+    const rid = (data.restaurante?.id || data.restaurante?.cat || "").toLowerCase().trim();
+    if(rid !== restauranteIdReal) return; // INDEPENDIENTE POR RESTAURANTE
+    const venta = Number(data.totales?.costoProductos || data.total || data.monto || 0);
     pedidos.push({ id:d.id, tipo:"cancelado", fecha: data.timestampEnvio || data.timestampAdmin || data.fecha || Date.now(), venta: venta, gana: venta*0.5, cliente: data.cliente?.nombre || "Cliente" });
   });
 
   const snapP = await getDocs(collection(dbHis, "pagos_aliados"));
   snapP.forEach(d=>{
     const data=d.data();
-    const id = (data.restauranteId || data.restaurante?.id || data.restauranteNombre || "").toLowerCase().trim();
+    const id = (data.restauranteId || data.restaurante?.id || "").toLowerCase().trim();
     if(id !== restauranteIdReal) return;
     pagos.push({ id:d.id, monto:Number(data.montoPagado||data.monto||0), fecha:data.fechaPago||data.fecha||data.timestamp, factura:data.facturaId||d.id });
   });
@@ -258,7 +189,7 @@ function render(){
   }
 
   const cont = document.getElementById('listaPedidos');
-  if(filtrados.length===0){ cont.innerHTML='<div style="padding:20px;text-align:center;color:#94a3b8">No hay pedidos para '+limpiarNombre(restauranteNombreReal)+'<br><small>ID: '+restauranteIdReal+'</small></div>'; return; }
+  if(filtrados.length===0){ cont.innerHTML='<div style="padding:20px;text-align:center;color:#94a3b8">No hay pedidos para '+limpiarNombre(restauranteNombreReal)+'<br><small>ID buscado: '+restauranteIdReal+'</small><br><small style="font-size:8px">Esto es independiente, solo ve su restaurante</small></div>'; return; }
   cont.innerHTML="";
   filtrados.forEach(p=>{
     const esCanc = p.tipo==="cancelado";
@@ -266,16 +197,7 @@ function render(){
     const estadoPedido = esCanc ? '<span class="badge" style="background:#fee2e2;color:#991b1b;border:1px solid #E30613;font-size:7.5px">Cancelado</span>' : '<span class="badge badge-pagado" style="font-size:7.5px">Entregado</span>';
     const resumenPago = pagos.length>0 ? '<span class="badge badge-pagado" style="font-size:7.5px">Pagado</span>' : '<span class="badge badge-pend" style="font-size:7.5px">Pendiente por pagar</span>';
     const btnFactura = pagos.length>0 ? `<button class="btn btn-fact" style="font-size:8.5px" onclick="verFactura('${pagos[0].id}')">Ver factura</button>` : `<span style="font-size:7.5px;color:#94a3b8">Sin factura</span>`;
-    cont.innerHTML+=`
-    <div class="table-row" style="${esCanc?'background:#fff1f2':''}">
-      <span style="line-height:1.1">${fechaCorta(p.fecha)}</span>
-      <span style="font-weight:800;font-size:9px">#${p.id.slice(-6).toUpperCase()}</span>
-      <span style="font-size:9px">${p.cliente}</span>
-      <span style="font-size:9px">$ ${p.venta.toFixed(2)}</span>
-      <span style="font-size:9px">${col90}</span>
-      <span style="display:flex;flex-direction:column;gap:2px">${estadoPedido}${resumenPago}</span>
-      <span>${btnFactura}</span>
-    </div>`;
+    cont.innerHTML+=`<div class="table-row" style="${esCanc?'background:#fff1f2':''}"><span style="line-height:1.1">${fechaCorta(p.fecha)}</span><span style="font-weight:800;font-size:9px">#${p.id.slice(-6).toUpperCase()}</span><span style="font-size:9px">${p.cliente}</span><span style="font-size:9px">$ ${p.venta.toFixed(2)}</span><span style="font-size:9px">${col90}</span><span style="display:flex;flex-direction:column;gap:2px">${estadoPedido}${resumenPago}</span><span>${btnFactura}</span></div>`;
   });
 }
 
@@ -302,14 +224,7 @@ window.filtrar = ()=>{
 window.verFactura = (idPago)=>{
   const pago = pagos.find(p=>p.id===idPago) || pagos[0];
   if(!pago) return;
-  document.getElementById('contFactura').innerHTML=`
-    <b>Negocio:</b> ${limpiarNombre(restauranteNombreReal)}<br>
-    <b>Factura:</b> ${pago.factura}<br>
-    <b>Fecha pago:</b> ${pago.fecha ? new Date(pago.fecha).toLocaleString('es-MX') : "-"}<br>
-    <b>Monto:</b> $ ${Number(pago.monto).toFixed(2)}<br>
-    <b>Estado:</b> <span class="badge badge-pagado">Pagada</span><br><br>
-    <div style="background:#f8fafc;padding:8px;border-radius:8px;border:1px dashed #e2e8f0">Factura de ${limpiarNombre(restauranteNombreReal)}</div>
-  `;
+  document.getElementById('contFactura').innerHTML=`<b>Negocio:</b> ${limpiarNombre(restauranteNombreReal)}<br><b>ID:</b> ${restauranteIdReal}<br><b>Factura:</b> ${pago.factura}<br><b>Fecha pago:</b> ${pago.fecha ? new Date(pago.fecha).toLocaleString('es-MX') : "-"}<br><b>Monto:</b> $ ${Number(pago.monto).toFixed(2)}<br><b>Estado:</b> <span class="badge badge-pagado">Pagada</span>`;
   document.getElementById('modalFactura').style.display='flex';
 };
 
