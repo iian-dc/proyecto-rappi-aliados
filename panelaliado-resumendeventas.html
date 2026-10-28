@@ -5,12 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Resumen de Ventas - Aliado</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
 body{background:#f6f8fb;color:#0f172a}
 .header-top{background:white;padding:10px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #e2e8f0;position:sticky;top:0;z-index:20}
 .btn-x{width:34px;height:34px;background:#E30613;border-radius:50%;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer}
-.header-top h1{font-size:15px;font-weight:800}
+.header-top h1{font-size:15px;font-weight:800;flex:1}
+.btn-graficas{background:#0a1020;color:white;border:none;border-radius:999px;padding:7px 14px;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px}
 .top-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:12px}
 @media(max-width:900px){.top-cards{grid-template-columns:repeat(2,1fr)}}
 .tcard{background:white;border-radius:12px;border:1px solid #eef2f7;padding:12px}
@@ -34,7 +36,11 @@ body{background:#f6f8fb;color:#0f172a}
 .btn-pend{background:#E30613;color:white}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;z-index:50;padding:12px}
 .modal-box{background:white;border-radius:12px;padding:16px;max-width:480px;width:100%;max-height:90vh;overflow:auto}
+.modal-grafica .modal-box{max-width:700px}
 .img-factura{width:100%;border-radius:10px;border:1px solid #e2e8f0;margin-top:10px}
+.resumen-grafica{margin-top:12px;padding:12px;background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0}
+.resumen-grafica div{display:flex;justify-content:space-between;padding:6px 0;font-size:11px;border-bottom:1px dashed #e2e8f0}
+.resumen-grafica b{font-size:11px}
 </style>
 </head>
 <body>
@@ -42,13 +48,13 @@ body{background:#f6f8fb;color:#0f172a}
 <button class="btn-x" onclick="location.href='panelaliado.html'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
 <div style="width:2px;height:16px;background:#E30613"></div>
 <h1>Resumen de ventas</h1>
-<!-- OCULTO NOMBRE COMO PEDISTE -->
+<button class="btn-graficas" onclick="abrirGraficas()">📊 Gráficas</button>
 <span id="nombreNegocio" style="display:none"></span>
 </div>
 
 <div class="top-cards">
 <div class="tcard"><label>Total ingresos restaurante (solo pagado)</label><b id="kIngresos">$ 0.00</b><span id="kSubIngresos">0 pagado - solo facturas pagadas</span></div>
-<div class="tcard" style="border-left:4px solid #E30613"><label>Pérdidas por cancelado</label><b id="kPerdidas" style="color:#E30613">- $ 0.00</b><span id="kSubPerd">0 cancelados</span></div>
+<div class="tcard" style="border-left:4px solid #E30613"><label>Pérdidas por cancelado (50%)</label><b id="kPerdidas" style="color:#E30613">- $ 0.00</b><span id="kSubPerd">0 cancelados - sumatoria 50%</span></div>
 <div class="tcard"><label>Total pedidos</label><b id="kTotalPed">0</b><span id="kNombreSpan">De este negocio</span></div>
 <div class="tcard" id="cardEstadoPago"><label>Resumen de pago de facturas</label><b id="kEstadoPago">0 facturas</b><span id="kDetallePago">Sin pagos</span><div style="margin-top:8px"><button id="btnEstadoPago" class="btn btn-pend">Pendiente</button></div></div>
 </div>
@@ -59,15 +65,7 @@ body{background:#f6f8fb;color:#0f172a}
 <input type="date" id="fechaDesde"><input type="date" id="fechaHasta"><button class="btn btn-ver" onclick="filtrar()">Filtrar</button>
 </div>
 <div class="table-head">
-<span>Fecha / Hora</span>
-<span>Pedido</span>
-<span>Cliente</span>
-<span>Venta total</span>
-<span>Pedido cancelado</span>
-<span>Pagado</span>
-<span>Pendiente</span>
-<span>Estado</span>
-<span>Factura</span>
+<span>Fecha / Hora</span><span>Pedido</span><span>Cliente</span><span>Venta total</span><span>Pedido cancelado</span><span>Pagado</span><span>Pendiente</span><span>Estado</span><span>Factura</span>
 </div>
 <div id="listaPedidos"><div style="padding:20px;text-align:center;color:#94a3b8;font-size:11px">Cargando tus ventas...</div></div>
 </div>
@@ -81,6 +79,17 @@ body{background:#f6f8fb;color:#0f172a}
 <button class="btn btn-ver" style="flex:1" onclick="document.getElementById('modalFactura').style.display='none'">Cerrar</button>
 <button id="btnDescargar" class="btn btn-pago" style="flex:1;display:none" onclick="descargarFactura()">Descargar factura</button>
 </div>
+</div>
+</div>
+
+<div class="modal modal-grafica" id="modalGraficas">
+<div class="modal-box">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+<h3 style="font-size:14px;font-weight:800">Gráfica de ingresos</h3>
+<button class="btn btn-ver" onclick="document.getElementById('modalGraficas').style.display='none'">X</button>
+</div>
+<canvas id="chartIngresos" height="200"></canvas>
+<div class="resumen-grafica" id="resumenGrafica"></div>
 </div>
 </div>
 
@@ -105,6 +114,7 @@ let pedidos = [];
 let pagos = [];
 let filtrados = [];
 let facturaActualUrl = "";
+let chartInstance = null;
 
 function limpiarNombre(s){ return (s||"").replace(/_/g," ").replace(/-/g," ").trim(); }
 function fechaCorta(f){ try{ let d=new Date(f); if(isNaN(d.getTime())) d=new Date(Number(f)); if(isNaN(d.getTime())) return "-"; return `<span style="font-size:7px">${d.toLocaleDateString('es-MX')}</span><br><span style="font-size:6.5px;color:#64748b">${d.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'})}</span>`; }catch{ return "-"; } }
@@ -116,34 +126,23 @@ async function cargar(){
   restauranteIdReal = (sesion.negocio || sesion.id || "").toLowerCase().trim();
   restauranteNombreReal = sesion.nombre || sesion.negocio || restauranteIdReal;
 
-  // PAGOS - FACTURAS PAGADAS
   const snapP = await getDocs(collection(dbHis, "pagos_aliados"));
   snapP.forEach(d=>{
     const data=d.data();
     const id = (data.restauranteId || data.restaurante?.id || data.restauranteNombre || data.negocio || "").toLowerCase().trim();
     if(id !== restauranteIdReal) return;
-    pagos.push({ 
-      id:d.id, 
-      monto:Number(data.montoPagado||data.monto||data.totalPagado||0), 
-      fecha:data.fechaPago||data.fecha||data.timestamp,
-      facturaId:data.facturaId||d.id,
-      url: data.facturaUrl || data.urlFactura || data.imagenFactura || data.imagen || data.url || data.foto || ""
-    });
+    pagos.push({ id:d.id, monto:Number(data.montoPagado||data.monto||data.totalPagado||0), fecha:data.fechaPago||data.fecha||data.timestamp, facturaId:data.facturaId||d.id, url: data.facturaUrl || data.urlFactura || data.imagenFactura || data.imagen || data.url || "" });
   });
 
-  const totalPagadoGlobal = pagos.reduce((s,p)=>s+Number(p.monto||0),0);
-
-  // PEDIDOS - SOLO DE ESTE RESTAURANTE
+  const rawPedidos = [];
   const snapE = await getDocs(collection(dbHis, "pedidos_entregados"));
   snapE.forEach(d=>{
     const data=d.data();
     const rid = (data.restaurante?.id || data.restaurante?.cat || "").toLowerCase().trim();
     if(rid !== restauranteIdReal) return;
     const venta = Number(data.totales?.costoProductos || data.total || data.monto || 0);
-    const gana90 = venta*0.9;
-    pedidos.push({ id:d.id, codigo:"ST-"+d.id.slice(-6).toUpperCase(), tipo:"entregado", fecha: data.timestampEnvio || data.timestampAdmin || data.fecha || Date.now(), venta: venta, valorCancelado:0, gana: gana90, cliente: data.cliente?.nombre || "Cliente" });
+    rawPedidos.push({ id:d.id, tipo:"entregado", fecha: data.timestampEnvio || data.timestampAdmin || data.fecha || Date.now(), venta: venta, valorCancelado:0, gana: venta*0.9, cliente: data.cliente?.nombre || "Cliente" });
   });
-
   const snapC = await getDocs(collection(dbHis, "pedidos_cancelados"));
   snapC.forEach(d=>{
     const data=d.data();
@@ -151,50 +150,52 @@ async function cargar(){
     if(rid !== restauranteIdReal) return;
     const venta = Number(data.totales?.costoProductos || data.total || data.monto || 0);
     const gana50 = venta*0.5;
-    pedidos.push({ id:d.id, codigo:"ST-"+d.id.slice(-6).toUpperCase(), tipo:"cancelado", fecha: data.timestampEnvio || data.timestampAdmin || data.fecha || Date.now(), venta: venta, valorCancelado:gana50, gana: gana50, cliente: data.cliente?.nombre || "Cliente" });
+    rawPedidos.push({ id:d.id, tipo:"cancelado", fecha: data.timestampEnvio || data.timestampAdmin || data.fecha || Date.now(), venta: venta, valorCancelado:gana50, gana: gana50, cliente: data.cliente?.nombre || "Cliente" });
   });
 
-  pedidos.sort((a,b)=> new Date(b.fecha)-new Date(a.fecha));
+  // ORDENAR POR FECHA ASC PARA NUMERACIÓN REAL ST-1, ST-2
+  rawPedidos.sort((a,b)=> new Date(a.fecha)-new Date(b.fecha));
+  // ASIGNAR NUMERO REAL SECUENCIAL
+  rawPedidos.forEach((p, idx)=>{
+    p.numeroReal = idx+1;
+    p.codigo = "ST-"+String(idx+1);
+  });
+  // LUEGO ORDENAR DESC PARA MOSTRAR EL MÁS RECIENTE ARRIBA
+  pedidos = [...rawPedidos].sort((a,b)=> new Date(b.fecha)-new Date(a.fecha));
   filtrados=[...pedidos];
 
-  // CALCULO ARRIBA: SOLO LO PAGADO
-  const kIngresos = document.getElementById('kIngresos');
-  if(totalPagadoGlobal>0){
-    kIngresos.textContent = "$ "+totalPagadoGlobal.toFixed(2);
-  }else{
-    kIngresos.textContent = "$ 0.00";
-  }
-
+  const totalPagadoGlobal = pagos.reduce((s,p)=>s+Number(p.monto||0),0);
+  document.getElementById('kIngresos').textContent = totalPagadoGlobal>0 ? "$ "+totalPagadoGlobal.toFixed(2) : "$ 0.00";
   render();
 }
 
 function render(){
   const totalPagadoGlobal = pagos.reduce((s,p)=>s+Number(p.monto||0),0);
-  const totalPerdidas = pedidos.filter(p=>p.tipo==="cancelado").reduce((s,p)=>s+p.venta,0);
+  // PERDIDAS AHORA ES 50% - SUMATORIA DE valorCancelado
+  const totalPerdidas50 = pedidos.filter(p=>p.tipo==="cancelado").reduce((s,p)=>s+p.valorCancelado,0);
+  const totalVentaCancelados = pedidos.filter(p=>p.tipo==="cancelado").reduce((s,p)=>s+p.venta,0);
   const countEnt = pedidos.filter(p=>p.tipo==="entregado").length;
   const countCanc = pedidos.filter(p=>p.tipo==="cancelado").length;
 
-  // Total pedidos y pérdidas arriba
-  document.getElementById('kPerdidas').textContent = "- $ "+totalPerdidas.toFixed(2);
-  document.getElementById('kSubPerd').textContent = countCanc+" cancelados - pérdida real";
+  document.getElementById('kPerdidas').textContent = "- $ "+totalPerdidas50.toFixed(2);
+  document.getElementById('kSubPerd').textContent = countCanc+" cancelados - sumatoria 50% de $"+totalVentaCancelados.toFixed(2);
   document.getElementById('kTotalPed').textContent = pedidos.length;
   document.getElementById('kSubIngresos').textContent = totalPagadoGlobal>0 ? pagos.length+" factura(s) pagada(s)" : "0 pagado - sin facturas pagadas aún";
   document.getElementById('kNombreSpan').textContent = countEnt+" entregados, "+countCanc+" cancelados";
 
-  // RESUMEN DE PAGO FACTURAS
+  const totalGana = pedidos.reduce((s,p)=>s+p.gana,0);
+  const pendienteGlobal = Math.max(0, totalGana - totalPagadoGlobal);
+
   const card = document.getElementById('cardEstadoPago');
   const btn = document.getElementById('btnEstadoPago');
   const kEst = document.getElementById('kEstadoPago');
   const kDet = document.getElementById('kDetallePago');
 
-  const totalGana = pedidos.reduce((s,p)=>s+p.gana,0);
-  const pendienteGlobal = Math.max(0, totalGana - totalPagadoGlobal);
-
   if(pedidos.length===0){
-    kEst.textContent="0 facturas"; kDet.textContent="Sin pedidos para este restaurante"; card.className="tcard"; btn.className="btn btn-ver"; btn.textContent="Sin datos";
+    kEst.textContent="0 facturas"; kDet.textContent="Sin pedidos"; card.className="tcard"; btn.className="btn btn-ver"; btn.textContent="Sin datos";
   }else if(pagos.length===0){
     kEst.textContent = "0 facturas pagadas";
-    kDet.textContent = pedidos.length+" facturas pendientes por pagar - $ "+totalGana.toFixed(2);
+    kDet.textContent = pedidos.length+" pendientes por pagar - $ "+totalGana.toFixed(2);
     card.className="tcard pago-rojo"; btn.className="btn btn-pend"; btn.textContent= pedidos.length+" pendientes";
   }else if(pendienteGlobal <= 1){
     kEst.textContent = pagos.length+" factura(s)";
@@ -211,42 +212,18 @@ function render(){
   cont.innerHTML="";
   filtrados.forEach(p=>{
     const esCanc = p.tipo==="cancelado";
-    // VENTA TOTAL
     const ventaTotal = `$ ${p.venta.toFixed(2)}`;
-    // PEDIDO CANCELADO - 50%
     const colCancelado = esCanc ? `$ ${p.valorCancelado.toFixed(2)} <br><span style="font-size:6.5px;color:#E30613">50% de $${p.venta.toFixed(0)}</span>` : `<span style="color:#94a3b8">-</span>`;
     
-    // PAGADO Y PENDIENTE - VINCULADO A FACTURAS PAGADAS
     let pagadoRow = "$ 0.00";
     let pendienteRow = `$ ${p.gana.toFixed(2)}`;
     if(pagos.length>0 && totalPagadoGlobal>0){
-      // Si ya hay facturas pagadas, distribuimos el pago
-      // Si el total pagado cubre, marcamos como pagado
-      // Para simplificar: si hay al menos 1 factura, consideramos que este pedido ya está pagado proporcionalmente
-      // Mejor: si totalPagadoGlobal >= totalGana, todo pagado, si no, parcial
-      const totalGanaGlobal = pedidos.reduce((s,x)=>s+x.gana,0);
-      if(totalPagadoGlobal >= totalGanaGlobal){
-        pagadoRow = `$ ${p.gana.toFixed(2)}`;
-        pendienteRow = `$ 0.00`;
-      }else{
-        // Pagado proporcional o marcamos como pagado si ya se facturó
-        // Aquí lo dejamos pagado si hay factura, para que vea cuánto se le pagó
-        pagadoRow = esCanc ? `$ ${p.valorCancelado.toFixed(2)}` : `$ ${p.gana.toFixed(2)}`;
-        pendienteRow = `$ 0.00`;
-        // Si aún queda pendiente global, mostrar pendiente real en tarjeta de arriba
-        if(totalPagadoGlobal < totalGanaGlobal && pedidos.indexOf(p) > pagos.length-1){
-          // Los últimos pedidos quedan pendientes
-        }
-      }
-      if(pagos.length===0){
-        pagadoRow = "$ 0.00";
-        pendienteRow = `$ ${p.gana.toFixed(2)}`;
-      }
+      pagadoRow = `$ ${p.gana.toFixed(2)}`;
+      pendienteRow = `$ 0.00`;
     }
 
     const estadoBadge = esCanc ? '<span class="badge" style="background:#fee2e2;color:#991b1b;border:1px solid #E30613;font-size:7px">Cancelado</span>' : '<span class="badge badge-pagado" style="font-size:7px">Entregado</span>';
     
-    // FACTURA DE PAGO - SOLO SI HAY PAGO
     let btnFactura = "";
     if(pagos.length>0){
       const factura = pagos[0];
@@ -255,18 +232,7 @@ function render(){
       btnFactura = `<span style="font-size:7px;color:#94a3b8">Sin pago</span>`;
     }
 
-    cont.innerHTML+=`
-    <div class="table-row" style="${esCanc?'background:#fff1f2':''}">
-      <span style="line-height:1.1">${fechaCorta(p.fecha)}</span>
-      <span style="font-weight:800;font-size:8px">${p.codigo}</span>
-      <span style="font-size:8.5px">${p.cliente}</span>
-      <span style="font-size:8.5px;font-weight:600">${ventaTotal}</span>
-      <span style="font-size:8.5px">${colCancelado}</span>
-      <span style="font-size:8.5px;color:#16a34a;font-weight:700">${pagadoRow}</span>
-      <span style="font-size:8.5px;color:#E30613;font-weight:700">${pagos.length>0 && totalPagadoGlobal>=pedidos.reduce((s,x)=>s+x.gana,0) ? "$ 0.00" : pendienteRow}</span>
-      <span>${estadoBadge}</span>
-      <span>${btnFactura}</span>
-    </div>`;
+    cont.innerHTML+=`<div class="table-row" style="${esCanc?'background:#fff1f2':''}"><span style="line-height:1.1">${fechaCorta(p.fecha)}</span><span style="font-weight:800;font-size:8px">${p.codigo}</span><span style="font-size:8.5px">${p.cliente}</span><span style="font-size:8.5px;font-weight:600">${ventaTotal}</span><span style="font-size:8.5px">${colCancelado}</span><span style="font-size:8.5px;color:#16a34a;font-weight:700">${pagadoRow}</span><span style="font-size:8.5px;color:#E30613;font-weight:700">${pagos.length>0 ? "$ 0.00" : pendienteRow}</span><span>${estadoBadge}</span><span>${btnFactura}</span></div>`;
   });
 }
 
@@ -292,48 +258,60 @@ window.filtrar = ()=>{
 
 window.verFactura = (idPago)=>{
   const pago = pagos.find(p=>p.id===idPago) || pagos[0];
-  if(!pago){
-    document.getElementById('contFactura').innerHTML='<span style="color:#E30613">No hay factura pagada aún para este restaurante.</span>';
-    document.getElementById('modalFactura').style.display='flex';
-    return;
-  }
+  if(!pago){ document.getElementById('contFactura').innerHTML='<span style="color:#E30613">No hay factura pagada aún.</span>'; document.getElementById('modalFactura').style.display='flex'; return; }
   facturaActualUrl = pago.url;
   const totalPagado = pagos.reduce((s,p)=>s+Number(p.monto||0),0);
-  document.getElementById('contFactura').innerHTML=`
-    <b>Negocio:</b> ${limpiarNombre(restauranteNombreReal)}<br>
-    <b>Factura:</b> ${pago.facturaId}<br>
-    <b>Fecha pago:</b> ${pago.fecha ? new Date(pago.fecha).toLocaleString('es-MX') : "-"}<br>
-    <b>Monto pagado:</b> <span style="color:#16a34a;font-weight:800">$ ${Number(pago.monto).toFixed(2)}</span><br>
-    <b>Total pagado a este restaurante:</b> $ ${totalPagado.toFixed(2)}<br>
-    <b>Estado:</b> <span class="badge badge-pagado">Pagada</span><br>
-  `;
+  document.getElementById('contFactura').innerHTML=`<b>Negocio:</b> ${limpiarNombre(restauranteNombreReal)}<br><b>Factura:</b> ${pago.facturaId}<br><b>Fecha pago:</b> ${pago.fecha ? new Date(pago.fecha).toLocaleString('es-MX') : "-"}<br><b>Monto pagado:</b> <span style="color:#16a34a;font-weight:800">$ ${Number(pago.monto).toFixed(2)}</span><br><b>Total pagado:</b> $ ${totalPagado.toFixed(2)}<br><b>Estado:</b> <span class="badge badge-pagado">Pagada</span><br>`;
   const img = document.getElementById('imgFactura');
   const btnDown = document.getElementById('btnDescargar');
-  if(pago.url){
-    img.src = pago.url;
-    img.style.display='block';
-    btnDown.style.display='block';
-  }else{
-    img.style.display='none';
-    btnDown.style.display='block';
-    document.getElementById('contFactura').innerHTML+=`<div style="margin-top:10px;padding:10px;background:#f8fafc;border-radius:8px;border:1px dashed #e2e8f0">No hay imagen de factura cargada en pagos_aliados. Agrega campo <b>facturaUrl</b> con la imagen de la factura para que aparezca aquí.</div>`;
-  }
+  if(pago.url){ img.src = pago.url; img.style.display='block'; btnDown.style.display='block'; }else{ img.style.display='none'; btnDown.style.display='block'; document.getElementById('contFactura').innerHTML+=`<div style="margin-top:10px;padding:10px;background:#f8fafc;border-radius:8px;border:1px dashed #e2e8f0">Agrega campo <b>facturaUrl</b> en pagos_aliados con la imagen.</div>`; }
   document.getElementById('modalFactura').style.display='flex';
 };
 
 window.descargarFactura = ()=>{
   if(!facturaActualUrl){
-    // Si no hay URL, descarga un txt con info
     const blob = new Blob([document.getElementById('contFactura').innerText], {type:'text/plain'});
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href=url; a.download='factura_'+restauranteIdReal+'.txt'; a.click();
-    return;
+    const a = document.createElement('a'); a.href=url; a.download='factura_'+restauranteIdReal+'.txt'; a.click(); return;
   }
-  const a = document.createElement('a');
-  a.href = facturaActualUrl;
-  a.download = 'factura_'+restauranteIdReal+'.jpg';
-  a.target = '_blank';
-  a.click();
+  const a = document.createElement('a'); a.href = facturaActualUrl; a.download = 'factura_'+restauranteIdReal+'.jpg'; a.target = '_blank'; a.click();
+};
+
+window.abrirGraficas = ()=>{
+  document.getElementById('modalGraficas').style.display='flex';
+  const totalPagado = pagos.reduce((s,p)=>s+Number(p.monto||0),0);
+  const totalPerdidas50 = pedidos.filter(p=>p.tipo==="cancelado").reduce((s,p)=>s+p.valorCancelado,0);
+  const totalGana = pedidos.reduce((s,p)=>s+p.gana,0);
+  const pendiente = Math.max(0, totalGana - totalPagado);
+  const totalIngresosNeto = totalPagado - totalPerdidas50; // suma ingreso - perdida
+
+  const ctx = document.getElementById('chartIngresos').getContext('2d');
+  if(chartInstance) chartInstance.destroy();
+  chartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Ingresos (Pagado)', 'Pérdidas (50% cancelados)', 'Pendiente'],
+      datasets: [{
+        label: 'Montos',
+        data: [totalPagado, totalPerdidas50, pendiente],
+        backgroundColor: ['#16a34a', '#E30613', '#f59e0b'],
+        borderRadius: 8
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: { y: { beginAtZero: true } }
+    }
+  });
+
+  document.getElementById('resumenGrafica').innerHTML=`
+    <div><span style="color:#16a34a">● Ingresos (solo pagado)</span><b>$ ${totalPagado.toFixed(2)}</b></div>
+    <div><span style="color:#E30613">● Pérdida por cancelación (50%)</span><b>- $ ${totalPerdidas50.toFixed(2)}</b></div>
+    <div><span style="color:#f59e0b">● Pendiente por pagar</span><b>$ ${pendiente.toFixed(2)}</b></div>
+    <div style="border-top:2px solid #0f172a;margin-top:6px;padding-top:8px;font-weight:800"><span>Total neto (Ingresos - Pérdidas)</span><b style="font-size:13px">$ ${totalIngresosNeto.toFixed(2)}</b></div>
+    <div style="font-size:9px;color:#64748b;border:none">Fórmula: Ingresos pagados ($${totalPagado.toFixed(2)}) - Pérdidas 50% ($${totalPerdidas50.toFixed(2)}) = Neto</div>
+  `;
 };
 
 cargar();
