@@ -78,8 +78,18 @@ body{background:#f6f8fb;color:#0f172a}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+const configAliados = {
+  apiKey: "AIzaSyD286qlJQT8D3rqbYTSfCyuTAEg9jjRchQ",
+  authDomain: "doloya-aliados.firebaseapp.com",
+  databaseURL: "https://doloya-aliados-default-rtdb.firebaseio.com",
+  projectId: "doloya-aliados",
+  storageBucket: "doloya-aliados.firebasestorage.app",
+  messagingSenderId: "122314467740",
+  appId: "1:122314467740:web:9947a0a9560557e3a00059"
+};
 const configHistorial = {
   apiKey: "AIzaSyCRx4B7mO444s0yU-WTnsqMjBHDWX4IRv8",
   authDomain: "doloya-historial.firebaseapp.com",
@@ -88,13 +98,14 @@ const configHistorial = {
   messagingSenderId: "41258055121",
   appId: "1:41258055121:web:19a443786320e04ebd9cf0"
 };
+
+const appAliados = initializeApp(configAliados, "aliadosApp");
+const dbAliados = getDatabase(appAliados);
 const appHis = initializeApp(configHistorial, "hisApp");
 const dbHis = getFirestore(appHis);
 
-// ID DEL RESTAURANTE LOGUEADO - VIENE DE panelaliado.html
-let restauranteId = localStorage.getItem('restauranteId') || localStorage.getItem('aliadoId') || localStorage.getItem('idRestaurante') || localStorage.getItem('restaurantId') || new URLSearchParams(location.search).get('id') || "";
-let restauranteNombre = localStorage.getItem('restauranteNombre') || localStorage.getItem('nombreRestaurante') || localStorage.getItem('nombreNegocio') || restauranteId;
-
+let restauranteIdReal = "";
+let restauranteNombreReal = "";
 let pedidos = [];
 let pagos = [];
 let filtrados = [];
@@ -102,26 +113,90 @@ let filtrados = [];
 function limpiarNombre(s){ return (s||"").replace(/_/g," ").replace(/-/g," ").trim(); }
 function fechaCorta(f){ try{ let d=new Date(f); if(isNaN(d.getTime())) d=new Date(Number(f)); if(isNaN(d.getTime())) return "-"; return `<span style="font-size:7px">${d.toLocaleDateString('es-MX')}</span><br><span style="font-size:6.5px;color:#64748b">${d.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'})}</span>`; }catch{ return "-"; } }
 
-async function cargar(){
-  if(!restauranteId){
-    document.getElementById('listaPedidos').innerHTML='<div style="padding:20px;text-align:center;color:#E30613;font-size:11px">No se detectó tu restaurante.<br>Entra desde panelaliado.html<br><small style="color:#64748b">Se necesita localStorage restauranteId = las_tortas_de_migue o santillos etc</small></div>';
+// 1. DETECTA EL ALIADO LOGUEADO Y BUSCA SU RESTAURANTE EN doloya-aliados
+async function obtenerRestauranteDelAliadoLogueado(){
+  // Lo que guardas en panelaliado.html cuando inicia sesión
+  const posiblesKeys = ['aliadoEmail','emailAliado','usuarioAliado','restauranteEmail','email','aliadoUid','uid'];
+  let emailLogueado = "";
+  let uidLogueado = "";
+  for(let k of posiblesKeys){
+    const v = localStorage.getItem(k);
+    if(v && v.includes('@')) emailLogueado = v.toLowerCase().trim();
+    if(v && v.length>10 && !v.includes('@') && !v.includes('_')) uidLogueado = v;
+  }
+  // También de URL
+  const idUrl = new URLSearchParams(location.search).get('id') || "";
+  if(idUrl){
+    restauranteIdReal = idUrl.toLowerCase().trim();
+    restauranteNombreReal = localStorage.getItem('restauranteNombre') || restauranteIdReal;
     return;
   }
 
-  // Normalizamos a minusculas como está en tu Firestore: restaurante.id = "las_tortas_de_migue"
-  const miId = restauranteId.toLowerCase().trim();
-  const miNombre = restauranteNombre.toLowerCase().trim();
+  // Si no hay URL, busca en doloya-aliados por email
+  try{
+    const snap = await get(ref(dbAliados, "doloya_aliados"));
+    const data = snap.val();
+    let encontrado = null;
 
-  document.getElementById('nombreNegocio').textContent = "- " + limpiarNombre(restauranteNombre);
-  document.getElementById('kNombreSpan').textContent = limpiarNombre(restauranteNombre);
+    function recorrer(obj, path=""){
+      if(!obj || typeof obj!=="object") return;
+      // Si tiene info.nombre y email coincide
+      if(obj.info && obj.info.nombre){
+        const keyReal = path.split("/").pop(); // este es el id como las_tortas_de_migue
+        const info = obj.info;
+        const emailInfo = (info.email || info.correo || "").toLowerCase();
+        const uidInfo = (info.uid || info.aliadoUid || "").toLowerCase();
+        if((emailLogueado && emailInfo === emailLogueado) || (uidLogueado && uidInfo === uidLogueado.toLowerCase()) || (!emailLogueado && !uidLogueado)){
+          // Si no hay email para comparar, toma el primero que coincida con el restauranteId guardado
+          const guardado = (localStorage.getItem('restauranteId')||"").toLowerCase();
+          if(guardado && keyReal.toLowerCase() === guardado){
+            encontrado = { id:keyReal, nombre:info.nombre };
+          } else if(!encontrado && !guardado){
+            // Si no hay nada guardado, no podemos decidir aún, guardamos temporal
+            encontrado = encontrado || { id:keyReal, nombre:info.nombre };
+          } else if(guardado && keyReal.toLowerCase() === guardado){
+            encontrado = { id:keyReal, nombre:info.nombre };
+          }
+          if(emailLogueado && emailInfo === emailLogueado) encontrado = { id:keyReal, nombre:info.nombre };
+        }
+        return;
+      }
+      Object.entries(obj).forEach(([k,v])=>{ if(typeof v==="object" && v!==null) recorrer(v, path?path+"/"+k:k); });
+    }
+    recorrer(data);
+
+    // Fallback directo a localStorage si no encontró por email
+    if(!encontrado){
+      const rid = localStorage.getItem('restauranteId') || localStorage.getItem('aliadoId') || localStorage.getItem('idRestaurante') || "";
+      if(rid){
+        encontrado = { id:rid, nombre: localStorage.getItem('restauranteNombre') || rid };
+      }
+    }
+
+    if(encontrado){
+      restauranteIdReal = encontrado.id.toLowerCase().trim();
+      restauranteNombreReal = encontrado.nombre;
+    }
+  }catch(e){ console.log("Error aliados",e); }
+}
+
+async function cargar(){
+  await obtenerRestauranteDelAliadoLogueado();
+
+  if(!restauranteIdReal){
+    document.getElementById('listaPedidos').innerHTML='<div style="padding:20px;text-align:center;color:#E30613">No se detectó tu restaurante.<br>Abre este resumen desde panelaliado.html logueado.</div>';
+    return;
+  }
+
+  document.getElementById('nombreNegocio').textContent = "- " + limpiarNombre(restauranteNombreReal);
+  document.getElementById('kNombreSpan').textContent = limpiarNombre(restauranteNombreReal);
 
   const snapE = await getDocs(collection(dbHis, "pedidos_entregados"));
   snapE.forEach(d=>{
     const data=d.data();
     const rid = (data.restaurante?.id || "").toLowerCase().trim();
-    const rnombre = (data.restaurante?.nombre || "").toLowerCase().trim();
-    if(rid !== miId && rnombre !== miNombre) return; // SOLO DE ESTE NEGOCIO
-    const venta = Number(data.totales?.costoProductos || data.total || data.monto || 0);
+    if(rid !== restauranteIdReal) return;
+    const venta = Number(data.totales?.costoProductos || data.total || 0);
     pedidos.push({ id:d.id, tipo:"entregado", fecha: data.timestampEnvio || data.timestampAdmin || data.fecha || Date.now(), venta: venta, gana: venta*0.9, cliente: data.cliente?.nombre || "Cliente" });
   });
 
@@ -129,9 +204,8 @@ async function cargar(){
   snapC.forEach(d=>{
     const data=d.data();
     const rid = (data.restaurante?.id || "").toLowerCase().trim();
-    const rnombre = (data.restaurante?.nombre || "").toLowerCase().trim();
-    if(rid !== miId && rnombre !== miNombre) return; // SOLO DE ESTE NEGOCIO
-    const venta = Number(data.totales?.costoProductos || data.total || data.monto || 0);
+    if(rid !== restauranteIdReal) return;
+    const venta = Number(data.totales?.costoProductos || data.total || 0);
     pedidos.push({ id:d.id, tipo:"cancelado", fecha: data.timestampEnvio || data.timestampAdmin || data.fecha || Date.now(), venta: venta, gana: venta*0.5, cliente: data.cliente?.nombre || "Cliente" });
   });
 
@@ -139,7 +213,7 @@ async function cargar(){
   snapP.forEach(d=>{
     const data=d.data();
     const id = (data.restauranteId || data.restaurante?.id || data.restauranteNombre || "").toLowerCase().trim();
-    if(id !== miId && id !== miNombre) return;
+    if(id !== restauranteIdReal) return;
     pagos.push({ id:d.id, monto:Number(data.montoPagado||data.monto||0), fecha:data.fechaPago||data.fecha||data.timestamp, factura:data.facturaId||d.id });
   });
 
@@ -169,7 +243,7 @@ function render(){
   const kEst = document.getElementById('kEstadoPago');
   const kDet = document.getElementById('kDetallePago');
   if(pedidos.length===0){
-    kEst.textContent="Sin pedidos"; kDet.textContent="0 pedidos para "+limpiarNombre(restauranteNombre);
+    kEst.textContent="Sin pedidos"; kDet.textContent="0 pedidos para "+limpiarNombre(restauranteNombreReal);
     card.className="tcard"; btn.className="btn btn-ver"; btn.textContent="Sin datos";
   } else if(pendiente <= 1){
     card.className="tcard pago-verde";
@@ -184,7 +258,7 @@ function render(){
   }
 
   const cont = document.getElementById('listaPedidos');
-  if(filtrados.length===0){ cont.innerHTML='<div style="padding:20px;text-align:center;color:#94a3b8">No hay pedidos para '+limpiarNombre(restauranteNombre)+' en DoloYa-Historial<br><small>ID buscado: '+restauranteId+'</small></div>'; return; }
+  if(filtrados.length===0){ cont.innerHTML='<div style="padding:20px;text-align:center;color:#94a3b8">No hay pedidos para '+limpiarNombre(restauranteNombreReal)+'<br><small>ID: '+restauranteIdReal+'</small></div>'; return; }
   cont.innerHTML="";
   filtrados.forEach(p=>{
     const esCanc = p.tipo==="cancelado";
@@ -229,12 +303,12 @@ window.verFactura = (idPago)=>{
   const pago = pagos.find(p=>p.id===idPago) || pagos[0];
   if(!pago) return;
   document.getElementById('contFactura').innerHTML=`
-    <b>Negocio:</b> ${limpiarNombre(restauranteNombre)}<br>
+    <b>Negocio:</b> ${limpiarNombre(restauranteNombreReal)}<br>
     <b>Factura:</b> ${pago.factura}<br>
     <b>Fecha pago:</b> ${pago.fecha ? new Date(pago.fecha).toLocaleString('es-MX') : "-"}<br>
     <b>Monto:</b> $ ${Number(pago.monto).toFixed(2)}<br>
     <b>Estado:</b> <span class="badge badge-pagado">Pagada</span><br><br>
-    <div style="background:#f8fafc;padding:8px;border-radius:8px;border:1px dashed #e2e8f0">Factura de ${limpiarNombre(restauranteNombre)} desde pagos_aliados</div>
+    <div style="background:#f8fafc;padding:8px;border-radius:8px;border:1px dashed #e2e8f0">Factura de ${limpiarNombre(restauranteNombreReal)}</div>
   `;
   document.getElementById('modalFactura').style.display='flex';
 };
