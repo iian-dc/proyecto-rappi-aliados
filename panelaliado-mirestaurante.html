@@ -1,1 +1,271 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mi Restaurante - DoloYa</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
+body{background:#f6f8fb;color:#0f172a;min-height:100vh}
+.header-top{background:white;padding:12px 14px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #e2e8f0;position:sticky;top:0;z-index:20}
+.btn-x{width:38px;height:38px;background:#E30613;border-radius:50%;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+.header-top h1{font-size:17px;font-weight:800}
+.container{max-width:720px;margin:0 auto;padding:16px 14px 100px}
+.card{background:white;border-radius:16px;border:1px solid #eef2f7;padding:16px;margin-bottom:14px;box-shadow:0 2px 10px rgba(0,0,0,.04)}
+.card h3{font-size:13px;font-weight:800;margin-bottom:12px;text-transform:uppercase;color:#0f172a;display:flex;align-items:center;gap:8px}
+.card h3 span{width:4px;height:14px;background:#E30613;border-radius:2px;display:inline-block}
+.portada-wrap{width:100%;height:160px;border-radius:12px;background:#f1f5f9;overflow:hidden;position:relative;border:1px solid #e2e8f0;cursor:pointer}
+.portada-wrap img{width:100%;height:100%;object-fit:cover}
+.portada-wrap .edit-tag{position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,.7);color:white;font-size:10px;padding:5px 10px;border-radius:999px;font-weight:700}
+.perfil-wrap{margin-top:-36px;margin-left:16px;display:flex;align-items:end;gap:12px}
+.avatar{width:72px;height:72px;border-radius:16px;background:white;border:3px solid white;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,.15);cursor:pointer;position:relative}
+.avatar img{width:100%;height:100%;object-fit:cover}
+.avatar .cam{position:absolute;bottom:-2px;right:-2px;width:22px;height:22px;background:#0a1020;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid white}
+.label{font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;margin-bottom:6px;display:block}
+.input{width:100%;padding:12px 12px;border:1px solid #e2e8f0;border-radius:10px;font-size:13px;outline:none;background:#f8fafc;transition:.2s}
+.input:focus{border-color:#E30613;background:white}
+.input-group{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:600px){.input-group{grid-template-columns:1fr}}
+.btn-save{position:fixed;bottom:16px;left:14px;right:14px;max-width:720px;margin:0 auto;background:#0a1020;color:white;border:none;border-radius:999px;padding:14px;font-size:14px;font-weight:800;cursor:pointer;box-shadow:0 8px 20px rgba(0,0,0,.2)}
+.btn-save:disabled{opacity:.6}
+.preview-url{font-size:10px;color:#94a3b8;margin-top:4px;word-break:break-all}
+.ok{padding:10px;background:#dcfce7;color:#166534;border-radius:10px;font-size:12px;font-weight:700;margin-bottom:10px;display:none}
+</style>
+</head>
+<body>
+<div class="header-top">
+<button class="btn-x" onclick="location.href='panelaliado.html'"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+<h1>Mi restaurante</h1>
+<span id="estadoTxt" style="margin-left:auto;font-size:11px;font-weight:700;color:#16a34a"></span>
+</div>
 
+<div class="container">
+<div id="msgOk" class="ok">✅ Guardado en tiempo real</div>
+
+<div class="card" style="padding:0;overflow:hidden">
+<div class="portada-wrap" onclick="document.getElementById('filePortada').click()">
+<img id="imgPortada" src="https://via.placeholder.com/720x160?text=Portada">
+<div class="edit-tag">Cambiar portada</div>
+</div>
+<div class="perfil-wrap">
+<div class="avatar" onclick="document.getElementById('filePerfil').click()">
+<img id="imgPerfil" src="https://via.placeholder.com/100?text=Logo">
+<div class="cam"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div>
+</div>
+<div style="padding-bottom:10px"><b id="nombrePreview" style="font-size:15px">Cargando...</b><br><span id="catPreview" style="font-size:11px;color:#64748b">-</span></div>
+</div>
+<div style="padding:14px">
+<label class="label">URL Imagen de perfil (o sube archivo)</label>
+<input id="inpPerfilUrl" class="input" placeholder="https://...">
+<input type="file" id="filePerfil" accept="image/*" hidden>
+<div id="previewPerfilUrl" class="preview-url"></div>
+<label class="label" style="margin-top:10px">URL Imagen de portada</label>
+<input id="inpPortadaUrl" class="input" placeholder="https://...">
+<input type="file" id="filePortada" accept="image/*" hidden>
+</div>
+</div>
+
+<div class="card">
+<h3><span></span>Información del restaurante</h3>
+<label class="label">Nombre del restaurante</label>
+<input id="inpNombre" class="input" placeholder="Ej: Alitas Factory">
+<div class="input-group" style="margin-top:10px">
+<div><label class="label">Categoría</label><input id="inpCategoria" class="input" placeholder="burgers, pizzas..."></div>
+<div><label class="label">Estado (abierto/cerrado)</label><select id="inpEstado" class="input"><option value="activo">Abierto</option><option value="cerrado">Cerrado</option></select></div>
+</div>
+<label class="label" style="margin-top:10px">Descripción</label>
+<textarea id="inpDesc" class="input" rows="3" placeholder="Describe tu restaurante..."></textarea>
+</div>
+
+<div class="card">
+<h3><span></span>Contacto y ubicación</h3>
+<div class="input-group">
+<div><label class="label">WhatsApp</label><input id="inpWhatsapp" class="input" placeholder="+52 1 55..."></div>
+<div><label class="label">Teléfono</label><input id="inpTelefono" class="input" placeholder="Teléfono"></div>
+</div>
+<label class="label" style="margin-top:10px">Dirección / Ubicación</label>
+<input id="inpDireccion" class="input" placeholder="Calle, colonia, ciudad">
+<div class="input-group" style="margin-top:10px">
+<div><label class="label">Latitud</label><input id="inpLat" class="input" placeholder="21.123"></div>
+<div><label class="label">Longitud</label><input id="inpLng" class="input" placeholder="-100.123"></div>
+</div>
+</div>
+
+<div class="card">
+<h3><span></span>ID vinculado</h3>
+<label class="label">ID en DoloYa-Aliados</label>
+<input id="inpIdReal" class="input" disabled style="background:#f1f5f9">
+<label class="label" style="margin-top:8px">Ruta en Firebase</label>
+<input id="inpRuta" class="input" disabled style="background:#f1f5f9;font-size:11px">
+</div>
+</div>
+
+<button id="btnGuardar" class="btn-save">Guardar cambios</button>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+import { getDatabase, ref, get, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js";
+
+const configAliados = { apiKey: "AIzaSyD286qlJQT8D3rqbYTSfCyuTAEg9jjRchQ", authDomain: "doloya-aliados.firebaseapp.com", databaseURL: "https://doloya-aliados-default-rtdb.firebaseio.com", projectId: "doloya-aliados", storageBucket: "doloya-aliados.firebasestorage.app", messagingSenderId: "122314467740", appId: "1:122314467740:web:9947a0a9560557e3a00059" };
+const appAliados = initializeApp(configAliados, "aliados");
+const db = getDatabase(appAliados);
+
+function normalize(t){ return String(t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim(); }
+const sesion = JSON.parse(localStorage.getItem('doloya_aliado_sesion')||'null');
+if(!sesion){ location.href='panelaliado.html'; }
+
+const idNegocio = (sesion.id || sesion.negocio || '').toLowerCase();
+let refReal = null;
+let rutaReal = '';
+let datosOriginal = null;
+
+async function encontrarRestaurante(){
+  const snap = await get(ref(db, 'doloya_aliados'));
+  if(!snap.exists()) return null;
+  const todas = snap.val();
+  for(const cat in todas){
+    const nivel = todas[cat];
+    if(typeof nivel !== 'object') continue;
+    for(const key in nivel){
+      if(normalize(key)===normalize(idNegocio)){
+        return { categoria: cat, id: key, data: nivel[key], ruta: `doloya_aliados/${cat}/${key}` };
+      }
+      // tambien puede estar en doloya_aliados/{id} directo
+      if(nivel[key] && typeof nivel[key]==='object'){
+        // busca anidado
+      }
+    }
+  }
+  // Intento directo doloya_aliados/{id}
+  const direct = await get(ref(db, `doloya_aliados/${idNegocio}`));
+  if(direct.exists()){
+    return { categoria: 'direct', id: idNegocio, data: direct.val(), ruta: `doloya_aliados/${idNegocio}` };
+  }
+  return null;
+}
+
+function fileToDataURL(file){
+  return new Promise((res,rej)=>{
+    const r=new FileReader();
+    r.onload=()=>res(r.result);
+    r.onerror=rej;
+    r.readAsDataURL(file);
+  });
+}
+
+document.getElementById('filePerfil').addEventListener('change', async (e)=>{
+  const f=e.target.files[0]; if(!f) return;
+  const url=await fileToDataURL(f);
+  document.getElementById('imgPerfil').src=url;
+  document.getElementById('inpPerfilUrl').value=url;
+});
+document.getElementById('filePortada').addEventListener('change', async (e)=>{
+  const f=e.target.files[0]; if(!f) return;
+  const url=await fileToDataURL(f);
+  document.getElementById('imgPortada').src=url;
+  document.getElementById('inpPortadaUrl').value=url;
+});
+
+document.getElementById('inpPerfilUrl').addEventListener('input', e=>{
+  if(e.target.value) document.getElementById('imgPerfil').src=e.target.value;
+});
+document.getElementById('inpPortadaUrl').addEventListener('input', e=>{
+  if(e.target.value) document.getElementById('imgPortada').src=e.target.value;
+});
+document.getElementById('inpNombre').addEventListener('input', e=>{
+  document.getElementById('nombrePreview').textContent=e.target.value||'Mi restaurante';
+});
+
+async function cargar(){
+  const encontrado = await encontrarRestaurante();
+  if(!encontrado){
+    document.getElementById('nombrePreview').textContent=idNegocio;
+    document.getElementById('inpIdReal').value=idNegocio;
+    document.getElementById('inpRuta').value='No encontrado - se creará';
+    rutaReal=`doloya_aliados/${idNegocio}`;
+    refReal=ref(db, rutaReal);
+    return;
+  }
+  rutaReal=encontrado.ruta;
+  refReal=ref(db, rutaReal);
+  datosOriginal=encontrado.data;
+  
+  document.getElementById('inpIdReal').value=encontrado.id;
+  document.getElementById('inpRuta').value=rutaReal;
+  document.getElementById('catPreview').textContent=encontrado.categoria;
+
+  // Escucha en tiempo real
+  onValue(refReal, (snap)=>{
+    if(!snap.exists()) return;
+    const d=snap.val();
+    // Soporta diferentes estructuras
+    const info = d.categorias?.info || d.info || d.datos || d;
+    const disp = d.categorias?.disponibilidad || d.disponibilidad || {};
+    
+    document.getElementById('inpNombre').value = info.nombre || d.nombre || sesion.nombre || encontrado.id;
+    document.getElementById('nombrePreview').textContent = info.nombre || d.nombre || encontrado.id;
+    document.getElementById('inpCategoria').value = encontrado.categoria;
+    document.getElementById('inpDesc').value = info.descripcion || d.descripcion || '';
+    document.getElementById('inpWhatsapp').value = info.whatsapp || d.whatsapp || d.telefono || '';
+    document.getElementById('inpTelefono').value = info.telefono || d.telefono || '';
+    document.getElementById('inpDireccion').value = info.direccion || d.direccion || info.ubicacion || d.ubicacion || '';
+    document.getElementById('inpLat').value = info.lat || d.lat || '';
+    document.getElementById('inpLng').value = info.lng || d.lng || '';
+    
+    const imgPerfil = info.logo || info.imagen || info.imagenPerfil || d.logo || d.imagen || '';
+    const imgPortada = info.portada || info.banner || d.portada || '';
+    if(imgPerfil){ document.getElementById('imgPerfil').src=imgPerfil; document.getElementById('inpPerfilUrl').value=imgPerfil; }
+    if(imgPortada){ document.getElementById('imgPortada').src=imgPortada; document.getElementById('inpPortadaUrl').value=imgPortada; }
+    
+    const estado = disp.estado || d.estado || 'activo';
+    document.getElementById('inpEstado').value = estado==='abierto'?'activo':estado;
+    document.getElementById('estadoTxt').textContent = estado==='activo'?'● ABIERTO':'● CERRADO';
+    document.getElementById('estadoTxt').style.color = estado==='activo'?'#16a34a':'#E30613';
+  });
+}
+
+document.getElementById('btnGuardar').addEventListener('click', async ()=>{
+  const btn=document.getElementById('btnGuardar');
+  btn.textContent='Guardando...'; btn.disabled=true;
+  try{
+    const payload={
+      nombre: document.getElementById('inpNombre').value.trim(),
+      descripcion: document.getElementById('inpDesc').value.trim(),
+      logo: document.getElementById('inpPerfilUrl').value.trim(),
+      imagen: document.getElementById('inpPerfilUrl').value.trim(),
+      imagenPerfil: document.getElementById('inpPerfilUrl').value.trim(),
+      portada: document.getElementById('inpPortadaUrl').value.trim(),
+      banner: document.getElementById('inpPortadaUrl').value.trim(),
+      whatsapp: document.getElementById('inpWhatsapp').value.trim(),
+      telefono: document.getElementById('inpTelefono').value.trim(),
+      direccion: document.getElementById('inpDireccion').value.trim(),
+      ubicacion: document.getElementById('inpDireccion').value.trim(),
+      lat: document.getElementById('inpLat').value.trim(),
+      lng: document.getElementById('inpLng').value.trim(),
+      categoria: document.getElementById('inpCategoria').value.trim(),
+      estado: document.getElementById('inpEstado').value,
+      ultimaActualizacion: new Date().toISOString()
+    };
+    // Guarda en la ruta real y también en subrutas que usa tu panel
+    await update(refReal, payload);
+    await update(ref(db, `${rutaReal}/categorias/info`), payload);
+    await update(ref(db, `${rutaReal}/categorias/disponibilidad`), { estado: payload.estado, abierto: payload.estado==='activo' });
+    
+    // Actualiza sesión local
+    sesion.nombre=payload.nombre;
+    localStorage.setItem('doloya_aliado_sesion', JSON.stringify(sesion));
+    
+    const ok=document.getElementById('msgOk');
+    ok.style.display='block';
+    setTimeout(()=>ok.style.display='none',2500);
+  }catch(e){
+    alert('Error: '+e.message);
+  }
+  btn.textContent='Guardar cambios'; btn.disabled=false;
+});
+
+cargar();
+</script>
+</body>
+</html>
