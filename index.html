@@ -8,40 +8,102 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
 body{background:#CF0A2C;min-height:100vh;display:flex;justify-content:center}
-.container{width:100%;max-width:420px;min-height:100vh;padding:30px 22px 20px;display:flex;flex-direction:column;align-items:center}
-.logo-D{font-weight:900;font-size:96px;color:white;letter-spacing:-4px;position:relative;display:inline-block}
-.logo-D::after{content:'';position:absolute;left:-8px;top:42%;width:88%;height:4px;background:white;transform:rotate(-10deg)}
-.logo-text{font-size:42px;font-weight:900;color:white;margin-top:-6px;font-style:italic}
-.title{color:white;font-size:31px;font-weight:800;text-align:center;margin-top:22px}
-.subtitle{color:white;font-size:16px;text-align:center;margin-top:6px;opacity:.95}
-.ilustracion{margin:24px 0 28px;width:100%;max-width:310px}
-.input-box{width:100%;background:white;border-radius:999px;display:flex;align-items:center;gap:14px;padding:14px 18px;margin-bottom:14px}
-.input-box input{border:none;outline:none;width:100%;font-size:15px;font-weight:700;color:#111;background:transparent}
+.container{width:100%;max-width:420px;min-height:100vh;padding:22px 22px 20px;display:flex;flex-direction:column;align-items:center}
+.logo-panel{width:100%;display:flex;justify-content:center;align-items:center;padding:10px 0 8px}
+.logo-panel img{width:168px;height:auto;object-fit:contain;display:block}
+.title{color:white;font-size:31px;font-weight:800;text-align:center;margin-top:18px}
+.subtitle{color:white;font-size:16px;text-align:center;margin-top:6px;opacity:.95;line-height:1.3}
+.error-msg{background:white;color:#CF0A2C;font-size:13px;font-weight:700;text-align:center;padding:10px;border-radius:12px;margin-bottom:12px;width:100%;display:none;margin-top:22px}
+.input-box{width:100%;background:white;border-radius:999px;display:flex;align-items:center;gap:12px;padding:12px 14px 12px 18px;margin-bottom:14px;position:relative}
+.input-box input{border:none;outline:none;width:100%;font-size:15px;font-weight:700;color:#111;background:transparent;flex:1;min-width:0;padding-right:4px}
+.input-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.icon-btn{width:28px;height:28px;border-radius:50%;border:none;background:rgba(207,10,44,0.08);display:none;align-items:center;justify-content:center;cursor:pointer;transition:0.2s}
+.icon-btn.show{display:flex}
+.icon-btn:hover{background:rgba(207,10,44,0.15)}
 .forgot{width:100%;text-align:right;color:white;font-size:13px;font-weight:600;margin:-2px 6px 18px 0}
 .btn-login{width:100%;background:white;border:none;border-radius:999px;padding:15px;font-size:19px;font-weight:800;color:#CF0A2C;cursor:pointer}
-.error-msg{background:white;color:#CF0A2C;font-size:13px;font-weight:700;text-align:center;padding:10px;border-radius:12px;margin-bottom:12px;width:100%;display:none}
 .terms{color:white;font-size:10.5px;text-align:center;margin-top:14px;opacity:.9}
 </style>
 </head>
 <body>
 <div class="container">
-  <div style="text-align:center"><div class="logo-D">D</div><div class="logo-text">DoloYa</div></div>
+  <!-- LOGO ARRIBA EN LUGAR DE LA D -->
+  <div class="logo-panel">
+    <img src="LOGO-PANEL.PNG" alt="DoloYa">
+  </div>
+
   <h1 class="title">¡Bienvenido, aliado!</h1>
   <p class="subtitle">Administra tu negocio y recibe pedidos desde DoloYa</p>
-  <div class="ilustracion"><svg viewBox="0 0 300 130" fill="none"><path d="M60 118 L240 118" stroke="white" stroke-width="3"/><rect x="96" y="35" width="108" height="83" rx="2" stroke="white" stroke-width="3" fill="none"/></svg></div>
+
   <div class="error-msg" id="errorMsg"></div>
+
+  <!-- CORREO CON X TRANSPARENTE -->
   <div class="input-box">
-    <svg width="28" height="20" viewBox="0 0 28 20" fill="none"><rect x="1" y="1" width="26" height="18" rx="4" fill="#CF0A2C"/><path d="M2 3 L14 11 L26 3" stroke="white" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
-    <input id="txtUsuario" type="text" placeholder="Correo electrónico">
+    <svg width="28" height="20" viewBox="0 0 28 20" fill="none" style="flex-shrink:0"><rect x="1" y="1" width="26" height="18" rx="4" fill="#CF0A2C"/><path d="M2 3 L14 11 L26 3" stroke="white" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+    <input id="txtUsuario" type="text" placeholder="Correo electrónico" autocomplete="email" oninput="toggleClear('txtUsuario','clearUsuario')">
+    <div class="input-actions">
+      <button type="button" class="icon-btn" id="clearUsuario" onclick="clearInput('txtUsuario','clearUsuario')" aria-label="Borrar">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#CF0A2C" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"/><line x1="8" y1="8" x2="16" y2="16"/><line x1="16" y1="8" x2="8" y2="16"/></svg>
+      </button>
+    </div>
   </div>
+
+  <!-- CONTRASEÑA CON X Y OJITO -->
   <div class="input-box">
-    <svg width="24" height="26" viewBox="0 0 24 26" fill="none"><rect x="2" y="11" width="20" height="13" rx="3" fill="#CF0A2C"/><path d="M7 11 V7 A5 5 0 0 1 17 7 V11" stroke="#CF0A2C" stroke-width="2.5" fill="none"/></svg>
-    <input id="txtPass" type="password" placeholder="Contraseña">
+    <svg width="24" height="26" viewBox="0 0 24 26" fill="none" style="flex-shrink:0"><rect x="2" y="11" width="20" height="13" rx="3" fill="#CF0A2C"/><path d="M7 11 V7 A5 5 0 0 1 17 7 V11" stroke="#CF0A2C" stroke-width="2.5" fill="none"/></svg>
+    <input id="txtPass" type="password" placeholder="Contraseña" autocomplete="current-password" oninput="toggleClearPass()">
+    <div class="input-actions">
+      <button type="button" class="icon-btn" id="clearPass" onclick="clearInput('txtPass','clearPass')" aria-label="Borrar">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#CF0A2C" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"/><line x1="8" y1="8" x2="16" y2="16"/><line x1="16" y1="8" x2="8" y2="16"/></svg>
+      </button>
+      <button type="button" class="icon-btn show" id="togglePass" onclick="togglePassword()" aria-label="Mostrar contraseña">
+        <!-- OJO ABIERTO -->
+        <svg id="eyeOpen" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#CF0A2C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+        <!-- OJO CERRADO -->
+        <svg id="eyeClosed" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#CF0A2C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.53 9.53a3 3 0 1 0 4.24 4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+      </button>
+    </div>
   </div>
+
   <div class="forgot">¿Olvidaste tu contraseña?</div>
   <button class="btn-login" id="btnLogin" onclick="iniciarSesion()">Iniciar sesión</button>
   <p class="terms">Al continuar, aceptas nuestros términos y políticas de privacidad</p>
 </div>
+
+<script>
+function toggleClear(inputId, btnId){
+  const input = document.getElementById(inputId);
+  const btn = document.getElementById(btnId);
+  if(input.value.length > 0){ btn.classList.add('show'); } else { btn.classList.remove('show'); }
+}
+function toggleClearPass(){
+  const input = document.getElementById('txtPass');
+  const btnClear = document.getElementById('clearPass');
+  if(input.value.length > 0){ btnClear.classList.add('show'); } else { btnClear.classList.remove('show'); }
+}
+function clearInput(inputId, btnId){
+  const input = document.getElementById(inputId);
+  const btn = document.getElementById(btnId);
+  input.value = '';
+  btn.classList.remove('show');
+  input.focus();
+  if(inputId === 'txtPass') toggleClearPass();
+}
+function togglePassword(){
+  const input = document.getElementById('txtPass');
+  const eyeOpen = document.getElementById('eyeOpen');
+  const eyeClosed = document.getElementById('eyeClosed');
+  if(input.type === 'password'){
+    input.type = 'text';
+    eyeOpen.style.display = 'none';
+    eyeClosed.style.display = 'block';
+  } else {
+    input.type = 'password';
+    eyeOpen.style.display = 'block';
+    eyeClosed.style.display = 'none';
+  }
+}
+</script>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
@@ -85,29 +147,22 @@ window.iniciarSesion = async function(){
       return;
     }
     const datos = snap.val();
-    console.log("KEYS EN RAIZ:", Object.keys(datos));
 
     for(const key in datos){
       if(key === 'admin') continue;
       const nodo = datos[key];
       if(!nodo || !nodo.info){
-        console.log(key + " no tiene info");
         continue;
       }
       const info = nodo.info;
-      console.log(`Revisando ${key}: usuario=${info.usuario} correo=${info.correo} pass=${info.password} contra=${info.contraseña}`);
-
       const u = String(info.usuario||'').trim().toLowerCase();
       const e = String(info.correo||'').trim().toLowerCase();
       const id = String(key||'').trim().toLowerCase();
       const idInfo = String(info.id||'').trim().toLowerCase();
-
       const p1 = String(info.password||'').trim();
       const p2 = String(info.contraseña||'').trim();
-
       const okUser = (u===user || e===user || id===user || idInfo===user);
       const okPass = (p1===pass || p2===pass);
-
       if(okUser && okPass){
         localStorage.setItem('doloya_aliado_sesion', JSON.stringify({
           rol:'aliado',
@@ -124,14 +179,13 @@ window.iniciarSesion = async function(){
       }
     }
   }catch(e){
-    console.log("ERROR:", e);
     errorBox.style.display='block';
     errorBox.textContent='Error: ' + e.message;
     return;
   }
 
   errorBox.style.display='block';
-  errorBox.textContent='Usuario o contraseña incorrectos. Abre F12 para ver que usuarios encontró';
+  errorBox.textContent='Usuario o contraseña incorrectos.';
 }
 </script>
 </body>
