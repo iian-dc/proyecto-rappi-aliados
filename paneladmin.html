@@ -21,16 +21,14 @@ body{background:#fff;display:flex;min-height:100vh}
 .menu{display:flex;flex-direction:column;gap:4px}
 .menu a{text-decoration:none;color:white;display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:12px;font-size:13.5px;font-weight:600;position:relative}
 .menu a.active{background:white;color:var(--rojo)}
-.menu a.active svg{stroke:var(--rojo)!important;fill:var(--rojo)!important}
 .badge-pedidos{margin-left:auto;background:#FF0000;color:white;min-width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;padding:0 6px}
 .menu a.active .badge-pedidos{background:#B70A1A;color:white}
-.footer-side{margin-top:auto;padding-top:20px;border-top:1px solid rgba(255,255,255,.25)}
 .main{margin-left:240px;flex:1;background:#FBFBFD;min-height:100vh}
 .header{height:72px;background:white;border-bottom:1px solid #eee;display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:sticky;top:0;z-index:10}
 .header-left{display:flex;align-items:center;gap:12px}
 .btn-hamburger{display:none;width:42px;height:42px;background:#f3f4f6;border:none;border-radius:10px;align-items:center;justify-content:center;cursor:pointer}
 .header h1{font-size:22px;font-weight:800;color:#111}
-.header p{font-size:12.5px;color:#6b7280;margin-top:2px}
+.header p{font-size:12.5px;color:#6b7280}
 .h-right{display:flex;align-items:center;gap:12px}
 .btn-instalar{display:none;background:#111;color:white;border:none;border-radius:999px;padding:9px 14px;font-size:12px;font-weight:700;align-items:center;gap:6px;cursor:pointer}
 .bell{position:relative;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer}
@@ -43,27 +41,17 @@ body{background:#fff;display:flex;min-height:100vh}
 .center-content{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;text-align:center;min-height:calc(100vh - 72px)}
 .ilustracion{width:260px;height:180px;margin-bottom:24px}
 .center-content h2{font-size:34px;font-weight:800;color:#111;margin-bottom:10px}
-.center-content p{font-size:14.5px;color:#6b7280;max-width:420px;line-height:1.4}
+.center-content p{font-size:14.5px;color:#6b7280;max-width:420px}
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:15;display:none}
 .overlay.open{display:block}
-
 @media(max-width:768px){
-  body{flex-direction:column}
-  .sidebar{transform:translateX(-100%);width:270px;box-shadow:4px 0 20px rgba(0,0,0,.25)}
+  .sidebar{transform:translateX(-100%);width:270px}
   .sidebar.open{transform:translateX(0)}
-  .main{margin-left:0;width:100%}
+  .main{margin-left:0}
   .btn-hamburger{display:flex}
   .header{padding:10px 14px;height:auto;min-height:64px}
-  .header h1{font-size:17px;line-height:1.1}
-  .header p{font-size:11px;display:none}
-  .h-right{gap:8px}
-  .admin-chip b,.admin-chip small{display:none}
-  .admin-chip{padding:3px}
-  .btn-cerrar{padding:7px 10px;font-size:11px}
-  .btn-instalar{padding:7px 10px;font-size:11px}
-  .center-content{padding:24px 16px}
-  .center-content h2{font-size:22px}
-  .ilustracion{width:180px;height:120px}
+  .header h1{font-size:17px}
+  .header p{display:none}
 }
 </style>
 </head>
@@ -72,54 +60,39 @@ body{background:#fff;display:flex;min-height:100vh}
 <div class="overlay" id="overlay"></div>
 
 <div class="sidebar" id="sidebar">
-  <div class="logo-wrap">
-    <div class="logo-D">D</div>
-    <div class="logo-text">DoloYa</div>
-  </div>
+  <div class="logo-wrap"><div class="logo-D">D</div><div class="logo-text">DoloYa</div></div>
   <nav class="menu">
-    <a href="paneladmin-pedidos.html" class="active"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span>Pedidos</span><span class="badge-pedidos" id="countPedidos">0</span></a>
-    <a href="paneladmin-historial.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg><span>Historial</span></a>
-    <a href="paneladmin-tarifasyzonas.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg><span>Tarifas y zonas</span></a>
-    <a href="paneladmin-repartidores.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/></svg><span>Repartidores</span></a>
-    <a href="paneladmin-aliados.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M12 2L2 7l10 5 10-5z"/></svg><span>Aliados</span></a>
-    <a href="paneladmin-clientes.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4z"/></svg><span>Clientes</span></a>
-    <a href="paneladmin-pagosyfacturas.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg><span>Pagos</span></a>
-    <a href="paneladmin-finanzas.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/></svg><span>Finanzas</span></a>
-    <a href="promociones.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M21.41 11.58l-9-9C12.05 2.22 11.55 2 11 2H4c-1.1 0-2 .9-2 2v7c0 .55.22 1.05.59 1.42l9 9c.39.39 1.02.39 1.41 0l7-7c.39-.39.39-1.02 0-1.42z"/></svg><span>Promociones</span></a>
-    <a href="estadisticas.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><rect x="2" y="13" width="4" height="9" rx="1"/><rect x="9" y="8" width="4" height="14" rx="1"/><rect x="16" y="3" width="4" height="19" rx="1"/></svg><span>Estadísticas</span></a>
-    <a href="configuraciongeneral.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94L14.4 2.81c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.38 2.54c-.59.24-1.13.56-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.38 2.54c.04.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.38-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg><span>Configuración</span></a>
+    <a href="paneladmin-pedidos.html" class="active"><span>Pedidos</span><span class="badge-pedidos" id="countPedidos">0</span></a>
+    <a href="paneladmin-historial.html"><span>Historial</span></a>
+    <a href="paneladmin-tarifasyzonas.html"><span>Tarifas y zonas</span></a>
+    <a href="paneladmin-repartidores.html"><span>Repartidores</span></a>
+    <a href="paneladmin-aliados.html"><span>Aliados</span></a>
+    <a href="paneladmin-clientes.html"><span>Clientes</span></a>
   </nav>
 </div>
 
 <div class="main">
   <div class="header">
     <div class="header-left">
-      <button class="btn-hamburger" id="btnMenu">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2.5" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-      </button>
-      <div>
-        <h1>Panel de administración</h1>
-        <p>Bienvenido, aquí tienes el resumen de tu negocio.</p>
-      </div>
+      <button class="btn-hamburger" id="btnMenu"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2.5" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+      <div><h1>Panel de administración</h1><p>Resumen de tu negocio</p></div>
     </div>
     <div class="h-right">
-      <button id="btnInstalar" class="btn-instalar"><svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Instalar App</button>
+      <button id="btnInstalar" class="btn-instalar">Instalar App</button>
       <div class="bell" id="bellIcon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#B70A1A" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 6 5 6 9H0s6-2 6-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span class="bell-count" id="bellCount">0</span></div>
-      <div class="admin-chip"><div class="admin-avatar"><svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4z"/></svg></div></div>
       <button class="btn-cerrar" onclick="cerrarSesion()">Salir</button>
     </div>
   </div>
-
-  <div class="center-content">
-    <div class="ilustracion"><svg viewBox="0 0 260 180" fill="none"><ellipse cx="130" cy="95" rx="85" ry="70" fill="#FFE4E8"/><circle cx="125" cy="55" r="28" fill="#B70A1A"/></svg></div>
-    <h2>Hola Administrador</h2>
-    <p>Todo lo importante de tu negocio está en tus manos.</p>
-  </div>
+  <div class="center-content"><h2>Hola Administrador</h2><p>Gestiona tus pedidos desde aquí.</p></div>
 </div>
+
+<!-- AUDIO FUERTE PARA CELULAR -->
+<audio id="audioAlerta" preload="auto" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
 import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-messaging.js";
 
 const configConfirmacion = {
   apiKey: "AIzaSyDLKngPyi_SWAXEQwdrHO5h8L8OufulAR4",
@@ -131,6 +104,7 @@ const configConfirmacion = {
 };
 const app = initializeApp(configConfirmacion);
 const db = getFirestore(app);
+const messaging = getMessaging(app);
 
 const bell = document.getElementById('bellIcon');
 const countEl = document.getElementById('countPedidos');
@@ -139,13 +113,13 @@ const btnInstalar = document.getElementById('btnInstalar');
 const btnMenu = document.getElementById('btnMenu');
 const sidebar = document.getElementById('sidebar');
 const overlay = document.getElementById('overlay');
+const audioAlerta = document.getElementById('audioAlerta');
 
 let ultimoTotal = 0;
 let primerCarga = true;
-let audioCtx = null;
 let deferredPrompt = null;
 
-// MENU HAMBURGUESA CELULAR
+// MENU
 btnMenu.addEventListener('click', ()=>{
   sidebar.classList.toggle('open');
   overlay.classList.toggle('open');
@@ -155,15 +129,7 @@ overlay.addEventListener('click', ()=>{
   overlay.classList.remove('open');
 });
 
-// PERMISO NOTIFICACION - PIDE AL ENTRAR
-if ('Notification' in window) {
-  if (Notification.permission === 'default') {
-    Notification.requestPermission().then(p=>{
-      console.log("Permiso notificacion:", p);
-    });
-  }
-}
-
+// INSTALAR
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
@@ -177,60 +143,70 @@ btnInstalar.addEventListener('click', async () => {
   btnInstalar.style.display = 'none';
 });
 
-document.addEventListener('click', ()=>{
-  if(!audioCtx){
-    try{ audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }catch{}
-  }
-  if(audioCtx && audioCtx.state === 'suspended'){ audioCtx.resume(); }
-}, {once:true});
+// === SOLICITAR PERMISO Y TOKEN PARA CELULAR BLOQUEADO ===
+async function activarNotificacionesCelular(){
+  try{
+    const permiso = await Notification.requestPermission();
+    if(permiso !== 'granted') return;
+    
+    const registration = await navigator.serviceWorker.ready;
+    const token = await getToken(messaging, {
+      vapidKey: 'BH7U2uBv2y4e3k2bW7v8f9g0h1i2j3k4l5m6n7o8p9q0r1s2t3u4v5w6x7y8z9a0',
+      serviceWorkerRegistration: registration
+    });
+    console.log("FCM Token celular:", token);
+    // Guarda el token para enviarte push aunque esté bloqueado
+    localStorage.setItem('doloya_fcm_token', token);
+  }catch(e){ console.log("FCM error:", e); }
+}
 
-function sonarAlertaFuerte(){
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').then(()=>{
+    activarNotificacionesCelular();
+  });
+}
+
+// Cuando llega mensaje con app abierta o en segundo plano
+onMessage(messaging, (payload)=>{
+  sonarFuerte();
+  notificarCelularBloqueado(payload.notification?.title || "Nuevo pedido", payload.notification?.body || "Tienes un pedido nuevo");
+});
+
+function sonarFuerte(){
   bell.classList.add('vibrar');
   setTimeout(()=>bell.classList.remove('vibrar'),4000);
   try{
-    if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    if(audioCtx.state === 'suspended') audioCtx.resume();
-    const ctx = audioCtx;
-    for(let i=0;i<3;i++){
-      setTimeout(()=>{
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.frequency.value= i%2===0 ? 950 : 1300;
-        gain.gain.setValueAtTime(1, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime+0.7);
-        osc.connect(gain); gain.connect(ctx.destination);
-        osc.start(); osc.stop(ctx.currentTime+0.7);
-      }, i*300);
-    }
-  }catch{}
-  try{
-    const u = new SpeechSynthesisUtterance("Nuevo pedido DoloYa");
-    u.lang='es-MX'; u.rate=1.1; window.speechSynthesis.speak(u);
+    audioAlerta.currentTime = 0;
+    audioAlerta.volume = 1.0;
+    audioAlerta.play().catch(()=>{});
+    // vibracion fuerte para celular bloqueado
+    if (navigator.vibrate) navigator.vibrate([600,200,600,200,600]);
+    // repetir sonido 3 veces para que se escuche bloqueado
+    let rep = 0;
+    const intervalo = setInterval(()=>{
+      audioAlerta.play().catch(()=>{});
+      if (navigator.vibrate) navigator.vibrate([600,200,600]);
+      rep++;
+      if(rep>=2) clearInterval(intervalo);
+    }, 1200);
   }catch{}
 }
 
-function notificarBloqueado(total){
-  if (!('Notification' in window)) return;
+function notificarCelularBloqueado(titulo, cuerpo){
   if (Notification.permission !== 'granted') return;
-
-  const opciones = {
-    body: `¡Tienes ${total} pedido${total>1?'s':''} nuevo${total>1?'s':''}! Toca para abrir.`,
-    icon: 'LOGO-PANEL.PNG',
-    badge: 'LOGO-PANEL.PNG',
-    vibrate: [500,200,500,200,500],
-    requireInteraction: true,
-    renotify: true,
-    tag: 'pedido-doloya',
-    silent: false
-  };
-
-  if (navigator.serviceWorker && navigator.serviceWorker.ready) {
-    navigator.serviceWorker.ready.then(reg => {
-      reg.showNotification('🔔 ¡Nuevo pedido DoloYa!', opciones);
+  navigator.serviceWorker.ready.then(reg=>{
+    reg.showNotification(titulo, {
+      body: cuerpo,
+      icon: 'LOGO-PANEL.PNG',
+      badge: 'LOGO-PANEL.PNG',
+      vibrate: [600,200,600,200,600],
+      requireInteraction: true,
+      renotify: true,
+      tag: 'pedido-doloya',
+      silent: false,
+      data: {url: 'paneladmin-pedidos.html'}
     });
-  } else {
-    new Notification('🔔 ¡Nuevo pedido DoloYa!', opciones);
-  }
+  });
 }
 
 onSnapshot(collection(db,"pedidos"), (snap)=>{
@@ -249,10 +225,8 @@ onSnapshot(collection(db,"pedidos"), (snap)=>{
     bellCount.style.display = 'none';
   }
   if(!primerCarga && total>ultimoTotal){
-    sonarAlertaFuerte();
-    notificarBloqueado(total);
-    // Vibracion fisica del celular si esta bloqueado
-    if (navigator.vibrate) navigator.vibrate([500,200,500,200,500]);
+    sonarFuerte();
+    notificarCelularBloqueado('🔔 ¡Nuevo pedido DoloYa!', `Tienes ${total} pedido${total>1?'s':''} por atender. Toca para abrir.`);
   }
   ultimoTotal = total;
   primerCarga = false;
@@ -261,10 +235,6 @@ onSnapshot(collection(db,"pedidos"), (snap)=>{
 window.cerrarSesion = function(){
   localStorage.removeItem('doloya_aliado_sesion');
   window.location.href = 'index.html';
-}
-
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js');
 }
 </script>
 
