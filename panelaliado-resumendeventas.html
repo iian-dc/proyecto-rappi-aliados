@@ -38,7 +38,7 @@ body{background:#f6f8fb;color:#0f172a}
 .resumen-grafica{margin-top:10px;padding:10px;background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0}
 .resumen-grafica div{display:flex;justify-content:space-between;padding:5px 0;font-size:10.5px;border-bottom:1px dashed #e2e8f0}
 
-/* ===== SOLO ARREGLO: RESUMEN A LO LARGO EN CELULAR ===== */
+/* ===== TOP 4 CARDS A LO LARGO ===== */
 @media(max-width:900px){
   .top-cards{
     display:flex;
@@ -61,6 +61,8 @@ body{background:#f6f8fb;color:#0f172a}
   }
   .tcard b{font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 }
+
+/* ===== ABAJO TAMBIEN A LO LARGO MISMO TAMAÑO ===== */
 @media(max-width:700px){
   .header-top{padding:8px 10px}
   .header-top h1{font-size:13px}
@@ -69,10 +71,22 @@ body{background:#f6f8fb;color:#0f172a}
   .filters input{font-size:12px;padding:9px 10px}
   .filters input#buscar{flex:1 1 100%}
   .table-head{display:none}
-  #listaPedidos{display:flex;flex-direction:column;gap:10px;padding:10px}
+  #listaPedidos{
+    display:flex;
+    flex-wrap:nowrap;
+    overflow-x:auto;
+    gap:10px;
+    padding:10px 10px 12px;
+    scrollbar-width:none;
+    -webkit-overflow-scrolling:touch;
+  }
+  #listaPedidos::-webkit-scrollbar{display:none}
   .table-row{
-    display:grid;
-    grid-template-columns:1fr 1fr;
+    min-width:165px;
+    max-width:165px;
+    flex:0 0 165px;
+    display:flex;
+    flex-direction:column;
     gap:0;
     padding:0;
     border:1px solid #e2e8f0;
@@ -80,31 +94,33 @@ body{background:#f6f8fb;color:#0f172a}
     overflow:hidden;
     background:white;
     box-shadow:0 1px 4px rgba(0,0,0,0.04);
+    border-bottom:1px solid #e2e8f0;
   }
   .table-row span{
     font-size:11px!important;
-    padding:8px 10px;
+    padding:7px 10px;
     border-bottom:1px solid #f1f5f9;
     display:flex;
     flex-direction:column;
-    gap:2px;
+    gap:1px;
+    width:100%;
   }
-  .table-row span:nth-child(1)::before{content:'Fecha / Hora';font-size:8px;font-weight:700;color:#64748b;text-transform:uppercase}
-  .table-row span:nth-child(2)::before{content:'Pedido';font-size:8px;font-weight:700;color:#64748b;text-transform:uppercase}
-  .table-row span:nth-child(3)::before{content:'Cliente';font-size:8px;font-weight:700;color:#64748b;text-transform:uppercase}
-  .table-row span:nth-child(4)::before{content:'Venta total';font-size:8px;font-weight:700;color:#64748b;text-transform:uppercase}
-  .table-row span:nth-child(5)::before{content:'Cancelado';font-size:8px;font-weight:700;color:#64748b;text-transform:uppercase}
-  .table-row span:nth-child(6)::before{content:'Pagado';font-size:8px;font-weight:700;color:#64748b;text-transform:uppercase}
-  .table-row span:nth-child(7)::before{content:'Pendiente';font-size:8px;font-weight:700;color:#64748b;text-transform:uppercase}
-  .table-row span:nth-child(8)::before{content:'Estado';font-size:8px;font-weight:700;color:#64748b;text-transform:uppercase}
-  .table-row span:nth-child(9)::before{content:'Gráfica';font-size:8px;font-weight:700;color:#64748b;text-transform:uppercase}
-  .table-row span:nth-child(1){background:#f8fafc}
-  .table-row span:nth-child(2){background:#f8fafc}
-  .table-row span:nth-child(9){grid-column:1 / -1; align-items:center; justify-content:center; background:#f8fafc; border-bottom:none}
-  .btn-graf{font-size:11px!important;padding:8px 16px!important;width:100%;justify-content:center;display:flex}
+  .table-row span::before{font-size:7.5px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.3px}
+  .table-row span:nth-child(1)::before{content:'Fecha / Hora'}
+  .table-row span:nth-child(2)::before{content:'Pedido'}
+  .table-row span:nth-child(3)::before{content:'Cliente'}
+  .table-row span:nth-child(4)::before{content:'Venta total'}
+  .table-row span:nth-child(5)::before{content:'Cancelado'}
+  .table-row span:nth-child(6)::before{content:'Pagado'}
+  .table-row span:nth-child(7)::before{content:'Pendiente'}
+  .table-row span:nth-child(8)::before{content:'Estado'}
+  .table-row span:nth-child(9)::before{content:'Gráfica'}
+  .table-row span:nth-child(9){border-bottom:none;background:#f8fafc;align-items:center;justify-content:center;padding:8px}
+  .btn-graf{font-size:10px!important;padding:7px 12px!important;width:100%;justify-content:center;display:flex}
 }
 @media(max-width:380px){
   .tcard{min-width:150px;max-width:150px;flex:0 0 150px}
+  .table-row{min-width:150px;max-width:150px;flex:0 0 150px}
 }
 </style>
 </head>
