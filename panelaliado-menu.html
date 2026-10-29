@@ -22,7 +22,7 @@ body{background:#F5F5F7;min-height:100vh}
 .btn-black .icon-plus-white svg{stroke:#111!important}
 .cat-bar{background:var(--negro);padding:10px 18px;display:flex;gap:10px;overflow-x:auto;scrollbar-width:none}
 .cat-bar::-webkit-scrollbar{display:none}
-.cat-pill{display:flex;align-items:center;justify-content:center;background:#1E222C;color:#C8CDD8;padding:8px 16px;border-radius:999px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0;border:1.5px solid transparent}
+.cat-pill{display:flex;align-items:center;justify-content:center;background:#1E222C;color:#C8CDD8;padding:8px 16px;border-radius:999px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0;border:1.5px solid transparent;text-transform:capitalize}
 .cat-pill.active{background:var(--rojo2);color:white}
 .main-wrap{display:flex;min-height:calc(100vh - 108px)}
 .products-side{flex:1;padding:16px;background:white;min-width:0}
@@ -88,8 +88,6 @@ body{background:#F5F5F7;min-height:100vh}
 .confirm-btns{display:flex;gap:10px;justify-content:center;margin-top:14px;flex-wrap:wrap}
 .btn-cancel{background:white;border:1.5px solid #E5E7EB;border-radius:8px;padding:8px 18px;font-weight:700;cursor:pointer}
 .btn-confirm{background:var(--rojo2);color:white;border:none;border-radius:8px;padding:8px 18px;font-weight:800;cursor:pointer}
-
-/* ===== SOLO ARREGLO CELULAR - SIN TOCAR LOGICA ===== */
 @media(max-width:1300px){.grid{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:900px){
   .top-header{height:auto;min-height:56px;padding:8px 10px;flex-wrap:wrap;gap:8px}
@@ -188,6 +186,11 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const sesion = JSON.parse(localStorage.getItem('doloya_aliado_sesion')||'null');
 let productos=[], productoEdit=null, productoAEliminar=null, categoriasReales=[], categoriasExtra=[], mapaCategorias={};
+let businessPath = '';
+let businessNodeKey = '';
+
+function normalize(t){ return String(t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim(); }
+
 function toast(t,m){
   document.getElementById('toastTitle').textContent=t;
   document.getElementById('toastMsg').textContent=m;
@@ -195,37 +198,87 @@ function toast(t,m){
   setTimeout(()=>document.getElementById('toastOverlay').classList.remove('show'),2200);
 }
 document.getElementById('toastOverlay').onclick=()=>document.getElementById('toastOverlay').classList.remove('show');
-function getIdRestaurante(){
-  try{
-    const s = JSON.parse(localStorage.getItem('doloya_aliado_sesion'));
-    return s.id || s.negocio || 'santillos';
-  }catch{
-    return 'santillos';
+
+async function detectarNegocioReal(){
+  const s = sesion;
+  if(!s) return null;
+  const idBuscado = normalize(s.id || s.negocio || s.nombre || '');
+  const snap = await get(ref(db, 'doloya_aliados'));
+  if(!snap.exists()) return null;
+  const data = snap.val();
+  // buscar coincidencia exacta como en tu foto las_tortas_de_migue -> santillos
+  for(const key of Object.keys(data)){
+    if(normalize(key)===idBuscado || normalize(key).includes(idBuscado) || idBuscado.includes(normalize(key))){
+      // si tiene subnodo santillos
+      if(data[key] && typeof data[key]==='object'){
+        for(const subKey of Object.keys(data[key])){
+          const sub = data[key][subKey];
+          if(sub && typeof sub==='object' && (sub.categorias || sub.disponibilidad || sub.categoria)){
+            // es el nodo real como santillos
+            businessPath = `doloya_aliados/${key}/${subKey}`;
+            businessNodeKey = subKey;
+            return { path: businessPath, node: sub };
+          }
+        }
+      }
+      businessPath = `doloya_aliados/${key}`;
+      businessNodeKey = key;
+      return { path: businessPath, node: data[key] };
+    }
+    if(typeof data[key]==='object'){
+      for(const subKey of Object.keys(data[key])){
+        if(normalize(subKey)===idBuscado){
+          businessPath = `doloya_aliados/${key}/${subKey}`;
+          businessNodeKey = subKey;
+          return { path: businessPath, node: data[key][subKey] };
+        }
+        const third = data[key][subKey];
+        if(third && typeof third==='object'){
+          for(const thirdKey of Object.keys(third)){
+            if(normalize(thirdKey)===idBuscado){
+              businessPath = `doloya_aliados/${key}/${subKey}/${thirdKey}`;
+              businessNodeKey = thirdKey;
+              return { path: businessPath, node: third[thirdKey] };
+            }
+          }
+        }
+      }
+    }
   }
+  // fallback primera coincidencia parcial
+  for(const key of Object.keys(data)){
+    if(typeof data[key]==='object'){
+      for(const subKey of Object.keys(data[key])){
+        const sub = data[key][subKey];
+        if(sub && sub.categorias){
+          businessPath = `doloya_aliados/${key}/${subKey}`;
+          return { path: businessPath, node: sub };
+        }
+      }
+    }
+  }
+  return null;
 }
+
 function renderCategorias(){
   const bar=document.getElementById('catBar');
   const selectEdit=document.getElementById('editCat');
   let catsActivas = categoriasExtra.filter(c=>c.activa!==false);
   catsActivas.sort((a,b)=>(a.orden??99)-(b.orden??99));
   if(catsActivas.length===0){
-    const catsDeProductos = [...new Set(productos.map(p=> (p.categoria||'').toLowerCase()).filter(Boolean))];
-    categoriasReales = catsDeProductos.length? catsDeProductos : [];
-  }else{
-    categoriasReales = catsActivas.map(c=> (c.nombreLower||c.key||'').toLowerCase());
-    mapaCategorias = {};
-    categoriasExtra.forEach(c=>{
-      const key = (c.nombreLower||c.key||'').toLowerCase();
-      mapaCategorias[key] = c.activa!==false;
-    });
-  }
-  if(categoriasReales.length===0){
     bar.innerHTML = `<div class="cat-pill active" data-cat="todas">Todas</div>`;
     selectEdit.innerHTML = `<option value="">Sin categorías</option>`;
-  }else{
-    bar.innerHTML = `<div class="cat-pill active" data-cat="todas">Todas</div>` + categoriasReales.map(c=>`<div class="cat-pill" data-cat="${c}">${c.charAt(0).toUpperCase()+c.slice(1)}</div>`).join('');
-    selectEdit.innerHTML = categoriasReales.map(c=>`<option value="${c}">${c.charAt(0).toUpperCase()+c.slice(1)}</option>`).join('');
+    categoriasReales=[];
+    return;
   }
+  categoriasReales = catsActivas.map(c=> (c.nombreLower||c.key||'').toLowerCase());
+  mapaCategorias = {};
+  categoriasExtra.forEach(c=>{
+    const key = (c.nombreLower||c.key||'').toLowerCase();
+    mapaCategorias[key] = c.activa!==false;
+  });
+  bar.innerHTML = `<div class="cat-pill active" data-cat="todas">Todas</div>` + catsActivas.map(c=>`<div class="cat-pill" data-cat="${(c.nombreLower||c.key).toLowerCase()}">${c.nombre}</div>`).join('');
+  selectEdit.innerHTML = catsActivas.map(c=>`<option value="${(c.nombreLower||c.key).toLowerCase()}">${c.nombre}</option>`).join('');
   bar.querySelectorAll('.cat-pill').forEach(el=>{
     el.addEventListener('click',()=>{
       bar.querySelectorAll('.cat-pill').forEach(x=>x.classList.remove('active'));
@@ -233,10 +286,18 @@ function renderCategorias(){
     });
   });
 }
-function escucharProductos(){
-  const idRest = getIdRestaurante();
-  const pathCategorias = `doloya_aliados/${idRest}/categorias`;
-  onValue(ref(db, pathCategorias), s=>{
+
+async function escucharProductos(){
+  const infoNegocio = await detectarNegocioReal();
+  if(!infoNegocio){
+    document.getElementById('gridProductos').innerHTML='<p style="padding:20px;color:#6b7280">No se encontró tu negocio en la base de datos.</p>';
+    return;
+  }
+  const pathCategorias = `${infoNegocio.path}/categorias`;
+  const pathCategoriasDoble = `${infoNegocio.path}/categorias/categorias`;
+
+  // Escuchar el nodo principal del negocio para tener todo en tiempo real
+  onValue(ref(db, infoNegocio.path), s=>{
     productos = [];
     categoriasExtra = [];
     if(!s.exists()){
@@ -245,78 +306,93 @@ function escucharProductos(){
       return;
     }
     const data = s.val();
-    const camposCategoria = ['activa','fecha','key','nombre','nombreLower','orden'];
-    const camposProductoIgnorar = ['activa','fecha','key','nombre','nombreLower','orden','_info'];
-    let contenedorCategorias = null;
-    if(data.categorias && typeof data.categorias === 'object'){
-      contenedorCategorias = data.categorias;
-    }
-    if(contenedorCategorias){
-      Object.keys(contenedorCategorias).forEach(catKey=>{
-        if(catKey.startsWith('_')) return;
-        const catObj = contenedorCategorias[catKey];
-        if(!catObj || typeof catObj !== 'object') return;
+    // data puede ser el nodo santillos que contiene categorias
+    let nodoCategorias = data.categorias || {};
+    // caso doloya_aliados/las_tortas_de_migue/santillos/categorias -> dentro hay categorias/categorias
+    let contenedorReal = nodoCategorias.categorias || nodoCategorias;
+    // Si contenedorReal tiene estructura de categorias con objetos que tienen nombre
+    const camposIgnorarProd = ['activa','fecha','key','nombre','nombreLower','orden','_info'];
+
+    // 1. Cargar categorias reales
+    Object.keys(nodoCategorias).forEach(k=>{
+      if(k.startsWith('_')) return;
+      const v = nodoCategorias[k];
+      if(!v || typeof v!=='object') return;
+      // si v es categoria directa (como en foto: salchipapas tiene nombre, activa)
+      if(v.nombre && v.nombreLower){
         categoriasExtra.push({
-          id: catKey,
-          key: catObj.key || catKey,
-          nombre: catObj.nombre || catKey,
-          nombreLower: (catObj.nombreLower || catObj.key || catKey).toLowerCase(),
-          activa: catObj.activa !== false,
-          orden: catObj.orden ?? 99,
-          path: `${pathCategorias}/categorias/${catKey}`
-        });
-        Object.keys(catObj).forEach(prodKey=>{
-          if(camposCategoria.includes(prodKey)) return;
-          const prod = catObj[prodKey];
-          if(!prod || typeof prod !== 'object') return;
-          if(prod.nombre && (prod.precio !== undefined || prod.imagen)){
-            productos.push({
-              id: prodKey,
-              firebasePath: `${pathCategorias}/categorias/${catKey}/${prodKey}`,
-              categoriaKey: catKey.toLowerCase(),
-              ...prod
-            });
-          }
-        });
-      });
-    }
-    Object.keys(data).forEach(key=>{
-      if(key === 'categorias') return;
-      if(key.startsWith('_')) return;
-      const obj = data[key];
-      if(!obj || typeof obj !== 'object') return;
-      if(!obj.nombre && !obj.nombreLower) return;
-      if(!categoriasExtra.find(c=>c.key.toLowerCase()===key.toLowerCase())){
-        categoriasExtra.push({
-          id: key,
-          key: obj.key || key,
-          nombre: obj.nombre || key,
-          nombreLower: (obj.nombreLower || obj.key || key).toLowerCase(),
-          activa: obj.activa !== false,
-          orden: obj.orden ?? 99,
-          path: `${pathCategorias}/${key}`
+          id: k,
+          key: v.key || k,
+          nombre: v.nombre || k,
+          nombreLower: (v.nombreLower || v.key || k).toLowerCase(),
+          activa: v.activa !== false,
+          orden: v.orden ?? v.fecha ?? 99,
+          path: `${pathCategorias}/${k}`
         });
       }
-      Object.keys(obj).forEach(prodKey=>{
-        if(camposProductoIgnorar.includes(prodKey)) return;
-        const prod = obj[prodKey];
-        if(!prod || typeof prod !== 'object') return;
-        if(prod.nombre){
-          if(!productos.find(p=>p.id===prodKey)){
-            productos.push({
-              id: prodKey,
-              firebasePath: `${pathCategorias}/${key}/${prodKey}`,
-              categoriaKey: key.toLowerCase(),
-              ...prod
-            });
+      // si es el contenedor categorias/categorias
+      if(k==='categorias' && typeof v==='object'){
+        Object.keys(v).forEach(catKey=>{
+          if(catKey.startsWith('_')) return;
+          const catObj = v[catKey];
+          if(!catObj || typeof catObj!=='object') return;
+          if(catObj.nombre && catObj.nombreLower){
+            if(!categoriasExtra.find(c=>c.key===catKey || c.nombreLower===normalize(catObj.nombreLower))){
+              categoriasExtra.push({
+                id: catKey,
+                key: catObj.key || catKey,
+                nombre: catObj.nombre || catKey,
+                nombreLower: (catObj.nombreLower || catObj.key || catKey).toLowerCase(),
+                activa: catObj.activa !== false,
+                orden: catObj.orden ?? catObj.fecha ?? 99,
+                path: `${pathCategorias}/categorias/${catKey}`
+              });
+            }
           }
+          // productos dentro de esa categoria
+          Object.keys(catObj).forEach(prodKey=>{
+            if(camposIgnorarProd.includes(prodKey)) return;
+            const prod = catObj[prodKey];
+            if(!prod || typeof prod!=='object') return;
+            if(prod.nombre && (prod.precio!==undefined || prod.imagen || prod.descripcion!==undefined)){
+              productos.push({
+                id: prodKey,
+                firebasePath: `${pathCategorias}/categorias/${catKey}/${prodKey}`,
+                categoriaKey: catKey.toLowerCase(),
+                categoriaNombre: catObj.nombre,
+                ...prod
+              });
+            }
+          });
+        });
+      }
+    });
+
+    // Si no encontro en doble nivel, buscar en primer nivel
+    if(categoriasExtra.length===0 && contenedorReal){
+      Object.keys(contenedorReal).forEach(catKey=>{
+        if(catKey.startsWith('_')) return;
+        const catObj = contenedorReal[catKey];
+        if(!catObj || typeof catObj!=='object') return;
+        if(catObj.nombre && catObj.nombreLower){
+          categoriasExtra.push({
+            id: catKey,
+            key: catObj.key || catKey,
+            nombre: catObj.nombre || catKey,
+            nombreLower: (catObj.nombreLower || catObj.key || catKey).toLowerCase(),
+            activa: catObj.activa !== false,
+            orden: catObj.orden ?? 99,
+            path: `${pathCategorias}/${catKey}`
+          });
         }
       });
-    });
+    }
+
     renderCategorias();
     renderProductos();
   });
 }
+
 function fmtPrecio(n){
   const num = parseFloat(n);
   if(isNaN(num)) return '0';
@@ -339,7 +415,8 @@ function renderProductos(){
   if(filtro==='inactivos') f=f.filter(p=>p.activo===false || p.disponibilidad===false);
   grid.innerHTML='';
   if(f.length===0){
-    grid.innerHTML='<p style="padding:20px;color:#6b7280">No hay productos en esta categoría aún. Tu producto La Mampana debe aparecer aquí.</p>';
+    const catNombre = catActive==='todas' ? 'esta vista' : catActive;
+    grid.innerHTML=`<div style="padding:30px 20px;text-align:center;color:#6b7280;width:100%"><p style="font-size:14px;font-weight:600">No hay productos en ${catNombre} aún.</p><p style="font-size:12px;margin-top:6px">Agrega productos en esta categoría y aparecerán aquí.</p></div>`;
     return;
   }
   f.forEach(p=>{
