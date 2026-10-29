@@ -187,9 +187,12 @@ const db = getDatabase(app);
 const sesion = JSON.parse(localStorage.getItem('doloya_aliado_sesion')||'null');
 let productos=[], productoEdit=null, productoAEliminar=null, categoriasReales=[], categoriasExtra=[], mapaCategorias={};
 let businessPath = '';
-let businessNodeKey = '';
 
 function normalize(t){ return String(t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim(); }
+function esInfo(key){
+  const k = normalize(key).replace('_','');
+  return k==='info' || k==='infos' || k==='informacion' || k==='information';
+}
 
 function toast(t,m){
   document.getElementById('toastTitle').textContent=t;
@@ -206,46 +209,29 @@ async function detectarNegocioReal(){
   const snap = await get(ref(db, 'doloya_aliados'));
   if(!snap.exists()) return null;
   const data = snap.val();
-  // buscar coincidencia exacta como en tu foto las_tortas_de_migue -> santillos
   for(const key of Object.keys(data)){
     if(normalize(key)===idBuscado || normalize(key).includes(idBuscado) || idBuscado.includes(normalize(key))){
-      // si tiene subnodo santillos
       if(data[key] && typeof data[key]==='object'){
         for(const subKey of Object.keys(data[key])){
           const sub = data[key][subKey];
-          if(sub && typeof sub==='object' && (sub.categorias || sub.disponibilidad || sub.categoria)){
-            // es el nodo real como santillos
+          if(sub && typeof sub==='object' && (sub.categorias || sub.disponibilidad)){
             businessPath = `doloya_aliados/${key}/${subKey}`;
-            businessNodeKey = subKey;
             return { path: businessPath, node: sub };
           }
         }
       }
       businessPath = `doloya_aliados/${key}`;
-      businessNodeKey = key;
       return { path: businessPath, node: data[key] };
     }
     if(typeof data[key]==='object'){
       for(const subKey of Object.keys(data[key])){
         if(normalize(subKey)===idBuscado){
           businessPath = `doloya_aliados/${key}/${subKey}`;
-          businessNodeKey = subKey;
           return { path: businessPath, node: data[key][subKey] };
-        }
-        const third = data[key][subKey];
-        if(third && typeof third==='object'){
-          for(const thirdKey of Object.keys(third)){
-            if(normalize(thirdKey)===idBuscado){
-              businessPath = `doloya_aliados/${key}/${subKey}/${thirdKey}`;
-              businessNodeKey = thirdKey;
-              return { path: businessPath, node: third[thirdKey] };
-            }
-          }
         }
       }
     }
   }
-  // fallback primera coincidencia parcial
   for(const key of Object.keys(data)){
     if(typeof data[key]==='object'){
       for(const subKey of Object.keys(data[key])){
@@ -263,7 +249,12 @@ async function detectarNegocioReal(){
 function renderCategorias(){
   const bar=document.getElementById('catBar');
   const selectEdit=document.getElementById('editCat');
-  let catsActivas = categoriasExtra.filter(c=>c.activa!==false);
+  let catsActivas = categoriasExtra.filter(c=>{
+    if(esInfo(c.key)) return false;
+    if(esInfo(c.nombre)) return false;
+    if(c.key.startsWith('_')) return false;
+    return c.activa!==false;
+  });
   catsActivas.sort((a,b)=>(a.orden??99)-(b.orden??99));
   if(catsActivas.length===0){
     bar.innerHTML = `<div class="cat-pill active" data-cat="todas">Todas</div>`;
@@ -274,6 +265,7 @@ function renderCategorias(){
   categoriasReales = catsActivas.map(c=> (c.nombreLower||c.key||'').toLowerCase());
   mapaCategorias = {};
   categoriasExtra.forEach(c=>{
+    if(esInfo(c.key) || esInfo(c.nombre)) return;
     const key = (c.nombreLower||c.key||'').toLowerCase();
     mapaCategorias[key] = c.activa!==false;
   });
@@ -290,68 +282,55 @@ function renderCategorias(){
 async function escucharProductos(){
   const infoNegocio = await detectarNegocioReal();
   if(!infoNegocio){
-    document.getElementById('gridProductos').innerHTML='<p style="padding:20px;color:#6b7280">No se encontró tu negocio en la base de datos.</p>';
+    document.getElementById('gridProductos').innerHTML='<p style="padding:20px;color:#6b7280">No se encontró tu negocio.</p>';
     return;
   }
   const pathCategorias = `${infoNegocio.path}/categorias`;
-  const pathCategoriasDoble = `${infoNegocio.path}/categorias/categorias`;
-
-  // Escuchar el nodo principal del negocio para tener todo en tiempo real
   onValue(ref(db, infoNegocio.path), s=>{
     productos = [];
     categoriasExtra = [];
     if(!s.exists()){
-      renderCategorias();
-      renderProductos();
-      return;
+      renderCategorias(); renderProductos(); return;
     }
     const data = s.val();
-    // data puede ser el nodo santillos que contiene categorias
     let nodoCategorias = data.categorias || {};
-    // caso doloya_aliados/las_tortas_de_migue/santillos/categorias -> dentro hay categorias/categorias
-    let contenedorReal = nodoCategorias.categorias || nodoCategorias;
-    // Si contenedorReal tiene estructura de categorias con objetos que tienen nombre
     const camposIgnorarProd = ['activa','fecha','key','nombre','nombreLower','orden','_info'];
 
-    // 1. Cargar categorias reales
     Object.keys(nodoCategorias).forEach(k=>{
       if(k.startsWith('_')) return;
+      if(esInfo(k)) return;
       const v = nodoCategorias[k];
       if(!v || typeof v!=='object') return;
-      // si v es categoria directa (como en foto: salchipapas tiene nombre, activa)
       if(v.nombre && v.nombreLower){
-        categoriasExtra.push({
-          id: k,
-          key: v.key || k,
-          nombre: v.nombre || k,
-          nombreLower: (v.nombreLower || v.key || k).toLowerCase(),
-          activa: v.activa !== false,
-          orden: v.orden ?? v.fecha ?? 99,
-          path: `${pathCategorias}/${k}`
-        });
+        if(!esInfo(v.nombre) && !esInfo(v.key||k)){
+          categoriasExtra.push({
+            id: k, key: v.key || k, nombre: v.nombre || k,
+            nombreLower: (v.nombreLower || v.key || k).toLowerCase(),
+            activa: v.activa !== false, orden: v.orden ?? v.fecha ?? 99,
+            path: `${pathCategorias}/${k}`
+          });
+        }
       }
-      // si es el contenedor categorias/categorias
       if(k==='categorias' && typeof v==='object'){
         Object.keys(v).forEach(catKey=>{
           if(catKey.startsWith('_')) return;
+          if(esInfo(catKey)) return;
           const catObj = v[catKey];
           if(!catObj || typeof catObj!=='object') return;
           if(catObj.nombre && catObj.nombreLower){
-            if(!categoriasExtra.find(c=>c.key===catKey || c.nombreLower===normalize(catObj.nombreLower))){
+            if(esInfo(catObj.nombre) || esInfo(catKey)) return;
+            if(!categoriasExtra.find(c=>normalize(c.key)===normalize(catKey))){
               categoriasExtra.push({
-                id: catKey,
-                key: catObj.key || catKey,
-                nombre: catObj.nombre || catKey,
+                id: catKey, key: catObj.key || catKey, nombre: catObj.nombre || catKey,
                 nombreLower: (catObj.nombreLower || catObj.key || catKey).toLowerCase(),
-                activa: catObj.activa !== false,
-                orden: catObj.orden ?? catObj.fecha ?? 99,
+                activa: catObj.activa !== false, orden: catObj.orden ?? catObj.fecha ?? 99,
                 path: `${pathCategorias}/categorias/${catKey}`
               });
             }
           }
-          // productos dentro de esa categoria
           Object.keys(catObj).forEach(prodKey=>{
             if(camposIgnorarProd.includes(prodKey)) return;
+            if(esInfo(prodKey)) return;
             const prod = catObj[prodKey];
             if(!prod || typeof prod!=='object') return;
             if(prod.nombre && (prod.precio!==undefined || prod.imagen || prod.descripcion!==undefined)){
@@ -367,37 +346,12 @@ async function escucharProductos(){
         });
       }
     });
-
-    // Si no encontro en doble nivel, buscar en primer nivel
-    if(categoriasExtra.length===0 && contenedorReal){
-      Object.keys(contenedorReal).forEach(catKey=>{
-        if(catKey.startsWith('_')) return;
-        const catObj = contenedorReal[catKey];
-        if(!catObj || typeof catObj!=='object') return;
-        if(catObj.nombre && catObj.nombreLower){
-          categoriasExtra.push({
-            id: catKey,
-            key: catObj.key || catKey,
-            nombre: catObj.nombre || catKey,
-            nombreLower: (catObj.nombreLower || catObj.key || catKey).toLowerCase(),
-            activa: catObj.activa !== false,
-            orden: catObj.orden ?? 99,
-            path: `${pathCategorias}/${catKey}`
-          });
-        }
-      });
-    }
-
     renderCategorias();
     renderProductos();
   });
 }
 
-function fmtPrecio(n){
-  const num = parseFloat(n);
-  if(isNaN(num)) return '0';
-  return Number.isInteger(num) ? num.toFixed(0) : num.toFixed(2);
-}
+function fmtPrecio(n){ const num = parseFloat(n); if(isNaN(num)) return '0'; return Number.isInteger(num) ? num.toFixed(0) : num.toFixed(2); }
 function renderProductos(){
   const grid=document.getElementById('gridProductos');
   const catActive=document.querySelector('.cat-pill.active')?.dataset.cat||'todas';
@@ -406,6 +360,7 @@ function renderProductos(){
   let f=productos;
   f=f.filter(p=>{
     const cat = (p.categoria||p.categoriaKey||'').toLowerCase();
+    if(esInfo(cat)) return false;
     if(mapaCategorias[cat]===false) return false;
     return true;
   });
@@ -416,7 +371,7 @@ function renderProductos(){
   grid.innerHTML='';
   if(f.length===0){
     const catNombre = catActive==='todas' ? 'esta vista' : catActive;
-    grid.innerHTML=`<div style="padding:30px 20px;text-align:center;color:#6b7280;width:100%"><p style="font-size:14px;font-weight:600">No hay productos en ${catNombre} aún.</p><p style="font-size:12px;margin-top:6px">Agrega productos en esta categoría y aparecerán aquí.</p></div>`;
+    grid.innerHTML=`<div style="padding:30px 20px;text-align:center;color:#6b7280;width:100%"><p style="font-size:14px;font-weight:600">No hay productos en ${catNombre} aún.</p><p style="font-size:12px;margin-top:6px">Tus productos de Salchipapas aparecerán aquí cuando los agregues.</p></div>`;
     return;
   }
   f.forEach(p=>{
@@ -528,9 +483,7 @@ window.cerrarConfirm=function(){ document.getElementById('confirmOverlay').class
 window.confirmarEliminar=function(){
   if(!productoAEliminar) return;
   const p = productos.find(x=>x.id===productoAEliminar);
-  if(p && p.firebasePath){
-    remove(ref(db,p.firebasePath));
-  }
+  if(p && p.firebasePath){ remove(ref(db,p.firebasePath)); }
   document.getElementById('confirmOverlay').classList.remove('show');
   toast('Eliminado','Producto eliminado');
   productoAEliminar=null;
@@ -547,11 +500,7 @@ document.getElementById('inputFileImg').addEventListener('change', e=>{
 });
 document.getElementById('buscador').addEventListener('input',renderProductos);
 document.getElementById('filtroEstado').addEventListener('change',renderProductos);
-(()=>{
-  const s = sesion;
-  if(!s){ location.href='index.html'; return; }
-  escucharProductos();
-})();
+(()=>{ const s = sesion; if(!s){ location.href='index.html'; return; } escucharProductos(); })();
 </script>
 </body>
 </html>
