@@ -41,7 +41,52 @@ body{background:#fff;display:flex;min-height:100vh}
 .ilustracion svg{width:100%;height:100%}
 .center-content h2{font-size:34px;font-weight:800;color:#111;margin-bottom:10px}
 .center-content p{font-size:14.5px;color:#6b7280;max-width:420px;line-height:1.4}
-@media(max-width:900px){.sidebar{width:70px;padding:12px 6px}.sidebar .logo-text,.sidebar .menu a span.txt,.sidebar .footer-side{display:none}.main{margin-left:70px}.header h1{font-size:18px}}
+
+/* === SOLO MEJORA RESPONSIVE CELULAR - NO TOCA PC === */
+@media(max-width:900px){
+  .sidebar{width:70px;padding:12px 6px}
+  .sidebar .logo-text,.sidebar .menu a span.txt,.sidebar .footer-side{display:none}
+  .main{margin-left:70px}
+  .header{padding:0 14px;height:auto;min-height:64px;flex-wrap:wrap;gap:8px;padding-top:10px;padding-bottom:10px}
+  .header h1{font-size:18px;line-height:1.1}
+  .header p{font-size:11px}
+  .h-right{gap:10px}
+  .admin-chip{padding:3px 8px 3px 3px}
+  .admin-chip b{font-size:11px}
+  .btn-cerrar{padding:7px 10px;font-size:11px}
+  .center-content{padding:30px 14px;min-height:calc(100vh - 64px)}
+  .center-content h2{font-size:26px}
+  .center-content p{font-size:13.5px;padding:0 10px}
+  .ilustracion{width:200px;height:140px}
+}
+@media(max-width:600px){
+  body{flex-direction:column}
+  .sidebar{width:100%;height:auto;position:relative;flex-direction:row;align-items:center;justify-content:space-between;padding:10px 12px;overflow:visible}
+  .logo-wrap{margin:0;display:flex;align-items:center;gap:8px}
+  .logo-D{font-size:32px}
+  .logo-D::after{height:2px;top:45%}
+  .logo-text{font-size:18px;margin-top:0}
+  .menu{flex-direction:row;overflow-x:auto;gap:6px;padding-bottom:2px;scrollbar-width:none;flex:1;justify-content:flex-end}
+  .menu::-webkit-scrollbar{display:none}
+  .menu a{padding:8px 10px;white-space:nowrap;font-size:12px;gap:8px}
+  .menu a span.txt{display:inline !important}
+  .sidebar .logo-text{display:block !important}
+  .sidebar .footer-side{display:none !important}
+  .badge-pedidos{min-width:18px;height:18px;font-size:10px}
+  .main{margin-left:0;width:100%}
+  .header{padding:12px 14px;gap:10px}
+  .header > div:first-child{width:100%}
+  .h-right{width:100%;justify-content:space-between}
+  .center-content{padding:24px 16px}
+  .center-content h2{font-size:22px;line-height:1.2}
+  .center-content p{font-size:13px;line-height:1.4;max-width:100%}
+  .ilustracion{width:180px;height:120px;margin-bottom:18px}
+}
+@media(max-width:380px){
+  .header h1{font-size:16px}
+  .center-content h2{font-size:20px}
+  .menu a{font-size:11px;padding:7px 8px}
+}
 </style>
 </head>
 <body>
@@ -147,7 +192,7 @@ body{background:#fff;display:flex;min-height:100vh}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-import { getFirestore, collection, onSnapshot, query } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
 const configConfirmacion = {
   apiKey: "AIzaSyDLKngPyi_SWAXEQwdrHO5h8L8OufulAR4",
@@ -167,7 +212,6 @@ let ultimoTotal = 0;
 let primerCarga = true;
 let audioCtx = null;
 
-// Desbloquear audio con primer clic del usuario
 document.addEventListener('click', ()=>{
   if(!audioCtx){
     try{ audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }catch{}
@@ -199,7 +243,7 @@ function sonarAlerta(){
       osc2.connect(gain2); gain2.connect(ctx.destination);
       osc2.start(); osc2.stop(ctx.currentTime+0.6);
     },250);
-  }catch(e){ console.log("Audio bloqueado", e); }
+  }catch(e){}
   try{
     window.speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance("Nuevo pedido listo para repartidor");
@@ -207,17 +251,12 @@ function sonarAlerta(){
   }catch{}
 }
 
-// ESCUCHA TODOS LOS PEDIDOS ACTIVOS - CORREGIDO
 onSnapshot(collection(db,"pedidos"), (snap)=>{
-  // Filtramos solo activos, no entregados ni cancelados
   const activos = snap.docs.filter(d=>{
-    const data = d.data();
-    const est = (data.estado || "").toLowerCase();
+    const est = (d.data().estado || "").toLowerCase();
     return !["entregado","cancelado","rechazado"].includes(est);
   });
   const total = activos.length;
-
-  // Mostrar cantidad en sidebar y campana
   if(total > 0){
     countEl.textContent = total;
     bellCount.textContent = total;
@@ -229,10 +268,7 @@ onSnapshot(collection(db,"pedidos"), (snap)=>{
     countEl.style.display = 'none';
     bellCount.style.display = 'none';
   }
-  
-  if(!primerCarga && total>ultimoTotal){
-    sonarAlerta();
-  }
+  if(!primerCarga && total>ultimoTotal){ sonarAlerta(); }
   ultimoTotal = total;
   primerCarga = false;
 });
