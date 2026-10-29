@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Configuraciones - DoloYa Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
+body{background:#F5F5F7;min-height:100vh}
+:root{--rojo:#C50D1F;--rojo2:#E30613;--negro:#11141A}
+.top-header{background:var(--rojo);display:flex;align-items:center;gap:14px;padding:0 18px 0 12px;height:64px;position:sticky;top:0;z-index:100}
+.btn-x{width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:white;border:none;border-radius:50%;flex-shrink:0}
+.btn-x svg{width:18px;height:18px;stroke:var(--rojo2);stroke-width:3}
+.top-left-text h1{color:white;font-size:22px;font-weight:800;line-height:1.1}
+.top-left-text p{color:rgba(255,255,255,0.85);font-size:12px;font-weight:500}
+.main{padding:18px;max-width:1100px;margin:0 auto}
+.card-white{background:white;border:1.5px solid #EFEFF1;border-radius:14px;padding:16px;margin-bottom:16px}
+.card-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px}
+.card-head h3{font-size:16px;font-weight:800}
+.btn-black{background:var(--negro);color:white;border:none;border-radius:10px;padding:9px 16px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px;cursor:pointer}
+.btn-red{background:var(--rojo2);color:white;border:none;border-radius:10px;padding:9px 16px;font-size:13px;font-weight:800;cursor:pointer}
+.grid-cat{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:900px){.grid-cat{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.grid-cat{grid-template-columns:1fr}}
+.cat-card{background:white;border:1.5px solid #EFEFF1;border-radius:12px;padding:12px;display:flex;gap:12px;align-items:center;position:relative}
+.cat-img{width:64px;height:64px;border-radius:14px;background:#F3F4F6;overflow:hidden;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid #EDEEF0}
+.cat-img img{width:42px;height:42px;object-fit:contain}
+.cat-info{flex:1;min-width:0}
+.cat-name{font-size:13px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cat-key{font-size:11px;color:#6B7280}
+.cat-actions{display:flex;gap:6px;margin-top:6px}
+.btn-mini{border:1.5px solid #E5E7EB;background:white;border-radius:7px;padding:5px 9px;font-size:11px;font-weight:700;cursor:pointer}
+.btn-mini.del{border-color:#FFE1E6;color:#E30613;background:#FFF1F2}
+.switch-mini{width:34px;height:20px;background:#D1D5DB;border-radius:999px;position:relative;cursor:pointer;transition:.2s;flex-shrink:0}
+.switch-mini.on{background:#22C55E}
+.switch-mini::after{content:'';position:absolute;left:2px;top:2px;width:16px;height:16px;background:white;border-radius:50%;transition:.2s}
+.switch-mini.on::after{transform:translateX(14px)}
+.form-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.input{border:1.5px solid #E5E7EB;border-radius:8px;height:38px;padding:0 12px;font-size:13px;outline:none;flex:1;min-width:180px}
+.label{font-size:11px;font-weight:700;color:#374151;margin-bottom:5px;display:block;margin-top:10px}
+.preview-box{width:80px;height:80px;border-radius:12px;background:#F3F4F6;border:1.5px dashed #D1D5DB;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.preview-box img{width:100%;height:100%;object-fit:contain}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#111;color:white;padding:10px 18px;border-radius:999px;font-size:12px;font-weight:700;display:none;z-index:9999}
+</style>
+</head>
+<body>
+<div class="top-header">
+  <button class="btn-x" onclick="location.href='paneladmin.html'">
+    <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
+  </button>
+  <div class="top-left-text"><h1>Configuraciones</h1><p>Administra categorías del inicio y configuración global</p></div>
+</div>
+
+<div class="main">
+  <div class="card-white">
+    <div class="card-head">
+      <h3>Categorías de Inicio (DoloYa - Inicio)</h3>
+      <button class="btn-black" onclick="document.getElementById('formAdd').style.display='block'">+ Agregar categoría</button>
+    </div>
+    <p style="font-size:12px;color:#6B7280;margin-bottom:12px">Estas son las que salen en la app: Todos, Burger, Pizza, Alitas, Tacos, Hot Dog. Aquí cambias imagen, nombre y orden. Se guardan en <b>config_global/categorias_inicio</b> para App y para tu config.json</p>
+    
+    <div id="formAdd" style="display:none;border:1.5px solid #EFEFF1;border-radius:12px;padding:14px;background:#FAFAFB">
+      <div style="display:flex;gap:14px;flex-wrap:wrap">
+        <div>
+          <label class="label">Imagen (3D)</label>
+          <div class="preview-box" id="previewBox"><span style="font-size:10px;color:#9CA3AF">Sin imagen</span></div>
+          <input type="file" id="fileImg" accept="image/*" style="margin-top:8px;font-size:12px">
+        </div>
+        <div style="flex:1;min-width:220px">
+          <label class="label">Nombre (Ej: Burger)</label><input id="inpNombre" class="input" placeholder="Burger">
+          <label class="label">Key (auto: burgers)</label><input id="inpKey" class="input" placeholder="burgers">
+          <label class="label">Orden</label><input id="inpOrden" type="number" class="input" value="1" style="max-width:100px">
+          <div style="margin-top:12px;display:flex;gap:8px">
+            <button class="btn-red" onclick="guardarCategoria()">Guardar</button>
+            <button class="btn-mini" onclick="document.getElementById('formAdd').style.display='none'">Cancelar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-cat" id="gridCats" style="margin-top:16px"></div>
+  </div>
+
+  <div class="card-white">
+    <div class="card-head"><h3>Archivo de configuración para App</h3></div>
+    <p style="font-size:12px;color:#6B7280">Este JSON se genera automático desde las categorías. Lo puedes usar en tu App Apple/Android o en tu config.json</p>
+    <pre id="jsonPreview" style="margin-top:10px;background:#111;color:#0f0;padding:12px;border-radius:10px;font-size:11px;overflow:auto;max-height:200px"></pre>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+import { getDatabase, ref, onValue, set, update, remove, get } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js";
+const firebaseConfig = {
+  apiKey: "AIzaSyD286qlJQT8D3rqbYTSfCyuTAEg9jjRchQ",
+  authDomain: "doloya-aliados.firebaseapp.com",
+  databaseURL: "https://doloya-aliados-default-rtdb.firebaseio.com",
+  projectId: "doloya-aliados",
+  storageBucket: "doloya-aliados.firebasestorage.app",
+  messagingSenderId: "122314467740",
+  appId: "1:122314467740:web:9947a0a9560557e3a00059"
+};
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+let imgBase64 = '';
+let editKey = null;
+
+function toast(m){
+  const t=document.getElementById('toast'); t.textContent=m; t.style.display='block';
+  setTimeout(()=>t.style.display='none',2000);
+}
+
+document.getElementById('inpNombre').addEventListener('input',()=>{
+  const n = document.getElementById('inpNombre').value.toLowerCase().trim().replace(/\s+/g,'');
+  if(!editKey) document.getElementById('inpKey').value = n + 's';
+});
+document.getElementById('fileImg').addEventListener('change', e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    imgBase64=ev.target.result;
+    document.getElementById('previewBox').innerHTML=`<img src="${imgBase64}">`;
+  };
+  r.readAsDataURL(f);
+});
+
+const pathCats = 'config_global/categorias_inicio';
+
+function cargar(){
+  onValue(ref(db, pathCats), snap=>{
+    const grid=document.getElementById('gridCats');
+    const data=snap.val()||{};
+    const arr=Object.values(data).sort((a,b)=>(a.orden||99)-(b.orden||99));
+    grid.innerHTML='';
+    arr.forEach(c=>{
+      if(c.key==='info' || c.key==='_info') return;
+      grid.innerHTML+=`
+      <div class="cat-card">
+        <div class="cat-img"><img src="${c.imagen||'https://img.icons8.com/3d-fluency/94/bento.png'}"></div>
+        <div class="cat-info">
+          <div class="cat-name">${c.nombre}</div>
+          <div class="cat-key">${c.key} • orden ${c.orden||0}</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+            <div class="switch-mini ${c.activa!==false?'on':''}" onclick="toggleActiva('${c.key}')"></div>
+            <span style="font-size:10px;color:#6B7280">${c.activa!==false?'Activa':'Oculta'}</span>
+          </div>
+          <div class="cat-actions">
+            <button class="btn-mini" onclick="editarCat('${c.key}')">Editar</button>
+            <button class="btn-mini del" onclick="eliminarCat('${c.key}')">Eliminar</button>
+          </div>
+        </div>
+      </div>`;
+    });
+    document.getElementById('jsonPreview').textContent = JSON.stringify(data, null, 2);
+  });
+}
+window.toggleActiva=async(k)=>{
+  const snap=await get(ref(db, `${pathCats}/${k}`));
+  if(!snap.exists()) return;
+  const v=snap.val();
+  await update(ref(db, `${pathCats}/${k}`), {activa: !(v.activa!==false)});
+  toast('Actualizado');
+}
+window.editarCat=async(k)=>{
+  const snap=await get(ref(db, `${pathCats}/${k}`));
+  if(!snap.exists()) return;
+  const c=snap.val();
+  editKey=k;
+  document.getElementById('formAdd').style.display='block';
+  document.getElementById('inpNombre').value=c.nombre;
+  document.getElementById('inpKey').value=c.key;
+  document.getElementById('inpOrden').value=c.orden||1;
+  imgBase64=c.imagen||'';
+  document.getElementById('previewBox').innerHTML= c.imagen ? `<img src="${c.imagen}">` : 'Sin imagen';
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+window.eliminarCat=async(k)=>{
+  if(k==='todos'){ toast('Todos no se puede eliminar'); return; }
+  if(!confirm(`¿Eliminar ${k}?`)) return;
+  await remove(ref(db, `${pathCats}/${k}`));
+  toast('Eliminado');
+}
+window.guardarCategoria=async()=>{
+  const nombre=document.getElementById('inpNombre').value.trim();
+  let key=document.getElementById('inpKey').value.trim().toLowerCase();
+  const orden=parseInt(document.getElementById('inpOrden').value)||99;
+  if(!nombre || !key){ toast('Nombre y key requeridos'); return; }
+  if(key==='info' || key==='_info'){ toast('Info no permitido'); return; }
+  const payload={
+    key: key,
+    nombre: nombre,
+    nombreLower: nombre.toLowerCase(),
+    imagen: imgBase64 || `https://img.icons8.com/3d-fluency/94/${key}.png`,
+    activa: true,
+    orden: orden,
+    fecha: Date.now()
+  };
+  if(editKey && editKey!==key){
+    await remove(ref(db, `${pathCats}/${editKey}`));
+  }
+  await set(ref(db, `${pathCats}/${key}`), payload);
+  toast('Guardado');
+  document.getElementById('formAdd').style.display='none';
+  document.getElementById('inpNombre').value=''; document.getElementById('inpKey').value=''; imgBase64=''; editKey=null;
+  document.getElementById('previewBox').innerHTML='<span style="font-size:10px;color:#9CA3AF">Sin imagen</span>';
+}
+
+cargar();
+</script>
+</body>
+</html>
