@@ -38,16 +38,32 @@ body{background:#f6f8fb;color:#0f172a}
 .resumen-grafica{margin-top:10px;padding:10px;background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0}
 .resumen-grafica div{display:flex;justify-content:space-between;padding:5px 0;font-size:10.5px;border-bottom:1px dashed #e2e8f0}
 
-/* ===== SOLO RESPONSIVE CELULAR - SIN TOCAR LOGICA ===== */
-@media(max-width:900px){.top-cards{grid-template-columns:repeat(2,1fr)}}
+/* ===== SOLO ARREGLO: RESUMEN A LO LARGO EN CELULAR ===== */
+@media(max-width:900px){
+  .top-cards{
+    display:flex;
+    flex-wrap:nowrap;
+    overflow-x:auto;
+    gap:10px;
+    padding:10px 10px 12px;
+    scrollbar-width:none;
+    -webkit-overflow-scrolling:touch;
+  }
+  .top-cards::-webkit-scrollbar{display:none}
+  .tcard{
+    min-width:165px;
+    max-width:165px;
+    flex:0 0 165px;
+    padding:10px 10px;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+  }
+  .tcard b{font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+}
 @media(max-width:700px){
   .header-top{padding:8px 10px}
   .header-top h1{font-size:13px}
-  .top-cards{grid-template-columns:1fr 1fr;gap:8px;padding:8px}
-  .tcard{padding:10px 8px;border-radius:10px}
-  .tcard b{font-size:12px}
-  .tcard label{font-size:8px}
-  .tcard span{font-size:9px}
   .box{margin:0 8px 12px;border-radius:10px}
   .filters{padding:8px;gap:6px}
   .filters input{font-size:12px;padding:9px 10px}
@@ -88,7 +104,7 @@ body{background:#f6f8fb;color:#0f172a}
   .btn-graf{font-size:11px!important;padding:8px 16px!important;width:100%;justify-content:center;display:flex}
 }
 @media(max-width:380px){
-  .top-cards{grid-template-columns:1fr}
+  .tcard{min-width:150px;max-width:150px;flex:0 0 150px}
 }
 </style>
 </head>
