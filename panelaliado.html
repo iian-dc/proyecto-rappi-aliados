@@ -8,7 +8,6 @@
 <link rel="manifest" href="manifest-aliados.json">
 <meta name="theme-color" content="#C8102E">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="apple-touch-icon" href="LOGO-PANEL.PNG">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
@@ -44,8 +43,8 @@ body{background:#f9f9fb;min-height:100vh;display:flex}
 .topbar-left{display:flex;align-items:center;gap:12px}
 .topbar-left strong{font-size:16px;font-weight:800}
 .topbar-left span.line{width:3px;height:18px;background:var(--rojo);border-radius:2px;display:inline-block}
-.topbar-left span.sub{font-size:13px;color:#111;font-weight:700;max-width:260px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:capitalize}
-.topbar-right{display:flex;align-items:center;gap:12px}
+.topbar-left span.sub{font-size:13px;color:#111;font-weight:700;max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:capitalize}
+.topbar-right{display:flex;align-items:center;gap:10px}
 .btn-instalar{display:none;background:#111;color:white;border:none;border-radius:999px;padding:8px 14px;font-size:12px;font-weight:700;align-items:center;gap:6px;cursor:pointer}
 .bell{position:relative;cursor:pointer;width:38px;height:38px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:#FFF1F2}
 .bell-badge{position:absolute;top:-4px;right:-4px;background:#E30613 !important;color:#FFFFFF !important;font-size:10px;font-weight:900;min-width:20px;height:20px;border-radius:999px;display:flex;align-items:center;justify-content:center;padding:0 5px;border:2px solid white;z-index:2}
@@ -58,16 +57,14 @@ body{background:#f9f9fb;min-height:100vh;display:flex}
 .desc{color:#7a8191;font-size:14.5px;line-height:1.5;max-width:420px;margin-top:14px}
 .hamburger{display:none;background:none;border:none;cursor:pointer}
 .mobile-overlay{display:none}
-@media(max-width:900px){.sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}.main{margin-left:0}.hamburger{display:block}.mobile-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:90;display:none}.mobile-overlay.show{display:block}.topbar{padding:12px 14px}.topbar-left span.sub{font-size:12px;max-width:130px}.title{font-size:26px}.btn-cerrar span.txt{display:none}.btn-instalar{padding:6px 10px;font-size:11px}}
+@media(max-width:900px){.sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}.main{margin-left:0}.hamburger{display:block}.mobile-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:90;display:none}.mobile-overlay.show{display:block}.topbar{padding:12px 14px}.topbar-left span.sub{font-size:12px;max-width:120px}.title{font-size:26px}.btn-cerrar span.txt{display:none}.btn-instalar{padding:6px 10px;font-size:11px}}
 </style>
 </head>
 <body>
 <div class="mobile-overlay" id="overlay" onclick="toggleMenu()"></div>
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-top">
-    <div class="logo">
-      <img src="LOGO-PANEL.PNG" alt="DoloYa">
-    </div>
+    <div class="logo"><img src="LOGO-PANEL.PNG" alt="DoloYa"></div>
     <div class="estado-wrap"><div class="estado-info"><b id="estadoTexto">Abierto</b><span id="estadoSub">Tu negocio</span></div><div style="display:flex;align-items:center"><span class="estado-badge abierto" id="estadoBadge">ABIERTO</span><div class="switch on" id="switchEstado" onclick="toggleEstado()"></div></div></div>
     <div class="sidebar-label">Panel de aliados</div>
     <ul class="menu">
@@ -76,7 +73,7 @@ body{background:#f9f9fb;min-height:100vh;display:flex}
       <li><a href="panelaliado-historial.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M10 13h4M10 17h4"/></svg>Historial de órdenes</a></li>
       <li><a href="panelaliado-resumendeventas.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>Resumen de ventas</a></li>
       <li><a href="mi-restaurante.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Mi restaurante</a></li>
-      <li><a href="configuracion.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06A1.65 1.65 0 0 0 15 19.4a1.65 1.65 0 0 0-1 .6A2 2 0 0 1 12 22a2 2 0 0 1-2-2 1.65 1.65 0 0 0-1-.6 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-.6-1 2 2 0 0 1-2-2 2 2 0 0 1 2-2c.26 0 .51.1.7.28A1.65 1.65 0 0 0 6.5 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6c.26 0 .51.1.7.28A1.65 1.65 0 0 0 11.5 5a2 2 0 0 1 2 0c.26 0 .51-.1.7-.28A1.65 1.65 0 0 0 15 4.6a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c0 .26-.1.51-.28.7A1.65 1.65 0 0 0 20 11.5a2 2 0 0 1 0 2c0 .26-.1.51-.28.7-.18.19-.28.44-.28.7A1.65 1.65 0 0 0 19.4 15z"/></svg>Configuración</a></li>
+      <li><a href="configuracion.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg>Configuración</a></li>
       <li><a href="centro-ayuda.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Centro de ayuda</a></li>
     </ul>
   </div>
@@ -87,32 +84,35 @@ body{background:#f9f9fb;min-height:100vh;display:flex}
     <div class="topbar-left"><button class="hamburger" onclick="toggleMenu()"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button><strong>Panel de aliados</strong><span class="line"></span><span class="sub" id="subTexto">Cargando...</span></div>
     <div class="topbar-right">
       <button id="btnInstalar" class="btn-instalar"><svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Instalar App</button>
-      <div class="bell" id="bellIcon">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C50D1F" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 6 5 6 9H0s6-2 6-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
-        <span class="bell-badge" id="bellBadge">0</span>
-      </div>
+      <div class="bell" id="bellIcon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C50D1F" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 6 5 6 9H0s6-2 6-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span class="bell-badge" id="bellBadge">0</span></div>
       <a href="index.html" class="btn-cerrar" onclick="cerrarSesion()"><span class="txt">Cerrar sesión</span></a>
     </div>
   </div>
-  <div class="content">
-    <h1 class="title">Tu negocio también<br><span>nos importa</span></h1>
-    <p class="desc">En DoloYa creemos en el crecimiento de cada aliado.</p>
-  </div>
+  <div class="content"><h1 class="title">Tu negocio también<br><span>nos importa</span></h1><p class="desc">En DoloYa creemos en el crecimiento de cada aliado.</p></div>
 </div>
+
+<audio id="audioAlerta" preload="auto" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-import { getDatabase, ref, get, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js";
+import { getDatabase, ref, get, onValue, update, set } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js";
 import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-messaging.js";
+
 const configAliados = { apiKey: "AIzaSyD286qlJQT8D3rqbYTSfCyuTAEg9jjRchQ", authDomain: "doloya-aliados.firebaseapp.com", databaseURL: "https://doloya-aliados-default-rtdb.firebaseio.com", projectId: "doloya-aliados", storageBucket: "doloya-aliados.firebasestorage.app", messagingSenderId: "122314467740", appId: "1:122314467740:web:9947a0a9560557e3a00059" };
 const configConfirmacion = { apiKey: "AIzaSyDLKngPyi_SWAXEQwdrHO5h8L8OufulAR4", authDomain: "doloya-confirmacion.firebaseapp.com", databaseURL: "https://doloya-confirmacion-default-rtdb.firebaseio.com", projectId: "doloya-confirmacion", storageBucket: "doloya-confirmacion.firebasestorage.app", messagingSenderId: "832228761099", appId: "1:832228761099:web:ddd4b6a0ee0d7f0494b10e" };
+
 const appAliados = initializeApp(configAliados, "aliados");
 const appConfirm = initializeApp(configConfirmacion, "confirmacion");
 const dbAliados = getDatabase(appAliados);
 const dbFirestore = getFirestore(appConfirm);
+const messaging = getMessaging(appConfirm);
 
-// === BOTON INSTALAR APP ALIADOS ===
+// === BOTON INSTALAR + TOKEN PARA NOTIFICACION BLOQUEADA ===
 let deferredPrompt = null;
 const btnInstalar = document.getElementById('btnInstalar');
+const audioAlerta = document.getElementById('audioAlerta');
+
 window.addEventListener('beforeinstallprompt', (e)=>{
   e.preventDefault();
   deferredPrompt = e;
@@ -125,17 +125,68 @@ btnInstalar.addEventListener('click', async ()=>{
   deferredPrompt = null;
   btnInstalar.style.display = 'none';
 });
-window.addEventListener('appinstalled', ()=>{
-  btnInstalar.style.display = 'none';
+
+async function guardarTokenFCM(idNegocio){
+  try{
+    if(Notification.permission === 'default'){
+      await Notification.requestPermission();
+    }
+    if(Notification.permission !== 'granted') return;
+    
+    const registration = await navigator.serviceWorker.ready;
+    const token = await getToken(messaging, {
+      vapidKey: 'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvA2nMsM4l1n4j0gR4w7p6q9r8s7t6u5v4w3x2y1z0',
+      serviceWorkerRegistration: registration
+    });
+    
+    if(token){
+      // Guarda token para que Cloud Function le mande push aunque esté bloqueado
+      const id = idNegocio.toLowerCase();
+      await set(ref(dbAliados, `doloya_tokens/${id}`), {
+        token: token,
+        negocio: id,
+        fecha: new Date().toISOString()
+      });
+      localStorage.setItem('doloya_fcm_token', token);
+      console.log("Token FCM guardado para notificacion bloqueada:", token);
+    }
+  }catch(e){ console.log("Error FCM:", e); }
+}
+
+onMessage(messaging, (payload)=>{
+  // Cuando llega con app abierta
+  sonarFuerte();
+  const title = payload.notification?.title || '🔔 ¡Nuevo pedido DoloYa!';
+  const body = payload.notification?.body || 'Tienes un pedido nuevo';
+  navigator.serviceWorker.ready.then(reg=>{
+    reg.showNotification(title, {
+      body: body,
+      icon: 'LOGO-PANEL.PNG',
+      badge: 'LOGO-PANEL.PNG',
+      vibrate: [600,200,600,200,600],
+      requireInteraction: true,
+      silent: false
+    });
+  });
 });
-if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('sw-aliados.js');
+
+function sonarFuerte(){
+  const bell = document.getElementById('bellIcon');
+  bell.classList.add('vibrar');
+  setTimeout(()=>bell.classList.remove('vibrar'),4000);
+  try{
+    audioAlerta.volume = 1.0;
+    audioAlerta.currentTime = 0;
+    audioAlerta.play().catch(()=>{});
+    if(navigator.vibrate) navigator.vibrate([600,200,600,200,600]);
+  }catch{}
 }
 
 window.toggleMenu = function(){ document.getElementById('sidebar').classList.toggle('open'); document.getElementById('overlay').classList.toggle('show'); }
 window.cerrarSesion = function(){ localStorage.removeItem('doloya_aliado_sesion'); window.location.href='index.html'; }
 function formatearNombreBonito(str){ if(!str) return ''; return str.replace(/[_\/-]+/g,' ').replace(/\s+/g,' ').trim().split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1).toLowerCase()).join(' '); }
 function normalize(t){ return String(t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim(); }
+
 const sesion = JSON.parse(localStorage.getItem('doloya_aliado_sesion')||'null');
 if(!sesion){ window.location.href='index.html'; }
 else {
@@ -147,6 +198,7 @@ else {
   const badgeEstado = document.getElementById('estadoBadge');
   const textoEstado = document.getElementById('estadoTexto');
   const idNegocio = (sesion.id || sesion.negocio || 'alitas_factory').toLowerCase();
+
   function getCategoriaReal(id){
     const n = normalize(id);
     if(n.includes('alitas')) return 'alitas';
@@ -159,6 +211,14 @@ else {
   const catBuscada = getCategoriaReal(idNegocio);
   let primerCarga = true; let ultimoCount = 0; let estadoActual = true; let refEstadoReal = null; let categoriaReal = catBuscada; let idReal = idNegocio;
   sub.textContent = formatearNombreBonito(sesion.nombre || idNegocio);
+
+  // REGISTRAR SW Y GUARDAR TOKEN PARA NOTIFICACION BLOQUEADA
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.register('sw-aliados.js').then(()=>{
+      guardarTokenFCM(idNegocio);
+    });
+  }
+
   get(ref(dbAliados, 'doloya_aliados')).then(allSnap=>{
     if(!allSnap.exists()){
       refEstadoReal = ref(dbAliados, `doloya_aliados/${idReal}/categorias/disponibilidad`);
@@ -187,19 +247,8 @@ else {
     }
     refEstadoReal = ref(dbAliados, `doloya_aliados/${idReal}/categorias/disponibilidad`);
     escucharEstado();
-    const refMala1 = ref(dbAliados, `doloya_aliados/${idReal}/categorias/categorias/disponibilidad`);
-    get(refMala1).then(s=>{
-      if(s.exists()){
-        update(ref(dbAliados, `doloya_aliados/${idReal}/categorias/categorias`), { disponibilidad: null });
-      }
-    });
-    const refMala2 = ref(dbAliados, `doloya_aliados/${idReal}/santillos`);
-    get(refMala2).then(s=>{
-      if(s.exists()){
-        update(ref(dbAliados, `doloya_aliados/${idReal}`), { santillos: null });
-      }
-    });
   });
+
   function escucharEstado(){ 
     if(!refEstadoReal) return; 
     onValue(refEstadoReal, (snap)=>{ 
@@ -216,7 +265,6 @@ else {
       } else {
         estadoActual = true;
         actualizarUIEstado(true);
-        update(refEstadoReal, { abierto: true, estado: 'activo' });
       }
     }); 
   }
@@ -228,7 +276,9 @@ else {
     if(!refEstadoReal) refEstadoReal = ref(dbAliados, `doloya_aliados/${idReal}/categorias/disponibilidad`); 
     update(refEstadoReal, { abierto: nuevo, estado: nuevo ? 'activo' : 'cerrado' });
   }
-  function sonarDoloYa(){ bell.classList.add('vibrar'); setTimeout(()=>bell.classList.remove('vibrar'),3000); try{ window.speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance("¡DoloYa! ¡DoloYa! ¡Pedido!"); u.lang='es-MX'; u.rate=1.25; window.speechSynthesis.speak(u); }catch(e){} }
+  function sonarDoloYa(){ 
+    sonarFuerte();
+  }
   function actualizarBadges(count){
     badge.style.display='flex'; badge.textContent=count;
     bellBadge.style.display='flex'; bellBadge.textContent=count;
