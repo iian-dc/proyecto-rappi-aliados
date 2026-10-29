@@ -36,7 +36,6 @@ body{background:#F5F5F7;min-height:100vh}
 .switch-mini.on{background:#22C55E}
 .switch-mini::after{content:'';position:absolute;left:2px;top:2px;width:16px;height:16px;background:white;border-radius:50%;transition:.2s}
 .switch-mini.on::after{transform:translateX(14px)}
-.form-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
 .input{border:1.5px solid #E5E7EB;border-radius:8px;height:38px;padding:0 12px;font-size:13px;outline:none;flex:1;min-width:180px}
 .label{font-size:11px;font-weight:700;color:#374151;margin-bottom:5px;display:block;margin-top:10px}
 .preview-box{width:80px;height:80px;border-radius:12px;background:#F3F4F6;border:1.5px dashed #D1D5DB;display:flex;align-items:center;justify-content:center;overflow:hidden}
@@ -56,9 +55,12 @@ body{background:#F5F5F7;min-height:100vh}
   <div class="card-white">
     <div class="card-head">
       <h3>Categorías de Inicio (DoloYa - Inicio)</h3>
-      <button class="btn-black" onclick="document.getElementById('formAdd').style.display='block'">+ Agregar categoría</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn-black" onclick="document.getElementById('formAdd').style.display='block'">+ Agregar categoría</button>
+        <button class="btn-mini" onclick="restaurarDefault()">Restablecer por defecto</button>
+      </div>
     </div>
-    <p style="font-size:12px;color:#6B7280;margin-bottom:12px">Estas son las que salen en la app: Todos, Burger, Pizza, Alitas, Tacos, Hot Dog. Aquí cambias imagen, nombre y orden. Se guardan en <b>config_global/categorias_inicio</b> para App y para tu config.json</p>
+    <p style="font-size:12px;color:#6B7280;margin-bottom:12px">Si no ves nada es porque están vacías en Firebase. Dale a <b>Restablecer por defecto</b> y se crean: Todos, Burger, Pizza, Alitas, Tacos, Hot Dog. Se guardan en <b>config_global/categorias_inicio</b></p>
     
     <div id="formAdd" style="display:none;border:1.5px solid #EFEFF1;border-radius:12px;padding:14px;background:#FAFAFB">
       <div style="display:flex;gap:14px;flex-wrap:wrap">
@@ -73,19 +75,13 @@ body{background:#F5F5F7;min-height:100vh}
           <label class="label">Orden</label><input id="inpOrden" type="number" class="input" value="1" style="max-width:100px">
           <div style="margin-top:12px;display:flex;gap:8px">
             <button class="btn-red" onclick="guardarCategoria()">Guardar</button>
-            <button class="btn-mini" onclick="document.getElementById('formAdd').style.display='none'">Cancelar</button>
+            <button class="btn-mini" onclick="cancelarForm()">Cancelar</button>
           </div>
         </div>
       </div>
     </div>
 
     <div class="grid-cat" id="gridCats" style="margin-top:16px"></div>
-  </div>
-
-  <div class="card-white">
-    <div class="card-head"><h3>Archivo de configuración para App</h3></div>
-    <p style="font-size:12px;color:#6B7280">Este JSON se genera automático desde las categorías. Lo puedes usar en tu App Apple/Android o en tu config.json</p>
-    <pre id="jsonPreview" style="margin-top:10px;background:#111;color:#0f0;padding:12px;border-radius:10px;font-size:11px;overflow:auto;max-height:200px"></pre>
   </div>
 </div>
 
@@ -107,15 +103,22 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 let imgBase64 = '';
 let editKey = null;
+const pathCats = 'config_global/categorias_inicio';
 
 function toast(m){
   const t=document.getElementById('toast'); t.textContent=m; t.style.display='block';
-  setTimeout(()=>t.style.display='none',2000);
+  setTimeout(()=>t.style.display='none',2200);
 }
+function cancelarForm(){
+  document.getElementById('formAdd').style.display='none';
+  document.getElementById('inpNombre').value=''; document.getElementById('inpKey').value=''; imgBase64=''; editKey=null;
+  document.getElementById('previewBox').innerHTML='<span style="font-size:10px;color:#9CA3AF">Sin imagen</span>';
+}
+window.cancelarForm=cancelarForm;
 
 document.getElementById('inpNombre').addEventListener('input',()=>{
   const n = document.getElementById('inpNombre').value.toLowerCase().trim().replace(/\s+/g,'');
-  if(!editKey) document.getElementById('inpKey').value = n + 's';
+  if(!editKey) document.getElementById('inpKey').value = n;
 });
 document.getElementById('fileImg').addEventListener('change', e=>{
   const f=e.target.files[0]; if(!f) return;
@@ -127,19 +130,37 @@ document.getElementById('fileImg').addEventListener('change', e=>{
   r.readAsDataURL(f);
 });
 
-const pathCats = 'config_global/categorias_inicio';
+const categoriasDefault = {
+  todos: {key:'todos', nombre:'Todos', nombreLower:'todos', imagen:'https://img.icons8.com/3d-fluency/94/bento.png', activa:true, orden:0, fecha:Date.now()},
+  burgers: {key:'burgers', nombre:'Burger', nombreLower:'burger', imagen:'https://img.icons8.com/3d-fluency/94/hamburger.png', activa:true, orden:1, fecha:Date.now()},
+  pizzas: {key:'pizzas', nombre:'Pizza', nombreLower:'pizza', imagen:'https://img.icons8.com/3d-fluency/94/pizza.png', activa:true, orden:2, fecha:Date.now()},
+  alitas: {key:'alitas', nombre:'Alitas', nombreLower:'alitas', imagen:'https://img.icons8.com/3d-fluency/94/fried-chicken.png', activa:true, orden:3, fecha:Date.now()},
+  tacos: {key:'tacos', nombre:'Tacos', nombreLower:'tacos', imagen:'https://img.icons8.com/3d-fluency/94/taco.png', activa:true, orden:4, fecha:Date.now()},
+  hotdog: {key:'hotdog', nombre:'Hot Dog', nombreLower:'hot dog', imagen:'https://img.icons8.com/3d-fluency/94/hot-dog.png', activa:true, orden:5, fecha:Date.now()}
+};
+
+window.restaurarDefault=async()=>{
+  if(!confirm('¿Restablecer categorías por defecto? Se crearán Todos, Burger, Pizza, Alitas, Tacos, Hot Dog')) return;
+  for(const k of Object.keys(categoriasDefault)){
+    await set(ref(db, `${pathCats}/${k}`), categoriasDefault[k]);
+  }
+  toast('Categorías restablecidas');
+}
 
 function cargar(){
-  onValue(ref(db, pathCats), snap=>{
+  onValue(ref(db, pathCats), async snap=>{
     const grid=document.getElementById('gridCats');
-    const data=snap.val()||{};
-    const arr=Object.values(data).sort((a,b)=>(a.orden||99)-(b.orden||99));
+    let data=snap.val();
+    if(!data || Object.keys(data).length===0){
+      grid.innerHTML='<p style="padding:20px;color:#6B7280;text-align:center">No hay categorías aún. Dale a <b>Restablecer por defecto</b> para crear las 6 iniciales.</p>';
+      return;
+    }
+    const arr=Object.values(data).filter(c=>c.key!=='info' && c.key!=='_info').sort((a,b)=>(a.orden||99)-(b.orden||99));
     grid.innerHTML='';
     arr.forEach(c=>{
-      if(c.key==='info' || c.key==='_info') return;
       grid.innerHTML+=`
       <div class="cat-card">
-        <div class="cat-img"><img src="${c.imagen||'https://img.icons8.com/3d-fluency/94/bento.png'}"></div>
+        <div class="cat-img"><img src="${c.imagen||'https://img.icons8.com/3d-fluency/94/bento.png'}" onerror="this.src='https://img.icons8.com/3d-fluency/94/bento.png'"></div>
         <div class="cat-info">
           <div class="cat-name">${c.nombre}</div>
           <div class="cat-key">${c.key} • orden ${c.orden||0}</div>
@@ -154,7 +175,6 @@ function cargar(){
         </div>
       </div>`;
     });
-    document.getElementById('jsonPreview').textContent = JSON.stringify(data, null, 2);
   });
 }
 window.toggleActiva=async(k)=>{
@@ -185,7 +205,7 @@ window.eliminarCat=async(k)=>{
 }
 window.guardarCategoria=async()=>{
   const nombre=document.getElementById('inpNombre').value.trim();
-  let key=document.getElementById('inpKey').value.trim().toLowerCase();
+  let key=document.getElementById('inpKey').value.trim().toLowerCase().replace(/\s+/g,'');
   const orden=parseInt(document.getElementById('inpOrden').value)||99;
   if(!nombre || !key){ toast('Nombre y key requeridos'); return; }
   if(key==='info' || key==='_info'){ toast('Info no permitido'); return; }
@@ -193,7 +213,7 @@ window.guardarCategoria=async()=>{
     key: key,
     nombre: nombre,
     nombreLower: nombre.toLowerCase(),
-    imagen: imgBase64 || `https://img.icons8.com/3d-fluency/94/${key}.png`,
+    imagen: imgBase64 || `https://img.icons8.com/3d-fluency/94/bento.png`,
     activa: true,
     orden: orden,
     fecha: Date.now()
@@ -203,11 +223,8 @@ window.guardarCategoria=async()=>{
   }
   await set(ref(db, `${pathCats}/${key}`), payload);
   toast('Guardado');
-  document.getElementById('formAdd').style.display='none';
-  document.getElementById('inpNombre').value=''; document.getElementById('inpKey').value=''; imgBase64=''; editKey=null;
-  document.getElementById('previewBox').innerHTML='<span style="font-size:10px;color:#9CA3AF">Sin imagen</span>';
+  cancelarForm();
 }
-
 cargar();
 </script>
 </body>
