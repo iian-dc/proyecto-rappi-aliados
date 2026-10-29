@@ -28,20 +28,15 @@ body{background:#fff;display:flex;min-height:100vh}
 .header-left{display:flex;align-items:center;gap:12px}
 .btn-hamburger{display:none;width:42px;height:42px;background:#f3f4f6;border:none;border-radius:10px;align-items:center;justify-content:center;cursor:pointer}
 .header h1{font-size:22px;font-weight:800;color:#111}
-.header p{font-size:12.5px;color:#6b7280}
 .h-right{display:flex;align-items:center;gap:12px}
 .btn-instalar{display:none;background:#111;color:white;border:none;border-radius:999px;padding:9px 14px;font-size:12px;font-weight:700;align-items:center;gap:6px;cursor:pointer}
 .bell{position:relative;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer}
 .bell-count{position:absolute;top:-2px;right:-2px;background:#E30613;color:white;min-width:18px;height:18px;border-radius:50%;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0 5px}
 .bell.vibrar{animation:bell3d .15s infinite}
 @keyframes bell3d{0%{transform:rotate(-12deg) scale(1.1)}50%{transform:rotate(12deg) scale(1.25)}100%{transform:rotate(-12deg) scale(1.1)}}
-.admin-chip{display:flex;align-items:center;gap:8px;background:#f8fafc;border:1px solid #f1f5f9;border-radius:999px;padding:5px 12px 5px 5px}
-.admin-avatar{width:32px;height:32px;background:var(--rojo);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white}
 .btn-cerrar{background:var(--rojo);color:white;border:none;border-radius:999px;padding:9px 16px;font-size:12px;font-weight:700;cursor:pointer}
 .center-content{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;text-align:center;min-height:calc(100vh - 72px)}
-.ilustracion{width:260px;height:180px;margin-bottom:24px}
 .center-content h2{font-size:34px;font-weight:800;color:#111;margin-bottom:10px}
-.center-content p{font-size:14.5px;color:#6b7280;max-width:420px}
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:15;display:none}
 .overlay.open{display:block}
 @media(max-width:768px){
@@ -51,7 +46,6 @@ body{background:#fff;display:flex;min-height:100vh}
   .btn-hamburger{display:flex}
   .header{padding:10px 14px;height:auto;min-height:64px}
   .header h1{font-size:17px}
-  .header p{display:none}
 }
 </style>
 </head>
@@ -64,10 +58,8 @@ body{background:#fff;display:flex;min-height:100vh}
   <nav class="menu">
     <a href="paneladmin-pedidos.html" class="active"><span>Pedidos</span><span class="badge-pedidos" id="countPedidos">0</span></a>
     <a href="paneladmin-historial.html"><span>Historial</span></a>
-    <a href="paneladmin-tarifasyzonas.html"><span>Tarifas y zonas</span></a>
+    <a href="paneladmin-tarifasyzonas.html"><span>Tarifas</span></a>
     <a href="paneladmin-repartidores.html"><span>Repartidores</span></a>
-    <a href="paneladmin-aliados.html"><span>Aliados</span></a>
-    <a href="paneladmin-clientes.html"><span>Clientes</span></a>
   </nav>
 </div>
 
@@ -75,24 +67,22 @@ body{background:#fff;display:flex;min-height:100vh}
   <div class="header">
     <div class="header-left">
       <button class="btn-hamburger" id="btnMenu"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2.5" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
-      <div><h1>Panel de administración</h1><p>Resumen de tu negocio</p></div>
+      <div><h1>Panel de administración</h1></div>
     </div>
     <div class="h-right">
       <button id="btnInstalar" class="btn-instalar">Instalar App</button>
-      <div class="bell" id="bellIcon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#B70A1A" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 6 5 6 9H0s6-2 6-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span class="bell-count" id="bellCount">0</span></div>
+      <div class="bell" id="bellIcon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#B70A1A" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 6 5 6 9H0s6-2 6-9"/></svg><span class="bell-count" id="bellCount">0</span></div>
       <button class="btn-cerrar" onclick="cerrarSesion()">Salir</button>
     </div>
   </div>
-  <div class="center-content"><h2>Hola Administrador</h2><p>Gestiona tus pedidos desde aquí.</p></div>
+  <div class="center-content"><h2>Hola Administrador</h2><p>Todo listo para recibir pedidos.</p></div>
 </div>
 
-<!-- AUDIO FUERTE PARA CELULAR -->
 <audio id="audioAlerta" preload="auto" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
 import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
-import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-messaging.js";
 
 const configConfirmacion = {
   apiKey: "AIzaSyDLKngPyi_SWAXEQwdrHO5h8L8OufulAR4",
@@ -104,7 +94,6 @@ const configConfirmacion = {
 };
 const app = initializeApp(configConfirmacion);
 const db = getFirestore(app);
-const messaging = getMessaging(app);
 
 const bell = document.getElementById('bellIcon');
 const countEl = document.getElementById('countPedidos');
@@ -115,11 +104,11 @@ const sidebar = document.getElementById('sidebar');
 const overlay = document.getElementById('overlay');
 const audioAlerta = document.getElementById('audioAlerta');
 
-let ultimoTotal = 0;
+let ultimoTotal = parseInt(localStorage.getItem('doloya_ultimo_total')||'0');
 let primerCarga = true;
 let deferredPrompt = null;
 
-// MENU
+// MENU CELULAR
 btnMenu.addEventListener('click', ()=>{
   sidebar.classList.toggle('open');
   overlay.classList.toggle('open');
@@ -129,7 +118,7 @@ overlay.addEventListener('click', ()=>{
   overlay.classList.remove('open');
 });
 
-// INSTALAR
+// INSTALAR APP
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
@@ -143,94 +132,108 @@ btnInstalar.addEventListener('click', async () => {
   btnInstalar.style.display = 'none';
 });
 
-// === SOLICITAR PERMISO Y TOKEN PARA CELULAR BLOQUEADO ===
-async function activarNotificacionesCelular(){
-  try{
-    const permiso = await Notification.requestPermission();
-    if(permiso !== 'granted') return;
-    
-    const registration = await navigator.serviceWorker.ready;
-    const token = await getToken(messaging, {
-      vapidKey: 'BH7U2uBv2y4e3k2bW7v8f9g0h1i2j3k4l5m6n7o8p9q0r1s2t3u4v5w6x7y8z9a0',
-      serviceWorkerRegistration: registration
-    });
-    console.log("FCM Token celular:", token);
-    // Guarda el token para enviarte push aunque esté bloqueado
-    localStorage.setItem('doloya_fcm_token', token);
-  }catch(e){ console.log("FCM error:", e); }
+// PEDIR PERMISO NOTIFICACION INMEDIATO
+async function pedirPermiso(){
+  if(!('Notification' in window)) return;
+  if(Notification.permission === 'default'){
+    await Notification.requestPermission();
+  }
 }
+pedirPermiso();
 
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js').then(()=>{
-    activarNotificacionesCelular();
-  });
-}
-
-// Cuando llega mensaje con app abierta o en segundo plano
-onMessage(messaging, (payload)=>{
-  sonarFuerte();
-  notificarCelularBloqueado(payload.notification?.title || "Nuevo pedido", payload.notification?.body || "Tienes un pedido nuevo");
-});
-
-function sonarFuerte(){
+function sonarSiempre(){
   bell.classList.add('vibrar');
   setTimeout(()=>bell.classList.remove('vibrar'),4000);
   try{
-    audioAlerta.currentTime = 0;
     audioAlerta.volume = 1.0;
+    audioAlerta.currentTime = 0;
     audioAlerta.play().catch(()=>{});
-    // vibracion fuerte para celular bloqueado
     if (navigator.vibrate) navigator.vibrate([600,200,600,200,600]);
-    // repetir sonido 3 veces para que se escuche bloqueado
-    let rep = 0;
-    const intervalo = setInterval(()=>{
+    let r=0;
+    const it=setInterval(()=>{
+      audioAlerta.currentTime=0;
       audioAlerta.play().catch(()=>{});
-      if (navigator.vibrate) navigator.vibrate([600,200,600]);
-      rep++;
-      if(rep>=2) clearInterval(intervalo);
-    }, 1200);
+      if(navigator.vibrate) navigator.vibrate([600,200,600]);
+      r++; if(r>=2) clearInterval(it);
+    },1200);
   }catch{}
 }
 
-function notificarCelularBloqueado(titulo, cuerpo){
-  if (Notification.permission !== 'granted') return;
-  navigator.serviceWorker.ready.then(reg=>{
-    reg.showNotification(titulo, {
-      body: cuerpo,
-      icon: 'LOGO-PANEL.PNG',
-      badge: 'LOGO-PANEL.PNG',
-      vibrate: [600,200,600,200,600],
-      requireInteraction: true,
-      renotify: true,
-      tag: 'pedido-doloya',
-      silent: false,
-      data: {url: 'paneladmin-pedidos.html'}
+// NOTIFICACION QUE SUENA BLOQUEADO
+function notificarSiempre(total){
+  if(Notification.permission !== 'granted') return;
+  
+  // Mensaje que vibra incluso bloqueado
+  const opts = {
+    body: `¡Pedido nuevo! Tienes ${total} pedido${total>1?'s':''} pendiente${total>1?'s':''}.`,
+    icon: 'LOGO-PANEL.PNG',
+    badge: 'LOGO-PANEL.PNG',
+    vibrate: [600,200,600,200,600],
+    requireInteraction: true,
+    renotify: true,
+    tag: 'pedido-doloya-nuevo',
+    silent: false,
+    data: {url: 'paneladmin-pedidos.html'}
+  };
+
+  if(navigator.serviceWorker && navigator.serviceWorker.controller){
+    // Mandar al Service Worker para que notifique aunque esté minimizado
+    navigator.serviceWorker.controller.postMessage({
+      type: 'NUEVO_PEDIDO',
+      total: total,
+      title: '🔔 ¡Nuevo pedido DoloYa!',
+      body: opts.body
     });
+  }
+
+  // Tambien mostrar directo
+  navigator.serviceWorker.ready.then(reg=>{
+    reg.showNotification('🔔 ¡Nuevo pedido DoloYa!', opts);
   });
 }
 
-onSnapshot(collection(db,"pedidos"), (snap)=>{
-  const activos = snap.docs.filter(d=>{
-    const est = (d.data().estado || "").toLowerCase();
-    return !["entregado","cancelado","rechazado"].includes(est);
-  });
-  const total = activos.length;
-  if(total > 0){
+// LISTENER PRINCIPAL - FUNCIONA EN TODAS LAS PAGINAS
+function iniciarListener(){
+  onSnapshot(collection(db,"pedidos"), (snap)=>{
+    const activos = snap.docs.filter(d=>{
+      const est = (d.data().estado || "").toLowerCase();
+      return !["entregado","cancelado","rechazado"].includes(est);
+    });
+    const total = activos.length;
+    
     countEl.textContent = total;
     bellCount.textContent = total;
-    countEl.style.display = 'flex';
-    bellCount.style.display = 'flex';
-  } else {
-    countEl.style.display = 'none';
-    bellCount.style.display = 'none';
-  }
-  if(!primerCarga && total>ultimoTotal){
-    sonarFuerte();
-    notificarCelularBloqueado('🔔 ¡Nuevo pedido DoloYa!', `Tienes ${total} pedido${total>1?'s':''} por atender. Toca para abrir.`);
-  }
-  ultimoTotal = total;
-  primerCarga = false;
-});
+    countEl.style.display = total>0 ? 'flex' : 'none';
+    bellCount.style.display = total>0 ? 'flex' : 'none';
+
+    // Guardar para que el SW sepa
+    localStorage.setItem('doloya_ultimo_total', total.toString());
+
+    if(!primerCarga && total>ultimoTotal){
+      sonarSiempre();
+      notificarSiempre(total);
+    }
+    ultimoTotal = total;
+    primerCarga = false;
+  });
+}
+
+iniciarListener();
+
+// Si minimizas, el SW sigue revisando cada 10s
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').then(()=>{
+    // Mandar total actual al SW para que compare cuando esté minimizado
+    setInterval(()=>{
+      if(document.hidden){
+        const t = localStorage.getItem('doloya_ultimo_total')||'0';
+        if(navigator.serviceWorker.controller){
+          navigator.serviceWorker.controller.postMessage({type: 'CHECK_PEDIDOS', total: parseInt(t)});
+        }
+      }
+    }, 5000);
+  });
+}
 
 window.cerrarSesion = function(){
   localStorage.removeItem('doloya_aliado_sesion');
