@@ -66,9 +66,9 @@ body{background:#F5F5F7;min-height:100vh}
           <label class="label">Imagen (3D)</label>
           <div class="preview-box" id="previewBox"><span style="font-size:10px;color:#9CA3AF">Sin imagen</span></div>
           <input type="file" id="fileImg" accept="image/*" style="margin-top:8px;font-size:12px">
-          <label class="label">URL de imagen (se genera automática)</label>
-          <input id="inpImagenUrl" class="input" placeholder="https://..." style="font-size:11px;min-width:260px">
-          <div id="statusUrl" style="font-size:10px;color:#6B7280;margin-top:4px"></div>
+          <label class="label">URL de imagen generada</label>
+          <input id="inpImagenUrl" class="input" placeholder="Se genera sola al subir" style="font-size:11px;min-width:260px">
+          <div id="statusUrl" style="font-size:10px;color:#16A34A;margin-top:4px"></div>
         </div>
         <div style="flex:1;min-width:220px">
           <label class="label">Nombre (Ej: Burger)</label><input id="inpNombre" class="input" placeholder="Burger">
@@ -91,7 +91,6 @@ body{background:#F5F5F7;min-height:100vh}
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
 import { getDatabase, ref, onValue, set, update, remove, get } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js";
-import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-storage.js";
 const firebaseConfig = {
   apiKey: "AIzaSyD286qlJQT8D3rqbYTSfCyuTAEg9jjRchQ",
   authDomain: "doloya-aliados.firebaseapp.com",
@@ -103,7 +102,6 @@ const firebaseConfig = {
 };
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
-const storage = getStorage(app);
 let editKey = null;
 let urlImagenFinal = '';
 const pathCats = 'config_global/categorias_inicio';
@@ -117,8 +115,6 @@ function cancelarForm(){
   document.getElementById('inpNombre').value=''; document.getElementById('inpKey').value=''; document.getElementById('inpImagenUrl').value=''; urlImagenFinal=''; editKey=null;
   document.getElementById('previewBox').innerHTML='<span style="font-size:10px;color:#9CA3AF">Sin imagen</span>';
   document.getElementById('statusUrl').textContent='';
-  document.getElementById('btnGuardar').disabled=false;
-  document.getElementById('btnGuardar').textContent='Guardar';
 }
 window.cancelarForm=cancelarForm;
 
@@ -127,20 +123,21 @@ document.getElementById('inpNombre').addEventListener('input',()=>{
   if(!editKey) document.getElementById('inpKey').value = n;
 });
 
-// Comprimir imagen para que no pese
-function comprimirImagen(file, maxWidth=300){
+function comprimirADataURL(file){
   return new Promise((resolve)=>{
     const reader = new FileReader();
     reader.onload = (e)=>{
       const img = new Image();
       img.onload = ()=>{
-        const canvas = document.createElement('canvas');
+        const maxW = 300;
         let w = img.width, h = img.height;
-        if(w > maxWidth){ h = h*(maxWidth/w); w = maxWidth; }
+        if(w > maxW){ h = h*(maxW/w); w = maxW; }
+        const canvas = document.createElement('canvas');
         canvas.width = w; canvas.height = h;
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img,0,0,w,h);
-        canvas.toBlob((blob)=>{ resolve(blob); }, 'image/jpeg', 0.7);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
+        resolve(dataUrl);
       };
       img.src = e.target.result;
     };
@@ -150,43 +147,20 @@ function comprimirImagen(file, maxWidth=300){
 
 document.getElementById('fileImg').addEventListener('change', async e=>{
   const f=e.target.files[0]; if(!f) return;
-  document.getElementById('statusUrl').textContent='Comprimiendo...';
-  document.getElementById('btnGuardar').disabled=true;
-  document.getElementById('btnGuardar').textContent='Subiendo...';
-  try{
-    const blob = await comprimirImagen(f, 300);
-    const previewUrl = URL.createObjectURL(blob);
-    document.getElementById('previewBox').innerHTML=`<img src="${previewUrl}">`;
-    
-    // Subir comprimida a Storage y obtener URL
-    document.getElementById('statusUrl').textContent='Subiendo a Storage...';
-    const keyTemp = document.getElementById('inpKey').value || 'temp';
-    const storagePath = `categorias_inicio/${keyTemp}_${Date.now()}.jpg`;
-    const refStorage = sRef(storage, storagePath);
-    await uploadBytes(refStorage, blob);
-    const downloadUrl = await getDownloadURL(refStorage);
-    
-    urlImagenFinal = downloadUrl;
-    document.getElementById('inpImagenUrl').value = downloadUrl;
-    document.getElementById('statusUrl').textContent='✅ URL generada';
-    document.getElementById('statusUrl').style.color='#16A34A';
-    toast('Imagen lista, URL generada');
-  }catch(err){
-    console.error(err);
-    document.getElementById('statusUrl').textContent='❌ Error subiendo: '+err.message;
-    document.getElementById('statusUrl').style.color='#E30613';
-    toast('Error al subir, revisa reglas de Storage');
-  }
-  document.getElementById('btnGuardar').disabled=false;
-  document.getElementById('btnGuardar').textContent='Guardar';
+  document.getElementById('statusUrl').textContent='Generando URL...';
+  const dataUrl = await comprimirADataURL(f);
+  urlImagenFinal = dataUrl;
+  document.getElementById('inpImagenUrl').value = dataUrl.substring(0,60) + '... (URL comprimida lista)';
+  document.getElementById('previewBox').innerHTML=`<img src="${dataUrl}">`;
+  document.getElementById('statusUrl').textContent='✅ URL generada (liviana, lista para guardar)';
+  toast('URL lista');
 });
 
-// Si pegan URL manual
 document.getElementById('inpImagenUrl').addEventListener('input',()=>{
-  urlImagenFinal = document.getElementById('inpImagenUrl').value.trim();
-  if(urlImagenFinal.startsWith('http')){
-    document.getElementById('previewBox').innerHTML=`<img src="${urlImagenFinal}">`;
-    document.getElementById('statusUrl').textContent='✅ URL manual';
+  const v = document.getElementById('inpImagenUrl').value.trim();
+  if(v.startsWith('http') || v.startsWith('data:')){
+    urlImagenFinal = v;
+    if(v.startsWith('http') || v.startsWith('data:')) document.getElementById('previewBox').innerHTML=`<img src="${v}">`;
   }
 });
 
@@ -239,7 +213,7 @@ window.editarCat=async(k)=>{
   document.getElementById('inpOrden').value=c.orden||1;
   document.getElementById('inpImagenUrl').value=c.imagen||'';
   document.getElementById('previewBox').innerHTML= c.imagen ? `<img src="${c.imagen}">` : 'Sin imagen';
-  document.getElementById('statusUrl').textContent='URL cargada';
+  document.getElementById('statusUrl').textContent='URL cargada, puedes cambiarla';
   window.scrollTo({top:0, behavior:'smooth'});
 }
 window.eliminarCat=async(k)=>{
@@ -252,11 +226,13 @@ window.guardarCategoria=async()=>{
   const nombre=document.getElementById('inpNombre').value.trim();
   let key=document.getElementById('inpKey').value.trim().toLowerCase().replace(/\s+/g,'');
   const orden=parseInt(document.getElementById('inpOrden').value)||99;
-  const inputUrl=document.getElementById('inpImagenUrl').value.trim();
-  if(inputUrl) urlImagenFinal = inputUrl;
+  const inputVal=document.getElementById('inpImagenUrl').value.trim();
+  if(inputVal && (inputVal.startsWith('http') || inputVal.startsWith('data:'))) urlImagenFinal = inputVal;
+  else if(inputVal.length>20 && !urlImagenFinal) urlImagenFinal = inputVal;
+  
   if(!nombre || !key){ toast('Nombre y key requeridos'); return; }
   if(key==='info' || key==='_info'){ toast('Info no permitido'); return; }
-  if(!urlImagenFinal){ toast('Sube una imagen primero para generar la URL'); return; }
+  if(!urlImagenFinal){ toast('Sube una imagen primero'); return; }
 
   const payload={
     key: key,
@@ -267,12 +243,17 @@ window.guardarCategoria=async()=>{
     orden: orden,
     fecha: Date.now()
   };
-  if(editKey && editKey!==key){
-    await remove(ref(db, `${pathCats}/${editKey}`));
+  try{
+    if(editKey && editKey!==key){
+      await remove(ref(db, `${pathCats}/${editKey}`));
+    }
+    await set(ref(db, `${pathCats}/${key}`), payload);
+    toast('Guardado correctamente');
+    cancelarForm();
+  }catch(e){
+    console.error(e);
+    toast('Error: '+e.message);
   }
-  await set(ref(db, `${pathCats}/${key}`), payload);
-  toast('Guardado solo con URL');
-  cancelarForm();
 }
 cargar();
 </script>
