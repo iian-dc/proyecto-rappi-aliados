@@ -1,0 +1,17 @@
+{
+  "name": "DoloYa - Panel Aliados",
+  "short_name": "DoloYa Aliados",
+  "description": "Panel de aliados DoloYa para restaurantes",
+  "start_url": "panelaliado.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#C8102E",
+  "icons": [
+    {
+      "src": "LOGO-PANEL.PNG",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
