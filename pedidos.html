@@ -63,19 +63,51 @@ body{background:#f8f8f9;min-height:100vh}
 .btn-si{background:white;color:#0EA5E9;padding:11px 32px;border-radius:999px;border:none;font-weight:900;cursor:pointer;font-size:14px}
 .btn-no{background:transparent;color:white;padding:11px 32px;border-radius:999px;border:2px solid white;font-weight:900;cursor:pointer;font-size:14px}
 .empty{text-align:center;padding:60px 20px;color:#9ca3af}
+/* ===== SOLO CAMBIOS QUE PEDISTE ===== */
+.bell-badge{position:absolute;top:-6px;right:-6px;background:#C50D1F;color:white;min-width:20px;height:20px;border-radius:999px;font-size:11px;font-weight:900;display:flex;align-items:center;justify-content:center;padding:0 5px;border:2px solid white;box-shadow:0 2px 8px rgba(197,13,31,0.5);transform:scale(0);transition:transform .25s cubic-bezier(.34,1.56,.64,1);z-index:2}
+.bell-badge.show{transform:scale(1)}
+.bell-badge.pulse{animation:badgePulse .4s ease}
+@keyframes badgePulse{0%{transform:scale(1)}50%{transform:scale(1.35)}100%{transform:scale(1)}}
+@media(max-width:600px){
+  .header{height:52px;padding:0 12px}
+  .h-left{gap:10px}
+  .h-left h1{font-size:16px}
+  .btn-x{width:30px;height:30px;font-size:16px}
+  .h-right{gap:10px}
+  .bell{width:28px;height:28px}
+  .chip-rest{padding:4px 10px;max-width:130px}
+  .chip-rest b{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+  .chip-rest small{font-size:10px}
+  .tabs{gap:8px;padding:10px 12px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{padding:6px 12px;font-size:11.5px;white-space:nowrap;flex-shrink:0}
+  .tab span.count{min-width:18px;height:18px;font-size:10px}
+  .container{padding:0 10px 12px}
+  .card{border-radius:12px;margin-bottom:10px}
+  .card-left{padding:12px;gap:10px}
+  .card-right{padding:12px;gap:8px}
+  .badge-nuevo{font-size:10px;padding:4px 10px}
+  .cliente-line{font-size:13px}
+  .costo-final{font-size:16px}
+  .codigo-pedido{font-size:16px}
+  .prod-head{flex-direction:column;gap:6px}
+  .fecha-hora{font-size:10px;gap:6px}
+  .prod-item{font-size:12px}
+  .btn{padding:9px 14px;font-size:11.5px}
+  .actions{gap:6px}
+  .overlay-preg h3{font-size:16px}
+}
 @media(max-width:800px){.card{flex-direction:column}.card-center{display:none}}
 </style>
 </head>
 <body>
-
 <div class="header">
   <div class="h-left"><a href="panelaliado.html" class="btn-x">✕</a><h1>Pedidos</h1></div>
   <div class="h-right">
-    <div class="bell" id="bellIcon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C50D1F" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 6 5 6 9H0s6-2 6-9"/></svg></div>
+    <div class="bell" id="bellIcon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C50D1F" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 6 5 6 9H0s6-2 6-9"/></svg><span class="bell-badge" id="bellCount">0</span></div>
     <div class="chip-rest"><div><b id="restName">Mi restaurante</b><small style="color:#22c55e">● En línea</small></div></div>
   </div>
 </div>
-
 <div class="tabs">
   <button class="tab active" data-f="todos">Todos <span class="count" id="c-todos">0</span></button>
   <button class="tab" data-f="nuevo">Nuevos <span class="count" id="c-nuevo">0</span></button>
@@ -83,13 +115,10 @@ body{background:#f8f8f9;min-height:100vh}
   <button class="tab" data-f="en_preparacion">En preparación <span class="count" id="c-prep">0</span></button>
   <button class="tab" data-f="listo">Listos <span class="count" id="c-listo">0</span></button>
 </div>
-
 <div class="container" id="listaPedidos"><div class="empty">Cargando pedidos...</div></div>
-
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
 import { getFirestore, collection, onSnapshot, doc, updateDoc, getDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
-
 const configConfirmacion = {
   apiKey: "AIzaSyDLKngPyi_SWAXEQwdrHO5h8L8OufulAR4",
   authDomain: "doloya-confirmacion.firebaseapp.com",
@@ -100,194 +129,112 @@ const configConfirmacion = {
 };
 const app = initializeApp(configConfirmacion);
 const db = getFirestore(app);
-
 const sesion = JSON.parse(localStorage.getItem('doloya_aliado_sesion')||'null');
 const idNegocio = sesion?.id || sesion?.negocio || 'burgers';
 const mapaCat = { alitas:'alitas', burgers:'burgers', pizzas:'pizzas' };
 const catBuscada = mapaCat[idNegocio] || idNegocio;
 const restName = document.getElementById('restName');
 if(sesion?.nombreReal) restName.textContent = sesion.nombreReal;
-
 const bell = document.getElementById('bellIcon');
+const bellCountEl = document.getElementById('bellCount');
 let primerCarga=true, ultimoTotal=0, pedidosCache=[], filtroActual='todos';
-
+function desbloquearAudio(){try{const ctx=new (window.AudioContext||window.webkitAudioContext)();if(ctx.state==='suspended')ctx.resume();}catch{}}
+document.body.addEventListener('click',()=>{desbloquearAudio();},{once:true});
+document.body.addEventListener('touchstart',()=>{desbloquearAudio();},{once:true});
+function actualizarBadgeCampana(cantidad){
+  if(!bellCountEl) return;
+  if(cantidad>0){
+    bellCountEl.textContent=cantidad>99?'99+':cantidad;
+    bellCountEl.classList.add('show');
+    bellCountEl.classList.remove('pulse');
+    void bellCountEl.offsetWidth;
+    bellCountEl.classList.add('pulse');
+  }else{bellCountEl.classList.remove('show');}
+}
 function sonarDoloYa(){
-  bell.classList.add('vibrar'); setTimeout(()=>bell.classList.remove('vibrar'),3000);
+  bell.classList.add('vibrar'); setTimeout(()=>bell.classList.remove('vibrar'),3500);
+  try{if(navigator.vibrate)navigator.vibrate([400,150,400,150,600,200,600]);}catch{}
   try{
     window.speechSynthesis.cancel();
-    const utter = new SpeechSynthesisUtterance("¡DoloYa! ¡DoloYa! ¡DoloYa! ¡Pedido! ¡Pedido! ¡Pedido!");
-    utter.lang='es-MX'; utter.rate=1.25; utter.pitch=1.4; utter.volume=1;
+    const utter=new SpeechSynthesisUtterance("¡DoloYa! ¡Pedido nuevo! ¡DoloYa!");
+    utter.lang='es-MX'; utter.rate=1.15; utter.pitch=1.3; utter.volume=1;
     window.speechSynthesis.speak(utter);
-    const ctx = new (window.AudioContext||window.webkitAudioContext)();
-    const now = ctx.currentTime;
-    [523,659,784,1046].forEach((f,i)=>{
-      const o=ctx.createOscillator(); const g=ctx.createGain();
-      o.type='triangle'; o.frequency.setValueAtTime(f,now+i*0.4);
-      g.gain.setValueAtTime(0.25,now+i*0.4); g.gain.exponentialRampToValueAtTime(0.01,now+i*0.4+0.35);
-      o.connect(g); g.connect(ctx.destination); o.start(now+i*0.4); o.stop(now+i*0.4+0.35);
-    });
+  }catch{}
+  try{
+    const ctx=new (window.AudioContext||window.webkitAudioContext)();
+    const masterGain=ctx.createGain(); masterGain.gain.value=1; masterGain.connect(ctx.destination);
+    const now=ctx.currentTime;
+    const playTone=(baseTime)=>{
+      [880,1046,1318,1568].forEach((f,i)=>{
+        const o=ctx.createOscillator(); const g=ctx.createGain();
+        o.type='square'; o.frequency.setValueAtTime(f,baseTime+i*0.18);
+        g.gain.setValueAtTime(0.45,baseTime+i*0.18);
+        g.gain.exponentialRampToValueAtTime(0.001,baseTime+i*0.18+0.3);
+        o.connect(g); g.connect(masterGain);
+        o.start(baseTime+i*0.18); o.stop(baseTime+i*0.18+0.32);
+      });
+    };
+    playTone(now); playTone(now+0.9); playTone(now+1.8);
   }catch{}
 }
-document.body.addEventListener('click', ()=>{ try{ new (window.AudioContext||window.webkitAudioContext)().resume(); }catch{} }, {once:true});
 document.querySelectorAll('.tab').forEach(t=>{ t.addEventListener('click', ()=>{ document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active')); t.classList.add('active'); filtroActual=t.dataset.f; render(pedidosCache); }); });
-
 function calcularTiempoReal(sec){
   if(!sec) return {texto:'0s', clase:'tiempo-verde', iconoSvg:''};
-  const diffSeg = Math.floor(Date.now()/1000 - sec);
-  const min = Math.floor(diffSeg/60);
-  const seg = diffSeg % 60;
-  let texto='';
-  if(diffSeg < 60) texto = diffSeg + 's';
-  else if(diffSeg < 3600) texto = min + 'm ' + seg + 's';
-  else { const h=Math.floor(min/60); const m=min%60; texto = h+'h '+m+'m'; }
-  let clase='', iconoSvg='';
-  if(diffSeg < 960){ clase='tiempo-verde'; }
-  else if(diffSeg < 2160){ clase='tiempo-amarillo'; }
-  else if(diffSeg < 3000){ clase='tiempo-rojo'; }
-  else { 
-    clase='tiempo-negro'; 
-    iconoSvg = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
-  }
-  return {texto, clase, iconoSvg};
+  const diffSeg=Math.floor(Date.now()/1000-sec);
+  const min=Math.floor(diffSeg/60); const seg=diffSeg%60;
+  let texto=''; if(diffSeg<60)texto=diffSeg+'s'; else if(diffSeg<3600)texto=min+'m '+seg+'s'; else{const h=Math.floor(min/60); const m=min%60; texto=h+'h '+m+'m';}
+  let clase='', iconoSvg=''; if(diffSeg<960){clase='tiempo-verde';}else if(diffSeg<2160){clase='tiempo-amarillo';}else if(diffSeg<3000){clase='tiempo-rojo';}else{clase='tiempo-negro'; iconoSvg='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';}
+  return {texto,clase,iconoSvg};
 }
-
-function obtenerNombreCliente(p){
-  return p.nombre || p.detalles?.nombre || p.cliente?.nombre || p.nombreCliente || p.clienteNombre || p.cliente?.nombreCliente || p.datosCliente?.nombre || p.usuario?.nombre || (p.detalles?.direccion ? p.detalles.direccion.split(',')[0] : null) || 'Cliente';
-}
-
+function obtenerNombreCliente(p){return p.nombre||p.detalles?.nombre||p.cliente?.nombre||p.nombreCliente||p.clienteNombre||p.cliente?.nombreCliente||p.datosCliente?.nombre||p.usuario?.nombre||(p.detalles?.direccion?p.detalles.direccion.split(',')[0]:null)||'Cliente';}
 function render(lista){
   const cont=document.getElementById('listaPedidos');
   const filtrados=filtroActual==='todos'?lista:lista.filter(p=> (p.estado||'nuevo')===filtroActual);
   if(filtrados.length===0){ cont.innerHTML='<div class="empty">No hay pedidos en '+filtroActual+'</div>'; return; }
   cont.innerHTML='';
   filtrados.forEach((p)=>{
-    const productos=p.productos||[];
-    const totales=p.totales||{};
-    let costoProductos = totales.costoProductos || 0;
+    const productos=p.productos||[]; const totales=p.totales||{}; let costoProductos=totales.costoProductos||0;
     if(!costoProductos){ productos.forEach(pr=>{ costoProductos+= (pr.cantidad||1)*parseFloat(pr.precio||0); }); }
-    const costoOriginal = parseFloat(costoProductos);
-    const costoFinal = (costoOriginal*0.9).toFixed(0);
-    const nombreCliente = obtenerNombreCliente(p);
-    const codigoReal = p.codigo || 'ST-00';
-    const estado = p.estado || 'nuevo';
+    const costoOriginal=parseFloat(costoProductos); const costoFinal=(costoOriginal*0.9).toFixed(0);
+    const nombreCliente=obtenerNombreCliente(p); const codigoReal=p.codigo||'ST-00'; const estado=p.estado||'nuevo';
     let claseEstado='', badgeClass='badge-nuevo', badgeText='Nuevo';
     if(estado==='aceptado'){ claseEstado='aceptado'; badgeClass='badge-nuevo verde'; badgeText='Aceptado'; }
     else if(estado==='en_preparacion'){ claseEstado='preparando'; badgeClass='badge-nuevo amarillo'; badgeText='En preparación'; }
-    else if(estado==='listo' || estado==='listo_para_admin'){ claseEstado='aceptado'; badgeClass='badge-nuevo verde'; badgeText='Listo'; }
+    else if(estado==='listo'||estado==='listo_para_admin'){ claseEstado='aceptado'; badgeClass='badge-nuevo verde'; badgeText='Listo'; }
     let fechaStr='', horaStr='', tsSec=0;
     if(p.timestamp?.seconds){ tsSec=p.timestamp.seconds; const d=new Date(tsSec*1000); fechaStr=d.toLocaleDateString('es-MX',{day:'2-digit',month:'2-digit',year:'2-digit'}); horaStr=d.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit',hour12:true}); }
     else if(p.fecha){ const d=new Date(p.fecha); tsSec=Math.floor(d.getTime()/1000); fechaStr=d.toLocaleDateString('es-MX',{day:'2-digit',month:'2-digit',year:'2-digit'}); horaStr=d.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit',hour12:true}); }
-    const tiempo = calcularTiempoReal(tsSec);
-    const div=document.createElement('div');
-    div.className=`card ${claseEstado}`;
-    div.dataset.ts=tsSec;
-    div.id=`card-${p.id}`;
-    div.innerHTML=`
-      <div class="overlay-preg" id="overlay-${p.id}">
-        <h3>¿Está listo tu producto?<br>Ya puede venir repartidor por él</h3>
-        <div style="display:flex;gap:12px">
-          <button class="btn-si" onclick="confirmarListo('${p.id}')">Sí</button>
-          <button class="btn-no" onclick="negarListo('${p.id}')">No</button>
-        </div>
-      </div>
-      <div class="card-left">
-        <span class="${badgeClass}"><span class="dot"></span> ${badgeText}</span>
-        <div>
-          <div class="cliente-line">cliente: <span>${nombreCliente}</span></div>
-          <div class="costo-box">
-            <small>Costo del producto</small>
-            <span class="costo-original">$${costoOriginal.toFixed(0)} MXN</span>
-            <span class="costo-final">$${costoFinal} MXN</span>
-          </div>
-        </div>
-      </div>
-      <div class="card-center"></div>
-      <div class="card-right">
-        <div class="prod-head">
-          <div class="fecha-hora"><b>${fechaStr}</b> ${horaStr} <span class="tiempo-real ${tiempo.clase}" data-ts="${tsSec}">${tiempo.iconoSvg}${tiempo.texto}</span></div>
-          <div class="codigo-pedido">${codigoReal}</div>
-        </div>
-        <div class="prod-list">
-          ${productos.map(pr=>`<div class="prod-item"><span><b>${pr.cantidad||1}x</b> ${pr.nombre||'Producto'}</span></div>`).join('')}
-        </div>
-        <div class="actions">
-          <button class="btn btn-verde" onclick="cambiarEstado('${p.id}','aceptado')">Aceptar</button>
-          <button class="btn btn-amarillo" onclick="cambiarEstado('${p.id}','en_preparacion')">Preparando</button>
-          <button class="btn btn-verde" onclick="preguntarListo('${p.id}')">Listo</button>
-        </div>
-      </div>
-    `;
+    const tiempo=calcularTiempoReal(tsSec);
+    const div=document.createElement('div'); div.className=`card ${claseEstado}`; div.dataset.ts=tsSec; div.id=`card-${p.id}`;
+    div.innerHTML=`<div class="overlay-preg" id="overlay-${p.id}"><h3>¿Está listo tu producto?<br>Ya puede venir repartidor por él</h3><div style="display:flex;gap:12px"><button class="btn-si" onclick="confirmarListo('${p.id}')">Sí</button><button class="btn-no" onclick="negarListo('${p.id}')">No</button></div></div><div class="card-left"><span class="${badgeClass}"><span class="dot"></span> ${badgeText}</span><div><div class="cliente-line">cliente: <span>${nombreCliente}</span></div><div class="costo-box"><small>Costo del producto</small><span class="costo-original">$${costoOriginal.toFixed(0)} MXN</span><span class="costo-final">$${costoFinal} MXN</span></div></div></div><div class="card-center"></div><div class="card-right"><div class="prod-head"><div class="fecha-hora"><b>${fechaStr}</b> ${horaStr} <span class="tiempo-real ${tiempo.clase}" data-ts="${tsSec}">${tiempo.iconoSvg}${tiempo.texto}</span></div><div class="codigo-pedido">${codigoReal}</div></div><div class="prod-list">${productos.map(pr=>`<div class="prod-item"><span><b>${pr.cantidad||1}x</b> ${pr.nombre||'Producto'}</span></div>`).join('')}</div><div class="actions"><button class="btn btn-verde" onclick="cambiarEstado('${p.id}','aceptado')">Aceptar</button><button class="btn btn-amarillo" onclick="cambiarEstado('${p.id}','en_preparacion')">Preparando</button><button class="btn btn-verde" onclick="preguntarListo('${p.id}')">Listo</button></div></div>`;
     cont.appendChild(div);
   });
 }
-
 function actualizarContadores(lista){
   document.getElementById('c-todos').textContent=lista.length;
   document.getElementById('c-nuevo').textContent=lista.filter(p=>(p.estado||'nuevo')==='nuevo').length;
   document.getElementById('c-aceptado').textContent=lista.filter(p=>p.estado==='aceptado').length;
   document.getElementById('c-prep').textContent=lista.filter(p=>p.estado==='en_preparacion').length;
   document.getElementById('c-listo').textContent=lista.filter(p=>['listo','listo_para_admin'].includes(p.estado)).length;
+  const pendientesCampana=lista.filter(p=>['nuevo','aceptado','en_preparacion'].includes(p.estado||'nuevo')).length;
+  actualizarBadgeCampana(pendientesCampana);
 }
-
-setInterval(()=>{
-  document.querySelectorAll('.tiempo-real').forEach(el=>{
-    const ts=parseInt(el.dataset.ts||0);
-    if(ts){
-      const t=calcularTiempoReal(ts);
-      el.innerHTML = t.iconoSvg + t.texto;
-      el.className='tiempo-real '+t.clase;
-    }
-  });
-},1000);
-
+setInterval(()=>{document.querySelectorAll('.tiempo-real').forEach(el=>{const ts=parseInt(el.dataset.ts||0); if(ts){const t=calcularTiempoReal(ts); el.innerHTML=t.iconoSvg+t.texto; el.className='tiempo-real '+t.clase;}});},1000);
 onSnapshot(collection(db, "pedidos"), (snap)=>{
-  let lista=[];
-  snap.forEach(d=>{
-    const data=d.data();
-    const cat=(data.restaurante?.cat||'').toLowerCase();
-    if(sesion?.rol==='administrador'||cat===catBuscada||!cat){
-      lista.push({id:d.id, ...data, estado:data.estado||'nuevo'});
-      if(data.restaurante?.nombre) restName.textContent=data.restaurante.nombre;
-    }
-  });
-  lista.sort((a,b)=>{
-    const ta=a.timestamp?.seconds|| (a.fecha?new Date(a.fecha).getTime()/1000:0) ||0;
-    const tb=b.timestamp?.seconds|| (b.fecha?new Date(b.fecha).getTime()/1000:0) ||0;
-    return ta-tb;
-  });
-  pedidosCache=lista;
-  actualizarContadores(lista);
-  render(lista);
+  let lista=[]; snap.forEach(d=>{const data=d.data(); const cat=(data.restaurante?.cat||'').toLowerCase(); if(sesion?.rol==='administrador'||cat===catBuscada||!cat){lista.push({id:d.id, ...data, estado:data.estado||'nuevo'}); if(data.restaurante?.nombre) restName.textContent=data.restaurante.nombre;}});
+  lista.sort((a,b)=>{const ta=a.timestamp?.seconds|| (a.fecha?new Date(a.fecha).getTime()/1000:0)||0; const tb=b.timestamp?.seconds|| (b.fecha?new Date(b.fecha).getTime()/1000:0)||0; return ta-tb;});
+  pedidosCache=lista; actualizarContadores(lista); render(lista);
   if(!primerCarga && lista.length>ultimoTotal) sonarDoloYa();
   ultimoTotal=lista.length; primerCarga=false;
 });
-
-window.cambiarEstado=async(id,estado)=>{
-  try{ await updateDoc(doc(db,"pedidos",id),{estado, actualizadoEn: new Date()}); }catch(e){ alert(e.message); }
-}
-window.preguntarListo=(id)=>{
-  const card=document.getElementById('card-'+id);
-  card.classList.remove('aceptado','preparando');
-  card.classList.add('confirmando');
-}
-
-// === UNICO CAMBIO - VINCULADO A ADMIN CON TODA LA INFO DEL CLIENTE ===
+window.cambiarEstado=async(id,estado)=>{try{ await updateDoc(doc(db,"pedidos",id),{estado, actualizadoEn: new Date()}); }catch(e){ alert(e.message); }}
+window.preguntarListo=(id)=>{const card=document.getElementById('card-'+id); card.classList.remove('aceptado','preparando'); card.classList.add('confirmando');}
 window.confirmarListo=async(id)=>{
   try{ 
-    const refOriginal = doc(db,"pedidos",id);
-    const snap = await getDoc(refOriginal);
-    if(!snap.exists()){ alert("Pedido no encontrado"); return; }
-    const data = snap.data();
-
-    // CLIENTE COMPLETO - TODO LO QUE VIENE DEL TERMINAR Y PAGAR
-    const clienteFull = data.cliente || {};
-    const ubiCompleta = data.ubicacionCompleta || {};
-    const ipData = data.ip || ubiCompleta.ip || '0.0.0.0';
-
-    // 1. Copiar a pedidos_admin CON TODA LA INFO
+    const refOriginal=doc(db,"pedidos",id); const snap=await getDoc(refOriginal); if(!snap.exists()){ alert("Pedido no encontrado"); return; } const data=snap.data();
+    const clienteFull=data.cliente||{}; const ubiCompleta=data.ubicacionCompleta||{}; const ipData=data.ip||ubiCompleta.ip||'0.0.0.0';
     await setDoc(doc(db,"pedidos_admin",id),{
       ...data,
-      // FORZAMOS TODA LA INFO DEL CLIENTE PARA QUE NO SE PIERDA
       clienteId: data.clienteId || clienteFull.clienteId || id,
       nombre: data.cliente?.nombre || data.nombre || clienteFull.nombre || 'Cliente',
       telefono: data.cliente?.celular || data.cliente?.telefono || clienteFull.celular || data.telefono || '',
@@ -311,41 +258,25 @@ window.confirmarListo=async(id)=>{
         },
         gpsActualCliente: clienteFull.gpsActualCliente || data.gps || {}
       },
-      // UBICACION Y GPS COMPLETO
       gps: data.gps || clienteFull.ubicacion || { lat: 0, lng: 0 },
       latitud: data.gps?.lat || clienteFull.ubicacion?.lat || 0,
       longitud: data.gps?.lng || clienteFull.ubicacion?.lng || 0,
       ubicacionCompleta: ubiCompleta,
       detalles: data.detalles || {},
-      // IP Y RED
       ip: ipData,
       ipInfo: data.ipInfo || ubiCompleta.ipInfo || {},
-      // DISPOSITIVO Y NAVEGADOR
       dispositivo: data.dispositivo || {},
       userAgent: data.userAgent || data.dispositivo?.userAgent || '',
       plataforma: data.plataforma || data.dispositivo?.plataforma || '',
       navegador: data.dispositivo?.navegador || data.dispositivo?.userAgent || '',
-      // ESTADOS
-      estado:'listo_para_admin',
-      listo:true,
-      listoEn: new Date(),
-      timestampAdmin: new Date(),
-      actualizadoEn: new Date(),
-      enviadoAAdmin:true,
-      idOriginal: id,
-      fechaListo: new Date().toISOString()
+      estado:'listo_para_admin', listo:true, listoEn: new Date(), timestampAdmin: new Date(), actualizadoEn: new Date(), enviadoAAdmin:true, idOriginal: id, fechaListo: new Date().toISOString()
     });
-    
-    // 2. Borrar de pedidos (ya no aparece en restaurante)
     await deleteDoc(refOriginal);
-    console.log("✅ Movido a pedidos_admin con IP y GPS completo:", ipData);
   }catch(e){ alert("Error: "+e.message); console.error(e); }
 }
-
 window.negarListo=async(id)=>{
   const card=document.getElementById('card-'+id);
-  card.classList.remove('confirmando');
-  card.classList.add('preparando');
+  card.classList.remove('confirmando'); card.classList.add('preparando');
   try{ await updateDoc(doc(db,"pedidos",id),{estado:'en_preparacion', actualizadoEn: new Date()}); }catch(e){}
 }
 </script>
