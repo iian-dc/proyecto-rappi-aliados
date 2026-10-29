@@ -41,7 +41,6 @@ body{background:#F5F5F7;min-height:100vh}
 .preview-box{width:80px;height:80px;border-radius:12px;background:#F3F4F6;border:1.5px dashed #D1D5DB;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .preview-box img{width:100%;height:100%;object-fit:contain}
 #toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#111;color:white;padding:10px 18px;border-radius:999px;font-size:12px;font-weight:700;display:none;z-index:9999}
-/* MODAL CONFIRMACION CENTRO */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:10000;padding:20px}
 .modal-overlay.open{display:flex}
 .modal-box{background:white;border-radius:18px;padding:22px;width:100%;max-width:320px;text-align:center;box-shadow:0 20px 40px rgba(0,0,0,0.3);animation:pop .2s}
@@ -52,6 +51,9 @@ body{background:#F5F5F7;min-height:100vh}
 .modal-btns button{flex:1;border-radius:10px;padding:10px;font-size:13px;font-weight:800;border:none;cursor:pointer}
 .btn-cancel{background:#F3F4F6;color:#111}
 .btn-confirm{background:#E30613;color:white}
+/* BADGE ESQUINITA */
+.badge-count{position:absolute;top:8px;right:8px;background:#11141A;color:white;font-size:10px;font-weight:800;padding:4px 8px;border-radius:999px;min-width:28px;text-align:center}
+.badge-count.cero{background:#F3F4F6;color:#9CA3AF;border:1px solid #E5E7EB}
 </style>
 </head>
 <body>
@@ -128,6 +130,7 @@ let editKey = null;
 let urlImagenFinal = '';
 let keyAEliminar = null;
 const pathCats = 'config_global/categorias_inicio';
+let conteoPorCategoria = {};
 
 function toast(m){
   const t=document.getElementById('toast'); t.textContent=m; t.style.display='block';
@@ -178,7 +181,6 @@ document.getElementById('fileImg').addEventListener('change', async e=>{
   document.getElementById('statusUrl').textContent='✅ URL generada lista para guardar';
 });
 
-// Modal
 function abrirModalEliminar(k, nombre){
   keyAEliminar = k;
   document.getElementById('modalTitle').textContent = `¿Eliminar ${nombre}?`;
@@ -197,6 +199,88 @@ document.getElementById('btnModalOk').addEventListener('click', async ()=>{
   cerrarModal();
 });
 
+// CONTAR RESTAURANTES VINCULADOS A CADA CATEGORIA
+async function calcularConteos(){
+  conteoPorCategoria = {};
+  try{
+    // Busca en varias rutas posibles donde tengas aliados
+    const rutas = ['doloya_aliados','aliados','comercios','restaurantes','locales'];
+    let todos = [];
+    for(const r of rutas){
+      try{
+        const snap = await get(ref(db, r));
+        if(snap.exists()){
+          const val = snap.val();
+          const arr = Array.isArray(val) ? val : Object.values(val);
+          if(arr.length>0) todos = todos.concat(arr);
+        }
+      }catch(e){}
+    }
+    // Si no hay en esas, intenta en raiz buscando comercios
+    if(todos.length===0){
+      const snap = await get(ref(db, '/'));
+      if(snap.exists()){
+        const root = snap.val();
+        // busca cualquier nodo que parezca restaurante
+        for(const k of Object.keys(root)){
+          if(typeof root[k]==='object' && k!=='config_global'){
+            const maybe = Object.values(root[k]);
+            if(maybe.length>0 && maybe[0] && (maybe[0].categoria || maybe[0].nombreLocal || maybe[0].tipoComida)){
+              todos = todos.concat(maybe);
+            }
+          }
+        }
+      }
+    }
+
+    // Inicializa conteos
+    const catsSnap = await get(ref(db, pathCats));
+    if(catsSnap.exists()){
+      Object.keys(catsSnap.val()).forEach(k=> conteoPorCategoria[k]=0);
+    }
+
+    let total = 0;
+    todos.forEach(com=>{
+      if(!com) return;
+      total++;
+      let cat = (com.categoria || com.categoriaKey || com.categoriaSeleccionada || com.tipo || com.tipoComida || com.categoriaNombre || '').toString().toLowerCase().trim();
+      // si tiene array de categorias
+      if(com.categorias && Array.isArray(com.categorias)){
+        com.categorias.forEach(c=>{
+          const key = c.toString().toLowerCase().trim();
+          if(conteoPorCategoria[key]!==undefined) conteoPorCategoria[key]++;
+          // busca por nombreLower
+          const key2 = key.replace(/\s+/g,'');
+          if(conteoPorCategoria[key2]!==undefined && key2!==key) conteoPorCategoria[key2]++;
+        });
+      } else {
+        if(cat){
+          if(conteoPorCategoria[cat]!==undefined) conteoPorCategoria[cat]++;
+          // variaciones
+          const catSinEsp = cat.replace(/\s+/g,'');
+          if(conteoPorCategoria[catSinEsp]!==undefined && catSinEsp!==cat) conteoPorCategoria[catSinEsp]++;
+          // plural simple
+          if(conteoPorCategoria[cat+'s']!==undefined) conteoPorCategoria[cat+'s']++;
+        }
+      }
+    });
+    conteoPorCategoria['todos'] = total;
+    renderConteos();
+  }catch(e){ console.log('error conteo',e); }
+}
+
+function renderConteos(){
+  document.querySelectorAll('.cat-card').forEach(card=>{
+    const key = card.getAttribute('data-key');
+    const count = conteoPorCategoria[key] ?? 0;
+    const badge = card.querySelector('.badge-count');
+    if(badge){
+      badge.textContent = count + (count===1?' rest.':' rest.');
+      badge.classList.toggle('cero', count===0);
+    }
+  });
+}
+
 function cargar(){
   onValue(ref(db, pathCats), async snap=>{
     const grid=document.getElementById('gridCats');
@@ -208,8 +292,11 @@ function cargar(){
     const arr=Object.values(data).filter(c=>c.key!=='info' && c.key!=='_info').sort((a,b)=>(a.orden||99)-(b.orden||99));
     grid.innerHTML='';
     arr.forEach(c=>{
+      const count = conteoPorCategoria[c.key] ?? 0;
+      const countText = count + (count===1?' rest.':' rest.');
       grid.innerHTML+=`
-      <div class="cat-card">
+      <div class="cat-card" data-key="${c.key}">
+        <div class="badge-count ${count===0?'cero':''}">${countText}</div>
         <div class="cat-img"><img src="${c.imagen||'https://img.icons8.com/3d-fluency/94/bento.png'}" onerror="this.src='https://img.icons8.com/3d-fluency/94/bento.png'"></div>
         <div class="cat-info">
           <div class="cat-name">${c.nombre}</div>
@@ -226,6 +313,9 @@ function cargar(){
       </div>`;
     });
   });
+  // calcular conteos cada 3 seg por si cambian aliados
+  calcularConteos();
+  setInterval(calcularConteos, 5000);
 }
 window.toggleActiva=async(k)=>{
   const snap=await get(ref(db, `${pathCats}/${k}`));
@@ -234,7 +324,6 @@ window.toggleActiva=async(k)=>{
   await update(ref(db, `${pathCats}/${k}`), {activa: !(v.activa!==false)});
   toast('Actualizado');
 }
-// EDITAR CARGANDO LO REGISTRADO
 window.editarCat=async(k)=>{
   const snap=await get(ref(db, `${pathCats}/${k}`));
   if(!snap.exists()) return;
@@ -263,7 +352,6 @@ window.guardarCategoria=async()=>{
   if(key==='info' || key==='_info'){ toast('Info no permitido'); return; }
   if(!urlImagenFinal){ toast('Sube una imagen primero'); return; }
 
-  // Mantener fecha original si es edición
   let fechaExistente = Date.now();
   if(editKey){
     const snap = await get(ref(db, `${pathCats}/${editKey}`));
