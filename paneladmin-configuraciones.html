@@ -54,13 +54,11 @@ body{background:#F5F5F7;min-height:100vh}
 <div class="main">
   <div class="card-white">
     <div class="card-head">
-      <h3>Categorías de Inicio (DoloYa - Inicio)</h3>
+      <h3>Categorías</h3>
       <div style="display:flex;gap:8px">
         <button class="btn-black" onclick="document.getElementById('formAdd').style.display='block'">+ Agregar categoría</button>
-        <button class="btn-mini" onclick="restaurarDefault()">Restablecer por defecto</button>
       </div>
     </div>
-    <p style="font-size:12px;color:#6B7280;margin-bottom:12px">Si no ves nada es porque están vacías en Firebase. Dale a <b>Restablecer por defecto</b> y se crean: Todos, Burger, Pizza, Alitas, Tacos, Hot Dog. Se guardan en <b>config_global/categorias_inicio</b></p>
     
     <div id="formAdd" style="display:none;border:1.5px solid #EFEFF1;border-radius:12px;padding:14px;background:#FAFAFB">
       <div style="display:flex;gap:14px;flex-wrap:wrap">
@@ -90,6 +88,7 @@ body{background:#F5F5F7;min-height:100vh}
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
 import { getDatabase, ref, onValue, set, update, remove, get } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js";
+import { getStorage, ref as sRef, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-storage.js";
 const firebaseConfig = {
   apiKey: "AIzaSyD286qlJQT8D3rqbYTSfCyuTAEg9jjRchQ",
   authDomain: "doloya-aliados.firebaseapp.com",
@@ -101,8 +100,11 @@ const firebaseConfig = {
 };
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
+const storage = getStorage(app);
 let imgBase64 = '';
+let imgFile = null;
 let editKey = null;
+let imagenActualUrl = '';
 const pathCats = 'config_global/categorias_inicio';
 
 function toast(m){
@@ -111,7 +113,7 @@ function toast(m){
 }
 function cancelarForm(){
   document.getElementById('formAdd').style.display='none';
-  document.getElementById('inpNombre').value=''; document.getElementById('inpKey').value=''; imgBase64=''; editKey=null;
+  document.getElementById('inpNombre').value=''; document.getElementById('inpKey').value=''; imgBase64=''; imgFile=null; imagenActualUrl=''; editKey=null;
   document.getElementById('previewBox').innerHTML='<span style="font-size:10px;color:#9CA3AF">Sin imagen</span>';
 }
 window.cancelarForm=cancelarForm;
@@ -122,6 +124,7 @@ document.getElementById('inpNombre').addEventListener('input',()=>{
 });
 document.getElementById('fileImg').addEventListener('change', e=>{
   const f=e.target.files[0]; if(!f) return;
+  imgFile = f;
   const r=new FileReader();
   r.onload=ev=>{
     imgBase64=ev.target.result;
@@ -130,29 +133,12 @@ document.getElementById('fileImg').addEventListener('change', e=>{
   r.readAsDataURL(f);
 });
 
-const categoriasDefault = {
-  todos: {key:'todos', nombre:'Todos', nombreLower:'todos', imagen:'https://img.icons8.com/3d-fluency/94/bento.png', activa:true, orden:0, fecha:Date.now()},
-  burgers: {key:'burgers', nombre:'Burger', nombreLower:'burger', imagen:'https://img.icons8.com/3d-fluency/94/hamburger.png', activa:true, orden:1, fecha:Date.now()},
-  pizzas: {key:'pizzas', nombre:'Pizza', nombreLower:'pizza', imagen:'https://img.icons8.com/3d-fluency/94/pizza.png', activa:true, orden:2, fecha:Date.now()},
-  alitas: {key:'alitas', nombre:'Alitas', nombreLower:'alitas', imagen:'https://img.icons8.com/3d-fluency/94/fried-chicken.png', activa:true, orden:3, fecha:Date.now()},
-  tacos: {key:'tacos', nombre:'Tacos', nombreLower:'tacos', imagen:'https://img.icons8.com/3d-fluency/94/taco.png', activa:true, orden:4, fecha:Date.now()},
-  hotdog: {key:'hotdog', nombre:'Hot Dog', nombreLower:'hot dog', imagen:'https://img.icons8.com/3d-fluency/94/hot-dog.png', activa:true, orden:5, fecha:Date.now()}
-};
-
-window.restaurarDefault=async()=>{
-  if(!confirm('¿Restablecer categorías por defecto? Se crearán Todos, Burger, Pizza, Alitas, Tacos, Hot Dog')) return;
-  for(const k of Object.keys(categoriasDefault)){
-    await set(ref(db, `${pathCats}/${k}`), categoriasDefault[k]);
-  }
-  toast('Categorías restablecidas');
-}
-
 function cargar(){
   onValue(ref(db, pathCats), async snap=>{
     const grid=document.getElementById('gridCats');
     let data=snap.val();
     if(!data || Object.keys(data).length===0){
-      grid.innerHTML='<p style="padding:20px;color:#6B7280;text-align:center">No hay categorías aún. Dale a <b>Restablecer por defecto</b> para crear las 6 iniciales.</p>';
+      grid.innerHTML='<p style="padding:20px;color:#6B7280;text-align:center">No hay categorías aún.</p>';
       return;
     }
     const arr=Object.values(data).filter(c=>c.key!=='info' && c.key!=='_info').sort((a,b)=>(a.orden||99)-(b.orden||99));
@@ -189,11 +175,13 @@ window.editarCat=async(k)=>{
   if(!snap.exists()) return;
   const c=snap.val();
   editKey=k;
+  imagenActualUrl=c.imagen||'';
+  imgBase64='';
+  imgFile=null;
   document.getElementById('formAdd').style.display='block';
   document.getElementById('inpNombre').value=c.nombre;
   document.getElementById('inpKey').value=c.key;
   document.getElementById('inpOrden').value=c.orden||1;
-  imgBase64=c.imagen||'';
   document.getElementById('previewBox').innerHTML= c.imagen ? `<img src="${c.imagen}">` : 'Sin imagen';
   window.scrollTo({top:0, behavior:'smooth'});
 }
@@ -209,11 +197,30 @@ window.guardarCategoria=async()=>{
   const orden=parseInt(document.getElementById('inpOrden').value)||99;
   if(!nombre || !key){ toast('Nombre y key requeridos'); return; }
   if(key==='info' || key==='_info'){ toast('Info no permitido'); return; }
+
+  let urlFinal = imagenActualUrl;
+
+  // Si hay imagen nueva, subir a Storage como URL
+  if(imgBase64 && imgBase64.startsWith('data:')){
+    toast('Subiendo imagen...');
+    try{
+      const storagePath = `categorias_inicio/${key}_${Date.now()}.jpg`;
+      const refStorage = sRef(storage, storagePath);
+      await uploadString(refStorage, imgBase64, 'data_url');
+      urlFinal = await getDownloadURL(refStorage);
+    }catch(e){
+      console.error(e);
+      toast('Error subiendo imagen');
+      return;
+    }
+  }
+  if(!urlFinal) urlFinal = `https://img.icons8.com/3d-fluency/94/bento.png`;
+
   const payload={
     key: key,
     nombre: nombre,
     nombreLower: nombre.toLowerCase(),
-    imagen: imgBase64 || `https://img.icons8.com/3d-fluency/94/bento.png`,
+    imagen: urlFinal,
     activa: true,
     orden: orden,
     fecha: Date.now()
