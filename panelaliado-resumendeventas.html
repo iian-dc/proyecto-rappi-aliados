@@ -38,60 +38,51 @@ body{background:#f6f8fb;color:#0f172a}
 .resumen-grafica{margin-top:10px;padding:10px;background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0}
 .resumen-grafica div{display:flex;justify-content:space-between;padding:5px 0;font-size:10.5px;border-bottom:1px dashed #e2e8f0}
 
-/* TOP CARDS A LO LARGO */
+/* TOP 4 CARDS A LO LARGO */
 @media(max-width:900px){
   .top-cards{display:flex;flex-wrap:nowrap;overflow-x:auto;gap:10px;padding:10px 10px 12px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
   .top-cards::-webkit-scrollbar{display:none}
   .tcard{min-width:165px;max-width:165px;flex:0 0 165px;padding:10px}
 }
 
-/* ABAJO TODO A LO LARGO IZQUIERDA A DERECHA BIEN PEQUEÑO */
+/* ABAJO COMO TABLA EXCEL DE IZQUIERDA A DERECHA */
 @media(max-width:700px){
   .header-top{padding:8px 10px}
-  .box{margin:0 8px 12px;border-radius:12px}
-  .filters{padding:8px;gap:6px;display:flex;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
-  .filters::-webkit-scrollbar{display:none}
-  .filters input{flex:0 0 auto;min-width:120px;font-size:11px}
-  .filters input#buscar{min-width:160px;flex:0 0 160px}
-  .table-head{display:none}
+  .box{margin:0 8px 12px;border-radius:12px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .box::-webkit-scrollbar{height:6px}
+  .box::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:99px}
+  .filters{position:sticky;left:0;min-width:700px;background:white;z-index:2}
+  .table-head{
+    display:grid !important;
+    min-width:700px;
+    grid-template-columns:90px 70px 110px 85px 85px 75px 75px 90px 85px;
+    font-size:8px;
+    padding:10px 8px;
+    position:sticky;
+    left:0;
+  }
   #listaPedidos{
-    display:flex !important;
-    flex-direction:row !important;
-    flex-wrap:nowrap !important;
-    overflow-x:auto !important;
-    overflow-y:hidden !important;
-    gap:10px;
-    padding:10px;
-    scrollbar-width:none;
-    -webkit-overflow-scrolling:touch;
+    display:block !important;
+    min-width:700px;
   }
-  #listaPedidos::-webkit-scrollbar{display:none}
   .table-row{
-    min-width:165px !important;
-    max-width:165px !important;
-    flex:0 0 165px !important;
-    display:flex !important;
-    flex-direction:column !important;
-    gap:0;
-    padding:0;
-    border:1px solid #e2e8f0;
-    border-radius:12px;
-    background:white;
-    height:fit-content;
+    display:grid !important;
+    min-width:700px;
+    grid-template-columns:90px 70px 110px 85px 85px 75px 75px 90px 85px;
+    padding:10px 8px;
+    font-size:11px !important;
+    gap:4px;
+    border-bottom:1px solid #e2e8f0;
+    align-items:center;
   }
-  .table-row span{font-size:10px!important;padding:6px 8px;border-bottom:1px solid #f1f5f9;display:flex;flex-direction:column;width:100%}
-  .table-row span::before{font-size:7px;font-weight:700;color:#64748b;text-transform:uppercase}
-  .table-row span:nth-child(1)::before{content:'Fecha'}
-  .table-row span:nth-child(2)::before{content:'Pedido'}
-  .table-row span:nth-child(3)::before{content:'Cliente'}
-  .table-row span:nth-child(4)::before{content:'Venta'}
-  .table-row span:nth-child(5)::before{content:'Cancelado'}
-  .table-row span:nth-child(6)::before{content:'Pagado'}
-  .table-row span:nth-child(7)::before{content:'Pendiente'}
-  .table-row span:nth-child(8)::before{content:'Estado'}
-  .table-row span:nth-child(9)::before{content:'Gráfica'}
-  .table-row span:nth-child(9){border:none;background:#f8fafc;align-items:center}
-  .btn-graf{width:100%;font-size:10px!important;padding:6px!important;justify-content:center}
+  .table-row span{
+    font-size:11px !important;
+    padding:0 !important;
+    border:none !important;
+    display:block !important;
+  }
+  .table-row span::before{display:none !important}
+  .btn-graf{font-size:8px !important;padding:6px 10px !important;width:auto}
 }
 </style>
 </head>
@@ -101,12 +92,14 @@ body{background:#f6f8fb;color:#0f172a}
 <div style="width:2px;height:16px;background:#E30613"></div>
 <h1>Resumen de ventas</h1>
 </div>
+
 <div class="top-cards">
 <div class="tcard"><label>Total ingresos restaurante</label><b id="kIngresos">$ 0.00</b><span id="kSubIngresos">0 pedidos</span></div>
 <div class="tcard" style="border-left:4px solid #E30613"><label>Pérdida por cancelación</label><b id="kPerdidas" style="color:#E30613">- $ 0.00</b><span id="kSubPerd">0 cancelados</span></div>
 <div class="tcard"><label>Total pedidos</label><b id="kTotalPed">0</b><span id="kNombreSpan">De este negocio</span></div>
 <div class="tcard" id="cardEstadoPago"><label>Resumen de pago de facturas</label><b id="kEstadoPago">0 facturas</b><span id="kDetallePago">Sin pagos</span><div style="margin-top:8px"><button id="btnEstadoPago" class="btn btn-pend">Pendiente</button></div></div>
 </div>
+
 <div class="box">
 <div class="filters">
 <input id="buscar" placeholder="Buscar ST- o cliente..." onkeyup="filtrar()" style="flex:1">
@@ -117,6 +110,7 @@ body{background:#f6f8fb;color:#0f172a}
 </div>
 <div id="listaPedidos"><div style="padding:20px;text-align:center;color:#94a3b8;font-size:11px">Cargando tus ventas...</div></div>
 </div>
+
 <div class="modal modal-grafica" id="modalGraficaPedido">
 <div class="modal-box">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
@@ -127,6 +121,7 @@ body{background:#f6f8fb;color:#0f172a}
 <div class="resumen-grafica" id="resumenGraficaPedido"></div>
 </div>
 </div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
