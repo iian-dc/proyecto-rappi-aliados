@@ -1,36 +1,55 @@
-importScripts('https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/10.7.0/firebase-messaging-compat.js');
+let ultimoTotalSW = 0;
 
-firebase.initializeApp({
-  apiKey: "AIzaSyDLKngPyi_SWAXEQwdrHO5h8L8OufulAR4",
-  authDomain: "doloya-confirmacion.firebaseapp.com",
-  projectId: "doloya-confirmacion",
-  storageBucket: "doloya-confirmacion.firebasestorage.app",
-  messagingSenderId: "832228761099",
-  appId: "1:832228761099:web:ddd4b6a0ee0d7f0494b10e"
+self.addEventListener('install', e => self.skipWaiting());
+self.addEventListener('activate', e => {
+  self.clients.claim();
+  ultimoTotalSW = 0;
 });
 
-const messaging = firebase.messaging();
-
-// Esto hace que suene aunque el celular esté bloqueado
-messaging.onBackgroundMessage((payload) => {
-  self.registration.showNotification(payload.notification.title, {
-    body: payload.notification.body,
-    icon: 'LOGO-PANEL.PNG',
-    badge: 'LOGO-PANEL.PNG',
-    vibrate: [600,200,600,200,600],
-    requireInteraction: true,
-    silent: false,
-    tag: 'pedido-doloya'
-  });
+self.addEventListener('message', event => {
+  const data = event.data;
+  if(data.type === 'NUEVO_PEDIDO'){
+    self.registration.showNotification(data.title, {
+      body: data.body,
+      icon: 'LOGO-PANEL.PNG',
+      badge: 'LOGO-PANEL.PNG',
+      vibrate: [600,200,600,200,600],
+      requireInteraction: true,
+      renotify: true,
+      tag: 'pedido-doloya-nuevo',
+      silent: false,
+      data: {url: 'paneladmin-pedidos.html'}
+    });
+    ultimoTotalSW = data.total;
+  }
+  if(data.type === 'CHECK_PEDIDOS'){
+    // Si el SW detecta que hay más que antes, notifica aunque app esté minimizada
+    if(data.total > ultimoTotalSW && ultimoTotalSW !== 0){
+      self.registration.showNotification('🔔 ¡Nuevo pedido DoloYa!', {
+        body: `Tienes ${data.total} pedido${data.total>1?'s':''} pendiente${data.total>1?'s':''}.`,
+        icon: 'LOGO-PANEL.PNG',
+        badge: 'LOGO-PANEL.PNG',
+        vibrate: [600,200,600,200,600],
+        requireInteraction: true,
+        silent: false,
+        tag: 'pedido-doloya-nuevo'
+      });
+    }
+    ultimoTotalSW = data.total;
+  }
 });
 
 self.addEventListener('notificationclick', event => {
   event.notification.close();
   event.waitUntil(
-    clients.openWindow('paneladmin-pedidos.html')
+    clients.matchAll({type: 'window'}).then(list=>{
+      for(const c of list){
+        if(c.url.includes('paneladmin')){
+          c.focus();
+          return;
+        }
+      }
+      return clients.openWindow('paneladmin-pedidos.html');
+    })
   );
 });
-
-self.addEventListener('install', e => self.skipWaiting());
-self.addEventListener('activate', e => self.clients.claim());
