@@ -58,7 +58,7 @@ body{background:#fff;min-height:100vh}
 </head>
 <body>
 <div id="toast"><div class="toast-box"><b id="tTitle">Guardado</b><p id="tMsg" style="font-size:12px;color:#6b7280;margin-top:4px">Cambios guardados</p></div></div>
-<div id="modalDel"><div class="modal-box"><h3>¿Eliminar categoría?</h3><p id="msgDel">Esta acción no se puede deshacer. Los productos de esta categoría quedarán sin categoría.</p><div class="modal-btns"><button class="btn-cancel" style="min-width:120px" onclick="cerrarModalDel()">Cancelar</button><button class="btn-save" style="min-width:120px;background:#111" onclick="confirmarEliminar()">Eliminar</button></div></div></div>
+<div id="modalDel"><div class="modal-box"><h3>¿Eliminar categoría?</h3><p id="msgDel">Esta acción no se puede deshacer.</p><div class="modal-btns"><button class="btn-cancel" style="min-width:120px" onclick="cerrarModalDel()">Cancelar</button><button class="btn-save" style="min-width:120px;background:#111" onclick="confirmarEliminar()">Eliminar</button></div></div></div>
 
 <div class="top-header">
   <button class="btn-x" onclick="location.href='panelaliado-menu.html'"><svg viewBox="0 0 24 24"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg></button>
@@ -70,7 +70,7 @@ body{background:#fff;min-height:100vh}
   <div class="card">
     <div class="card-head">
       <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
-      <div><h2>Categorías</h2><p>Activa o desactiva las categorías completas y ordénalas como prefieras arrastrando. Ahora puedes eliminarlas.</p></div>
+      <div><h2>Categorías</h2><p id="rutaDebug" style="font-size:11px;color:#94a3b8">Activa o desactiva las categorías completas y ordénalas como prefieras arrastrando.</p></div>
     </div>
     <div class="table-wrap">
       <div class="t-head"><span>Orden</span><span>Categoría</span><span>Estado</span><span style="text-align:right">Acción</span></div>
@@ -93,11 +93,8 @@ const db=getDatabase(app);
 
 function normalize(t){ return String(t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim(); }
 let cats=[];
-let RUTA_BASE = '';
-let RUTA_CAT = '';
-let RUTA_MENU = '';
-let catAEliminar = null;
-let sesion = null;
+let sesion=null;
+let catAEliminar=null;
 
 function toast(t,m){document.getElementById('tTitle').textContent=t;document.getElementById('tMsg').textContent=m;document.getElementById('toast').classList.add('show');setTimeout(()=>document.getElementById('toast').classList.remove('show'),2000);}
 window.cerrarModalDel = ()=>{ document.getElementById('modalDel').classList.remove('show'); catAEliminar=null; }
@@ -105,16 +102,17 @@ window.cerrarModalDel = ()=>{ document.getElementById('modalDel').classList.remo
 function render(){
   const cont=document.getElementById('lista');
   if(cats.length===0){
-    cont.innerHTML='<div style="padding:20px;text-align:center;color:#94a3b8;font-size:13px">No tienes categorías agregadas aún.<br>Agrega productos en tu menú y aparecerán aquí.</div>';
+    cont.innerHTML='<div style="padding:20px;text-align:center;color:#94a3b8;font-size:13px">No tienes categorías aún. Revisa que tu negocio sea las_tortas_de_migue.</div>';
     return;
   }
   cont.innerHTML='';
-  cats.sort((a,b)=>(a.orden??99)-(b.orden??99));
+  cats.sort((a,b)=>(a.orden??9999)-(b.orden??9999));
   cats.forEach((c,i)=>{
     const row=document.createElement('div');
     row.className='row';
     row.draggable=true;
     row.dataset.key=c.key;
+    row.dataset.path=c.fullPath;
     row.innerHTML=`
       <div style="display:flex;align-items:center;gap:12px">
         <div class="drag"><span></span><span></span><span></span><span></span></div>
@@ -126,7 +124,7 @@ function render(){
         <span class="txt-est ${c.activa!==false?'on':''}">${c.activa!==false?'Activa':'Inactiva'}</span>
       </div>
       <div class="actions">
-        <button class="btn-del" onclick="pedirEliminar('${c.key}')" title="Eliminar categoría">
+        <button class="btn-del" onclick="pedirEliminar('${c.key}')" title="Eliminar">
           <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
         </button>
       </div>
@@ -166,26 +164,22 @@ window.toggle=function(key){
   const c=cats.find(x=>x.key===key);
   if(c){c.activa=!c.activa;render();}
 }
-
 window.pedirEliminar=function(key){
   const c=cats.find(x=>x.key===key);
   if(!c) return;
-  catAEliminar = key;
-  document.getElementById('msgDel').textContent = `¿Eliminar la categoría "${c.nombre}"? Esta acción no se puede deshacer.`;
+  catAEliminar=c;
+  document.getElementById('msgDel').textContent=`¿Eliminar "${c.nombre}"? Se borrará de ${c.fullPath}`;
   document.getElementById('modalDel').classList.add('show');
 }
-
 window.confirmarEliminar=async function(){
   if(!catAEliminar) return;
   try{
-    await remove(ref(db, `${RUTA_CAT}/${catAEliminar}`));
-    cats = cats.filter(c=>c.key!==catAEliminar);
+    await remove(ref(db, catAEliminar.fullPath));
+    cats = cats.filter(c=>c.key!==catAEliminar.key);
     cerrarModalDel();
     toast('Eliminada','Categoría eliminada');
     render();
-  }catch(e){
-    toast('Error', e.message);
-  }
+  }catch(e){ toast('Error', e.message); }
 }
 
 async function cargar(){
@@ -194,113 +188,97 @@ async function cargar(){
     document.getElementById('lista').innerHTML='<div style="padding:20px;text-align:center;color:#E30613">No hay sesión</div>';
     return;
   }
-  const idNegocio = (sesion.id || sesion.negocio || '').toLowerCase().trim();
-  // BUSCAR RUTA REAL COMO EN PANEL ALIADO
+  const idNegocio = normalize(sesion.id || sesion.negocio || sesion.nombre || '');
   const allSnap = await get(ref(db, 'doloya_aliados'));
-  if(!allSnap.exists()){
-    document.getElementById('lista').innerHTML='<div style="padding:20px;text-align:center">No hay datos</div>';
-    return;
-  }
-  const todas = allSnap.val();
-  let idReal = idNegocio;
-  let catReal = '';
-  let encontrado = false;
-  Object.keys(todas).forEach(cat=>{
-    const nivel = todas[cat];
-    if(typeof nivel !== 'object') return;
-    Object.keys(nivel).forEach(key=>{
-      const keyNorm = normalize(key);
-      if(keyNorm === normalize(idNegocio)){
-        idReal = key;
-        catReal = cat;
-        encontrado = true;
-      }
-    });
-  });
-  if(!encontrado){
-    // si no encuentra exacto, busca parcial
-    Object.keys(todas).forEach(cat=>{
-      const nivel = todas[cat];
-      if(typeof nivel !== 'object') return;
-      Object.keys(nivel).forEach(key=>{
-        if(normalize(key).includes(normalize(idNegocio)) || normalize(idNegocio).includes(normalize(key))){
-          if(!encontrado){
-            idReal = key;
-            catReal = cat;
+  if(!allSnap.exists()) return;
+  const data = allSnap.val();
+
+  // 1. ENCONTRAR NODO DEL NEGOCIO (como en tu foto las_tortas_de_migue)
+  let businessPath = '';
+  let businessNode = null;
+  for(const key of Object.keys(data)){
+    if(normalize(key)===idNegocio || normalize(key).includes(idNegocio) || idNegocio.includes(normalize(key))){
+      businessPath = `doloya_aliados/${key}`;
+      businessNode = data[key];
+      break;
+    }
+    // buscar dentro de segundo nivel como santillos
+    if(typeof data[key]==='object'){
+      for(const subKey of Object.keys(data[key])){
+        if(normalize(subKey)===idNegocio || normalize(subKey).includes(idNegocio)){
+          businessPath = `doloya_aliados/${key}/${subKey}`;
+          businessNode = data[key][subKey];
+          break;
+        }
+        // tambien buscar tercer nivel
+        const third = data[key][subKey];
+        if(third && typeof third==='object'){
+          for(const thirdKey of Object.keys(third)){
+            if(normalize(thirdKey)===idNegocio){
+              businessPath = `doloya_aliados/${key}/${subKey}/${thirdKey}`;
+              businessNode = third[thirdKey];
+              break;
+            }
           }
         }
-      });
-    });
-  }
-  if(!catReal) catReal = 'alitas';
-  RUTA_BASE = `doloya_aliados/${catReal}/${idReal}`;
-  // La estructura real que usas es doloya_aliados/alitas/alitas_factory/categorias
-  // Probemos 2 formatos: directo y dentro de categorias
-  RUTA_CAT = `${RUTA_BASE}/categorias`;
-  RUTA_MENU = `${RUTA_BASE}/menu`;
-
-  cats=[];
-  const snapCat = await get(ref(db,RUTA_CAT));
-  if(snapCat.exists()){
-    const val=snapCat.val();
-    Object.keys(val).forEach(k=>{
-      const obj=val[k];
-      if(typeof obj === 'object'){
-        cats.push({
-          key: k,
-          nombre: obj.nombre || k,
-          nombreLower: obj.nombreLower || k.toLowerCase(),
-          activa: obj.activa!==false,
-          orden: obj.orden ?? 99
-        });
       }
-    });
-  }
-  // SI NO HAY CATEGORIAS, SACARLAS DEL MENU REAL
-  if(cats.length===0){
-    const menuSnap=await get(ref(db,RUTA_MENU));
-    if(menuSnap.exists()){
-      const menu=menuSnap.val();
-      const setCat = new Set();
-      Object.values(menu).forEach(prod=>{
-        const c = (prod.categoria || prod.Categoria || prod.categoriaNombre || '').toString().trim();
-        if(c) setCat.add(c);
-      });
-      let i=0;
-      setCat.forEach(nombre=>{
-        i++;
-        cats.push({
-          key: normalize(nombre).replace(/\s+/g,'_'),
-          nombre: nombre,
-          nombreLower: normalize(nombre),
-          activa: true,
-          orden: i
-        });
-      });
     }
   }
-  // fallback si tu base antigua alitas_factory
-  if(cats.length===0){
-    const snapFallback = await get(ref(db,'doloya_aliados/alitas/alitas_factory/categorias'));
-    if(snapFallback.exists() && idNegocio.includes('alitas')){
-      const val=snapFallback.val();
-      Object.keys(val).forEach(k=>{
-        const obj=val[k];
-        cats.push({
-          key: k,
-          nombre: obj.nombre || k,
-          nombreLower: obj.nombreLower || k.toLowerCase(),
-          activa: obj.activa!==false,
-          orden: obj.orden ?? 99
-        });
-      });
-      RUTA_BASE = 'doloya_aliados/alitas/alitas_factory';
-      RUTA_CAT = `${RUTA_BASE}/categorias`;
-      RUTA_MENU = `${RUTA_BASE}/menu`;
-    }
+  if(!businessNode){
+    // fallback: usa todo doloya_aliados
+    businessNode = data;
+    businessPath = 'doloya_aliados';
   }
 
-  cats.forEach((c,i)=>{if(!c.orden||c.orden===99) c.orden=i+1});
+  document.getElementById('rutaDebug').textContent = `Ruta detectada: ${businessPath} - ID: ${idNegocio}`;
+
+  // 2. BUSCAR CATEGORIAS RECURSIVAMENTE DENTRO DE ESE NEGOCIO
+  // Tu estructura: .../categorias/categorias/salchipapas -> {activa, nombre, nombreLower, key}
+  cats=[];
+  function buscarCategorias(obj, pathActual){
+    if(!obj || typeof obj!=='object') return;
+    for(const k of Object.keys(obj)){
+      const v = obj[k];
+      if(v && typeof v==='object'){
+        // si parece categoria (tiene nombre y nombreLower)
+        if(v.nombre && (v.nombreLower || v.key) && (v.activa!==undefined || v.nombre)){
+          // evitar nodos info _info
+          if(k.startsWith('_')) continue;
+          // asegurarnos que no sea un producto (productos no tienen nombreLower igual a key normalmente, pero tienen precio)
+          if(v.precio || v.price) continue;
+          cats.push({
+            key: k,
+            nombre: v.nombre || k,
+            nombreLower: v.nombreLower || normalize(v.nombre || k),
+            activa: v.activa!==false,
+            orden: v.orden ?? v.fecha ?? 9999,
+            fecha: v.fecha,
+            fullPath: `${pathActual}/${k}`
+          });
+        } else {
+          // seguir bajando, especialmente si es nodo categorias
+          if(k==='categorias' || k==='categoria' || k==='categories'){
+            buscarCategorias(v, `${pathActual}/${k}`);
+          } else if(!k.startsWith('_') && !['banner','carritos','disponibilidad','info','menu','productos'].includes(k)){
+            // buscar en otros nodos también
+            buscarCategorias(v, `${pathActual}/${k}`);
+          } else if(k==='categorias' || k==='carritos' || k==='menu'){
+            buscarCategorias(v, `${pathActual}/${k}`);
+          }
+        }
+      }
+    }
+  }
+  buscarCategorias(businessNode, businessPath);
+
+  // eliminar duplicados por key
+  const map = new Map();
+  cats.forEach(c=>{ if(!map.has(c.key)) map.set(c.key,c); });
+  cats = [...map.values()];
+
+  // ordenar por fecha si no hay orden
+  cats.forEach((c,i)=>{ if(!c.orden || c.orden===9999) c.orden = c.fecha ? Number(c.fecha) : i+1; });
+
   render();
 }
 
@@ -309,32 +287,16 @@ window.guardar=async function(){
   btn.disabled=true;btn.textContent='Guardando...';
   let updates={};
   cats.forEach(c=>{
-    updates[`${RUTA_CAT}/${c.key}/key`]=c.key;
-    updates[`${RUTA_CAT}/${c.key}/nombre`]=c.nombre;
-    updates[`${RUTA_CAT}/${c.key}/nombreLower`]=c.nombreLower;
-    updates[`${RUTA_CAT}/${c.key}/activa`]=c.activa;
-    updates[`${RUTA_CAT}/${c.key}/orden`]=c.orden;
-    updates[`${RUTA_CAT}/${c.key}/fecha`]=Date.now();
+    updates[`${c.fullPath}/activa`]=c.activa;
+    updates[`${c.fullPath}/orden`]=c.orden;
+    updates[`${c.fullPath}/nombre`]=c.nombre;
+    updates[`${c.fullPath}/nombreLower`]=c.nombreLower;
   });
-  // Actualizar productos con estado categoria
-  const menuSnap=await get(ref(db,RUTA_MENU));
-  if(menuSnap.exists()){
-    const menu=menuSnap.val();
-    Object.keys(menu).forEach(prodId=>{
-      const prod=menu[prodId];
-      const catProd=normalize(prod.categoria||prod.Categoria||'');
-      const configCat=cats.find(cc=> normalize(cc.key)===catProd || cc.nombreLower===catProd || normalize(cc.nombre)===catProd);
-      if(configCat){
-        updates[`${RUTA_MENU}/${prodId}/categoriaActiva`]=configCat.activa;
-        updates[`${RUTA_MENU}/${prodId}/ordenCategoria`]=configCat.orden;
-      }
-    });
-  }
   await update(ref(db),updates);
-  toast('Guardado','Orden y estado actualizados');
+  toast('Guardado','Orden y estado actualizados - disponibilidad vinculada');
   btn.disabled=false;
   btn.innerHTML=`<svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Guardar cambios`;
-  setTimeout(()=>location.href='panelaliado-menu.html',1000);
+  setTimeout(()=>location.href='panelaliado-menu.html',900);
 }
 
 cargar();
