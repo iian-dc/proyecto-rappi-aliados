@@ -48,7 +48,7 @@ body{background:#F5F5F7;min-height:100vh}
   <button class="btn-x" onclick="location.href='paneladmin.html'">
     <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
   </button>
-  <div class="top-left-text"><h1>Configuraciones</h1><p>Administra categorías del inicio y configuración global</p></div>
+  <div class="top-left-text"><h1>Configuraciones</h1><p>Administra categorías</p></div>
 </div>
 
 <div class="main">
@@ -66,13 +66,16 @@ body{background:#F5F5F7;min-height:100vh}
           <label class="label">Imagen (3D)</label>
           <div class="preview-box" id="previewBox"><span style="font-size:10px;color:#9CA3AF">Sin imagen</span></div>
           <input type="file" id="fileImg" accept="image/*" style="margin-top:8px;font-size:12px">
+          <label class="label">URL de imagen (se genera automática)</label>
+          <input id="inpImagenUrl" class="input" placeholder="https://..." style="font-size:11px;min-width:260px">
+          <div id="statusUrl" style="font-size:10px;color:#6B7280;margin-top:4px"></div>
         </div>
         <div style="flex:1;min-width:220px">
           <label class="label">Nombre (Ej: Burger)</label><input id="inpNombre" class="input" placeholder="Burger">
           <label class="label">Key (auto: burgers)</label><input id="inpKey" class="input" placeholder="burgers">
           <label class="label">Orden</label><input id="inpOrden" type="number" class="input" value="1" style="max-width:100px">
           <div style="margin-top:12px;display:flex;gap:8px">
-            <button class="btn-red" onclick="guardarCategoria()">Guardar</button>
+            <button class="btn-red" id="btnGuardar" onclick="guardarCategoria()">Guardar</button>
             <button class="btn-mini" onclick="cancelarForm()">Cancelar</button>
           </div>
         </div>
@@ -88,7 +91,7 @@ body{background:#F5F5F7;min-height:100vh}
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
 import { getDatabase, ref, onValue, set, update, remove, get } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js";
-import { getStorage, ref as sRef, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-storage.js";
+import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-storage.js";
 const firebaseConfig = {
   apiKey: "AIzaSyD286qlJQT8D3rqbYTSfCyuTAEg9jjRchQ",
   authDomain: "doloya-aliados.firebaseapp.com",
@@ -101,20 +104,21 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const storage = getStorage(app);
-let imgBase64 = '';
-let imgFile = null;
 let editKey = null;
-let imagenActualUrl = '';
+let urlImagenFinal = '';
 const pathCats = 'config_global/categorias_inicio';
 
 function toast(m){
   const t=document.getElementById('toast'); t.textContent=m; t.style.display='block';
-  setTimeout(()=>t.style.display='none',2200);
+  setTimeout(()=>t.style.display='none',2500);
 }
 function cancelarForm(){
   document.getElementById('formAdd').style.display='none';
-  document.getElementById('inpNombre').value=''; document.getElementById('inpKey').value=''; imgBase64=''; imgFile=null; imagenActualUrl=''; editKey=null;
+  document.getElementById('inpNombre').value=''; document.getElementById('inpKey').value=''; document.getElementById('inpImagenUrl').value=''; urlImagenFinal=''; editKey=null;
   document.getElementById('previewBox').innerHTML='<span style="font-size:10px;color:#9CA3AF">Sin imagen</span>';
+  document.getElementById('statusUrl').textContent='';
+  document.getElementById('btnGuardar').disabled=false;
+  document.getElementById('btnGuardar').textContent='Guardar';
 }
 window.cancelarForm=cancelarForm;
 
@@ -122,15 +126,68 @@ document.getElementById('inpNombre').addEventListener('input',()=>{
   const n = document.getElementById('inpNombre').value.toLowerCase().trim().replace(/\s+/g,'');
   if(!editKey) document.getElementById('inpKey').value = n;
 });
-document.getElementById('fileImg').addEventListener('change', e=>{
+
+// Comprimir imagen para que no pese
+function comprimirImagen(file, maxWidth=300){
+  return new Promise((resolve)=>{
+    const reader = new FileReader();
+    reader.onload = (e)=>{
+      const img = new Image();
+      img.onload = ()=>{
+        const canvas = document.createElement('canvas');
+        let w = img.width, h = img.height;
+        if(w > maxWidth){ h = h*(maxWidth/w); w = maxWidth; }
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img,0,0,w,h);
+        canvas.toBlob((blob)=>{ resolve(blob); }, 'image/jpeg', 0.7);
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+document.getElementById('fileImg').addEventListener('change', async e=>{
   const f=e.target.files[0]; if(!f) return;
-  imgFile = f;
-  const r=new FileReader();
-  r.onload=ev=>{
-    imgBase64=ev.target.result;
-    document.getElementById('previewBox').innerHTML=`<img src="${imgBase64}">`;
-  };
-  r.readAsDataURL(f);
+  document.getElementById('statusUrl').textContent='Comprimiendo...';
+  document.getElementById('btnGuardar').disabled=true;
+  document.getElementById('btnGuardar').textContent='Subiendo...';
+  try{
+    const blob = await comprimirImagen(f, 300);
+    const previewUrl = URL.createObjectURL(blob);
+    document.getElementById('previewBox').innerHTML=`<img src="${previewUrl}">`;
+    
+    // Subir comprimida a Storage y obtener URL
+    document.getElementById('statusUrl').textContent='Subiendo a Storage...';
+    const keyTemp = document.getElementById('inpKey').value || 'temp';
+    const storagePath = `categorias_inicio/${keyTemp}_${Date.now()}.jpg`;
+    const refStorage = sRef(storage, storagePath);
+    await uploadBytes(refStorage, blob);
+    const downloadUrl = await getDownloadURL(refStorage);
+    
+    urlImagenFinal = downloadUrl;
+    document.getElementById('inpImagenUrl').value = downloadUrl;
+    document.getElementById('statusUrl').textContent='✅ URL generada';
+    document.getElementById('statusUrl').style.color='#16A34A';
+    toast('Imagen lista, URL generada');
+  }catch(err){
+    console.error(err);
+    document.getElementById('statusUrl').textContent='❌ Error subiendo: '+err.message;
+    document.getElementById('statusUrl').style.color='#E30613';
+    toast('Error al subir, revisa reglas de Storage');
+  }
+  document.getElementById('btnGuardar').disabled=false;
+  document.getElementById('btnGuardar').textContent='Guardar';
+});
+
+// Si pegan URL manual
+document.getElementById('inpImagenUrl').addEventListener('input',()=>{
+  urlImagenFinal = document.getElementById('inpImagenUrl').value.trim();
+  if(urlImagenFinal.startsWith('http')){
+    document.getElementById('previewBox').innerHTML=`<img src="${urlImagenFinal}">`;
+    document.getElementById('statusUrl').textContent='✅ URL manual';
+  }
 });
 
 function cargar(){
@@ -175,14 +232,14 @@ window.editarCat=async(k)=>{
   if(!snap.exists()) return;
   const c=snap.val();
   editKey=k;
-  imagenActualUrl=c.imagen||'';
-  imgBase64='';
-  imgFile=null;
+  urlImagenFinal=c.imagen||'';
   document.getElementById('formAdd').style.display='block';
   document.getElementById('inpNombre').value=c.nombre;
   document.getElementById('inpKey').value=c.key;
   document.getElementById('inpOrden').value=c.orden||1;
+  document.getElementById('inpImagenUrl').value=c.imagen||'';
   document.getElementById('previewBox').innerHTML= c.imagen ? `<img src="${c.imagen}">` : 'Sin imagen';
+  document.getElementById('statusUrl').textContent='URL cargada';
   window.scrollTo({top:0, behavior:'smooth'});
 }
 window.eliminarCat=async(k)=>{
@@ -195,32 +252,17 @@ window.guardarCategoria=async()=>{
   const nombre=document.getElementById('inpNombre').value.trim();
   let key=document.getElementById('inpKey').value.trim().toLowerCase().replace(/\s+/g,'');
   const orden=parseInt(document.getElementById('inpOrden').value)||99;
+  const inputUrl=document.getElementById('inpImagenUrl').value.trim();
+  if(inputUrl) urlImagenFinal = inputUrl;
   if(!nombre || !key){ toast('Nombre y key requeridos'); return; }
   if(key==='info' || key==='_info'){ toast('Info no permitido'); return; }
-
-  let urlFinal = imagenActualUrl;
-
-  // Si hay imagen nueva, subir a Storage como URL
-  if(imgBase64 && imgBase64.startsWith('data:')){
-    toast('Subiendo imagen...');
-    try{
-      const storagePath = `categorias_inicio/${key}_${Date.now()}.jpg`;
-      const refStorage = sRef(storage, storagePath);
-      await uploadString(refStorage, imgBase64, 'data_url');
-      urlFinal = await getDownloadURL(refStorage);
-    }catch(e){
-      console.error(e);
-      toast('Error subiendo imagen');
-      return;
-    }
-  }
-  if(!urlFinal) urlFinal = `https://img.icons8.com/3d-fluency/94/bento.png`;
+  if(!urlImagenFinal){ toast('Sube una imagen primero para generar la URL'); return; }
 
   const payload={
     key: key,
     nombre: nombre,
     nombreLower: nombre.toLowerCase(),
-    imagen: urlFinal,
+    imagen: urlImagenFinal,
     activa: true,
     orden: orden,
     fecha: Date.now()
@@ -229,7 +271,7 @@ window.guardarCategoria=async()=>{
     await remove(ref(db, `${pathCats}/${editKey}`));
   }
   await set(ref(db, `${pathCats}/${key}`), payload);
-  toast('Guardado');
+  toast('Guardado solo con URL');
   cancelarForm();
 }
 cargar();
