@@ -38,89 +38,60 @@ body{background:#f6f8fb;color:#0f172a}
 .resumen-grafica{margin-top:10px;padding:10px;background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0}
 .resumen-grafica div{display:flex;justify-content:space-between;padding:5px 0;font-size:10.5px;border-bottom:1px dashed #e2e8f0}
 
-/* ===== TOP 4 CARDS A LO LARGO ===== */
+/* TOP CARDS A LO LARGO */
 @media(max-width:900px){
-  .top-cards{
-    display:flex;
-    flex-wrap:nowrap;
-    overflow-x:auto;
-    gap:10px;
-    padding:10px 10px 12px;
-    scrollbar-width:none;
-    -webkit-overflow-scrolling:touch;
-  }
+  .top-cards{display:flex;flex-wrap:nowrap;overflow-x:auto;gap:10px;padding:10px 10px 12px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
   .top-cards::-webkit-scrollbar{display:none}
-  .tcard{
-    min-width:165px;
-    max-width:165px;
-    flex:0 0 165px;
-    padding:10px 10px;
-    display:flex;
-    flex-direction:column;
-    justify-content:space-between;
-  }
-  .tcard b{font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tcard{min-width:165px;max-width:165px;flex:0 0 165px;padding:10px}
 }
 
-/* ===== ABAJO TAMBIEN A LO LARGO MISMO TAMAÑO ===== */
+/* ABAJO TODO A LO LARGO IZQUIERDA A DERECHA BIEN PEQUEÑO */
 @media(max-width:700px){
   .header-top{padding:8px 10px}
-  .header-top h1{font-size:13px}
-  .box{margin:0 8px 12px;border-radius:10px}
-  .filters{padding:8px;gap:6px}
-  .filters input{font-size:12px;padding:9px 10px}
-  .filters input#buscar{flex:1 1 100%}
+  .box{margin:0 8px 12px;border-radius:12px}
+  .filters{padding:8px;gap:6px;display:flex;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+  .filters::-webkit-scrollbar{display:none}
+  .filters input{flex:0 0 auto;min-width:120px;font-size:11px}
+  .filters input#buscar{min-width:160px;flex:0 0 160px}
   .table-head{display:none}
   #listaPedidos{
-    display:flex;
-    flex-wrap:nowrap;
-    overflow-x:auto;
+    display:flex !important;
+    flex-direction:row !important;
+    flex-wrap:nowrap !important;
+    overflow-x:auto !important;
+    overflow-y:hidden !important;
     gap:10px;
-    padding:10px 10px 12px;
+    padding:10px;
     scrollbar-width:none;
     -webkit-overflow-scrolling:touch;
   }
   #listaPedidos::-webkit-scrollbar{display:none}
   .table-row{
-    min-width:165px;
-    max-width:165px;
-    flex:0 0 165px;
-    display:flex;
-    flex-direction:column;
+    min-width:165px !important;
+    max-width:165px !important;
+    flex:0 0 165px !important;
+    display:flex !important;
+    flex-direction:column !important;
     gap:0;
     padding:0;
     border:1px solid #e2e8f0;
     border-radius:12px;
-    overflow:hidden;
     background:white;
-    box-shadow:0 1px 4px rgba(0,0,0,0.04);
-    border-bottom:1px solid #e2e8f0;
+    height:fit-content;
   }
-  .table-row span{
-    font-size:11px!important;
-    padding:7px 10px;
-    border-bottom:1px solid #f1f5f9;
-    display:flex;
-    flex-direction:column;
-    gap:1px;
-    width:100%;
-  }
-  .table-row span::before{font-size:7.5px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.3px}
-  .table-row span:nth-child(1)::before{content:'Fecha / Hora'}
+  .table-row span{font-size:10px!important;padding:6px 8px;border-bottom:1px solid #f1f5f9;display:flex;flex-direction:column;width:100%}
+  .table-row span::before{font-size:7px;font-weight:700;color:#64748b;text-transform:uppercase}
+  .table-row span:nth-child(1)::before{content:'Fecha'}
   .table-row span:nth-child(2)::before{content:'Pedido'}
   .table-row span:nth-child(3)::before{content:'Cliente'}
-  .table-row span:nth-child(4)::before{content:'Venta total'}
+  .table-row span:nth-child(4)::before{content:'Venta'}
   .table-row span:nth-child(5)::before{content:'Cancelado'}
   .table-row span:nth-child(6)::before{content:'Pagado'}
   .table-row span:nth-child(7)::before{content:'Pendiente'}
   .table-row span:nth-child(8)::before{content:'Estado'}
   .table-row span:nth-child(9)::before{content:'Gráfica'}
-  .table-row span:nth-child(9){border-bottom:none;background:#f8fafc;align-items:center;justify-content:center;padding:8px}
-  .btn-graf{font-size:10px!important;padding:7px 12px!important;width:100%;justify-content:center;display:flex}
-}
-@media(max-width:380px){
-  .tcard{min-width:150px;max-width:150px;flex:0 0 150px}
-  .table-row{min-width:150px;max-width:150px;flex:0 0 150px}
+  .table-row span:nth-child(9){border:none;background:#f8fafc;align-items:center}
+  .btn-graf{width:100%;font-size:10px!important;padding:6px!important;justify-content:center}
 }
 </style>
 </head>
@@ -129,16 +100,13 @@ body{background:#f6f8fb;color:#0f172a}
 <button class="btn-x" onclick="location.href='panelaliado.html'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
 <div style="width:2px;height:16px;background:#E30613"></div>
 <h1>Resumen de ventas</h1>
-<span id="nombreNegocio" style="display:none"></span>
 </div>
-
 <div class="top-cards">
 <div class="tcard"><label>Total ingresos restaurante</label><b id="kIngresos">$ 0.00</b><span id="kSubIngresos">0 pedidos</span></div>
 <div class="tcard" style="border-left:4px solid #E30613"><label>Pérdida por cancelación</label><b id="kPerdidas" style="color:#E30613">- $ 0.00</b><span id="kSubPerd">0 cancelados</span></div>
 <div class="tcard"><label>Total pedidos</label><b id="kTotalPed">0</b><span id="kNombreSpan">De este negocio</span></div>
 <div class="tcard" id="cardEstadoPago"><label>Resumen de pago de facturas</label><b id="kEstadoPago">0 facturas</b><span id="kDetallePago">Sin pagos</span><div style="margin-top:8px"><button id="btnEstadoPago" class="btn btn-pend">Pendiente</button></div></div>
 </div>
-
 <div class="box">
 <div class="filters">
 <input id="buscar" placeholder="Buscar ST- o cliente..." onkeyup="filtrar()" style="flex:1">
@@ -149,7 +117,6 @@ body{background:#f6f8fb;color:#0f172a}
 </div>
 <div id="listaPedidos"><div style="padding:20px;text-align:center;color:#94a3b8;font-size:11px">Cargando tus ventas...</div></div>
 </div>
-
 <div class="modal modal-grafica" id="modalGraficaPedido">
 <div class="modal-box">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
@@ -160,7 +127,6 @@ body{background:#f6f8fb;color:#0f172a}
 <div class="resumen-grafica" id="resumenGraficaPedido"></div>
 </div>
 </div>
-
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -175,7 +141,6 @@ const configHistorial = {
 const appHis = initializeApp(configHistorial, "hisApp");
 const dbHis = getFirestore(appHis);
 let restauranteIdReal = "";
-let restauranteNombreReal = "";
 let pedidos = [];
 let pagos = [];
 let filtrados = [];
@@ -184,34 +149,15 @@ function fechaCorta(f){ try{ let d=new Date(f); if(isNaN(d.getTime())) d=new Dat
 function obtenerSesionAliado(){ try{ const sesionRaw = localStorage.getItem('doloya_aliado_sesion'); if(!sesionRaw) return null; return JSON.parse(sesionRaw); }catch{ return null; } }
 async function cargar(){
   const sesion = obtenerSesionAliado();
-  if(!sesion){ document.getElementById('listaPedidos').innerHTML='<div style="padding:20px;text-align:center;color:#E30613">No hay sesión. Entra desde el login de aliados.</div>'; return; }
+  if(!sesion){ document.getElementById('listaPedidos').innerHTML='<div style="padding:20px;text-align:center;color:#E30613">No hay sesión.</div>'; return; }
   restauranteIdReal = (sesion.negocio || sesion.id || "").toLowerCase().trim();
-  restauranteNombreReal = sesion.nombre || sesion.negocio || restauranteIdReal;
   const snapP = await getDocs(collection(dbHis, "pagos_aliados"));
-  snapP.forEach(d=>{
-    const data=d.data();
-    const id = (data.restauranteId || data.restaurante?.id || "").toLowerCase().trim();
-    if(id !== restauranteIdReal) return;
-    pagos.push({ id:d.id, monto:Number(data.montoPagado||data.monto||0), fecha:data.fechaPago||data.fecha||data.timestamp, facturaId:data.facturaId||d.id });
-  });
+  snapP.forEach(d=>{ const data=d.data(); const id = (data.restauranteId || data.restaurante?.id || "").toLowerCase().trim(); if(id !== restauranteIdReal) return; pagos.push({ id:d.id, monto:Number(data.montoPagado||data.monto||0), fecha:data.fechaPago||data.fecha||data.timestamp, facturaId:data.facturaId||d.id }); });
   const rawPedidos = [];
   const snapE = await getDocs(collection(dbHis, "pedidos_entregados"));
-  snapE.forEach(d=>{
-    const data=d.data();
-    const rid = (data.restaurante?.id || "").toLowerCase().trim();
-    if(rid !== restauranteIdReal) return;
-    const venta = Number(data.totales?.costoProductos || data.total || 0);
-    rawPedidos.push({ id:d.id, tipo:"entregado", fecha: data.timestampEnvio || data.timestampAdmin || data.fecha || Date.now(), venta: venta, valorCancelado:0, gana: venta*0.9, cliente: data.cliente?.nombre || "Cliente" });
-  });
+  snapE.forEach(d=>{ const data=d.data(); const rid = (data.restaurante?.id || "").toLowerCase().trim(); if(rid !== restauranteIdReal) return; const venta = Number(data.totales?.costoProductos || data.total || 0); rawPedidos.push({ id:d.id, tipo:"entregado", fecha: data.timestampEnvio || data.timestampAdmin || data.fecha || Date.now(), venta: venta, valorCancelado:0, gana: venta*0.9, cliente: data.cliente?.nombre || "Cliente" }); });
   const snapC = await getDocs(collection(dbHis, "pedidos_cancelados"));
-  snapC.forEach(d=>{
-    const data=d.data();
-    const rid = (data.restaurante?.id || "").toLowerCase().trim();
-    if(rid !== restauranteIdReal) return;
-    const venta = Number(data.totales?.costoProductos || data.total || 0);
-    const gana50 = venta*0.5;
-    rawPedidos.push({ id:d.id, tipo:"cancelado", fecha: data.timestampEnvio || data.timestampAdmin || data.fecha || Date.now(), venta: venta, valorCancelado:gana50, gana: gana50, cliente: data.cliente?.nombre || "Cliente" });
-  });
+  snapC.forEach(d=>{ const data=d.data(); const rid = (data.restaurante?.id || "").toLowerCase().trim(); if(rid !== restauranteIdReal) return; const venta = Number(data.totales?.costoProductos || data.total || 0); const gana50 = venta*0.5; rawPedidos.push({ id:d.id, tipo:"cancelado", fecha: data.timestampEnvio || data.timestampAdmin || data.fecha || Date.now(), venta: venta, valorCancelado:gana50, gana: gana50, cliente: data.cliente?.nombre || "Cliente" }); });
   rawPedidos.sort((a,b)=> new Date(a.fecha)-new Date(b.fecha));
   rawPedidos.forEach((p, idx)=>{ p.numeroReal = idx+1; p.codigo = "ST-"+String(idx+1); });
   pedidos = [...rawPedidos].sort((a,b)=> new Date(b.fecha)-new Date(a.fecha));
@@ -300,33 +246,18 @@ window.abrirGraficaPedido = (idPedido)=>{
     const totalCancel = ingresosPedido - valorProducto;
     totalTexto = totalCancel;
     colorTotal = totalCancel < 0 ? '#E30613' : '#16a34a';
-    resumenHtml = `
-      <div><span style="color:#3b82f6">● Valor producto menos 10%</span><b>$ ${valorProductoMenos10.toFixed(2)}</b></div>
-      <div><span style="color:#16a34a">● Ingresos</span><b>$ ${ingresosPedido.toFixed(2)}</b></div>
-      <div><span style="color:#E30613">● Pérdida por cancelación 40%</span><b>$ ${perdida40Real.toFixed(2)}</b></div>
-      <div><span style="color:#f59e0b">● Pendiente por pagar</span><b>$ ${pendientePedido.toFixed(2)}</b></div>
-      <div style="border-top:2px solid #0f172a;margin-top:6px;padding-top:8px;font-weight:800"><span>Total</span><b style="font-size:13px;color:${colorTotal}">$ ${totalTexto.toFixed(2)}</b></div>
-    `;
+    resumenHtml = `<div><span style="color:#3b82f6">● Valor producto menos 10%</span><b>$ ${valorProductoMenos10.toFixed(2)}</b></div><div><span style="color:#16a34a">● Ingresos</span><b>$ ${ingresosPedido.toFixed(2)}</b></div><div><span style="color:#E30613">● Pérdida por cancelación 40%</span><b>$ ${perdida40Real.toFixed(2)}</b></div><div><span style="color:#f59e0b">● Pendiente por pagar</span><b>$ ${pendientePedido.toFixed(2)}</b></div><div style="border-top:2px solid #0f172a;margin-top:6px;padding-top:8px;font-weight:800"><span>Total</span><b style="font-size:13px;color:${colorTotal}">$ ${totalTexto.toFixed(2)}</b></div>`;
   }else{
     labels = ['Valor producto', 'Ingresos', 'Pendiente'];
     data = [valorProductoMenos10, ingresosPedido, pendientePedido];
     colors = ['#3b82f6', '#16a34a', '#f59e0b'];
     totalTexto = ingresosPedido;
     colorTotal = '#16a34a';
-    resumenHtml = `
-      <div><span style="color:#3b82f6">● Valor producto menos 10%</span><b>$ ${valorProductoMenos10.toFixed(2)}</b></div>
-      <div><span style="color:#16a34a">● Ingresos</span><b>$ ${ingresosPedido.toFixed(2)}</b></div>
-      <div><span style="color:#f59e0b">● Pendiente por pagar</span><b>$ ${pendientePedido.toFixed(2)}</b></div>
-      <div style="border-top:2px solid #0f172a;margin-top:6px;padding-top:8px;font-weight:800"><span>Total</span><b style="font-size:13px;color:${colorTotal}">$ ${totalTexto.toFixed(2)}</b></div>
-    `;
+    resumenHtml = `<div><span style="color:#3b82f6">● Valor producto menos 10%</span><b>$ ${valorProductoMenos10.toFixed(2)}</b></div><div><span style="color:#16a34a">● Ingresos</span><b>$ ${ingresosPedido.toFixed(2)}</b></div><div><span style="color:#f59e0b">● Pendiente por pagar</span><b>$ ${pendientePedido.toFixed(2)}</b></div><div style="border-top:2px solid #0f172a;margin-top:6px;padding-top:8px;font-weight:800"><span>Total</span><b style="font-size:13px;color:${colorTotal}">$ ${totalTexto.toFixed(2)}</b></div>`;
   }
   const ctx = document.getElementById('chartPedido').getContext('2d');
   if(chartPedidoInstance) chartPedidoInstance.destroy();
-  chartPedidoInstance = new Chart(ctx, {
-    type: 'bar',
-    data: { labels: labels, datasets: [{ data: data, backgroundColor: colors, borderRadius: 6, barThickness: 20 }] },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks:{font:{size:9}} }, x:{ticks:{font:{size:8}}} } }
-  });
+  chartPedidoInstance = new Chart(ctx, { type: 'bar', data: { labels: labels, datasets: [{ data: data, backgroundColor: colors, borderRadius: 6, barThickness: 20 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks:{font:{size:9}} }, x:{ticks:{font:{size:8}}} } } });
   document.getElementById('resumenGraficaPedido').innerHTML = resumenHtml;
 };
 cargar();
