@@ -23,7 +23,7 @@ body{background:#F5F5F7;min-height:100vh}
 .grid-cat{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 @media(max-width:900px){.grid-cat{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:600px){.grid-cat{grid-template-columns:1fr}}
-.cat-card{background:white;border:1.5px solid #EFEFF1;border-radius:12px;padding:12px;display:flex;gap:12px;align-items:center;position:relative}
+.cat-card{background:white;border:1.5px solid #EFEFF1;border-radius:12px;padding:14px 12px 12px;display:flex;gap:12px;align-items:center;position:relative}
 .cat-img{width:64px;height:64px;border-radius:14px;background:#F3F4F6;overflow:hidden;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid #EDEEF0}
 .cat-img img{width:42px;height:42px;object-fit:contain}
 .cat-info{flex:1;min-width:0}
@@ -51,8 +51,7 @@ body{background:#F5F5F7;min-height:100vh}
 .modal-btns button{flex:1;border-radius:10px;padding:10px;font-size:13px;font-weight:800;border:none;cursor:pointer}
 .btn-cancel{background:#F3F4F6;color:#111}
 .btn-confirm{background:#E30613;color:white}
-/* BADGE ESQUINITA */
-.badge-count{position:absolute;top:8px;right:8px;background:#11141A;color:white;font-size:10px;font-weight:800;padding:4px 8px;border-radius:999px;min-width:28px;text-align:center}
+.badge-count{position:absolute;top:8px;right:8px;background:#11141A;color:white;font-size:10px;font-weight:800;padding:4px 8px;border-radius:999px;min-width:46px;text-align:center}
 .badge-count.cero{background:#F3F4F6;color:#9CA3AF;border:1px solid #E5E7EB}
 </style>
 </head>
@@ -199,86 +198,54 @@ document.getElementById('btnModalOk').addEventListener('click', async ()=>{
   cerrarModal();
 });
 
-// CONTAR RESTAURANTES VINCULADOS A CADA CATEGORIA
+// CONTEO REAL SEGUN TU ESTRUCTURA: doloya_aliados/{id}/categorias/_info
 async function calcularConteos(){
   conteoPorCategoria = {};
   try{
-    // Busca en varias rutas posibles donde tengas aliados
-    const rutas = ['doloya_aliados','aliados','comercios','restaurantes','locales'];
-    let todos = [];
-    for(const r of rutas){
-      try{
-        const snap = await get(ref(db, r));
-        if(snap.exists()){
-          const val = snap.val();
-          const arr = Array.isArray(val) ? val : Object.values(val);
-          if(arr.length>0) todos = todos.concat(arr);
-        }
-      }catch(e){}
+    const snapCats = await get(ref(db, pathCats));
+    if(snapCats.exists()){
+      Object.keys(snapCats.val()).forEach(k=> conteoPorCategoria[k]=0);
     }
-    // Si no hay en esas, intenta en raiz buscando comercios
-    if(todos.length===0){
-      const snap = await get(ref(db, '/'));
-      if(snap.exists()){
-        const root = snap.val();
-        // busca cualquier nodo que parezca restaurante
-        for(const k of Object.keys(root)){
-          if(typeof root[k]==='object' && k!=='config_global'){
-            const maybe = Object.values(root[k]);
-            if(maybe.length>0 && maybe[0] && (maybe[0].categoria || maybe[0].nombreLocal || maybe[0].tipoComida)){
-              todos = todos.concat(maybe);
-            }
-          }
-        }
-      }
-    }
-
-    // Inicializa conteos
-    const catsSnap = await get(ref(db, pathCats));
-    if(catsSnap.exists()){
-      Object.keys(catsSnap.val()).forEach(k=> conteoPorCategoria[k]=0);
-    }
-
+    const snapAliados = await get(ref(db, 'doloya_aliados'));
+    if(!snapAliados.exists()) return;
+    const aliados = snapAliados.val();
     let total = 0;
-    todos.forEach(com=>{
-      if(!com) return;
+    Object.values(aliados).forEach(aliado=>{
+      if(!aliado || typeof aliado!=='object') return;
+      // solo cuenta activos si quieres, si no quita esta linea
+      // if(aliado.estado && aliado.estado!=='activo') return;
       total++;
-      let cat = (com.categoria || com.categoriaKey || com.categoriaSeleccionada || com.tipo || com.tipoComida || com.categoriaNombre || '').toString().toLowerCase().trim();
-      // si tiene array de categorias
-      if(com.categorias && Array.isArray(com.categorias)){
-        com.categorias.forEach(c=>{
-          const key = c.toString().toLowerCase().trim();
-          if(conteoPorCategoria[key]!==undefined) conteoPorCategoria[key]++;
-          // busca por nombreLower
-          const key2 = key.replace(/\s+/g,'');
-          if(conteoPorCategoria[key2]!==undefined && key2!==key) conteoPorCategoria[key2]++;
-        });
-      } else {
-        if(cat){
-          if(conteoPorCategoria[cat]!==undefined) conteoPorCategoria[cat]++;
-          // variaciones
-          const catSinEsp = cat.replace(/\s+/g,'');
-          if(conteoPorCategoria[catSinEsp]!==undefined && catSinEsp!==cat) conteoPorCategoria[catSinEsp]++;
-          // plural simple
-          if(conteoPorCategoria[cat+'s']!==undefined) conteoPorCategoria[cat+'s']++;
-        }
+      let catInfo = '';
+      if(aliado.categorias && typeof aliado.categorias==='object'){
+        catInfo = aliado.categorias._info || aliado.categorias._Info || '';
       }
+      // fallback por si lo tienen en categoria directa
+      if(!catInfo) catInfo = aliado.categoria || '';
+      
+      catInfo = catInfo.toString().toLowerCase().trim();
+      if(!catInfo) return;
+      
+      // normaliza: burger, burgers, etc
+      const variantes = [catInfo, catInfo.replace(/s$/,''), catInfo+'s'];
+      variantes.forEach(v=>{
+        if(conteoPorCategoria[v]!==undefined) conteoPorCategoria[v]++;
+      });
+      // mapeo especial para tus keys
+      if(catInfo==='burger' && conteoPorCategoria['burgers']!==undefined) conteoPorCategoria['burgers']++;
+      if(catInfo==='burgers' && conteoPorCategoria['burger']!==undefined) conteoPorCategoria['burger']++;
     });
     conteoPorCategoria['todos'] = total;
-    renderConteos();
+    // actualiza badges
+    document.querySelectorAll('.cat-card').forEach(card=>{
+      const key = card.getAttribute('data-key');
+      const count = conteoPorCategoria[key] ?? 0;
+      const badge = card.querySelector('.badge-count');
+      if(badge){
+        badge.textContent = count + (count===1?' rest.':' rest.');
+        badge.classList.toggle('cero', count===0);
+      }
+    });
   }catch(e){ console.log('error conteo',e); }
-}
-
-function renderConteos(){
-  document.querySelectorAll('.cat-card').forEach(card=>{
-    const key = card.getAttribute('data-key');
-    const count = conteoPorCategoria[key] ?? 0;
-    const badge = card.querySelector('.badge-count');
-    if(badge){
-      badge.textContent = count + (count===1?' rest.':' rest.');
-      badge.classList.toggle('cero', count===0);
-    }
-  });
 }
 
 function cargar(){
@@ -312,10 +279,10 @@ function cargar(){
         </div>
       </div>`;
     });
+    calcularConteos();
   });
-  // calcular conteos cada 3 seg por si cambian aliados
-  calcularConteos();
-  setInterval(calcularConteos, 5000);
+  // recalcula cada 4 seg
+  setInterval(calcularConteos, 4000);
 }
 window.toggleActiva=async(k)=>{
   const snap=await get(ref(db, `${pathCats}/${k}`));
