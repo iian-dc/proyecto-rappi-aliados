@@ -198,7 +198,7 @@ document.getElementById('btnModalOk').addEventListener('click', async ()=>{
   cerrarModal();
 });
 
-// CONTEO 100% REAL DESDE TU RUTA: doloya_aliados -> info -> categoria
+// CONTEO CORREGIDO - SOLO 2 NEGOCIOS REALES
 async function calcularConteos(){
   conteoPorCategoria = {};
   try{
@@ -212,28 +212,26 @@ async function calcularConteos(){
     if(!snapAliados.exists()) return;
     const aliados = snapAliados.val();
     let total = 0;
-    Object.values(aliados).forEach(aliado=>{
+    Object.entries(aliados).forEach(([id, aliado])=>{
       if(!aliado || typeof aliado!=='object') return;
-      total++;
-      let cat = '';
-      // LEE EXACTAMENTE DE DONDE ME SEÑALASTE: info -> categoria
-      if(aliado.info && aliado.info.categoria){
-        cat = aliado.info.categoria;
-      } else if(aliado.categorias && aliado.categorias._info){
-        cat = aliado.categorias._info;
-      } else if(aliado.categoria){
-        cat = aliado.categoria;
-      }
-      cat = cat.toString().toLowerCase().trim();
-      if(!cat) return;
+      if(id==='admin') return; // IGNORA ADMIN
+      if(!aliado.info || !aliado.info.categoria) return; // SOLO SI TIENE info.categoria como en tu foto
+      const estado = (aliado.estado || aliado.info.estado || '').toLowerCase();
+      // si quieres contar solo activos descomenta la siguiente linea
+      // if(estado && estado!=='activo') return;
       
-      // cuenta exacto como está guardado
+      total++;
+      let cat = aliado.info.categoria.toString().toLowerCase().trim();
+      
+      // cuenta exacto
       if(conteoPorCategoria[cat]!==undefined) conteoPorCategoria[cat]++;
-      // por si tu key es plural y tu categoria singular (burger vs burgers)
-      if(cat==='burger' && conteoPorCategoria['burgers']!==undefined) conteoPorCategoria['burgers']++;
-      if(cat==='burgers' && conteoPorCategoria['burger']!==undefined) conteoPorCategoria['burger']++;
-      if(cat==='pizza' && conteoPorCategoria['pizzas']!==undefined) conteoPorCategoria['pizzas']++;
-      if(cat==='pizzas' && conteoPorCategoria['pizza']!==undefined) conteoPorCategoria['pizza']++;
+      // soporte plural/singular
+      if(cat.endsWith('s')){
+        const sing = cat.slice(0,-1);
+        if(conteoPorCategoria[sing]!==undefined) conteoPorCategoria[sing]++;
+      } else {
+        if(conteoPorCategoria[cat+'s']!==undefined) conteoPorCategoria[cat+'s']++;
+      }
     });
     conteoPorCategoria['todos'] = total;
     
@@ -281,7 +279,6 @@ function cargar(){
     });
     calcularConteos();
   });
-  // escucha cambios en aliados para actualizar conteo en vivo
   onValue(ref(db, 'doloya_aliados'), ()=>{ calcularConteos(); });
 }
 window.toggleActiva=async(k)=>{
