@@ -1,0 +1,17 @@
+{
+  "name": "DoloYa Panel Admin",
+  "short_name": "DoloYa",
+  "description": "Panel de administración DoloYa",
+  "start_url": "paneladmin.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#B70A1A",
+  "icons": [
+    {
+      "src": "LOGO-PANEL.PNG",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
