@@ -41,6 +41,17 @@ body{background:#F5F5F7;min-height:100vh}
 .preview-box{width:80px;height:80px;border-radius:12px;background:#F3F4F6;border:1.5px dashed #D1D5DB;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .preview-box img{width:100%;height:100%;object-fit:contain}
 #toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#111;color:white;padding:10px 18px;border-radius:999px;font-size:12px;font-weight:700;display:none;z-index:9999}
+/* MODAL CONFIRMACION CENTRO */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:10000;padding:20px}
+.modal-overlay.open{display:flex}
+.modal-box{background:white;border-radius:18px;padding:22px;width:100%;max-width:320px;text-align:center;box-shadow:0 20px 40px rgba(0,0,0,0.3);animation:pop .2s}
+@keyframes pop{from{transform:scale(.9)}to{transform:scale(1)}}
+.modal-box h3{font-size:15px;font-weight:800;margin-bottom:8px}
+.modal-box p{font-size:12px;color:#6B7280;margin-bottom:18px}
+.modal-btns{display:flex;gap:10px}
+.modal-btns button{flex:1;border-radius:10px;padding:10px;font-size:13px;font-weight:800;border:none;cursor:pointer}
+.btn-cancel{background:#F3F4F6;color:#111}
+.btn-confirm{background:#E30613;color:white}
 </style>
 </head>
 <body>
@@ -66,13 +77,13 @@ body{background:#F5F5F7;min-height:100vh}
           <label class="label">Imagen (3D)</label>
           <div class="preview-box" id="previewBox"><span style="font-size:10px;color:#9CA3AF">Sin imagen</span></div>
           <input type="file" id="fileImg" accept="image/*" style="margin-top:8px;font-size:12px">
-          <label class="label">URL de imagen generada</label>
-          <input id="inpImagenUrl" class="input" placeholder="Se genera sola al subir" style="font-size:11px;min-width:260px">
+          <label class="label">URL de imagen</label>
+          <input id="inpImagenUrl" class="input" placeholder="URL automática" style="font-size:11px;min-width:260px">
           <div id="statusUrl" style="font-size:10px;color:#16A34A;margin-top:4px"></div>
         </div>
         <div style="flex:1;min-width:220px">
-          <label class="label">Nombre (Ej: Burger)</label><input id="inpNombre" class="input" placeholder="Burger">
-          <label class="label">Key (auto: burgers)</label><input id="inpKey" class="input" placeholder="burgers">
+          <label class="label">Nombre (Ej: Alitas)</label><input id="inpNombre" class="input" placeholder="Alitas">
+          <label class="label">Key</label><input id="inpKey" class="input" placeholder="alitas">
           <label class="label">Orden</label><input id="inpOrden" type="number" class="input" value="1" style="max-width:100px">
           <div style="margin-top:12px;display:flex;gap:8px">
             <button class="btn-red" id="btnGuardar" onclick="guardarCategoria()">Guardar</button>
@@ -83,6 +94,17 @@ body{background:#F5F5F7;min-height:100vh}
     </div>
 
     <div class="grid-cat" id="gridCats" style="margin-top:16px"></div>
+  </div>
+</div>
+
+<div id="modalConfirm" class="modal-overlay">
+  <div class="modal-box">
+    <h3 id="modalTitle">¿Eliminar categoría?</h3>
+    <p id="modalText">Esta acción no se puede deshacer</p>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn-confirm" id="btnModalOk">Eliminar</button>
+    </div>
   </div>
 </div>
 
@@ -104,6 +126,7 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 let editKey = null;
 let urlImagenFinal = '';
+let keyAEliminar = null;
 const pathCats = 'config_global/categorias_inicio';
 
 function toast(m){
@@ -150,18 +173,28 @@ document.getElementById('fileImg').addEventListener('change', async e=>{
   document.getElementById('statusUrl').textContent='Generando URL...';
   const dataUrl = await comprimirADataURL(f);
   urlImagenFinal = dataUrl;
-  document.getElementById('inpImagenUrl').value = dataUrl.substring(0,60) + '... (URL comprimida lista)';
+  document.getElementById('inpImagenUrl').value = dataUrl;
   document.getElementById('previewBox').innerHTML=`<img src="${dataUrl}">`;
-  document.getElementById('statusUrl').textContent='✅ URL generada (liviana, lista para guardar)';
-  toast('URL lista');
+  document.getElementById('statusUrl').textContent='✅ URL generada lista para guardar';
 });
 
-document.getElementById('inpImagenUrl').addEventListener('input',()=>{
-  const v = document.getElementById('inpImagenUrl').value.trim();
-  if(v.startsWith('http') || v.startsWith('data:')){
-    urlImagenFinal = v;
-    if(v.startsWith('http') || v.startsWith('data:')) document.getElementById('previewBox').innerHTML=`<img src="${v}">`;
-  }
+// Modal
+function abrirModalEliminar(k, nombre){
+  keyAEliminar = k;
+  document.getElementById('modalTitle').textContent = `¿Eliminar ${nombre}?`;
+  document.getElementById('modalText').textContent = `Se eliminará ${k} de config_global/categorias_inicio`;
+  document.getElementById('modalConfirm').classList.add('open');
+}
+window.cerrarModal = ()=>{
+  document.getElementById('modalConfirm').classList.remove('open');
+  keyAEliminar = null;
+}
+document.getElementById('btnModalOk').addEventListener('click', async ()=>{
+  if(!keyAEliminar) return;
+  if(keyAEliminar==='todos'){ toast('Todos no se puede eliminar'); cerrarModal(); return; }
+  await remove(ref(db, `${pathCats}/${keyAEliminar}`));
+  toast('Eliminado');
+  cerrarModal();
 });
 
 function cargar(){
@@ -187,7 +220,7 @@ function cargar(){
           </div>
           <div class="cat-actions">
             <button class="btn-mini" onclick="editarCat('${c.key}')">Editar</button>
-            <button class="btn-mini del" onclick="eliminarCat('${c.key}')">Eliminar</button>
+            <button class="btn-mini del" onclick="abrirModalEliminarCat('${c.key}','${c.nombre}')">Eliminar</button>
           </div>
         </div>
       </div>`;
@@ -201,6 +234,7 @@ window.toggleActiva=async(k)=>{
   await update(ref(db, `${pathCats}/${k}`), {activa: !(v.activa!==false)});
   toast('Actualizado');
 }
+// EDITAR CARGANDO LO REGISTRADO
 window.editarCat=async(k)=>{
   const snap=await get(ref(db, `${pathCats}/${k}`));
   if(!snap.exists()) return;
@@ -208,31 +242,33 @@ window.editarCat=async(k)=>{
   editKey=k;
   urlImagenFinal=c.imagen||'';
   document.getElementById('formAdd').style.display='block';
-  document.getElementById('inpNombre').value=c.nombre;
-  document.getElementById('inpKey').value=c.key;
+  document.getElementById('inpNombre').value=c.nombre||'';
+  document.getElementById('inpKey').value=c.key||'';
   document.getElementById('inpOrden').value=c.orden||1;
   document.getElementById('inpImagenUrl').value=c.imagen||'';
-  document.getElementById('previewBox').innerHTML= c.imagen ? `<img src="${c.imagen}">` : 'Sin imagen';
-  document.getElementById('statusUrl').textContent='URL cargada, puedes cambiarla';
+  document.getElementById('previewBox').innerHTML= c.imagen ? `<img src="${c.imagen}">` : '<span style="font-size:10px;color:#9CA3AF">Sin imagen</span>';
+  document.getElementById('statusUrl').textContent='Datos cargados de Firebase, listos para editar';
   window.scrollTo({top:0, behavior:'smooth'});
 }
-window.eliminarCat=async(k)=>{
-  if(k==='todos'){ toast('Todos no se puede eliminar'); return; }
-  if(!confirm(`¿Eliminar ${k}?`)) return;
-  await remove(ref(db, `${pathCats}/${k}`));
-  toast('Eliminado');
-}
+window.abrirModalEliminarCat=(k,nombre)=>{ abrirModalEliminar(k,nombre); }
+
 window.guardarCategoria=async()=>{
   const nombre=document.getElementById('inpNombre').value.trim();
   let key=document.getElementById('inpKey').value.trim().toLowerCase().replace(/\s+/g,'');
   const orden=parseInt(document.getElementById('inpOrden').value)||99;
   const inputVal=document.getElementById('inpImagenUrl').value.trim();
-  if(inputVal && (inputVal.startsWith('http') || inputVal.startsWith('data:'))) urlImagenFinal = inputVal;
-  else if(inputVal.length>20 && !urlImagenFinal) urlImagenFinal = inputVal;
+  if(inputVal) urlImagenFinal = inputVal;
   
   if(!nombre || !key){ toast('Nombre y key requeridos'); return; }
   if(key==='info' || key==='_info'){ toast('Info no permitido'); return; }
   if(!urlImagenFinal){ toast('Sube una imagen primero'); return; }
+
+  // Mantener fecha original si es edición
+  let fechaExistente = Date.now();
+  if(editKey){
+    const snap = await get(ref(db, `${pathCats}/${editKey}`));
+    if(snap.exists()) fechaExistente = snap.val().fecha || Date.now();
+  }
 
   const payload={
     key: key,
@@ -241,7 +277,7 @@ window.guardarCategoria=async()=>{
     imagen: urlImagenFinal,
     activa: true,
     orden: orden,
-    fecha: Date.now()
+    fecha: fechaExistente
   };
   try{
     if(editKey && editKey!==key){
@@ -251,7 +287,6 @@ window.guardarCategoria=async()=>{
     toast('Guardado correctamente');
     cancelarForm();
   }catch(e){
-    console.error(e);
     toast('Error: '+e.message);
   }
 }
