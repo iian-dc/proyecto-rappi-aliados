@@ -51,7 +51,7 @@ body{background:#F5F5F7;min-height:100vh}
 .modal-btns button{flex:1;border-radius:10px;padding:10px;font-size:13px;font-weight:800;border:none;cursor:pointer}
 .btn-cancel{background:#F3F4F6;color:#111}
 .btn-confirm{background:#E30613;color:white}
-.badge-count{position:absolute;top:8px;right:8px;background:#11141A;color:white;font-size:10px;font-weight:800;padding:4px 8px;border-radius:999px;min-width:46px;text-align:center}
+.badge-count{position:absolute;top:8px;right:8px;background:#11141A;color:white;font-size:10px;font-weight:800;padding:4px 8px;border-radius:999px;min-width:50px;text-align:center}
 .badge-count.cero{background:#F3F4F6;color:#9CA3AF;border:1px solid #E5E7EB}
 </style>
 </head>
@@ -198,13 +198,15 @@ document.getElementById('btnModalOk').addEventListener('click', async ()=>{
   cerrarModal();
 });
 
-// CONTEO REAL SEGUN TU ESTRUCTURA: doloya_aliados/{id}/categorias/_info
+// CONTEO 100% REAL DESDE TU RUTA: doloya_aliados -> info -> categoria
 async function calcularConteos(){
   conteoPorCategoria = {};
   try{
     const snapCats = await get(ref(db, pathCats));
     if(snapCats.exists()){
-      Object.keys(snapCats.val()).forEach(k=> conteoPorCategoria[k]=0);
+      Object.keys(snapCats.val()).forEach(k=> {
+        if(k!=='_info' && k!=='info') conteoPorCategoria[k.toLowerCase()]=0;
+      });
     }
     const snapAliados = await get(ref(db, 'doloya_aliados'));
     if(!snapAliados.exists()) return;
@@ -212,36 +214,35 @@ async function calcularConteos(){
     let total = 0;
     Object.values(aliados).forEach(aliado=>{
       if(!aliado || typeof aliado!=='object') return;
-      // solo cuenta activos si quieres, si no quita esta linea
-      // if(aliado.estado && aliado.estado!=='activo') return;
       total++;
-      let catInfo = '';
-      if(aliado.categorias && typeof aliado.categorias==='object'){
-        catInfo = aliado.categorias._info || aliado.categorias._Info || '';
+      let cat = '';
+      // LEE EXACTAMENTE DE DONDE ME SEÑALASTE: info -> categoria
+      if(aliado.info && aliado.info.categoria){
+        cat = aliado.info.categoria;
+      } else if(aliado.categorias && aliado.categorias._info){
+        cat = aliado.categorias._info;
+      } else if(aliado.categoria){
+        cat = aliado.categoria;
       }
-      // fallback por si lo tienen en categoria directa
-      if(!catInfo) catInfo = aliado.categoria || '';
+      cat = cat.toString().toLowerCase().trim();
+      if(!cat) return;
       
-      catInfo = catInfo.toString().toLowerCase().trim();
-      if(!catInfo) return;
-      
-      // normaliza: burger, burgers, etc
-      const variantes = [catInfo, catInfo.replace(/s$/,''), catInfo+'s'];
-      variantes.forEach(v=>{
-        if(conteoPorCategoria[v]!==undefined) conteoPorCategoria[v]++;
-      });
-      // mapeo especial para tus keys
-      if(catInfo==='burger' && conteoPorCategoria['burgers']!==undefined) conteoPorCategoria['burgers']++;
-      if(catInfo==='burgers' && conteoPorCategoria['burger']!==undefined) conteoPorCategoria['burger']++;
+      // cuenta exacto como está guardado
+      if(conteoPorCategoria[cat]!==undefined) conteoPorCategoria[cat]++;
+      // por si tu key es plural y tu categoria singular (burger vs burgers)
+      if(cat==='burger' && conteoPorCategoria['burgers']!==undefined) conteoPorCategoria['burgers']++;
+      if(cat==='burgers' && conteoPorCategoria['burger']!==undefined) conteoPorCategoria['burger']++;
+      if(cat==='pizza' && conteoPorCategoria['pizzas']!==undefined) conteoPorCategoria['pizzas']++;
+      if(cat==='pizzas' && conteoPorCategoria['pizza']!==undefined) conteoPorCategoria['pizza']++;
     });
     conteoPorCategoria['todos'] = total;
-    // actualiza badges
+    
     document.querySelectorAll('.cat-card').forEach(card=>{
-      const key = card.getAttribute('data-key');
+      const key = card.getAttribute('data-key').toLowerCase();
       const count = conteoPorCategoria[key] ?? 0;
       const badge = card.querySelector('.badge-count');
       if(badge){
-        badge.textContent = count + (count===1?' rest.':' rest.');
+        badge.textContent = count + ' rest.';
         badge.classList.toggle('cero', count===0);
       }
     });
@@ -259,11 +260,10 @@ function cargar(){
     const arr=Object.values(data).filter(c=>c.key!=='info' && c.key!=='_info').sort((a,b)=>(a.orden||99)-(b.orden||99));
     grid.innerHTML='';
     arr.forEach(c=>{
-      const count = conteoPorCategoria[c.key] ?? 0;
-      const countText = count + (count===1?' rest.':' rest.');
+      const count = conteoPorCategoria[c.key.toLowerCase()] ?? 0;
       grid.innerHTML+=`
       <div class="cat-card" data-key="${c.key}">
-        <div class="badge-count ${count===0?'cero':''}">${countText}</div>
+        <div class="badge-count ${count===0?'cero':''}">${count} rest.</div>
         <div class="cat-img"><img src="${c.imagen||'https://img.icons8.com/3d-fluency/94/bento.png'}" onerror="this.src='https://img.icons8.com/3d-fluency/94/bento.png'"></div>
         <div class="cat-info">
           <div class="cat-name">${c.nombre}</div>
@@ -281,8 +281,8 @@ function cargar(){
     });
     calcularConteos();
   });
-  // recalcula cada 4 seg
-  setInterval(calcularConteos, 4000);
+  // escucha cambios en aliados para actualizar conteo en vivo
+  onValue(ref(db, 'doloya_aliados'), ()=>{ calcularConteos(); });
 }
 window.toggleActiva=async(k)=>{
   const snap=await get(ref(db, `${pathCats}/${k}`));
