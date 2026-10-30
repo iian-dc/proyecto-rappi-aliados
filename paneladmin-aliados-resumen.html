@@ -1,1 +1,238 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resumen - DoloYa</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
+body{background:#fff;min-height:100vh}
+:root{--rojo:#C50D1F;--rojo2:#D90A17}
+.top-header{background:var(--rojo);height:72px;display:flex;align-items:center;padding:0 22px;gap:18px;position:sticky;top:0;z-index:100}
+.btn-x{width:48px;height:48px;background:white;border:none;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+.btn-x svg{width:22px;height:22px;stroke:var(--rojo2);stroke-width:3.5;fill:none;stroke-linecap:round}
+.divider{width:2px;height:36px;background:rgba(255,255,255,0.35);flex-shrink:0}
+.top-text h1{color:white;font-size:26px;font-weight:800;line-height:1}
+.top-text p{color:rgba(255,255,255,0.9);font-size:13.5px;font-weight:400;margin-top:4px}
+.main{padding:22px;display:flex;justify-content:center}
+.card-resumen{width:100%;max-width:980px;background:white;border:1.5px solid #E8E9F0;border-radius:12px;overflow:hidden}
+.resumen-body{padding:22px;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:700px){.resumen-body{grid-template-columns:1fr}}
+.stat-card{border:1.5px solid #E8E9F0;border-radius:10px;padding:16px;display:flex;align-items:center;gap:14px;background:#F8FAFF}
+.stat-icon{width:52px;height:52px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.stat-icon svg{width:26px;height:26px;stroke-width:2;fill:none}
+.stat-info b{font-size:22px;font-weight:800;color:#111827;display:block;line-height:1}
+.stat-info span{font-size:12.5px;color:#6B7280;font-weight:600;margin-top:4px;display:block}
+.footer{border-top:1.5px solid #F0F0F5;padding:18px 22px;display:flex;justify-content:flex-end;background:white}
+.btn-eliminar{flex:1;max-width:420px;height:48px;border:none;background:var(--rojo2);border-radius:10px;font-size:14px;font-weight:700;color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-eliminar svg{width:20px;height:20px;stroke:white;stroke-width:2;fill:none}
+#overlayConfirm{position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;display:none;align-items:center;justify-content:center;padding:20px}
+#overlayConfirm.show{display:flex}
+.confirm-card{background:white;border-radius:16px;padding:24px;min-width:320px;max-width:400px;width:100%;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,0.3);border-top:4px solid var(--rojo2)}
+.confirm-card h3{font-size:18px;font-weight:800;color:#111827}
+.confirm-card p{font-size:13px;color:#6B7280;margin-top:8px;line-height:1.4}
+.confirm-btns{display:flex;gap:12px;margin-top:20px}
+.btn-no{flex:1;height:44px;border:1.5px solid #E5E9F0;background:white;border-radius:8px;font-weight:600;cursor:pointer}
+.btn-si{flex:1;height:44px;border:none;background:var(--rojo2);color:white;border-radius:8px;font-weight:700;cursor:pointer}
+#toastOverlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:10000;display:none;align-items:center;justify-content:center}
+#toastOverlay.show{display:flex}
+.toast-card{background:white;border-radius:16px;padding:20px 24px;min-width:280px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,0.25);border-top:4px solid var(--rojo2)}
+</style>
+</head>
+<body>
 
+<div id="toastOverlay"><div class="toast-card"><h4 id="toastTitle">Listo</h4><p id="toastMsg" style="font-size:12px;color:#6b7280;margin-top:4px"></p></div></div>
+
+<div id="overlayConfirm">
+  <div class="confirm-card">
+    <h3>¿Eliminar restaurante?</h3>
+    <p>¿Estás seguro que deseas eliminar <b id="nombreBorrar">este restaurante</b>? Esta acción no se puede deshacer.</p>
+    <div class="confirm-btns">
+      <button class="btn-no" onclick="cerrarConfirm()">No, cancelar</button>
+      <button class="btn-si" onclick="confirmarEliminar()">Sí, eliminar</button>
+    </div>
+  </div>
+</div>
+
+<div class="top-header">
+  <button class="btn-x" onclick="window.location.href='panelaliado-menu.html'"><svg viewBox="0 0 24 24"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg></button>
+  <div class="divider"></div>
+  <div class="top-text"><h1>Resumen</h1><p id="subResumen">Estadísticas de tu negocio</p></div>
+</div>
+
+<div class="main">
+  <div class="card-resumen">
+    <div class="resumen-body">
+      <div class="stat-card">
+        <div class="stat-icon" style="background:#FEE2E2"><svg viewBox="0 0 24 24" stroke="#C50D1F"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8M8 11h8M8 15h5"/></svg></div>
+        <div class="stat-info"><b id="txtPedidos">0</b><span>Pedidos totales</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:#FCE7F3"><svg viewBox="0 0 24 24" stroke="#DB2777"><path d="M20.8 8.2a5.5 5.5 0 0 0-7.8-7.8L12 1.5l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 17l7.8-7.8 1-1z"/></svg></div>
+        <div class="stat-info"><b id="txtLikes">0</b><span>Likes</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:#E0F2FE"><svg viewBox="0 0 24 24" stroke="#0284C7"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18"/></svg></div>
+        <div class="stat-info"><b id="txtProductos">0</b><span>Productos en menú</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:#DCFCE7"><svg viewBox="0 0 24 24" stroke="#16A34A"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg></div>
+        <div class="stat-info"><b id="txtVentas">$0.00</b><span>Ventas generadas</span></div>
+      </div>
+    </div>
+    <div class="footer">
+      <button class="btn-eliminar" onclick="abrirConfirm()">
+        <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+        Eliminar restaurante
+      </button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+import { getDatabase, ref, get, remove } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js";
+import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+
+const firebaseConfigAliados = {
+  apiKey: "AIzaSyD286qlJQT8D3rqbYTSfCyuTAEg9jjRchQ",
+  authDomain: "doloya-aliados.firebaseapp.com",
+  databaseURL: "https://doloya-aliados-default-rtdb.firebaseio.com",
+  projectId: "doloya-aliados",
+  storageBucket: "doloya-aliados.firebasestorage.app",
+  messagingSenderId: "122314467740",
+  appId: "1:122314467740:web:9947a0a9560557e3a00059"
+};
+const firebaseConfigPedidos = {
+  apiKey: "AIzaSyDLKngPyi_SWAXEQwdrHO5h8L8OufulAR4",
+  authDomain: "doloya-confirmacion.firebaseapp.com",
+  databaseURL: "https://doloya-confirmacion-default-rtdb.firebaseio.com",
+  projectId: "doloya-confirmacion",
+  storageBucket: "doloya-confirmacion.firebasestorage.app",
+  messagingSenderId: "832228761099",
+  appId: "1:832228761099:web:ddd4b6a0ee0d7f0494b10e"
+};
+
+const appAliados = initializeApp(firebaseConfigAliados, "aliadosResumen");
+const dbAliados = getDatabase(appAliados);
+const appPedidos = initializeApp(firebaseConfigPedidos, "pedidosResumen");
+import { getFirestore as getFS } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+const dbPedidos = getFS(appPedidos);
+
+function getIdRestaurante(){
+  const urlParams = new URLSearchParams(window.location.search);
+  const idUrl = urlParams.get('id');
+  if(idUrl) return idUrl.toLowerCase();
+  try{
+    const sesion = JSON.parse(localStorage.getItem('doloya_aliado_sesion'));
+    return (sesion.id || sesion.negocio || 'santillos').toLowerCase();
+  }catch{
+    return 'santillos';
+  }
+}
+
+function toast(t,m){
+  document.getElementById('toastTitle').textContent=t;
+  document.getElementById('toastMsg').textContent=m;
+  document.getElementById('toastOverlay').classList.add('show');
+  setTimeout(()=>document.getElementById('toastOverlay').classList.remove('show'),2500);
+}
+
+const idRest = getIdRestaurante();
+document.getElementById('subResumen').textContent = idRest.replace(/_/g,' ');
+document.getElementById('nombreBorrar').textContent = idRest;
+
+function normalize(t){ return String(t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim(); }
+
+async function cargarResumen(){
+  try{
+    // 1. PRODUCTOS Y LIKES DESDE RTDB - RUTA UNICA
+    const snap = await get(ref(dbAliados, `doloya_aliados/${idRest}`));
+    let totalProductos = 0;
+    let likes = 0;
+    if(snap.exists()){
+      const data = snap.val();
+      // Likes
+      if(data.likes !== undefined) likes = data.likes;
+      if(data.info && data.info.likes) likes = data.info.likes;
+      // Productos
+      if(data.categorias){
+        for(const catKey in data.categorias){
+          if(['disponibilidad','info','likes','banner','banners','carritos','direccion'].includes(catKey)) continue;
+          if(catKey === 'categorias'){ // legacy doble
+            for(const subCat in data.categorias[catKey]){
+              if(subCat.startsWith('_')) continue;
+              const subData = data.categorias[catKey][subCat];
+              if(!subData || typeof subData !== 'object') continue;
+              for(const prod in subData){
+                if(subData[prod] && subData[prod].precio !== undefined) totalProductos++;
+              }
+            }
+            continue;
+          }
+          const catData = data.categorias[catKey];
+          if(!catData || typeof catData !== 'object') continue;
+          for(const prodKey in catData){
+            if(prodKey.startsWith('_')) continue;
+            if(catData[prodKey] && catData[prodKey].precio !== undefined) totalProductos++;
+          }
+        }
+      }
+    }
+    document.getElementById('txtProductos').textContent = totalProductos;
+    document.getElementById('txtLikes').textContent = likes;
+
+    // 2. PEDIDOS Y VENTAS DESDE FIRESTORE
+    const qSnap = await getDocs(collection(dbPedidos, "pedidos"));
+    let pedidosCount = 0;
+    let ventasTotal = 0;
+    qSnap.forEach(doc=>{
+      const d = doc.data();
+      const r = d.restaurante || {};
+      const idR = normalize(r.id || r.restauranteId || r.negocio || '');
+      const nombreR = normalize(r.nombre || '');
+      if(idR === normalize(idRest) || nombreR.includes(normalize(idRest)) || normalize(idRest).includes(idR)){
+        pedidosCount++;
+        const total = parseFloat(d.total || d.monto || 0);
+        if(!isNaN(total)) ventasTotal += total;
+      }
+    });
+    document.getElementById('txtPedidos').textContent = pedidosCount;
+    document.getElementById('txtVentas').textContent = "$" + ventasTotal.toFixed(2);
+
+  }catch(e){
+    console.error(e);
+    toast("Error","No se pudo cargar resumen");
+  }
+}
+
+window.abrirConfirm = function(){
+  document.getElementById('overlayConfirm').classList.add('show');
+}
+window.cerrarConfirm = function(){
+  document.getElementById('overlayConfirm').classList.remove('show');
+}
+window.confirmarEliminar = async function(){
+  try{
+    cerrarConfirm();
+    toast("Eliminando...","Borrando restaurante");
+    // Busca en ruta unica y vieja para borrar
+    const snapCheck = await get(ref(dbAliados, `doloya_aliados/${idRest}`));
+    if(snapCheck.exists()){
+      await remove(ref(dbAliados, `doloya_aliados/${idRest}`));
+    }
+    // Tambien limpia tokens si existen
+    await remove(ref(dbAliados, `doloya_tokens/${idRest}`)).catch(()=>{});
+    toast("Eliminado", idRest + " eliminado correctamente");
+    setTimeout(()=>{ window.location.href='panelaliado-menu.html'; },1500);
+  }catch(e){
+    console.error(e);
+    toast("Error", e.message);
+  }
+}
+
+cargarResumen();
+</script>
+</body>
+</html>
