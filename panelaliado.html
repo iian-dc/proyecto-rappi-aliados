@@ -57,7 +57,6 @@ body{background:#f9f9fb;min-height:100vh;display:flex}
 .desc{color:#7a8191;font-size:14.5px;line-height:1.5;max-width:420px;margin-top:14px}
 .hamburger{display:none;background:none;border:none;cursor:pointer}
 .mobile-overlay{display:none}
-/* VISTAS EN BLANCO PARA CONFIG Y AYUDA */
 .vista-blanca{position:fixed;inset:0;background:white;z-index:300;display:none;flex-direction:column}
 .vista-blanca.show{display:flex}
 .vista-blanca-header{height:56px;background:white;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;gap:12px;padding:0 14px}
@@ -65,7 +64,6 @@ body{background:#f9f9fb;min-height:100vh;display:flex}
 .vista-blanca-body{flex:1;background:white}
 @media(max-width:900px){
   .sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}.main{margin-left:0}.hamburger{display:block}.mobile-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:90;display:none}.mobile-overlay.show{display:block}.topbar{padding:12px 14px}.topbar-left span.sub{font-size:12px;max-width:120px}.title{font-size:26px}
-  /* ARREGLO BOTON CERRAR SESION EN CELULAR - AHORA CON TEXTO ADENTRO DEL CIRCULO */
   .btn-cerrar{
     width:52px;
     height:52px;
@@ -123,7 +121,6 @@ body{background:#f9f9fb;min-height:100vh;display:flex}
   <div class="content"><h1 class="title">Tu negocio también<br><span>nos importa</span></h1><p class="desc">En DoloYa creemos en el crecimiento de cada aliado.</p></div>
 </div>
 
-<!-- VISTAS EN BLANCO -->
 <div class="vista-blanca" id="vistaConfig">
   <div class="vista-blanca-header">
     <button onclick="cerrarVista('vistaConfig')" style="width:34px;height:34px;border-radius:50%;background:#C8102E;border:none;color:white;display:flex;align-items:center;justify-content:center;cursor:pointer">✕</button>
@@ -244,6 +241,7 @@ else {
   const badgeEstado = document.getElementById('estadoBadge');
   const textoEstado = document.getElementById('estadoTexto');
   const idNegocio = (sesion.id || sesion.negocio || 'alitas_factory').toLowerCase();
+
   function getCategoriaReal(id){
     const n = normalize(id);
     if(n.includes('alitas')) return 'alitas';
@@ -254,40 +252,68 @@ else {
     return n.split('_')[0].split('-')[0];
   }
   const catBuscada = getCategoriaReal(idNegocio);
-  let primerCarga = true; let ultimoCount = 0; let estadoActual = true; let refEstadoReal = null; let idReal = idNegocio;
+
+  let primerCarga = true; let ultimoCount = 0; let estadoActual = true; 
+  let refEstadoReal = null; 
+  let idReal = idNegocio;
+  let pathBaseNegocio = `doloya_aliados/${idNegocio}`;
+
   sub.textContent = formatearNombreBonito(sesion.nombre || idNegocio);
+
   if('serviceWorker' in navigator){
     navigator.serviceWorker.register('sw-aliados.js').then(()=>{
       guardarTokenFCM(idNegocio);
     });
   }
+
+  // ==== ORGANIZADO UNIFICADO - SOPORTA LAS DOS FORMAS DE GUARDADO ====
   get(ref(dbAliados, 'doloya_aliados')).then(allSnap=>{
     if(!allSnap.exists()){
-      refEstadoReal = ref(dbAliados, `doloya_aliados/${idReal}/categorias/disponibilidad`);
+      refEstadoReal = ref(dbAliados, `${pathBaseNegocio}/categorias/disponibilidad`);
       escucharEstado(); 
       return;
     }
     const todas = allSnap.val();
+    const target = normalize(idNegocio);
     let encontrado = false;
-    Object.keys(todas).forEach(cat=>{
-      const nivel = todas[cat];
-      if(typeof nivel !== 'object') return;
-      Object.keys(nivel).forEach(key=>{
-        const data = nivel[key];
-        if(!data) return;
-        const keyNorm = normalize(key);
-        if(keyNorm === normalize(idNegocio)){
-          idReal = key;
-          encontrado = true;
+
+    // 1. Busca directo: doloya_aliados/santillos (RUTA UNICA NUEVA)
+    for(const k of Object.keys(todas)){
+      if(normalize(k) === target){
+        idReal = k;
+        pathBaseNegocio = `doloya_aliados/${k}`;
+        encontrado = true;
+        break;
+      }
+    }
+
+    // 2. Si no, busca viejo: doloya_aliados/alitas/santillos
+    if(!encontrado){
+      for(const cat of Object.keys(todas)){
+        const nivel = todas[cat];
+        if(typeof nivel !== 'object' || !nivel) continue;
+        for(const key of Object.keys(nivel)){
+          if(normalize(key) === target){
+            idReal = key;
+            pathBaseNegocio = `doloya_aliados/${cat}/${key}`;
+            encontrado = true;
+            console.log("Encontrado en estructura vieja:", pathBaseNegocio);
+            break;
+          }
         }
-      });
-    });
+        if(encontrado) break;
+      }
+    }
+
     if(!encontrado){
       idReal = idNegocio;
+      pathBaseNegocio = `doloya_aliados/${idNegocio}`;
     }
-    refEstadoReal = ref(dbAliados, `doloya_aliados/${idReal}/categorias/disponibilidad`);
+
+    refEstadoReal = ref(dbAliados, `${pathBaseNegocio}/categorias/disponibilidad`);
     escucharEstado();
   });
+
   function escucharEstado(){ 
     if(!refEstadoReal) return; 
     onValue(refEstadoReal, (snap)=>{ 
@@ -307,19 +333,24 @@ else {
       }
     }); 
   }
+
   function actualizarUIEstado(abierto){ if(abierto){ switchEl.classList.add('on'); badgeEstado.textContent='ABIERTO'; badgeEstado.className='estado-badge abierto'; textoEstado.textContent='Abierto'; } else { switchEl.classList.remove('on'); badgeEstado.textContent='CERRADO'; badgeEstado.className='estado-badge cerrado'; textoEstado.textContent='Cerrado'; } }
+
   window.toggleEstado = function(){ 
     const nuevo = !estadoActual; 
     actualizarUIEstado(nuevo); 
     estadoActual = nuevo; 
-    if(!refEstadoReal) refEstadoReal = ref(dbAliados, `doloya_aliados/${idReal}/categorias/disponibilidad`); 
+    if(!refEstadoReal) refEstadoReal = ref(dbAliados, `${pathBaseNegocio}/categorias/disponibilidad`); 
     update(refEstadoReal, { abierto: nuevo, estado: nuevo ? 'activo' : 'cerrado' });
   }
+
   function sonarDoloYa(){ sonarFuerte(); }
+
   function actualizarBadges(count){
     badge.style.display='flex'; badge.textContent=count;
     bellBadge.style.display='flex'; bellBadge.textContent=count;
   }
+
   function esPedidoDeEsteRestaurante(d){
     const r = d.restaurante || {};
     const cat = normalize(r.cat || r.categoria || '');
@@ -333,6 +364,7 @@ else {
     if(cat.includes(targetCat)) return true;
     return false;
   }
+
   if(sesion.rol==='administrador'){
     onSnapshot(collection(dbFirestore, "pedidos"), (snap)=>{
       const nuevo = snap.size;
