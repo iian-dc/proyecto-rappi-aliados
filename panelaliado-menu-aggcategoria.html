@@ -92,21 +92,36 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const sesion = JSON.parse(localStorage.getItem('doloya_aliado_sesion')||'null');
-let categoriaReal='alitas', idReal='alitas_factory';
-function getId(){ return sesion?.id || sesion?.negocio || 'alitas_factory'; }
+let idReal='santillos';
+function getId(){ return sesion?.id || sesion?.negocio || sesion?.restauranteId || 'santillos'; }
 async function detectarRestaurante(){
-  const snap = await get(ref(db,'doloya_aliados'));
-  if(!snap.exists()) return;
-  const todas=snap.val();
-  Object.keys(todas).forEach(cat=>{
-    Object.keys(todas[cat]||{}).forEach(key=>{
-      if(key===getId()){ categoriaReal=cat; idReal=key; }
-    });
-  });
-  if(todas[getId()]){
-    const keys=Object.keys(todas[getId()]);
-    if(keys.length>0){ categoriaReal=getId(); idReal=keys[0]; }
-  }
+  try{
+    const idSesion = getId();
+    const snap = await get(ref(db,'doloya_aliados'));
+    if(!snap.exists()){ idReal = idSesion; return; }
+    const todas=snap.val();
+    // Caso 1: restaurante está directo en la raíz ej: santillos
+    if(todas[idSesion]){
+      idReal = idSesion;
+      return;
+    }
+    // Caso 2: buscar por si está anidado en categoria/id
+    for(const topKey of Object.keys(todas)){
+      const grupo = todas[topKey];
+      if(grupo && typeof grupo === 'object'){
+        if(grupo[idSesion]){
+          idReal = idSesion;
+          return;
+        }
+        // si el topKey mismo es el id
+        if(topKey.toLowerCase() === idSesion.toLowerCase()){
+          idReal = topKey;
+          return;
+        }
+      }
+    }
+    idReal = idSesion;
+  }catch(e){ idReal = getId(); }
 }
 function toast(t,m){
   document.getElementById('toastTitle').textContent=t;
@@ -122,7 +137,7 @@ async function guardarCategoria(){
   btn.disabled=true; btn.innerHTML='Guardando...';
   try{
     const key = nombre.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'');
-    const path = `doloya_aliados/${categoriaReal}/${idReal}/categorias/${key}`;
+    const path = `doloya_aliados/${idReal}/categorias/${key}`;
     await set(ref(db,path),{
       nombre: nombre,
       nombreLower: nombre.toLowerCase(),
