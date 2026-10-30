@@ -175,26 +175,43 @@ async function cargarCategorias(){
       return;
     }
     const data = snap.val();
-    const BLACKLIST = ['_info','carritos','categoria','categorias','info','perfil','disponibilidad','banner','banners','likes','148_224_32_27'];
+    const BLACKLIST = ['_info','carritos','categoria','info','perfil','disponibilidad','banner','banners','likes','148_224_32_27'];
     let opciones = [];
+    let vistos = new Set();
     for(const key in data){
-      if(BLACKLIST.includes(key)) continue;
+      if(BLACKLIST.includes(key) || key==='categorias') continue;
       if(key.startsWith('_')) continue;
+      if(vistos.has(key.toLowerCase())) continue;
       const cat = data[key];
       if(!cat || typeof cat !== 'object') continue;
       if(typeof cat === 'string') continue;
-      // solo categorias que tienen nombre o que son contenedor
       const nombreMostrar = cat.nombre || key.replace(/_/g,' ');
-      // valida que no sea un producto suelto
-      if(cat.nombre || cat.activa!==undefined || cat.key){
-        opciones.push({key: key.toLowerCase(), keyOriginal: key, nombre: nombreMostrar});
-      }else if(!cat.precio && !cat.imagen){
-        // si no tiene precio, probablemente es categoria aunque no tenga campo nombre
-        opciones.push({key: key.toLowerCase(), keyOriginal: key, nombre: nombreMostrar});
+      opciones.push({keyOriginal: key, nombre: nombreMostrar});
+      vistos.add(key.toLowerCase());
+    }
+    if(data.categorias && typeof data.categorias === 'object'){
+      for(const key in data.categorias){
+        if(BLACKLIST.includes(key)) continue;
+        if(key.startsWith('_')) continue;
+        if(vistos.has(key.toLowerCase())) continue;
+        const cat = data.categorias[key];
+        if(!cat || typeof cat !== 'object') continue;
+        if(typeof cat === 'string') continue;
+        const nombreMostrar = cat.nombre || key.replace(/_/g,' ');
+        opciones.push({keyOriginal: key, nombre: nombreMostrar});
+        vistos.add(key.toLowerCase());
+        if(cat.categorias && typeof cat.categorias === 'object'){
+          for(const subKey in cat.categorias){
+            if(BLACKLIST.includes(subKey)) continue;
+            if(vistos.has(subKey.toLowerCase())) continue;
+            opciones.push({keyOriginal: subKey, nombre: subKey.replace(/_/g,' ')});
+            vistos.add(subKey.toLowerCase());
+          }
+        }
       }
     }
     if(opciones.length === 0){
-      sel.innerHTML = '<option value="">No hay categorías registradas</option>';
+      sel.innerHTML = '<option value="">No hay categorías registradas - crea una primero</option>';
     }else{
       opciones.sort((a,b)=> a.nombre.localeCompare(b.nombre));
       sel.innerHTML = '<option value="">Selecciona una categoría</option>' + opciones.map(o=>`<option value="${o.keyOriginal}">${o.nombre}</option>`).join('');
