@@ -1,1 +1,244 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Admin - Promociones</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
+body{background:#f5f5f7;min-height:100vh;padding-bottom:30px}
+.header{padding:14px 16px;display:flex;align-items:center;justify-content:space-between;background:#fff;border-bottom:1px solid #eee;position:sticky;top:0;z-index:100}
+.header-left{display:flex;align-items:center;gap:12px}
+.btn-close{width:38px;height:38px;background:#E30613;border-radius:50%;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 12px rgba(227,6,19,0.3)}
+.header-title{font-size:16px;font-weight:800}
+.container{padding:16px;max-width:600px;margin:0 auto}
+.card{background:white;border-radius:16px;padding:16px;margin-bottom:16px;box-shadow:0 2px 10px rgba(0,0,0,0.06);border:1px solid #f0f0f0}
+.card h3{font-size:14px;font-weight:800;margin-bottom:12px}
+.label{font-size:11px;font-weight:700;color:#555;margin-bottom:6px;display:block;text-transform:uppercase;letter-spacing:0.5px}
+.input{width:100%;height:44px;border:1.5px solid #E5E7EB;border-radius:12px;padding:0 14px;font-size:13px;font-weight:500;outline:none;margin-bottom:12px}
+.input:focus{border-color:#E30613}
+.select{width:100%;height:44px;border:1.5px solid #E5E7EB;border-radius:12px;padding:0 14px;font-size:13px;font-weight:600;outline:none;margin-bottom:12px;background:white}
+.btn-guardar{width:100%;padding:14px;background:#E30613;color:white;border:none;border-radius:999px;font-size:14px;font-weight:800;cursor:pointer;box-shadow:0 6px 18px rgba(227,6,19,0.3)}
+.btn-guardar:disabled{opacity:0.5}
+.preview{width:100%;height:120px;border-radius:14px;background:#f3f4f6;overflow:hidden;position:relative;margin-bottom:12px;border:1px dashed #ddd;display:flex;align-items:center;justify-content:center}
+.preview img{width:100%;height:100%;object-fit:cover}
+.preview span{font-size:12px;color:#999;font-weight:600}
+.lista{display:flex;flex-direction:column;gap:12px;margin-top:16px}
+.banner-item{display:flex;gap:12px;padding:12px;background:white;border-radius:14px;border:1px solid #eee;align-items:center}
+.banner-item img{width:70px;height:50px;border-radius:10px;object-fit:cover;flex-shrink:0}
+.banner-info{flex:1;min-width:0}
+.banner-info b{font-size:12px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.banner-info small{font-size:11px;color:#777}
+.actions{display:flex;gap:6px}
+.btn-icon{width:32px;height:32px;border-radius:8px;border:1px solid #eee;background:white;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.btn-del{color:#E30613;border-color:#fee2e2;background:#fff1f2}
+.toggle{width:42px;height:24px;background:#e5e7eb;border-radius:999px;position:relative;cursor:pointer;transition:.2s}
+.toggle.on{background:#16a34a}
+.toggle-dot{width:18px;height:18px;background:white;border-radius:50%;position:absolute;top:3px;left:3px;transition:.2s;box-shadow:0 1px 4px rgba(0,0,0,0.2)}
+.toggle.on .toggle-dot{left:21px}
+.empty{text-align:center;padding:30px;color:#999;font-size:13px}
+</style>
+</head>
+<body>
 
+<div class="header">
+  <div class="header-left">
+    <button class="btn-close" onclick="window.location.href='paneladmin.html'">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
+    </button>
+    <div class="header-title">Promociones</div>
+  </div>
+  <div style="width:38px"></div>
+</div>
+
+<div class="container">
+  <div class="card">
+    <h3 id="formTitle">Nueva promoción / banner</h3>
+    <label class="label">Imagen del banner (URL)</label>
+    <input id="imgUrl" class="input" type="text" placeholder="https://...">
+    <div class="preview" id="previewBox"><span>Vista previa</span></div>
+    
+    <label class="label">Título</label>
+    <input id="titulo" class="input" type="text" placeholder="Tu antojo, en minutos">
+    
+    <label class="label">Subtítulo</label>
+    <input id="subtitulo" class="input" type="text" placeholder="Restaurantes cerca de ti">
+    
+    <label class="label">Texto botón</label>
+    <input id="btnTexto" class="input" type="text" placeholder="Pide ahora">
+    
+    <label class="label">Vincular a restaurante (al dar clic)</label>
+    <select id="restSelect" class="select">
+      <option value="">Cargando restaurantes...</option>
+    </select>
+
+    <label class="label">Activo</label>
+    <div style="margin-bottom:14px"><div id="toggleActivo" class="toggle on" onclick="this.classList.toggle('on')"><div class="toggle-dot"></div></div></div>
+
+    <button id="btnGuardar" class="btn-guardar" onclick="guardarBanner()">Guardar promoción</button>
+    <button id="btnCancelar" style="display:none;width:100%;margin-top:10px;padding:12px;background:#f3f4f6;border:none;border-radius:999px;font-weight:700;cursor:pointer" onclick="resetForm()">Cancelar edición</button>
+  </div>
+
+  <div class="card">
+    <h3>Listado de promociones</h3>
+    <div id="listaBanners" class="lista"><div class="empty">Cargando...</div></div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getDatabase, ref, onValue, push, set, remove, update, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+const firebaseConfig = { apiKey: "AIzaSyD286qlJQT8D3rqbYTSfCyuTAEg9jjRchQ", authDomain: "doloya-aliados.firebaseapp.com", databaseURL: "https://doloya-aliados-default-rtdb.firebaseio.com", projectId: "doloya-aliados", storageBucket: "doloya-aliados.firebasestorage.app", messagingSenderId: "122314467740", appId: "1:122314467740:web:9947a0a9560557e3a00059" };
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+let aliadosList = [];
+let editId = null;
+
+const imgUrlEl = document.getElementById('imgUrl');
+const previewBox = document.getElementById('previewBox');
+const restSelect = document.getElementById('restSelect');
+
+imgUrlEl.addEventListener('input', ()=>{
+  const v = imgUrlEl.value.trim();
+  if(v && v.startsWith('http')){
+    previewBox.innerHTML = `<img src="${v}" onerror="this.parentElement.innerHTML='<span>Error imagen</span>'">`;
+  } else {
+    previewBox.innerHTML = '<span>Vista previa</span>';
+  }
+});
+
+// Cargar restaurantes para el select
+onValue(ref(db, 'doloya_aliados'), snap=>{
+  const val = snap.val();
+  aliadosList = [];
+  restSelect.innerHTML = '<option value="">Sin vínculo (solo informativo)</option>';
+  if(!val) return;
+  Object.keys(val).forEach(key=>{
+    if(key==='admin' || key==='config_global') return;
+    const g = val[key];
+    if(!g || typeof g !== 'object') return;
+    if(g.precio !== undefined && g.nombre) return;
+    // obtener nombre real
+    let nombre = key;
+    if(g.info?.nombreRestaurante) nombre = g.info.nombreRestaurante;
+    else if(g.perfil?.nombre) nombre = g.perfil.nombre;
+    else if(g.perfil?.nombreRestaurante) nombre = g.perfil.nombreRestaurante;
+    nombre = nombre.replace(/_/g,' ');
+    aliadosList.push({id:key, nombre:nombre});
+    const opt = document.createElement('option');
+    opt.value = key;
+    opt.textContent = nombre;
+    restSelect.appendChild(opt);
+  });
+});
+
+function resetForm(){
+  editId = null;
+  document.getElementById('formTitle').textContent = 'Nueva promoción / banner';
+  document.getElementById('imgUrl').value = '';
+  document.getElementById('titulo').value = '';
+  document.getElementById('subtitulo').value = '';
+  document.getElementById('btnTexto').value = '';
+  document.getElementById('restSelect').value = '';
+  document.getElementById('toggleActivo').classList.add('on');
+  document.getElementById('previewBox').innerHTML = '<span>Vista previa</span>';
+  document.getElementById('btnGuardar').textContent = 'Guardar promoción';
+  document.getElementById('btnCancelar').style.display='none';
+}
+
+window.guardarBanner = async ()=>{
+  const img = document.getElementById('imgUrl').value.trim();
+  const titulo = document.getElementById('titulo').value.trim();
+  const subtitulo = document.getElementById('subtitulo').value.trim();
+  const btnTexto = document.getElementById('btnTexto').value.trim() || 'Pide ahora';
+  const restId = document.getElementById('restSelect').value;
+  const activo = document.getElementById('toggleActivo').classList.contains('on');
+  
+  if(!img || !titulo){ alert('Imagen y título obligatorios'); return; }
+  
+  document.getElementById('btnGuardar').disabled = true;
+  const data = {
+    imagen: img,
+    titulo: titulo,
+    subtitulo: subtitulo,
+    btnTexto: btnTexto,
+    restauranteId: restId,
+    restauranteNombre: aliadosList.find(r=>r.id===restId)?.nombre || '',
+    activo: activo,
+    fecha: Date.now()
+  };
+  
+  try{
+    if(editId){
+      await update(ref(db, 'config_global/banners_promociones/'+editId), data);
+      alert('Actualizado');
+    } else {
+      const nuevo = push(ref(db, 'config_global/banners_promociones'));
+      await set(nuevo, data);
+      alert('Guardado');
+    }
+    resetForm();
+  }catch(e){ alert('Error: '+e.message); }
+  document.getElementById('btnGuardar').disabled = false;
+};
+
+// Listar banners
+onValue(ref(db, 'config_global/banners_promociones'), snap=>{
+  const lista = document.getElementById('listaBanners');
+  const val = snap.val();
+  if(!val){ lista.innerHTML = '<div class="empty">Sin promociones aún</div>'; return; }
+  const arr = Object.entries(val).sort((a,b)=> (b[1].fecha||0)-(a[1].fecha||0));
+  lista.innerHTML = '';
+  arr.forEach(([id, b])=>{
+    const div = document.createElement('div');
+    div.className = 'banner-item';
+    div.innerHTML = `
+      <img src="${b.imagen}" onerror="this.src='https://via.placeholder.com/70x50'">
+      <div class="banner-info">
+        <b>${b.titulo}</b>
+        <small>${b.subtitulo || ''} ${b.restauranteNombre ? '→ '+b.restauranteNombre : '(sin vínculo)'}</small>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;align-items:center">
+        <div class="toggle ${b.activo!==false?'on':''}" onclick="toggleActivo('${id}', ${b.activo!==false})"><div class="toggle-dot"></div></div>
+      </div>
+      <div class="actions">
+        <button class="btn-icon" onclick="editarBanner('${id}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+        <button class="btn-icon btn-del" onclick="borrarBanner('${id}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#E30613" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>
+      </div>
+    `;
+    lista.appendChild(div);
+  });
+});
+
+window.toggleActivo = async (id, estadoActual)=>{
+  await update(ref(db, 'config_global/banners_promociones/'+id), {activo: !estadoActual});
+};
+
+window.editarBanner = async (id)=>{
+  const snap = await get(ref(db, 'config_global/banners_promociones/'+id));
+  if(!snap.exists()) return;
+  const b = snap.val();
+  editId = id;
+  document.getElementById('formTitle').textContent = 'Editar promoción';
+  document.getElementById('imgUrl').value = b.imagen || '';
+  document.getElementById('titulo').value = b.titulo || '';
+  document.getElementById('subtitulo').value = b.subtitulo || '';
+  document.getElementById('btnTexto').value = b.btnTexto || '';
+  document.getElementById('restSelect').value = b.restauranteId || '';
+  if(b.activo!==false) document.getElementById('toggleActivo').classList.add('on'); else document.getElementById('toggleActivo').classList.remove('on');
+  document.getElementById('previewBox').innerHTML = b.imagen ? `<img src="${b.imagen}">` : '<span>Vista previa</span>';
+  document.getElementById('btnGuardar').textContent = 'Actualizar promoción';
+  document.getElementById('btnCancelar').style.display='block';
+  window.scrollTo({top:0, behavior:'smooth'});
+};
+
+window.borrarBanner = async (id)=>{
+  if(!confirm('¿Borrar esta promoción?')) return;
+  await remove(ref(db, 'config_global/banners_promociones/'+id));
+};
+</script>
+</body>
+</html>
