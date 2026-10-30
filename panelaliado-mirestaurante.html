@@ -183,15 +183,25 @@ async function cargar(){
     rutaReal=`doloya_aliados/${idNegocio}`; refReal=ref(db, rutaReal); initMap(); return;
   }
   rutaReal=encontrado.ruta; refReal=ref(db, rutaReal);
-  document.getElementById('inpIdReal').value=encontrado.id; document.getElementById('inpRuta').value=rutaReal; document.getElementById('catPreview').textContent=encontrado.categoria+' • vista previa cliente';
+  document.getElementById('inpIdReal').value=encontrado.id; document.getElementById('inpRuta').value=rutaReal; 
+  // NO PONEMOS CATEGORIA AQUI TODAVIA, ESPERAMOS LA REAL DE info/categoria
   onValue(refReal, (snap)=>{
     if(!snap.exists()) return;
     const d=snap.val();
-    const info = d.categorias?.info || d.info || d.datos || d;
+    const info = d.info || d.categorias?.info || d.datos || d;
     const disp = d.categorias?.disponibilidad || d.disponibilidad || {};
+    
+    // *** CORREGIDO: CATEGORIA REAL DESDE info/categoria COMO EN TU FOTO ***
+    const categoriaReal = d.info?.categoria || info.categoria || d.categoria || d.categorias?._info || encontrado.categoria;
+    const categoriaMostrar = categoriaReal !== 'direct' ? categoriaReal : (d.info?.categoria || 'Sin categoría');
+
     document.getElementById('inpNombre').value = info.nombre || d.nombre || sesion.nombre || encontrado.id;
     document.getElementById('nombrePreview').textContent = info.nombre || d.nombre || encontrado.id;
-    document.getElementById('inpCategoria').value = encontrado.categoria;
+    
+    // AHORA SI MUESTRA LA REAL: tortas, burger, etc
+    document.getElementById('inpCategoria').value = categoriaReal;
+    document.getElementById('catPreview').textContent = categoriaReal + ' • vista previa cliente';
+
     document.getElementById('inpWhatsapp').value = info.whatsapp || d.whatsapp || '';
     document.getElementById('inpTelefono').value = info.telefono || d.telefono || '';
     document.getElementById('inpDireccion').value = info.direccion || d.direccion || '';
@@ -231,6 +241,7 @@ document.getElementById('btnGuardar').addEventListener('click', async ()=>{
       ultimaActualizacion: new Date().toISOString()
     };
     await update(refReal, payload);
+    await update(ref(db, `${rutaReal}/info`), payload);
     await update(ref(db, `${rutaReal}/categorias/info`), payload);
     await update(ref(db, `${rutaReal}/categorias/disponibilidad`), { estado: payload.estado, abierto: payload.estado==='activo' });
     sesion.nombre=payload.nombre; localStorage.setItem('doloya_aliado_sesion', JSON.stringify(sesion));
