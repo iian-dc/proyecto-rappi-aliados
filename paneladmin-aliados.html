@@ -95,7 +95,6 @@ let conteoCancelados = {};
 function normalizar(str){ if(!str) return ''; return str.toString().toLowerCase().trim().replace(/\s+/g,'_'); }
 
 function extraerRestauranteId(d){
-  // En tu foto se ve que el pedido tiene cliente y detalles, el restaurante puede estar en varios campos
   return d.restauranteId || d.restaurante_id || d.restaurante?.id || d.restaurante?.nombre || d.restauranteNombre || d.nombreRestaurante || d.aliadoId || d.aliado || d.negocioId || d.tiendaId || d.detalles?.restauranteId || d.detalles?.restaurante || d.detalles?.negocio || d.restaurante || d.establecimiento || '';
 }
 
@@ -139,7 +138,6 @@ function recalcular(){
   renderTabla();
 }
 
-// ESCUCHA TIEMPO REAL pedidos_entregados
 onSnapshot(collection(dbHistorial, "pedidos_entregados"), snap=>{
   let temp={};
   snap.forEach(doc=>{
@@ -156,7 +154,6 @@ onSnapshot(collection(dbHistorial, "pedidos_entregados"), snap=>{
   recalcular();
 });
 
-// ESCUCHA TIEMPO REAL pedidos_cancelados
 onSnapshot(collection(dbHistorial, "pedidos_cancelados"), snap=>{
   let temp={};
   snap.forEach(doc=>{
@@ -202,7 +199,13 @@ function renderTabla(){
   const estadoF=document.getElementById('filtroEstado').value;
   let filtrados=aliadosData.filter(a=>{ const mB=!busqueda||a.nombre.toLowerCase().includes(busqueda); const mT=tipoF==='todos'||a.tipo.toLowerCase().includes(tipoF); const mE=estadoF==='todos'||(estadoF==='activo'&&a.abierto)||(estadoF==='desactivo'&&!a.abierto); return mB&&mT&&mE; });
   if(filtrados.length===0){ cont.innerHTML=`<div style="padding:30px;text-align:center;color:#6c757d">No hay aliados</div>`; return; }
-  cont.innerHTML=filtrados.map(a=>{ const fecha=formatearFecha(a.ultima); const estadoClass=a.abierto?'activo':'desactivo'; const estadoTexto=a.abierto?'Activo':'Cerrado'; const logoHtml=a.logo?`<img src="${a.logo}" style="width:44px;height:44px;border-radius:50%;object-fit:cover;border:1.5px solid #eee;background:white">`:`<div class="rest-icon" style="background:#C50D1F"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M3 9l1-5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2l1 5"/><path d="M3 9h18v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z"/></svg></div>`; return `<div class="table-row"><div class="rest-info">${logoHtml}<div><b>${a.nombre}</b></div></div><div class="tipo"><span style="text-transform:capitalize;font-weight:700;background:#F3F4F6;padding:4px 10px;border-radius:999px;font-size:12px">${a.tipo}</span></div><div class="pedidos">${a.pedidos} pedidos</div><div><span class="estado-badge ${estadoClass}"><span class="dot2"></span> ${estadoTexto}</span></div><div class="last"><b>${fecha.hora}</b><span>${fecha.sub}</span></div><div class="acciones"><a class="btn-resumen" href="paneladmin-pagos.html?id=${a.idReal}">Resumen</a></div></div>`; }).join('');
+  cont.innerHTML=filtrados.map(a=>{ 
+    const fecha=formatearFecha(a.ultima); 
+    const estadoClass=a.abierto?'activo':'desactivo'; 
+    const estadoTexto=a.abierto?'Activo':'Cerrado'; 
+    const logoHtml=a.logo?`<img src="${a.logo}" style="width:44px;height:44px;border-radius:50%;object-fit:cover;border:1.5px solid #eee;background:white">`:`<div class="rest-icon" style="background:#C50D1F"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M3 9l1-5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2l1 5"/><path d="M3 9h18v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z"/></svg></div>`; 
+    return `<div class="table-row"><div class="rest-info">${logoHtml}<div><b>${a.nombre}</b></div></div><div class="tipo"><span style="text-transform:capitalize;font-weight:700;background:#F3F4F6;padding:4px 10px;border-radius:999px;font-size:12px">${a.tipo}</span></div><div class="pedidos">${a.pedidos} pedidos</div><div><span class="estado-badge ${estadoClass}"><span class="dot2"></span> ${estadoTexto}</span></div><div class="last"><b>${fecha.hora}</b><span>${fecha.sub}</span></div><div class="acciones"><a class="btn-resumen" href="paneladmin-aliados-resumen.html?id=${a.idReal}">Resumen</a></div></div>`; 
+  }).join('');
 }
 document.getElementById('buscarInput').addEventListener('input', renderTabla);
 document.getElementById('filtroTipo').addEventListener('change', renderTabla);
