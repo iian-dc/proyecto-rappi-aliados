@@ -147,20 +147,17 @@ function normalize(t){ return String(t||'').toLowerCase().normalize('NFD').repla
 
 async function cargarResumen(){
   try{
-    // 1. PRODUCTOS Y LIKES DESDE RTDB - RUTA UNICA
     const snap = await get(ref(dbAliados, `doloya_aliados/${idRest}`));
     let totalProductos = 0;
     let likes = 0;
     if(snap.exists()){
       const data = snap.val();
-      // Likes
       if(data.likes !== undefined) likes = data.likes;
       if(data.info && data.info.likes) likes = data.info.likes;
-      // Productos
       if(data.categorias){
         for(const catKey in data.categorias){
           if(['disponibilidad','info','likes','banner','banners','carritos','direccion'].includes(catKey)) continue;
-          if(catKey === 'categorias'){ // legacy doble
+          if(catKey === 'categorias'){
             for(const subCat in data.categorias[catKey]){
               if(subCat.startsWith('_')) continue;
               const subData = data.categorias[catKey][subCat];
@@ -183,7 +180,6 @@ async function cargarResumen(){
     document.getElementById('txtProductos').textContent = totalProductos;
     document.getElementById('txtLikes').textContent = likes;
 
-    // 2. PEDIDOS Y VENTAS DESDE FIRESTORE
     const qSnap = await getDocs(collection(dbPedidos, "pedidos"));
     let pedidosCount = 0;
     let ventasTotal = 0;
@@ -217,15 +213,13 @@ window.confirmarEliminar = async function(){
   try{
     cerrarConfirm();
     toast("Eliminando...","Borrando restaurante");
-    // Busca en ruta unica y vieja para borrar
     const snapCheck = await get(ref(dbAliados, `doloya_aliados/${idRest}`));
     if(snapCheck.exists()){
       await remove(ref(dbAliados, `doloya_aliados/${idRest}`));
     }
-    // Tambien limpia tokens si existen
     await remove(ref(dbAliados, `doloya_tokens/${idRest}`)).catch(()=>{});
     toast("Eliminado", idRest + " eliminado correctamente");
-    setTimeout(()=>{ window.location.href='panelaliado-menu.html'; },1500);
+    setTimeout(()=>{ window.location.href='paneladmin-aliados.html'; },1500);
   }catch(e){
     console.error(e);
     toast("Error", e.message);
