@@ -117,10 +117,13 @@ let idReal = '';
 
 function getIdRestaurante(){
   try{
+    const params = new URLSearchParams(window.location.search);
+    const idUrl = params.get('id') || params.get('negocio') || params.get('restaurante');
+    if(idUrl) return idUrl.toString().trim();
     const sesion = JSON.parse(localStorage.getItem('doloya_aliado_sesion')||'null');
-    if(!sesion) return '';
+    if(!sesion) return localStorage.getItem('doloya_ultimo_restaurante') || '';
     return (sesion.id || sesion.negocio || sesion.restauranteId || sesion.uid || '').toString().trim();
-  }catch{ return ''; }
+  }catch{ return localStorage.getItem('doloya_ultimo_restaurante') || ''; }
 }
 
 async function detectarIdReal(){
@@ -130,14 +133,13 @@ async function detectarIdReal(){
     const snap = await get(ref(db,'doloya_aliados'));
     if(!snap.exists()){ idReal=idSesion; return; }
     const todas=snap.val();
-    // Busca exacto
     if(todas[idSesion]){ idReal=idSesion; return; }
-    // Busca case-insensitive
     for(const k of Object.keys(todas)){
       if(k.toLowerCase()===idSesion.toLowerCase()){ idReal=k; return; }
     }
     idReal=idSesion;
   }catch{ idReal=idSesion; }
+  if(idReal) localStorage.setItem('doloya_ultimo_restaurante', idReal);
 }
 
 function toast(t,m){
@@ -147,6 +149,7 @@ function toast(t,m){
   setTimeout(()=>document.getElementById('toastOverlay').classList.remove('show'),2500);
 }
 
+// ORGANIZADO: UNA SOLA RUTA PARA TODOS
 async function cargarCategorias(){
   const sel = document.getElementById('selectCat');
   if(!idReal){
@@ -155,34 +158,34 @@ async function cargarCategorias(){
   }
   sel.innerHTML = '<option value="">Cargando categorías de '+idReal+'...</option>';
   try{
-    const snapDoble = await get(ref(db, `doloya_aliados/${idReal}/categorias/categorias`));
-    const snapSimple = await get(ref(db, `doloya_aliados/${idReal}/categorias`));
+    // RUTA UNICA ORGANIZADA
+    const snapUnica = await get(ref(db, `doloya_aliados/${idReal}/categorias`));
+    // RUTA VIEJA (para migración de la flecha, solo lectura)
+    const snapLegacy = await get(ref(db, `doloya_aliados/${idReal}/categorias/categorias`));
 
-    let dataFinal = {};
-    if(snapDoble.exists()){
-      dataFinal = {...snapDoble.val()};
-    }
-    if(snapSimple.exists()){
-      const simple = snapSimple.val();
-      for(const k in simple){
-        if(k==='categorias') continue;
-        if(!dataFinal[k]) dataFinal[k]=simple[k];
-      }
-    }
+    let dataUnica = snapUnica.exists() ? snapUnica.val() : {};
+    let dataLegacy = snapLegacy.exists() ? snapLegacy.val() : {};
 
-    const BLACKLIST = ['_info','carritos','categoria','info','perfil','disponibilidad','banner','banners','likes','148_224_32_27'];
+    // Junta todo para mostrar, pero sin duplicar
+    let combinado = {...dataLegacy, ...dataUnica};
+    // Si dentro de dataUnica hay una key "categorias", la ignoramos porque es la legacy
+    delete combinado.categorias;
+
+    const BLACKLIST = ['_info','carritos','categoria','info','perfil','disponibilidad','banner','banners','likes','148_224_32_27','direccion','estado','imagen','imagenPerfil','lat','lng','disponibilidad'];
     let opciones = [];
     let vistos = new Set();
 
-    for(const key in dataFinal){
+    for(const key in combinado){
       if(BLACKLIST.includes(key)) continue;
       if(key.startsWith('_')) continue;
-      const val = dataFinal[key];
+      const val = combinado[key];
       if(!val || typeof val !== 'object') continue;
-      if(val.precio!==undefined && val.imagen) continue;
+      if(val.precio !== undefined) continue; // es producto
       const lower = key.toLowerCase();
       if(vistos.has(lower)) continue;
-      const nombreMostrar = val.nombre || key.replace(/_/g,' ');
+      // Solo categorias validas con nombre
+      const nombreMostrar = val.nombre || val.nombreLower || key.replace(/_/g,' ');
+      if(!nombreMostrar) continue;
       opciones.push({keyOriginal: key, nombre: nombreMostrar});
       vistos.add(lower);
     }
@@ -261,13 +264,11 @@ window.guardarProducto=async function(){
       descuento: 0,
       fecha: Date.now()
     };
-    // Guarda donde está la flecha para que no se pierda, y también en la ruta limpia
-    const rutaFlecha = `doloya_aliados/${idReal}/categorias/categorias/${categoriaKeyOriginal}/${idProducto}`;
-    const rutaLimpia = `doloya_aliados/${idReal}/categorias/${categoriaKeyOriginal}/${idProducto}`;
-    await set(ref(db, rutaFlecha), dataProd);
-    await set(ref(db, rutaLimpia), dataProd);
-    toast('Producto guardado', `${nombre} en ${categoriaTexto} (${idReal})`);
-    setTimeout(()=>{ window.location.href='panelaliado-menu.html'; },1200);
+    // RUTA UNICA ORGANIZADA PARA TODOS LOS NEGOCIOS
+    const rutaUnica = `doloya_aliados/${idReal}/categorias/${categoriaKeyOriginal}/${idProducto}`;
+    await set(ref(db, rutaUnica), dataProd);
+    toast('Producto guardado', `${nombre} en ${idReal}/${categoriaTexto}`);
+    setTimeout(()=>{ window.location.href='panelaliado-menu.html?id='+idReal; },1200);
   }catch(e){
     console.error(e);
     toast('Error', e.message);
