@@ -37,9 +37,7 @@ body{background:#fff;min-height:100vh}
 .full-row{grid-column:1 / -1}
 .textarea-wrap{position:relative}
 .textarea{width:100%;min-height:120px;border:1.5px solid #E5E9F0;border-radius:8px;padding:12px;font-size:13.5px;outline:none;resize:none;color:#111}
-.textarea::placeholder{color:#9CA3AF}
 .input-text{width:100%;height:44px;border:1.5px solid #E5E9F0;border-radius:8px;padding:0 12px;font-size:13.5px;outline:none;color:#111}
-.input-text::placeholder{color:#9CA3AF}
 .char-count{position:absolute;right:10px;bottom:8px;font-size:11px;color:#6B7280}
 .input-price{width:100%;height:44px;border:1.5px solid #E5E9F0;border-radius:8px;padding:0 12px;font-size:13.5px;outline:none;color:#111}
 .footer{border-top:1.5px solid #F0F5;padding:18px 22px;display:flex;gap:16px;justify-content:flex-end;background:white}
@@ -115,98 +113,92 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 let imagenBase64 = '';
-let idReal = 'santillos';
+let idReal = '';
+
 function getIdRestaurante(){
   try{
     const sesion = JSON.parse(localStorage.getItem('doloya_aliado_sesion')||'null');
-    return sesion?.id || sesion?.negocio || sesion?.restauranteId || 'santillos';
-  }catch{ return 'santillos'; }
+    if(!sesion) return '';
+    return (sesion.id || sesion.negocio || sesion.restauranteId || sesion.uid || '').toString().trim();
+  }catch{ return ''; }
 }
+
 async function detectarIdReal(){
   const idSesion = getIdRestaurante();
+  if(!idSesion){ idReal=''; return; }
   try{
     const snap = await get(ref(db,'doloya_aliados'));
     if(!snap.exists()){ idReal=idSesion; return; }
     const todas=snap.val();
+    // Busca exacto
     if(todas[idSesion]){ idReal=idSesion; return; }
+    // Busca case-insensitive
     for(const k of Object.keys(todas)){
       if(k.toLowerCase()===idSesion.toLowerCase()){ idReal=k; return; }
     }
     idReal=idSesion;
   }catch{ idReal=idSesion; }
 }
+
 function toast(t,m){
   document.getElementById('toastTitle').textContent=t;
   document.getElementById('toastMsg').textContent=m;
   document.getElementById('toastOverlay').classList.add('show');
   setTimeout(()=>document.getElementById('toastOverlay').classList.remove('show'),2500);
 }
-// === FIX DEFINITIVO: LEE DE DONDE ESTA LA FLECHA ===
+
 async function cargarCategorias(){
   const sel = document.getElementById('selectCat');
-  sel.innerHTML = '<option value="">Cargando categorías...</option>';
+  if(!idReal){
+    sel.innerHTML = '<option value="">Sesión no encontrada - inicia sesión de nuevo</option>';
+    return;
+  }
+  sel.innerHTML = '<option value="">Cargando categorías de '+idReal+'...</option>';
   try{
-    // Intenta primero donde está la flecha: santillos/categorias/categorias
-    let dataFinal = null;
     const snapDoble = await get(ref(db, `doloya_aliados/${idReal}/categorias/categorias`));
     const snapSimple = await get(ref(db, `doloya_aliados/${idReal}/categorias`));
 
+    let dataFinal = {};
     if(snapDoble.exists()){
-      dataFinal = snapDoble.val();
-      // Si además hay categorías arriba, las juntamos
-      if(snapSimple.exists()){
-        const simple = snapSimple.val();
-        for(const k in simple){
-          if(k==='categorias') continue;
-          if(!dataFinal[k]) dataFinal[k]=simple[k];
-        }
-      }
-    }else if(snapSimple.exists()){
-      dataFinal = snapSimple.val();
-      if(dataFinal.categorias && typeof dataFinal.categorias==='object'){
-        // Si categorias contiene otra categorias dentro, usar esa interna también
-        const interna = dataFinal.categorias;
-        for(const k in interna){
-          if(!dataFinal[k]) dataFinal[k]=interna[k];
-        }
+      dataFinal = {...snapDoble.val()};
+    }
+    if(snapSimple.exists()){
+      const simple = snapSimple.val();
+      for(const k in simple){
+        if(k==='categorias') continue;
+        if(!dataFinal[k]) dataFinal[k]=simple[k];
       }
     }
 
-    if(!dataFinal){
-      sel.innerHTML = '<option value="">No hay categorías registradas</option>';
-      return;
-    }
-
-    const BLACKLIST = ['_info','carritos','categoria','info','perfil','disponibilidad','banner','banners','likes','148_224_32_27','banners'];
+    const BLACKLIST = ['_info','carritos','categoria','info','perfil','disponibilidad','banner','banners','likes','148_224_32_27'];
     let opciones = [];
     let vistos = new Set();
 
     for(const key in dataFinal){
       if(BLACKLIST.includes(key)) continue;
       if(key.startsWith('_')) continue;
-      if(typeof dataFinal[key]!=='object') continue;
-      if(typeof dataFinal[key]==='string') continue;
+      const val = dataFinal[key];
+      if(!val || typeof val !== 'object') continue;
+      if(val.precio!==undefined && val.imagen) continue;
       const lower = key.toLowerCase();
       if(vistos.has(lower)) continue;
-      // Ignora si parece producto (tiene precio)
-      if(dataFinal[key].precio!==undefined && !dataFinal[key].nombreLower && !dataFinal[key].activa) continue;
-      if(dataFinal[key].descripcion && dataFinal[key].precio!==undefined) continue;
-      const nombreMostrar = dataFinal[key].nombre || dataFinal[key].nombreLower || key.replace(/_/g,' ');
+      const nombreMostrar = val.nombre || key.replace(/_/g,' ');
       opciones.push({keyOriginal: key, nombre: nombreMostrar});
       vistos.add(lower);
     }
 
     if(opciones.length===0){
-      sel.innerHTML = '<option value="">No hay categorías - crea una primero</option>';
+      sel.innerHTML = '<option value="">No hay categorías en '+idReal+' - crea una primero</option>';
     }else{
       opciones.sort((a,b)=>a.nombre.localeCompare(b.nombre));
-      sel.innerHTML = '<option value="">Selecciona una categoría</option>' + opciones.map(o=>`<option value="${o.keyOriginal}">${o.nombre}</option>`).join('');
+      sel.innerHTML = '<option value="">Selecciona una categoría ('+idReal+')</option>' + opciones.map(o=>`<option value="${o.keyOriginal}">${o.nombre}</option>`).join('');
     }
   }catch(e){
     console.error(e);
     sel.innerHTML = '<option value="">Error cargando categorías</option>';
   }
 }
+
 document.getElementById('txtDesc').addEventListener('input', e=>{
   document.getElementById('charCount').textContent = e.target.value.length + '/500';
 });
@@ -237,6 +229,7 @@ document.getElementById('inputImg').addEventListener('change', e=>{
   };
   reader.readAsDataURL(file);
 });
+
 window.guardarProducto=async function(){
   const nombre=document.getElementById('txtNombre').value.trim();
   const categoriaKeyOriginal=document.getElementById('selectCat').value.trim();
@@ -255,10 +248,6 @@ window.guardarProducto=async function(){
   btn.textContent='Guardando...';
   try{
     const idProducto = nombre.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'') + '_' + Date.now();
-    // Guarda en la ruta donde está la flecha para que siga funcionando: categorias/categorias/
-    let rutaFinal = `doloya_aliados/${idReal}/categorias/categorias/${categoriaKeyOriginal}/${idProducto}`;
-    // También guarda en la ruta correcta para futuro
-    const rutaCorrecta = `doloya_aliados/${idReal}/categorias/${categoriaKeyOriginal}/${idProducto}`;
     const dataProd = {
       id: idProducto,
       nombre: nombre,
@@ -272,10 +261,12 @@ window.guardarProducto=async function(){
       descuento: 0,
       fecha: Date.now()
     };
-    // Guarda en las dos para que siempre aparezca vinculado
-    await set(ref(db, rutaFinal), dataProd);
-    await set(ref(db, rutaCorrecta), dataProd);
-    toast('Producto guardado', `${nombre} en ${categoriaTexto}`);
+    // Guarda donde está la flecha para que no se pierda, y también en la ruta limpia
+    const rutaFlecha = `doloya_aliados/${idReal}/categorias/categorias/${categoriaKeyOriginal}/${idProducto}`;
+    const rutaLimpia = `doloya_aliados/${idReal}/categorias/${categoriaKeyOriginal}/${idProducto}`;
+    await set(ref(db, rutaFlecha), dataProd);
+    await set(ref(db, rutaLimpia), dataProd);
+    toast('Producto guardado', `${nombre} en ${categoriaTexto} (${idReal})`);
     setTimeout(()=>{ window.location.href='panelaliado-menu.html'; },1200);
   }catch(e){
     console.error(e);
