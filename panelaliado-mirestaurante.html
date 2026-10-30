@@ -70,7 +70,7 @@ body{background:#f6f8fb;color:#0f172a;min-height:100vh}
 <label class="label">Nombre del restaurante</label>
 <input id="inpNombre" class="input" placeholder="Ej: Alitas Factory">
 <div class="input-group" style="margin-top:10px">
-<div><label class="label">Categoría</label><input id="inpCategoria" class="input" placeholder="burgers, pizzas..."></div>
+<div><label class="label">Categoría</label><select id="inpCategoria" class="input"><option value="">Cargando categorías...</option></select></div>
 <div><label class="label">Estado</label><select id="inpEstado" class="input"><option value="activo">Abierto</option><option value="cerrado">Cerrado</option></select></div>
 </div>
 </div>
@@ -107,6 +107,8 @@ const sesion = JSON.parse(localStorage.getItem('doloya_aliado_sesion')||'null');
 if(!sesion){ location.href='panelaliado.html'; }
 const idNegocio = (sesion.id || sesion.negocio || '').toLowerCase();
 let refReal=null, rutaReal='', map, marker, autocomplete, geocoder;
+let categoriaActualGuardada = '';
+
 async function encontrarRestaurante(){
   const snap = await get(ref(db, 'doloya_aliados'));
   if(!snap.exists()) return null;
@@ -124,6 +126,37 @@ async function encontrarRestaurante(){
   if(direct.exists()){ return { categoria: 'direct', id: idNegocio, data: direct.val(), ruta: `doloya_aliados/${idNegocio}` }; }
   return null;
 }
+
+// *** NUEVO: CARGAR CATEGORIAS DESDE config_global/categorias_inicio ***
+async function cargarCategoriasSelect(){
+  try{
+    const snap = await get(ref(db, 'config_global/categorias_inicio'));
+    const select = document.getElementById('inpCategoria');
+    if(!snap.exists()){
+      select.innerHTML = '<option value="">No hay categorías</option>';
+      return;
+    }
+    const data = snap.val();
+    const arr = Object.values(data)
+      .filter(c=>c.key!=='info' && c.key!=='_info' && c.activa!==false)
+      .sort((a,b)=>(a.orden||99)-(b.orden||99));
+    
+    select.innerHTML = '<option value="">Selecciona categoría</option>';
+    arr.forEach(c=>{
+      const opt = document.createElement('option');
+      opt.value = c.key; // guardamos el key: alitas, burgers, tortas...
+      opt.textContent = c.nombre; // solo mostramos el nombre: Alitas, Burgers...
+      select.appendChild(opt);
+    });
+    // si ya teníamos una categoria guardada, seleccionarla
+    if(categoriaActualGuardada){
+      select.value = categoriaActualGuardada;
+    }
+  }catch(e){
+    console.log('Error cargando categorias',e);
+  }
+}
+
 function fileToDataURL(file){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(file); }); }
 document.getElementById('filePerfil').addEventListener('change', async (e)=>{
   const f=e.target.files[0]; if(!f) return;
@@ -137,6 +170,10 @@ document.getElementById('filePortada').addEventListener('change', async (e)=>{
 });
 document.getElementById('inpNombre').addEventListener('input', e=>{
   document.getElementById('nombrePreview').textContent=e.target.value||'Mi restaurante';
+});
+document.getElementById('inpCategoria').addEventListener('change', e=>{
+  const val = e.target.options[e.target.selectedIndex]?.text || e.target.value;
+  document.getElementById('catPreview').textContent = (val || 'Vista previa cliente') + ' • vista previa cliente';
 });
 function initMap(lat=21.389, lng=-100.934){
   geocoder=new google.maps.Geocoder();
@@ -176,6 +213,7 @@ function initMap(lat=21.389, lng=-100.934){
   });
 }
 async function cargar(){
+  await cargarCategoriasSelect();
   const encontrado = await encontrarRestaurante();
   if(!encontrado){
     document.getElementById('nombrePreview').textContent=idNegocio;
@@ -184,23 +222,35 @@ async function cargar(){
   }
   rutaReal=encontrado.ruta; refReal=ref(db, rutaReal);
   document.getElementById('inpIdReal').value=encontrado.id; document.getElementById('inpRuta').value=rutaReal; 
-  // NO PONEMOS CATEGORIA AQUI TODAVIA, ESPERAMOS LA REAL DE info/categoria
   onValue(refReal, (snap)=>{
     if(!snap.exists()) return;
     const d=snap.val();
     const info = d.info || d.categorias?.info || d.datos || d;
     const disp = d.categorias?.disponibilidad || d.disponibilidad || {};
     
-    // *** CORREGIDO: CATEGORIA REAL DESDE info/categoria COMO EN TU FOTO ***
-    const categoriaReal = d.info?.categoria || info.categoria || d.categoria || d.categorias?._info || encontrado.categoria;
-    const categoriaMostrar = categoriaReal !== 'direct' ? categoriaReal : (d.info?.categoria || 'Sin categoría');
+    const categoriaReal = d.info?.categoria || info.categoria || d.categoria || d.categorias?._info || '';
+    categoriaActualGuardada = categoriaReal;
 
     document.getElementById('inpNombre').value = info.nombre || d.nombre || sesion.nombre || encontrado.id;
     document.getElementById('nombrePreview').textContent = info.nombre || d.nombre || encontrado.id;
     
-    // AHORA SI MUESTRA LA REAL: tortas, burger, etc
-    document.getElementById('inpCategoria').value = categoriaReal;
-    document.getElementById('catPreview').textContent = categoriaReal + ' • vista previa cliente';
+    // SELECCIONA EN EL SELECT LA CATEGORIA REAL
+    const selectCat = document.getElementById('inpCategoria');
+    if(categoriaReal){
+      selectCat.value = categoriaReal.toLowerCase();
+      // si no existe por mayuscula, intenta normalizado
+      if(!selectCat.value){
+        const norm = normalize(categoriaReal);
+        for(let o of selectCat.options){
+          if(normalize(o.value)===norm || normalize(o.textContent)===norm){
+            selectCat.value = o.value;
+            break;
+          }
+        }
+      }
+      const txt = selectCat.options[selectCat.selectedIndex]?.textContent || categoriaReal;
+      document.getElementById('catPreview').textContent = txt + ' • vista previa cliente';
+    }
 
     document.getElementById('inpWhatsapp').value = info.whatsapp || d.whatsapp || '';
     document.getElementById('inpTelefono').value = info.telefono || d.telefono || '';
@@ -240,6 +290,7 @@ document.getElementById('btnGuardar').addEventListener('click', async ()=>{
       estado: document.getElementById('inpEstado').value,
       ultimaActualizacion: new Date().toISOString()
     };
+    if(!payload.categoria){ alert('Selecciona una categoría'); btn.textContent='Guardar cambios'; btn.disabled=false; return; }
     await update(refReal, payload);
     await update(ref(db, `${rutaReal}/info`), payload);
     await update(ref(db, `${rutaReal}/categorias/info`), payload);
