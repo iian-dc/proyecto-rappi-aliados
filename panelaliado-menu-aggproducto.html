@@ -22,6 +22,7 @@ body{background:#fff;min-height:100vh}
 .label-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
 .label-row svg{width:22px;height:22px;stroke:#111;stroke-width:2;fill:none}
 .label-row b{font-size:13.5px;font-weight:700;color:#111827}
+.label-row span{color:#E30613}
 .upload-box{border:1.5px dashed #D1D5DB;border-radius:10px;background:#F8FAFF;height:190px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:.2s;overflow:hidden;position:relative}
 .upload-box:hover{border-color:#9CA3AF;background:#F3F6FF}
 .upload-box img.preview{width:100%;height:100%;object-fit:cover;position:absolute;inset:0;display:none}
@@ -37,9 +38,12 @@ body{background:#fff;min-height:100vh}
 .full-row{grid-column:1 / -1}
 .textarea-wrap{position:relative}
 .textarea{width:100%;min-height:120px;border:1.5px solid #E5E9F0;border-radius:8px;padding:12px;font-size:13.5px;outline:none;resize:none;color:#111}
+.textarea::placeholder{color:#9CA3AF}
 .input-text{width:100%;height:44px;border:1.5px solid #E5E9F0;border-radius:8px;padding:0 12px;font-size:13.5px;outline:none;color:#111}
+.input-text::placeholder{color:#9CA3AF}
 .char-count{position:absolute;right:10px;bottom:8px;font-size:11px;color:#6B7280}
 .input-price{width:100%;height:44px;border:1.5px solid #E5E9F0;border-radius:8px;padding:0 12px;font-size:13.5px;outline:none;color:#111}
+.input-price::placeholder{color:#9CA3AF}
 .footer{border-top:1.5px solid #F0F5;padding:18px 22px;display:flex;gap:16px;justify-content:flex-end;background:white}
 @media(max-width:600px){.footer{flex-direction:column}}
 .btn-cancel{flex:1;max-width:420px;height:48px;border:1.5px solid #E5E9F0;background:white;border-radius:10px;font-size:14px;font-weight:600;color:#111827;cursor:pointer}
@@ -53,54 +57,84 @@ body{background:#fff;min-height:100vh}
 </head>
 <body>
 <div id="toastOverlay"><div class="toast-card"><h4 id="toastTitle">Guardado</h4><p id="toastMsg" style="font-size:12px;color:#6b7280;margin-top:4px">Producto agregado</p></div></div>
+
 <div class="top-header">
   <button class="btn-x" onclick="window.location.href='panelaliado-menu.html'"><svg viewBox="0 0 24 24"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg></button>
   <div class="divider"></div>
   <div class="top-text"><h1>Agregar Producto</h1><p>Completa la información para añadir un nuevo producto a tu menú.</p></div>
 </div>
+
 <div class="main">
   <div class="card-form">
     <div class="form-body">
       <div>
-        <div class="label-row"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 14l2-2 3 3"/><circle cx="9" cy="8" r="1.5"/></svg><b>Imagen del producto *</b></div>
+        <div class="label-row">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 14l2-2 3 3"/><circle cx="9" cy="8" r="1.5"/></svg>
+          <b>Imagen del producto *</b>
+        </div>
         <input type="file" id="inputImg" accept="image/png,image/jpeg,image/webp" style="display:none">
         <div class="upload-box" id="uploadBox" onclick="document.getElementById('inputImg').click()">
           <img class="preview" id="imgPreview" src="">
           <div id="uploadContent" style="display:flex;flex-direction:column;align-items:center">
             <div class="upload-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="8" r="2"/><path d="M3 16l5-5 4 4 3-2 6 6"/></svg></div>
-            <p class="main-t">Haz clic para subir una imagen</p><p class="sub-t">PNG, JPG o WEBP (máx. 2 MB)</p>
+            <p class="main-t">Haz clic para subir una imagen</p>
+            <p class="sub-t">PNG, JPG o WEBP (máx. 2 MB)</p>
           </div>
         </div>
       </div>
+
       <div>
-        <div class="label-row"><svg viewBox="0 0 24 24"><path d="M12 2l8 5v5c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V7l8-5z"/><path d="M9 12l2 2 4-4"/></svg><b>Categoría *</b></div>
+        <div class="label-row">
+          <svg viewBox="0 0 24 24"><path d="M12 2l8 5v5c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V7l8-5z"/><path d="M9 12l2 2 4-4"/></svg>
+          <b>Categoría *</b>
+        </div>
         <div class="select-wrap">
           <select id="selectCat" class="input-select"><option value="">Cargando categorías...</option></select>
           <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
         </div>
         <div style="margin-top:18px">
-          <div class="label-row"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><b>Nombre del producto *</b></div>
+          <div class="label-row">
+            <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <b>Nombre del producto *</b>
+          </div>
           <input id="txtNombre" class="input-text" placeholder="Ej. Alitas BBQ x10">
         </div>
       </div>
+
       <div class="full-row">
-        <div class="label-row"><svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="3.5" cy="6" r="1"/><circle cx="3.5" cy="12" r="1"/><circle cx="3.5" cy="18" r="1"/></svg><b>Descripción del producto *</b></div>
-        <div class="textarea-wrap"><textarea id="txtDesc" class="textarea" placeholder="Describe brevemente el producto..." maxlength="500"></textarea><div class="char-count" id="charCount">0/500</div></div>
+        <div class="label-row">
+          <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="3.5" cy="6" r="1"/><circle cx="3.5" cy="12" r="1"/><circle cx="3.5" cy="18" r="1"/></svg>
+          <b>Descripción del producto *</b>
+        </div>
+        <div class="textarea-wrap">
+          <textarea id="txtDesc" class="textarea" placeholder="Describe brevemente el producto..." maxlength="500"></textarea>
+          <div class="char-count" id="charCount">0/500</div>
+        </div>
       </div>
+
       <div class="full-row">
-        <div class="label-row"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6"/><path d="M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg><b>Precio del producto *</b></div>
+        <div class="label-row">
+          <svg viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6"/><path d="M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg>
+          <b>Precio del producto *</b>
+        </div>
         <input id="txtPrecio" class="input-price" type="number" step="0.01" placeholder="Ej. $65.00">
       </div>
     </div>
+
     <div class="footer">
       <button class="btn-cancel" onclick="window.location.href='panelaliado-menu.html'">Cancelar</button>
-      <button class="btn-save" id="btnGuardar" onclick="guardarProducto()"><svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Guardar producto</button>
+      <button class="btn-save" id="btnGuardar" onclick="guardarProducto()">
+        <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Guardar producto
+      </button>
     </div>
   </div>
 </div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
 import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js";
+
 const firebaseConfig = {
   apiKey: "AIzaSyD286qlJQT8D3rqbYTSfCyuTAEg9jjRchQ",
   authDomain: "doloya-aliados.firebaseapp.com",
@@ -112,34 +146,16 @@ const firebaseConfig = {
 };
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
+
 let imagenBase64 = '';
-let idReal = '';
 
 function getIdRestaurante(){
   try{
-    const params = new URLSearchParams(window.location.search);
-    const idUrl = params.get('id') || params.get('negocio') || params.get('restaurante');
-    if(idUrl) return idUrl.toString().trim();
-    const sesion = JSON.parse(localStorage.getItem('doloya_aliado_sesion')||'null');
-    if(!sesion) return localStorage.getItem('doloya_ultimo_restaurante') || '';
-    return (sesion.id || sesion.negocio || sesion.restauranteId || sesion.uid || '').toString().trim();
-  }catch{ return localStorage.getItem('doloya_ultimo_restaurante') || ''; }
-}
-
-async function detectarIdReal(){
-  const idSesion = getIdRestaurante();
-  if(!idSesion){ idReal=''; return; }
-  try{
-    const snap = await get(ref(db,'doloya_aliados'));
-    if(!snap.exists()){ idReal=idSesion; return; }
-    const todas=snap.val();
-    if(todas[idSesion]){ idReal=idSesion; return; }
-    for(const k of Object.keys(todas)){
-      if(k.toLowerCase()===idSesion.toLowerCase()){ idReal=k; return; }
-    }
-    idReal=idSesion;
-  }catch{ idReal=idSesion; }
-  if(idReal) localStorage.setItem('doloya_ultimo_restaurante', idReal);
+    const sesion = JSON.parse(localStorage.getItem('doloya_aliado_sesion'));
+    return sesion.id || sesion.negocio || 'santillos';
+  }catch{
+    return 'santillos';
+  }
 }
 
 function toast(t,m){
@@ -149,55 +165,59 @@ function toast(t,m){
   setTimeout(()=>document.getElementById('toastOverlay').classList.remove('show'),2500);
 }
 
-// ORGANIZADO: UNA SOLA RUTA PARA TODOS
+// ORGANIZADO: UNA SOLA RUTA PARA TODOS - doloya_aliados/{negocio}/categorias/{categoria}
 async function cargarCategorias(){
+  const idRest = getIdRestaurante();
   const sel = document.getElementById('selectCat');
-  if(!idReal){
-    sel.innerHTML = '<option value="">Sesión no encontrada - inicia sesión de nuevo</option>';
-    return;
-  }
-  sel.innerHTML = '<option value="">Cargando categorías de '+idReal+'...</option>';
+  sel.innerHTML = '<option value="">Cargando categorías de '+idRest+'...</option>';
+
   try{
-    // RUTA UNICA ORGANIZADA
-    const snapUnica = await get(ref(db, `doloya_aliados/${idReal}/categorias`));
-    // RUTA VIEJA (para migración de la flecha, solo lectura)
-    const snapLegacy = await get(ref(db, `doloya_aliados/${idReal}/categorias/categorias`));
-
-    let dataUnica = snapUnica.exists() ? snapUnica.val() : {};
-    let dataLegacy = snapLegacy.exists() ? snapLegacy.val() : {};
-
-    // Junta todo para mostrar, pero sin duplicar
-    let combinado = {...dataLegacy, ...dataUnica};
-    // Si dentro de dataUnica hay una key "categorias", la ignoramos porque es la legacy
-    delete combinado.categorias;
-
-    const BLACKLIST = ['_info','carritos','categoria','info','perfil','disponibilidad','banner','banners','likes','148_224_32_27','direccion','estado','imagen','imagenPerfil','lat','lng','disponibilidad'];
+    const snap = await get(ref(db, `doloya_aliados/${idRest}/categorias`));
+    if(!snap.exists()){
+      sel.innerHTML = '<option value="">No hay categorías registradas</option>';
+      return;
+    }
+    const data = snap.val();
     let opciones = [];
     let vistos = new Set();
 
-    for(const key in combinado){
-      if(BLACKLIST.includes(key)) continue;
+    for(const key in data){
       if(key.startsWith('_')) continue;
-      const val = combinado[key];
+      if(['carritos','categoria','info','disponibilidad','banner','banners','likes','perfil','direccion'].includes(key)) continue;
+      const val = data[key];
       if(!val || typeof val !== 'object') continue;
-      if(val.precio !== undefined) continue; // es producto
-      const lower = key.toLowerCase();
-      if(vistos.has(lower)) continue;
-      // Solo categorias validas con nombre
-      const nombreMostrar = val.nombre || val.nombreLower || key.replace(/_/g,' ');
-      if(!nombreMostrar) continue;
+      if(val.precio !== undefined) continue; // es producto, no categoria
+
+      // Caso 1: estructura legacy categorias/categorias/boneles - lo convertimos a ruta unica
+      if(key === 'categorias' && typeof val === 'object'){
+        for(const subKey in val){
+          if(subKey.startsWith('_')) continue;
+          const subVal = val[subKey];
+          if(!subVal || typeof subVal !== 'object') continue;
+          if(subVal.precio !== undefined) continue;
+          if(vistos.has(subKey.toLowerCase())) continue;
+          const nombreMostrar = subVal.nombre || subKey;
+          opciones.push({keyOriginal: subKey, nombre: nombreMostrar});
+          vistos.add(subKey.toLowerCase());
+        }
+        continue;
+      }
+
+      // Caso 2: estructura organizada categorias/boneles
+      if(vistos.has(key.toLowerCase())) continue;
+      const nombreMostrar = val.nombre || key.replace(/_/g,' ');
       opciones.push({keyOriginal: key, nombre: nombreMostrar});
-      vistos.add(lower);
+      vistos.add(key.toLowerCase());
     }
 
-    if(opciones.length===0){
-      sel.innerHTML = '<option value="">No hay categorías en '+idReal+' - crea una primero</option>';
+    if(opciones.length === 0){
+      sel.innerHTML = '<option value="">No hay categorías registradas</option>';
     }else{
-      opciones.sort((a,b)=>a.nombre.localeCompare(b.nombre));
-      sel.innerHTML = '<option value="">Selecciona una categoría ('+idReal+')</option>' + opciones.map(o=>`<option value="${o.keyOriginal}">${o.nombre}</option>`).join('');
+      opciones.sort((a,b)=> a.nombre.localeCompare(b.nombre));
+      sel.innerHTML = '<option value="">Selecciona una categoría ('+idRest+')</option>' + opciones.map(o=>`<option value="${o.keyOriginal}">${o.nombre}</option>`).join('');
     }
   }catch(e){
-    console.error(e);
+    console.log(e);
     sel.innerHTML = '<option value="">Error cargando categorías</option>';
   }
 }
@@ -205,6 +225,7 @@ async function cargarCategorias(){
 document.getElementById('txtDesc').addEventListener('input', e=>{
   document.getElementById('charCount').textContent = e.target.value.length + '/500';
 });
+
 document.getElementById('inputImg').addEventListener('change', e=>{
   const file=e.target.files[0];
   if(!file) return;
@@ -234,6 +255,7 @@ document.getElementById('inputImg').addEventListener('change', e=>{
 });
 
 window.guardarProducto=async function(){
+  const idRest = getIdRestaurante();
   const nombre=document.getElementById('txtNombre').value.trim();
   const categoriaKeyOriginal=document.getElementById('selectCat').value.trim();
   const categoriaKey=categoriaKeyOriginal.toLowerCase();
@@ -241,34 +263,40 @@ window.guardarProducto=async function(){
   const descripcion=document.getElementById('txtDesc').value.trim();
   const precioVal=document.getElementById('txtPrecio').value.trim();
   const precio=parseFloat(precioVal);
+
   if(!imagenBase64){ toast('Falta imagen','Sube la imagen del producto'); return; }
   if(!categoriaKeyOriginal){ toast('Falta categoría','Selecciona una categoría'); return; }
   if(!nombre){ toast('Falta nombre','Escribe el nombre del producto'); return; }
   if(!descripcion){ toast('Falta descripción','Describe el producto'); return; }
   if(!precioVal || isNaN(precio) || precio<=0){ toast('Falta precio','Ingresa el precio'); return; }
+
   const btn=document.getElementById('btnGuardar');
   btn.disabled=true;
   btn.textContent='Guardando...';
+
   try{
     const idProducto = nombre.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'') + '_' + Date.now();
-    const dataProd = {
+
+    // RUTA UNICA ORGANIZADA PARA TODOS - YA NO MAS categorias/categorias
+    const rutaUnica = `doloya_aliados/${idRest}/categorias/${categoriaKeyOriginal}/${idProducto}`;
+
+    await set(ref(db, rutaUnica),{
       id: idProducto,
       nombre: nombre,
       descripcion: descripcion,
       categoria: categoriaKey,
       categoriaNombre: categoriaTexto,
+      categoriaKeyOriginal: categoriaKeyOriginal,
       precio: precio,
       imagen: imagenBase64,
       disponibilidad: true,
       activo: true,
       descuento: 0,
       fecha: Date.now()
-    };
-    // RUTA UNICA ORGANIZADA PARA TODOS LOS NEGOCIOS
-    const rutaUnica = `doloya_aliados/${idReal}/categorias/${categoriaKeyOriginal}/${idProducto}`;
-    await set(ref(db, rutaUnica), dataProd);
-    toast('Producto guardado', `${nombre} en ${idReal}/${categoriaTexto}`);
-    setTimeout(()=>{ window.location.href='panelaliado-menu.html?id='+idReal; },1200);
+    });
+
+    toast('Producto guardado', `${nombre} en ${idRest}/${categoriaTexto}`);
+    setTimeout(()=>{ window.location.href='panelaliado-menu.html'; },1200);
   }catch(e){
     console.error(e);
     toast('Error', e.message);
@@ -276,10 +304,8 @@ window.guardarProducto=async function(){
     btn.textContent='Guardar producto';
   }
 }
-(async()=>{
-  await detectarIdReal();
-  await cargarCategorias();
-})();
+
+cargarCategorias();
 </script>
 </body>
 </html>
