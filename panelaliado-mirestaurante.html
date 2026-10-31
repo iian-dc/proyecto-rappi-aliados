@@ -127,7 +127,6 @@ async function encontrarRestaurante(){
   return null;
 }
 
-// *** NUEVO: CARGAR CATEGORIAS DESDE config_global/categorias_inicio ***
 async function cargarCategoriasSelect(){
   try{
     const snap = await get(ref(db, 'config_global/categorias_inicio'));
@@ -144,13 +143,12 @@ async function cargarCategoriasSelect(){
     select.innerHTML = '<option value="">Selecciona categoría</option>';
     arr.forEach(c=>{
       const opt = document.createElement('option');
-      opt.value = c.key; // guardamos el key: alitas, burgers, tortas...
-      opt.textContent = c.nombre; // solo mostramos el nombre: Alitas, Burgers...
+      opt.value = c.key;
+      opt.textContent = c.nombre;
       select.appendChild(opt);
     });
-    // si ya teníamos una categoria guardada, seleccionarla
     if(categoriaActualGuardada){
-      select.value = categoriaActualGuardada;
+      select.value = categoriaActualGuardada.toLowerCase();
     }
   }catch(e){
     console.log('Error cargando categorias',e);
@@ -225,20 +223,20 @@ async function cargar(){
   onValue(refReal, (snap)=>{
     if(!snap.exists()) return;
     const d=snap.val();
-    const info = d.info || d.categorias?.info || d.datos || d;
+    // FIX: leer de todos lados - info, perfil, raiz
+    const info = d.info || d.categorias?.info || d.datos || {};
+    const perfil = d.perfil || {};
     const disp = d.categorias?.disponibilidad || d.disponibilidad || {};
     
-    const categoriaReal = d.info?.categoria || info.categoria || d.categoria || d.categorias?._info || '';
+    const categoriaReal = d.info?.categoria || info.categoria || perfil.categoria || d.categoria || d.categorias?._info || '';
     categoriaActualGuardada = categoriaReal;
 
-    document.getElementById('inpNombre').value = info.nombre || d.nombre || sesion.nombre || encontrado.id;
-    document.getElementById('nombrePreview').textContent = info.nombre || d.nombre || encontrado.id;
+    document.getElementById('inpNombre').value = info.nombre || perfil.nombre || d.nombre || sesion.nombre || encontrado.id;
+    document.getElementById('nombrePreview').textContent = info.nombre || perfil.nombre || d.nombre || encontrado.id;
     
-    // SELECCIONA EN EL SELECT LA CATEGORIA REAL
     const selectCat = document.getElementById('inpCategoria');
     if(categoriaReal){
       selectCat.value = categoriaReal.toLowerCase();
-      // si no existe por mayuscula, intenta normalizado
       if(!selectCat.value){
         const norm = normalize(categoriaReal);
         for(let o of selectCat.options){
@@ -252,52 +250,92 @@ async function cargar(){
       document.getElementById('catPreview').textContent = txt + ' • vista previa cliente';
     }
 
-    document.getElementById('inpWhatsapp').value = info.whatsapp || d.whatsapp || '';
-    document.getElementById('inpTelefono').value = info.telefono || d.telefono || '';
-    document.getElementById('inpDireccion').value = info.direccion || d.direccion || '';
-    document.getElementById('inpLat').value = info.lat || d.lat || '';
-    document.getElementById('inpLng').value = info.lng || d.lng || '';
-    const imgPerfil = info.logo || info.imagen || d.logo || '';
-    const imgPortada = info.portada || d.portada || '';
+    // FIX: whatsapp telefono direccion lat lng de cualquier lado
+    document.getElementById('inpWhatsapp').value = info.whatsapp || perfil.whatsapp || d.whatsapp || '';
+    document.getElementById('inpTelefono').value = info.telefono || perfil.telefono || d.telefono || '';
+    document.getElementById('inpDireccion').value = info.direccion || perfil.direccion || d.direccion || info.ubicacion || '';
+    document.getElementById('inpLat').value = info.lat || perfil.lat || d.lat || d.ubicacion?.lat || '';
+    document.getElementById('inpLng').value = info.lng || perfil.lng || d.lng || d.ubicacion?.lng || '';
+    
+    // FIX: imagenes de perfil y portada de todos lados
+    const imgPerfil = perfil.imagenPerfil || perfil.logo || perfil.imagen || info.logo || info.imagen || info.imagenPerfil || d.logo || d.imagenPerfil || '';
+    const imgPortada = perfil.imagenPortada || perfil.portada || info.portada || info.imagenPortada || d.portada || d.imagenPortada || '';
     if(imgPerfil){ document.getElementById('imgPerfil').src=imgPerfil; document.getElementById('inpPerfilUrl').value=imgPerfil; }
     if(imgPortada){ document.getElementById('imgPortada').src=imgPortada; document.getElementById('inpPortadaUrl').value=imgPortada; }
-    const estado = disp.estado || d.estado || 'activo';
+    
+    const estado = disp.estado || d.estado || info.estado || 'activo';
     document.getElementById('inpEstado').value = estado==='abierto'?'activo':estado;
     document.getElementById('estadoTxt').textContent = estado==='activo'?'● ABIERTO':'● CERRADO';
     document.getElementById('estadoTxt').style.color = estado==='activo'?'#16a34a':'#E30613';
-    const lat=parseFloat(info.lat||d.lat)||21.389; const lng=parseFloat(info.lng||d.lng)||-100.934;
+    const lat=parseFloat(info.lat||perfil.lat||d.lat||d.ubicacion?.lat)||21.389; 
+    const lng=parseFloat(info.lng||perfil.lng||d.lng||d.ubicacion?.lng)||-100.934;
     if(!map){ initMap(lat,lng); } else { const p=new google.maps.LatLng(lat,lng); marker.setPosition(p); map.setCenter(p); }
-    if(info.direccion||d.direccion){ document.getElementById('txtDirMap').textContent=info.direccion||d.direccion; }
+    if(info.direccion||perfil.direccion||d.direccion){ document.getElementById('txtDirMap').textContent=info.direccion||perfil.direccion||d.direccion; }
   });
 }
 document.getElementById('btnGuardar').addEventListener('click', async ()=>{
   const btn=document.getElementById('btnGuardar'); btn.textContent='Guardando...'; btn.disabled=true;
   try{
-    const payload={
-      nombre: document.getElementById('inpNombre').value.trim(),
-      logo: document.getElementById('inpPerfilUrl').value.trim(),
-      imagen: document.getElementById('inpPerfilUrl').value.trim(),
-      imagenPerfil: document.getElementById('inpPerfilUrl').value.trim(),
-      portada: document.getElementById('inpPortadaUrl').value.trim(),
-      banner: document.getElementById('inpPortadaUrl').value.trim(),
-      whatsapp: document.getElementById('inpWhatsapp').value.trim(),
-      telefono: document.getElementById('inpTelefono').value.trim(),
-      direccion: document.getElementById('inpDireccion').value.trim(),
-      ubicacion: document.getElementById('inpDireccion').value.trim(),
-      lat: document.getElementById('inpLat').value.trim(),
-      lng: document.getElementById('inpLng').value.trim(),
-      categoria: document.getElementById('inpCategoria').value.trim(),
-      estado: document.getElementById('inpEstado').value,
+    const nombreVal = document.getElementById('inpNombre').value.trim();
+    const logoVal = document.getElementById('inpPerfilUrl').value.trim();
+    const portadaVal = document.getElementById('inpPortadaUrl').value.trim();
+    const whatsappVal = document.getElementById('inpWhatsapp').value.trim();
+    const telefonoVal = document.getElementById('inpTelefono').value.trim();
+    const direccionVal = document.getElementById('inpDireccion').value.trim();
+    const latVal = document.getElementById('inpLat').value.trim();
+    const lngVal = document.getElementById('inpLng').value.trim();
+    const categoriaVal = document.getElementById('inpCategoria').value.trim();
+    const estadoVal = document.getElementById('inpEstado').value;
+    
+    if(!categoriaVal){ alert('Selecciona una categoría'); btn.textContent='Guardar cambios'; btn.disabled=false; return; }
+    
+    // Payload base para raiz e info
+    const payloadBase={
+      nombre: nombreVal,
+      logo: logoVal,
+      imagen: logoVal,
+      imagenPerfil: logoVal,
+      portada: portadaVal,
+      imagenPortada: portadaVal,
+      banner: portadaVal,
+      whatsapp: whatsappVal,
+      telefono: telefonoVal,
+      direccion: direccionVal,
+      ubicacion: direccionVal,
+      lat: latVal,
+      lng: lngVal,
+      categoria: categoriaVal,
+      estado: estadoVal,
       ultimaActualizacion: new Date().toISOString()
     };
-    if(!payload.categoria){ alert('Selecciona una categoría'); btn.textContent='Guardar cambios'; btn.disabled=false; return; }
-    await update(refReal, payload);
-    await update(ref(db, `${rutaReal}/info`), payload);
-    await update(ref(db, `${rutaReal}/categorias/info`), payload);
-    await update(ref(db, `${rutaReal}/categorias/disponibilidad`), { estado: payload.estado, abierto: payload.estado==='activo' });
-    sesion.nombre=payload.nombre; localStorage.setItem('doloya_aliado_sesion', JSON.stringify(sesion));
+
+    // Payload especifico para perfil (ESTO ES LO QUE LEE EL CLIENTE aliado.html)
+    const payloadPerfil={
+      nombre: nombreVal,
+      nombreRestaurante: nombreVal,
+      imagenPerfil: logoVal,
+      logo: logoVal,
+      imagenPortada: portadaVal,
+      portada: portadaVal,
+      whatsapp: whatsappVal,
+      telefono: telefonoVal,
+      direccion: direccionVal,
+      lat: latVal,
+      lng: lngVal,
+      categoria: categoriaVal,
+      ubicacion: { lat: parseFloat(latVal)||0, lng: parseFloat(lngVal)||0, direccion: direccionVal }
+    };
+
+    await update(refReal, payloadBase);
+    await update(ref(db, `${rutaReal}/info`), payloadBase);
+    await update(ref(db, `${rutaReal}/perfil`), payloadPerfil);
+    await update(ref(db, `${rutaReal}/categorias/info`), payloadBase);
+    await update(ref(db, `${rutaReal}/categorias/disponibilidad`), { estado: estadoVal, abierto: estadoVal==='activo' });
+    await update(ref(db, `${rutaReal}/disponibilidad`), { estado: estadoVal, abierto: estadoVal==='activo' });
+    
+    sesion.nombre=nombreVal; localStorage.setItem('doloya_aliado_sesion', JSON.stringify(sesion));
     const ok=document.getElementById('msgOk'); ok.style.display='block'; setTimeout(()=>ok.style.display='none',2500);
-  }catch(e){ alert('Error: '+e.message); }
+  }catch(e){ alert('Error: '+e.message); console.log(e); }
   btn.textContent='Guardar cambios'; btn.disabled=false;
 });
 cargar();
