@@ -106,7 +106,7 @@ body{background:#f6f8fb;min-height:100vh}
     </div>
     <div class="datos-wrap" id="datosWrap">
       <div style="text-align:center;padding:20px;color:#94a3b8;font-size:13px">
-        Selecciona un pedido para ver el rastreo en tiempo real del cliente y del repartidor
+        Selecciona un pedido para ver el rastreo en tiempo real
       </div>
     </div>
   </div>
@@ -114,10 +114,10 @@ body{background:#f6f8fb;min-height:100vh}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, onSnapshot, doc, deleteDoc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { getDatabase, ref, onValue, remove, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getFirestore, collection, onSnapshot, doc, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getDatabase, ref, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-const firebaseConfigConfirmacion = {
+const configConfirmacion = {
   apiKey: "AIzaSyDLKngPyi_SWAXEQwdrHO5h8L8OufulAR4",
   authDomain: "doloya-confirmacion.firebaseapp.com",
   databaseURL: "https://doloya-confirmacion-default-rtdb.firebaseio.com",
@@ -126,10 +126,20 @@ const firebaseConfigConfirmacion = {
   messagingSenderId: "832228761099",
   appId: "1:832228761099:web:ddd4b6a0ee0d7f0494b10e"
 };
+const configHistorial = {
+  apiKey: "AIzaSyCRx4B7mO444s0yU-WTnsqMjBHDWX4IRv8",
+  authDomain: "doloya-historial.firebaseapp.com",
+  projectId: "doloya-historial",
+  storageBucket: "doloya-historial.firebasestorage.app",
+  messagingSenderId: "41258055121",
+  appId: "1:41258055121:web:19a443786320e04ebd9cf0"
+};
 
-const app = initializeApp(firebaseConfigConfirmacion);
-const dbFS = getFirestore(app);
-const dbRT = getDatabase(app);
+const appConf = initializeApp(configConfirmacion, "conf");
+const appHist = initializeApp(configHistorial, "hist");
+const dbConfFS = getFirestore(appConf);
+const dbConfRT = getDatabase(appConf);
+const dbHist = getFirestore(appHist);
 
 const listaEl = document.getElementById('listaIPs');
 const mapaWrap = document.getElementById('mapaWrap');
@@ -141,6 +151,8 @@ const txtBloquear = document.getElementById('txtBloquear');
 
 let seleccionado = null;
 let seleccionadoIP = null;
+let seleccionadoTel = null;
+let seleccionadoNombre = null;
 let seleccionadoPedido = null;
 let unsubscribeRT = null;
 let lastClientLat = null;
@@ -148,10 +160,15 @@ let lastClientLng = null;
 let ipsBloqueadas = new Set();
 let docsCache = [];
 
-// ESCUCHAR IPs BLOQUEADAS EN TIEMPO REAL
-onSnapshot(collection(dbFS, "ips_bloqueadas"), (snap)=>{
-  ipsBloqueadas = new Set(snap.docs.map(d=>d.id.replace(/_/g,'.')));
+// ESCUCHAR BLOQUEOS REALES DE TU SISTEMA (doloya-historial)
+onSnapshot(collection(dbHist, "ips_bloqueadas"), (snap)=>{
+  ipsBloqueadas = new Set();
+  snap.forEach(d=>{
+    const data = d.data();
+    if(data.bloqueado) ipsBloqueadas.add(d.id);
+  });
   renderLista();
+  if(seleccionadoIP) actualizarBotonBloqueo();
 });
 
 function renderLista(){
@@ -159,13 +176,11 @@ function renderLista(){
     listaEl.innerHTML = '<div style="padding:30px;text-align:center;color:#94a3b8;font-size:13px">Aún no hay pedidos en rastreo.</div>';
     return;
   }
-
   const ipCounts = {};
   docsCache.forEach(d=>{
     const ip = d.cliente?.ip || d.ip || '0.0.0.0';
     ipCounts[ip] = (ipCounts[ip] || 0) + 1;
   });
-
   listaEl.innerHTML = '';
   docsCache.forEach((item, index)=>{
     const ip = item.cliente?.ip || item.ip || '0.0.0.0';
@@ -197,7 +212,7 @@ function renderLista(){
   });
 }
 
-onSnapshot(collection(dbFS, "rastreo"), (snap)=>{
+onSnapshot(collection(dbConfFS, "rastreo"), (snap)=>{
   docsCache = snap.docs.map(d=>({id:d.id, ...d.data()})).sort((a,b)=> new Date(b.fechaCreacion||0) - new Date(a.fechaCreacion||0));
   contador.textContent = docsCache.length + ' rastreos';
   renderLista();
@@ -207,54 +222,72 @@ window.eliminarRastreo = async function(numeroPedido, e){
   if(e) e.stopPropagation();
   if(!confirm(`¿Eliminar ${numeroPedido}?`)) return;
   try{
-    await deleteDoc(doc(dbFS, "rastreo", numeroPedido));
-    await remove(ref(dbRT, `rastreo/${numeroPedido}`));
+    await deleteDoc(doc(dbConfFS, "rastreo", numeroPedido));
+    await remove(ref(dbConfRT, `rastreo/${numeroPedido}`));
     if(seleccionado===numeroPedido){
       seleccionado=null;
       seleccionadoIP=null;
+      seleccionadoTel=null;
       seleccionadoPedido=null;
       barraBloqueo.style.display='none';
-      mapaWrap.innerHTML = `<div class="empty-mapa"><b style="font-size:14px">Selecciona una IP de la lista</b><span style="font-size:12px">Eliminado correctamente</span></div>`;
-      datosWrap.innerHTML = `<div style="text-align:center;padding:20px;color:#16a34a;font-size:13px;font-weight:700">Rastreo ${numeroPedido} eliminado</div>`;
+      mapaWrap.innerHTML = `<div class="empty-mapa"><b style="font-size:14px">Selecciona una IP de la lista</b><span style="font-size:12px">Eliminado</span></div>`;
+      datosWrap.innerHTML = `<div style="text-align:center;padding:20px;color:#16a34a;font-size:13px;font-weight:700">Eliminado</div>`;
     }
-  }catch(err){
-    alert("Error al eliminar: "+err.message);
+  }catch(err){ alert(err.message); }
+}
+
+function actualizarBotonBloqueo(){
+  if(!seleccionadoIP) return;
+  const estaBloqueada = ipsBloqueadas.has(seleccionadoIP);
+  if(estaBloqueada){
+    btnBloquear.classList.add('bloqueado');
+    txtBloquear.textContent = `Desbloquear IP ${seleccionadoIP}`;
+  }else{
+    btnBloquear.classList.remove('bloqueado');
+    txtBloquear.textContent = `Bloquear IP ${seleccionadoIP}`;
   }
 }
 
 window.toggleBloqueoIP = async function(){
   if(!seleccionadoIP) return;
-  const ipKey = seleccionadoIP.replace(/\./g,'_');
   const estaBloqueada = ipsBloqueadas.has(seleccionadoIP);
-  
+  const nuevo = !estaBloqueada;
+  const telKey = (seleccionadoTel || '').replace(/\D/g,'');
+  if(!telKey){ alert('No hay teléfono en este rastreo, solo se bloqueará IP'); }
+
   try{
-    if(estaBloqueada){
-      if(!confirm(`¿Desbloquear la IP ${seleccionadoIP}? Podrá volver a ingresar.`)) return;
-      await deleteDoc(doc(dbFS, "ips_bloqueadas", ipKey));
-      await remove(ref(dbRT, `ips_bloqueadas/${ipKey}`));
-    }else{
-      if(!confirm(`¿Bloquear la IP ${seleccionadoIP}? No podrá volver a hacer pedidos.`)) return;
-      await setDoc(doc(dbFS, "ips_bloqueadas", ipKey), {
+    // MISMA LÓGICA QUE EN paneladmin-clientes
+    if(telKey){
+      await setDoc(doc(dbHist, "clientes_reportados_no_recibe", telKey), { 
+        telefono: telKey, 
+        bloqueado: nuevo, 
+        ipBloqueada: nuevo, 
         ip: seleccionadoIP,
-        fechaBloqueo: new Date().toISOString(),
-        bloqueadoPor: 'paneladmin',
-        motivo: 'Bloqueado desde control de tráfico',
-        ultimoPedido: seleccionadoPedido
-      });
-      await set(ref(dbRT, `ips_bloqueadas/${ipKey}`), {
-        ip: seleccionadoIP,
-        fechaBloqueo: new Date().toISOString(),
-        bloqueado: true
-      });
+        bloqueadoEn: new Date().toISOString()
+      }, {merge:true});
     }
-  }catch(e){
-    alert("Error: "+e.message);
-  }
+    await setDoc(doc(dbHist, "ips_bloqueadas", seleccionadoIP), { 
+      ip: seleccionadoIP, 
+      telefono: telKey, 
+      nombre: seleccionadoNombre || 'Cliente',
+      bloqueado: nuevo, 
+      fecha: new Date().toISOString()
+    }, {merge:true});
+    await setDoc(doc(dbHist, "bloqueos_ip", seleccionadoIP), {
+      ip: seleccionadoIP,
+      bloqueado: nuevo,
+      telefono: telKey,
+      timestamp: new Date().toISOString()
+    }, {merge:true});
+
+  }catch(e){ alert("Error: "+e.message); }
 }
 
 function seleccionarPedido(item, el){
   seleccionado = item.numeroPedido;
   seleccionadoIP = item.cliente?.ip || item.ip || '0.0.0.0';
+  seleccionadoTel = item.cliente?.telefono || item.cliente?.celular || item.telefono || '';
+  seleccionadoNombre = item.cliente?.nombre || 'Cliente';
   seleccionadoPedido = item.numeroPedido;
   document.querySelectorAll('.item-ip').forEach(x=>x.classList.remove('active'));
   if(el) el.classList.add('active');
@@ -264,21 +297,12 @@ function seleccionarPedido(item, el){
   lastClientLat = lat; lastClientLng = lng;
 
   mapaWrap.innerHTML = `<iframe id="mapFrame" src="https://maps.google.com/maps?q=${lat},${lng}&z=17&output=embed" loading="lazy"></iframe>`;
-  
   barraBloqueo.style.display='flex';
-  const estaBloqueada = ipsBloqueadas.has(seleccionadoIP);
-  if(estaBloqueada){
-    btnBloquear.classList.add('bloqueado');
-    txtBloquear.textContent = `Desbloquear IP ${seleccionadoIP}`;
-  }else{
-    btnBloquear.classList.remove('bloqueado');
-    txtBloquear.textContent = `Bloquear IP ${seleccionadoIP}`;
-  }
-
+  actualizarBotonBloqueo();
   renderDatos(item);
 
   if(unsubscribeRT) unsubscribeRT();
-  const refRT = ref(dbRT, `rastreo/${item.numeroPedido}`);
+  const refRT = ref(dbConfRT, `rastreo/${item.numeroPedido}`);
   unsubscribeRT = onValue(refRT, (snap)=>{
     if(snap.exists()){
       const dataRT = snap.val();
@@ -288,9 +312,7 @@ function seleccionarPedido(item, el){
       if(newLat && newLng && (newLat !== lastClientLat || newLng !== lastClientLng)){
         lastClientLat = newLat; lastClientLng = newLng;
         const frame = document.getElementById('mapFrame');
-        if(frame){
-          frame.src = `https://maps.google.com/maps?q=${newLat},${newLng}&z=17&output=embed`;
-        }
+        if(frame) frame.src = `https://maps.google.com/maps?q=${newLat},${newLng}&z=17&output=embed`;
       }
     }
   });
@@ -322,13 +344,9 @@ function renderDatos(data){
       <div class="card-dato full" style="background:#0a1020;color:white;border-color:#0a1020">
         <label style="color:rgba(255,255,255,.6)">Repartidor en tiempo real</label>
         <b style="color:white">${tieneRepartidor ? `📍 ${tracking.lat}, ${tracking.lng} - ${tracking.repartidorNombre || 'Repartidor'} - ${tracking.estado}` : 'Esperando repartidor...'}</b>
-        <div style="font-size:10px;color:rgba(255,255,255,.6);margin-top:4px">Última actualización: ${tracking.ultimaActualizacion ? new Date(tracking.ultimaActualizacion).toLocaleTimeString() : cliente.ultimaActualizacion ? new Date(cliente.ultimaActualizacion).toLocaleTimeString() : '-'}</div>
       </div>
     </div>
-    <button class="btn-ruta" onclick="window.open('${cliente.googleMapsUrl || `https://www.google.com/maps?q=${cliente.lat},${cliente.lng}` }','_blank')">
-      Ver ruta cliente en Maps
-    </button>
-    ${tieneRepartidor ? `<button class="btn-ruta" style="background:white;color:#0a1020;border:1.5px solid #e2e8f0;margin-top:8px" onclick="window.open('https://www.google.com/maps/dir/?api=1&destination=${cliente.lat},${cliente.lng}&origin=${tracking.lat},${tracking.lng}','_blank')">Ver ruta repartidor → cliente</button>` : ''}
+    <button class="btn-ruta" onclick="window.open('${cliente.googleMapsUrl || `https://www.google.com/maps?q=${cliente.lat},${cliente.lng}` }','_blank')">Ver ruta cliente en Maps</button>
   `;
 }
 </script>
