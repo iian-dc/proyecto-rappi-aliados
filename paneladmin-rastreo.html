@@ -11,23 +11,24 @@ body{background:#f6f8fb;min-height:100vh}
 .header-top{background:white;padding:12px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #e2e8f0;position:sticky;top:0;z-index:20}
 .btn-x{width:42px;height:42px;background:#E30613;border-radius:50%;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
 .header-top h1{font-size:18px;font-weight:900;text-transform:lowercase}
-.header-top h1::first-letter{text-transform:uppercase}
 .main-layout{display:flex;height:calc(100vh - 58px)}
-.left-panel{width:360px;background:white;border-right:1px solid #e2e8f0;display:flex;flex-direction:column}
+.left-panel{width:380px;background:white;border-right:1px solid #e2e8f0;display:flex;flex-direction:column}
 .left-head{padding:14px 16px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between}
-.left-head b{font-size:12px;font-weight:800;text-transform:uppercase;color:#0f172a}
+.left-head b{font-size:11px;font-weight:800;text-transform:uppercase;color:#0f172a}
 .left-head span{font-size:11px;background:#0a1020;color:white;padding:4px 10px;border-radius:999px}
 .lista{flex:1;overflow-y:auto}
 .item-ip{padding:14px 16px;border-bottom:1px solid #f1f5f9;cursor:pointer;display:flex;align-items:center;gap:12px;transition:.2s}
 .item-ip:hover{background:#f8fafc}
 .item-ip.active{background:#0a1020;color:white}
-.item-ip .icon-ip{width:38px;height:38px;background:#f1f5f9;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;font-weight:800;color:#0f172a}
+.item-ip .icon-ip{width:36px;height:36px;background:#0a1020;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;font-weight:900}
 .item-ip.active .icon-ip{background:white;color:#0a1020}
 .item-ip .info-ip{flex:1;min-width:0}
 .item-ip .info-ip b{font-size:13px;font-weight:800;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .item-ip .info-ip span{font-size:11px;color:#64748b;display:block;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .item-ip.active .info-ip span{color:rgba(255,255,255,.7)}
-.item-ip .badge-live{width:8px;height:8px;background:#16a34a;border-radius:50%;box-shadow:0 0 0 4px rgba(22,163,74,.2);flex-shrink:0}
+.copias{font-size:10px;font-weight:800;padding:3px 8px;border-radius:999px;background:#fef2f2;color:#B70A1A;border:1px solid #fecaca;margin-left:6px}
+.item-ip.active .copias{background:white;color:#0a1020;border-color:white}
+.badge-live{width:8px;height:8px;background:#16a34a;border-radius:50%;box-shadow:0 0 0 4px rgba(22,163,74,.2);flex-shrink:0}
 .right-panel{flex:1;display:flex;flex-direction:column;background:#f6f8fb}
 .mapa-wrap{height:52%;background:#e2e8f0;position:relative;overflow:hidden}
 .mapa-wrap iframe{width:100%;height:100%;border:0}
@@ -42,8 +43,8 @@ body{background:#f6f8fb;min-height:100vh}
 .tag{font-size:10px;font-weight:800;padding:4px 8px;border-radius:999px;background:#dcfce7;color:#166534;display:inline-block}
 @media(max-width:900px){
   .main-layout{flex-direction:column;height:auto}
-  .left-panel{width:100%;height:40vh}
-  .right-panel{height:60vh}
+  .left-panel{width:100%;height:45vh}
+  .right-panel{height:auto}
   .mapa-wrap{height:300px}
   .datos-wrap{height:auto}
 }
@@ -60,7 +61,6 @@ body{background:#f6f8fb;min-height:100vh}
 </div>
 
 <div class="main-layout">
-  <!-- IZQUIERDA - LISTA DE IPs -->
   <div class="left-panel">
     <div class="left-head">
       <b>Lista de IPs - Confirmación</b>
@@ -71,7 +71,6 @@ body{background:#f6f8fb;min-height:100vh}
     </div>
   </div>
 
-  <!-- DERECHA - MAPA + DATOS -->
   <div class="right-panel">
     <div class="mapa-wrap" id="mapaWrap">
       <div class="empty-mapa">
@@ -90,7 +89,7 @@ body{background:#f6f8fb;min-height:100vh}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 const firebaseConfigConfirmacion = {
@@ -114,65 +113,82 @@ const contador = document.getElementById('contador');
 
 let seleccionado = null;
 let unsubscribeRT = null;
+let lastClientLat = null;
+let lastClientLng = null;
 
-// ESCUCHAR CARPETA RASTREO EN TIEMPO REAL - Firestore
+// Firestore rastreo en tiempo real
 onSnapshot(collection(dbFS, "rastreo"), (snap)=>{
   const docs = snap.docs.map(d=>({id:d.id, ...d.data()})).sort((a,b)=> new Date(b.fechaCreacion||0) - new Date(a.fechaCreacion||0));
   contador.textContent = docs.length + ' rastreos';
   
   if(docs.length===0){
-    listaEl.innerHTML = '<div style="padding:30px;text-align:center;color:#94a3b8;font-size:13px">Aún no hay pedidos en rastreo.<br>Cuando alguien de en Finalizar pedido aparecerá aquí.</div>';
+    listaEl.innerHTML = '<div style="padding:30px;text-align:center;color:#94a3b8;font-size:13px">Aún no hay pedidos en rastreo.</div>';
     return;
   }
 
+  // Contar copias por IP
+  const ipCounts = {};
+  docs.forEach(d=>{
+    const ip = d.cliente?.ip || d.ip || '0.0.0.0';
+    ipCounts[ip] = (ipCounts[ip] || 0) + 1;
+  });
+
   listaEl.innerHTML = '';
-  docs.forEach(item=>{
+  docs.forEach((item, index)=>{
+    const ip = item.cliente?.ip || item.ip || '0.0.0.0';
+    const totalCopias = ipCounts[ip];
+    const textoCopias = totalCopias > 1 ? `${totalCopias} copias` : `1 copia`;
+    const orden = index + 1;
+
     const div = document.createElement('div');
     div.className = 'item-ip' + (seleccionado===item.numeroPedido ? ' active' : '');
     div.innerHTML = `
-      <div class="icon-ip">${(item.ip||'0.0').split('.').pop().slice(-2)}</div>
+      <div class="icon-ip">${orden}</div>
       <div class="info-ip">
-        <b>${item.numeroPedido || item.idPedido} - ${item.cliente?.ip || item.ip}</b>
-        <span>${item.cliente?.nombre || 'Cliente'} • ${item.restaurante?.nombre || 'Restaurante'} • ${item.cliente?.lat?.toFixed(3) || ''}, ${item.cliente?.lng?.toFixed(3) || ''}</span>
+        <b style="display:flex;align-items:center">${ip} <span class="copias">${textoCopias}</span></b>
+        <span>${item.numeroPedido} • ${item.cliente?.nombre || 'Cliente'} • ${item.restaurante?.nombre || ''}</span>
       </div>
       <div class="badge-live"></div>
     `;
-    div.onclick = ()=> seleccionarPedido(item);
+    div.onclick = (e)=> seleccionarPedido(item, e.currentTarget);
     listaEl.appendChild(div);
   });
 });
 
-function seleccionarPedido(item){
+function seleccionarPedido(item, el){
   seleccionado = item.numeroPedido;
-  document.querySelectorAll('.item-ip').forEach(el=>el.classList.remove('active'));
-  event.currentTarget.classList.add('active');
+  document.querySelectorAll('.item-ip').forEach(x=>x.classList.remove('active'));
+  if(el) el.classList.add('active');
 
-  // MAPA ARRIBA
   const lat = item.cliente?.lat || item.lat;
   const lng = item.cliente?.lng || item.lng;
-  mapaWrap.innerHTML = `<iframe src="https://maps.google.com/maps?q=${lat},${lng}&z=16&output=embed" loading="lazy"></iframe>`;
+  lastClientLat = lat; lastClientLng = lng;
 
-  // DATOS ABAJO - VERSION INICIAL
+  mapaWrap.innerHTML = `<iframe id="mapFrame" src="https://maps.google.com/maps?q=${lat},${lng}&z=17&output=embed" loading="lazy"></iframe>`;
   renderDatos(item);
 
-  // ESCUCHAR TIEMPO REAL DEL REPARTIDOR - Realtime
   if(unsubscribeRT) unsubscribeRT();
   const refRT = ref(dbRT, `rastreo/${item.numeroPedido}`);
   unsubscribeRT = onValue(refRT, (snap)=>{
     if(snap.exists()){
       const dataRT = snap.val();
-      renderDatos(dataRT, true);
-      // Si repartidor se mueve, actualizar mapa con su posicion
-      if(dataRT.trackingRepartidor?.lat){
-        const rLat = dataRT.trackingRepartidor.lat;
-        const rLng = dataRT.trackingRepartidor.lng;
-        // Opcional: mostrar ruta cliente-repartidor
+      renderDatos(dataRT);
+
+      // SI EL CLIENTE SE MUEVE, MOVER MAPA EN TIEMPO REAL
+      const newLat = dataRT.cliente?.lat || dataRT.lat;
+      const newLng = dataRT.cliente?.lng || dataRT.lng;
+      if(newLat && newLng && (newLat !== lastClientLat || newLng !== lastClientLng)){
+        lastClientLat = newLat; lastClientLng = newLng;
+        const frame = document.getElementById('mapFrame');
+        if(frame){
+          frame.src = `https://maps.google.com/maps?q=${newLat},${newLng}&z=17&output=embed`;
+        }
       }
     }
   });
 }
 
-function renderDatos(data, isUpdate=false){
+function renderDatos(data){
   const cliente = data.cliente || {};
   const tracking = data.trackingRepartidor || {};
   const tieneRepartidor = tracking.lat && tracking.lat!==0;
@@ -181,7 +197,7 @@ function renderDatos(data, isUpdate=false){
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
       <b style="font-size:15px;font-weight:900">${data.numeroPedido}</b>
       <span class="tag">${data.estadoPedido || 'nuevo'}</span>
-      <span style="margin-left:auto;font-size:11px;color:#64748b">${new Date(data.fechaCreacion).toLocaleString()}</span>
+      <span style="margin-left:auto;font-size:11px;color:#64748b">${data.fechaCreacion ? new Date(data.fechaCreacion).toLocaleString() : ''}</span>
     </div>
     <div class="datos-grid">
       <div class="card-dato"><label>IP Cliente</label><b>${cliente.ip || data.ip || '0.0.0.0'}</b></div>
@@ -189,18 +205,17 @@ function renderDatos(data, isUpdate=false){
       <div class="card-dato"><label>Cliente</label><b>${cliente.nombre || '-'}</b></div>
       <div class="card-dato"><label>Teléfono</label><b>${cliente.telefono || '-'}</b></div>
       <div class="card-dato full"><label>Dirección cliente</label><b>${cliente.direccion || '-'}</b></div>
-      <div class="card-dato"><label>Lat cliente</label><b>${cliente.lat || data.lat || 0}</b></div>
-      <div class="card-dato"><label>Lng cliente</label><b>${cliente.lng || data.lng || 0}</b></div>
+      <div class="card-dato"><label>Lat cliente (vivo)</label><b>${cliente.lat || data.lat || 0}</b></div>
+      <div class="card-dato"><label>Lng cliente (vivo)</label><b>${cliente.lng || data.lng || 0}</b></div>
       <div class="card-dato"><label>Restaurante</label><b>${data.restaurante?.nombre || '-'}</b></div>
       <div class="card-dato"><label>Total</label><b>$${data.total || 0} MXN</b></div>
       <div class="card-dato full" style="background:#0a1020;color:white;border-color:#0a1020">
         <label style="color:rgba(255,255,255,.6)">Repartidor en tiempo real</label>
         <b style="color:white">${tieneRepartidor ? `📍 ${tracking.lat}, ${tracking.lng} - ${tracking.repartidorNombre || 'Repartidor'} - ${tracking.estado}` : 'Esperando repartidor...'}</b>
-        <div style="font-size:10px;color:rgba(255,255,255,.6);margin-top:4px">Última actualización: ${tracking.ultimaActualizacion ? new Date(tracking.ultimaActualizacion).toLocaleTimeString() : '-'}</div>
+        <div style="font-size:10px;color:rgba(255,255,255,.6);margin-top:4px">Última actualización: ${tracking.ultimaActualizacion ? new Date(tracking.ultimaActualizacion).toLocaleTimeString() : cliente.ultimaActualizacion ? new Date(cliente.ultimaActualizacion).toLocaleTimeString() : '-'}</div>
       </div>
     </div>
     <button class="btn-ruta" onclick="window.open('${cliente.googleMapsUrl || `https://www.google.com/maps?q=${cliente.lat},${cliente.lng}` }','_blank')">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>
       Ver ruta cliente en Maps
     </button>
     ${tieneRepartidor ? `<button class="btn-ruta" style="background:white;color:#0a1020;border:1.5px solid #e2e8f0;margin-top:8px" onclick="window.open('https://www.google.com/maps/dir/?api=1&destination=${cliente.lat},${cliente.lng}&origin=${tracking.lat},${tracking.lng}','_blank')">Ver ruta repartidor → cliente</button>` : ''}
