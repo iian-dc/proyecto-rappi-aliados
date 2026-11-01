@@ -223,12 +223,10 @@ async function cargar(){
   onValue(refReal, (snap)=>{
     if(!snap.exists()) return;
     const d=snap.val();
-    // FIX: leer de todos lados - info, perfil, raiz
-    const info = d.info || d.categorias?.info || d.datos || {};
+    const info = d.info || {};
     const perfil = d.perfil || {};
-    const disp = d.categorias?.disponibilidad || d.disponibilidad || {};
     
-    const categoriaReal = d.info?.categoria || info.categoria || perfil.categoria || d.categoria || d.categorias?._info || '';
+    const categoriaReal = d.info?.categoria || info.categoria || perfil.categoria || d.categoria || '';
     categoriaActualGuardada = categoriaReal;
 
     document.getElementById('inpNombre').value = info.nombre || perfil.nombre || d.nombre || sesion.nombre || encontrado.id;
@@ -250,29 +248,30 @@ async function cargar(){
       document.getElementById('catPreview').textContent = txt + ' • vista previa cliente';
     }
 
-    // FIX: whatsapp telefono direccion lat lng de cualquier lado
-    document.getElementById('inpWhatsapp').value = info.whatsapp || perfil.whatsapp || d.whatsapp || '';
-    document.getElementById('inpTelefono').value = info.telefono || perfil.telefono || d.telefono || '';
-    document.getElementById('inpDireccion').value = info.direccion || perfil.direccion || d.direccion || info.ubicacion || '';
-    document.getElementById('inpLat').value = info.lat || perfil.lat || d.lat || d.ubicacion?.lat || '';
-    document.getElementById('inpLng').value = info.lng || perfil.lng || d.lng || d.ubicacion?.lng || '';
+    // LEE DE DONDE MARCA LA FLECHA - perfil/
+    document.getElementById('inpWhatsapp').value = perfil.whatsapp || info.whatsapp || d.whatsapp || '';
+    document.getElementById('inpTelefono').value = perfil.telefono || info.telefono || d.telefono || '';
+    document.getElementById('inpDireccion').value = perfil.ubicacion || perfil.direccion || info.ubicacion || info.direccion || d.direccion || '';
+    document.getElementById('inpLat').value = perfil.lat || info.lat || d.lat || '';
+    document.getElementById('inpLng').value = perfil.lng || info.lng || d.lng || '';
     
-    // FIX: imagenes de perfil y portada de todos lados
-    const imgPerfil = perfil.imagenPerfil || perfil.logo || perfil.imagen || info.logo || info.imagen || info.imagenPerfil || d.logo || d.imagenPerfil || '';
-    const imgPortada = perfil.imagenPortada || perfil.portada || info.portada || info.imagenPortada || d.portada || d.imagenPortada || '';
+    const imgPerfil = perfil.imagenPerfil || perfil.logo || info.logo || info.imagenPerfil || d.logo || '';
+    const imgPortada = perfil.portada || perfil.imagenPortada || info.portada || info.imagenPortada || d.portada || '';
     if(imgPerfil){ document.getElementById('imgPerfil').src=imgPerfil; document.getElementById('inpPerfilUrl').value=imgPerfil; }
     if(imgPortada){ document.getElementById('imgPortada').src=imgPortada; document.getElementById('inpPortadaUrl').value=imgPortada; }
     
-    const estado = disp.estado || d.estado || info.estado || 'activo';
+    const estado = d.disponibilidad?.estado || d.estado || info.estado || 'activo';
     document.getElementById('inpEstado').value = estado==='abierto'?'activo':estado;
     document.getElementById('estadoTxt').textContent = estado==='activo'?'● ABIERTO':'● CERRADO';
     document.getElementById('estadoTxt').style.color = estado==='activo'?'#16a34a':'#E30613';
-    const lat=parseFloat(info.lat||perfil.lat||d.lat||d.ubicacion?.lat)||21.389; 
-    const lng=parseFloat(info.lng||perfil.lng||d.lng||d.ubicacion?.lng)||-100.934;
+    const lat=parseFloat(perfil.lat||info.lat||d.lat)||21.389; 
+    const lng=parseFloat(perfil.lng||info.lng||d.lng)||-100.934;
     if(!map){ initMap(lat,lng); } else { const p=new google.maps.LatLng(lat,lng); marker.setPosition(p); map.setCenter(p); }
-    if(info.direccion||perfil.direccion||d.direccion){ document.getElementById('txtDirMap').textContent=info.direccion||perfil.direccion||d.direccion; }
+    if(perfil.ubicacion||info.direccion||perfil.direccion){ document.getElementById('txtDirMap').textContent=perfil.ubicacion||info.direccion||perfil.direccion; }
   });
 }
+
+// ===== CORREGIDO - GUARDA DONDE MARCA LA FLECHA =====
 document.getElementById('btnGuardar').addEventListener('click', async ()=>{
   const btn=document.getElementById('btnGuardar'); btn.textContent='Guardando...'; btn.disabled=true;
   try{
@@ -289,48 +288,50 @@ document.getElementById('btnGuardar').addEventListener('click', async ()=>{
     
     if(!categoriaVal){ alert('Selecciona una categoría'); btn.textContent='Guardar cambios'; btn.disabled=false; return; }
     
-    // Payload base para raiz e info
-    const payloadBase={
-      nombre: nombreVal,
-      logo: logoVal,
-      imagen: logoVal,
-      imagenPerfil: logoVal,
+    const fechaAhora = new Date().toISOString();
+
+    // PAYLOAD EXACTO DONDE ESTA LA FLECHA - doloya_aliados/{id}/perfil/
+    // portada, telefono, ubicacion, ultimaActualizacion, whatsapp
+    const payloadPerfilFlecha = {
       portada: portadaVal,
-      imagenPortada: portadaVal,
-      banner: portadaVal,
-      whatsapp: whatsappVal,
       telefono: telefonoVal,
-      direccion: direccionVal,
       ubicacion: direccionVal,
+      ultimaActualizacion: fechaAhora,
+      whatsapp: whatsappVal,
+      direccion: direccionVal,
+      nombre: nombreVal,
       lat: latVal,
       lng: lngVal,
-      categoria: categoriaVal,
-      estado: estadoVal,
-      ultimaActualizacion: new Date().toISOString()
-    };
-
-    // Payload especifico para perfil (ESTO ES LO QUE LEE EL CLIENTE aliado.html)
-    const payloadPerfil={
-      nombre: nombreVal,
-      nombreRestaurante: nombreVal,
       imagenPerfil: logoVal,
       logo: logoVal,
       imagenPortada: portadaVal,
-      portada: portadaVal,
-      whatsapp: whatsappVal,
-      telefono: telefonoVal,
-      direccion: direccionVal,
-      lat: latVal,
-      lng: lngVal,
-      categoria: categoriaVal,
-      ubicacion: { lat: parseFloat(latVal)||0, lng: parseFloat(lngVal)||0, direccion: direccionVal }
+      categoria: categoriaVal
     };
 
-    await update(refReal, payloadBase);
-    await update(ref(db, `${rutaReal}/info`), payloadBase);
-    await update(ref(db, `${rutaReal}/perfil`), payloadPerfil);
-    await update(ref(db, `${rutaReal}/categorias/info`), payloadBase);
-    await update(ref(db, `${rutaReal}/categorias/disponibilidad`), { estado: estadoVal, abierto: estadoVal==='activo' });
+    // Para que confirmacion.html tambien lo lea
+    const payloadInfo = {
+      portada: portadaVal,
+      telefono: telefonoVal,
+      ubicacion: direccionVal,
+      ultimaActualizacion: fechaAhora,
+      whatsapp: whatsappVal,
+      direccion: direccionVal,
+      nombre: nombreVal,
+      lat: latVal,
+      lng: lngVal,
+      logo: logoVal,
+      imagenPerfil: logoVal,
+      imagenPortada: portadaVal,
+      categoria: categoriaVal,
+      estado: estadoVal
+    };
+
+    // 1. Guarda en PERFIL donde marcaste la flecha (PRINCIPAL)
+    await update(ref(db, `${rutaReal}/perfil`), payloadPerfilFlecha);
+    // 2. Guarda en INFO para que llame bien desde confirmacion
+    await update(ref(db, `${rutaReal}/info`), payloadInfo);
+    // 3. Solo estado y nombre en raiz para no crear duplicados
+    await update(refReal, { nombre: nombreVal, estado: estadoVal, categoria: categoriaVal, ultimaActualizacion: fechaAhora });
     await update(ref(db, `${rutaReal}/disponibilidad`), { estado: estadoVal, abierto: estadoVal==='activo' });
     
     sesion.nombre=nombreVal; localStorage.setItem('doloya_aliado_sesion', JSON.stringify(sesion));
