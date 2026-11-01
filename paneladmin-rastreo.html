@@ -17,18 +17,23 @@ body{background:#f6f8fb;min-height:100vh}
 .left-head b{font-size:11px;font-weight:800;text-transform:uppercase;color:#0f172a}
 .left-head span{font-size:11px;background:#0a1020;color:white;padding:4px 10px;border-radius:999px}
 .lista{flex:1;overflow-y:auto}
-.item-ip{padding:14px 16px;border-bottom:1px solid #f1f5f9;cursor:pointer;display:flex;align-items:center;gap:12px;transition:.2s}
+.item-ip{padding:14px 16px;border-bottom:1px solid #f1f5f9;cursor:pointer;display:flex;align-items:center;gap:12px;transition:.2s;position:relative}
 .item-ip:hover{background:#f8fafc}
 .item-ip.active{background:#0a1020;color:white}
 .item-ip .icon-ip{width:36px;height:36px;background:#0a1020;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;font-weight:900}
 .item-ip.active .icon-ip{background:white;color:#0a1020}
 .item-ip .info-ip{flex:1;min-width:0}
-.item-ip .info-ip b{font-size:13px;font-weight:800;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item-ip .info-ip b{font-size:13px;font-weight:800;display:flex;align-items:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .item-ip .info-ip span{font-size:11px;color:#64748b;display:block;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .item-ip.active .info-ip span{color:rgba(255,255,255,.7)}
 .copias{font-size:10px;font-weight:800;padding:3px 8px;border-radius:999px;background:#fef2f2;color:#B70A1A;border:1px solid #fecaca;margin-left:6px}
 .item-ip.active .copias{background:white;color:#0a1020;border-color:white}
 .badge-live{width:8px;height:8px;background:#16a34a;border-radius:50%;box-shadow:0 0 0 4px rgba(22,163,74,.2);flex-shrink:0}
+.btn-del{width:26px;height:26px;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:.2s;z-index:2}
+.btn-del:hover{background:#fee2e2;border-color:#fecaca}
+.btn-del svg{pointer-events:none}
+.item-ip.active .btn-del{background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.2)}
+.item-ip.active .btn-del:hover{background:#E30613;border-color:#E30613}
 .right-panel{flex:1;display:flex;flex-direction:column;background:#f6f8fb}
 .mapa-wrap{height:52%;background:#e2e8f0;position:relative;overflow:hidden}
 .mapa-wrap iframe{width:100%;height:100%;border:0}
@@ -89,8 +94,8 @@ body{background:#f6f8fb;min-height:100vh}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getFirestore, collection, onSnapshot, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getDatabase, ref, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 const firebaseConfigConfirmacion = {
   apiKey: "AIzaSyDLKngPyi_SWAXEQwdrHO5h8L8OufulAR4",
@@ -116,7 +121,6 @@ let unsubscribeRT = null;
 let lastClientLat = null;
 let lastClientLng = null;
 
-// Firestore rastreo en tiempo real
 onSnapshot(collection(dbFS, "rastreo"), (snap)=>{
   const docs = snap.docs.map(d=>({id:d.id, ...d.data()})).sort((a,b)=> new Date(b.fechaCreacion||0) - new Date(a.fechaCreacion||0));
   contador.textContent = docs.length + ' rastreos';
@@ -126,7 +130,6 @@ onSnapshot(collection(dbFS, "rastreo"), (snap)=>{
     return;
   }
 
-  // Contar copias por IP
   const ipCounts = {};
   docs.forEach(d=>{
     const ip = d.cliente?.ip || d.ip || '0.0.0.0';
@@ -145,15 +148,37 @@ onSnapshot(collection(dbFS, "rastreo"), (snap)=>{
     div.innerHTML = `
       <div class="icon-ip">${orden}</div>
       <div class="info-ip">
-        <b style="display:flex;align-items:center">${ip} <span class="copias">${textoCopias}</span></b>
-        <span>${item.numeroPedido} • ${item.cliente?.nombre || 'Cliente'} • ${item.restaurante?.nombre || ''}</span>
+        <b>${ip} <span class="copias">${textoCopias}</span></b>
+        <span>${item.numeroPedido} • ${item.cliente?.nombre || 'Cliente'}</span>
       </div>
       <div class="badge-live"></div>
+      <button class="btn-del" title="Eliminar" onclick="eliminarRastreo('${item.numeroPedido}', event)">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
     `;
-    div.onclick = (e)=> seleccionarPedido(item, e.currentTarget);
+    div.onclick = (e)=> {
+      if(e.target.closest('.btn-del')) return;
+      seleccionarPedido(item, div);
+    };
     listaEl.appendChild(div);
   });
 });
+
+window.eliminarRastreo = async function(numeroPedido, e){
+  if(e) e.stopPropagation();
+  if(!confirm(`¿Eliminar ${numeroPedido}? Se borrará del mapa.`)) return;
+  try{
+    await deleteDoc(doc(dbFS, "rastreo", numeroPedido));
+    await remove(ref(dbRT, `rastreo/${numeroPedido}`));
+    if(seleccionado===numeroPedido){
+      seleccionado=null;
+      mapaWrap.innerHTML = `<div class="empty-mapa"><b style="font-size:14px">Selecciona una IP de la lista</b><span style="font-size:12px">Eliminado correctamente</span></div>`;
+      datosWrap.innerHTML = `<div style="text-align:center;padding:20px;color:#16a34a;font-size:13px;font-weight:700">Rastreo ${numeroPedido} eliminado</div>`;
+    }
+  }catch(err){
+    alert("Error al eliminar: "+err.message);
+  }
+}
 
 function seleccionarPedido(item, el){
   seleccionado = item.numeroPedido;
@@ -173,8 +198,6 @@ function seleccionarPedido(item, el){
     if(snap.exists()){
       const dataRT = snap.val();
       renderDatos(dataRT);
-
-      // SI EL CLIENTE SE MUEVE, MOVER MAPA EN TIEMPO REAL
       const newLat = dataRT.cliente?.lat || dataRT.lat;
       const newLng = dataRT.cliente?.lng || dataRT.lng;
       if(newLat && newLng && (newLat !== lastClientLat || newLng !== lastClientLng)){
