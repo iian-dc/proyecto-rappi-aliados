@@ -46,7 +46,7 @@ body{background:#f6f8fb;color:#0f172a;min-height:100vh}
 </div>
 
 <div class="container">
-<div id="msgOk" class="ok">✅ Guardado en tiempo real</div>
+<div id="msgOk" class="ok">✅ Sincronizado con carpeta info</div>
 
 <div class="card" style="padding:0;overflow:hidden">
 <div class="preview-cliente" onclick="document.getElementById('filePortada').click()">
@@ -110,6 +110,12 @@ let refReal=null, rutaReal='', map, marker, autocomplete, geocoder;
 let categoriaActualGuardada = '';
 
 async function encontrarRestaurante(){
+  // CORREGIDO: PRIMERO BUSCA DIRECTO EN doloya_aliados/el_caldito QUE ES DONDE ESTA LA FLECHA
+  const direct = await get(ref(db, `doloya_aliados/${idNegocio}`));
+  if(direct.exists()){
+    console.log('Encontrado directo:', `doloya_aliados/${idNegocio}`);
+    return { categoria: 'direct', id: idNegocio, data: direct.val(), ruta: `doloya_aliados/${idNegocio}` };
+  }
   const snap = await get(ref(db, 'doloya_aliados'));
   if(!snap.exists()) return null;
   const todas = snap.val();
@@ -118,12 +124,11 @@ async function encontrarRestaurante(){
     if(typeof nivel !== 'object') continue;
     for(const key in nivel){
       if(normalize(key)===normalize(idNegocio)){
+        console.log('Encontrado en categoria:', `doloya_aliados/${cat}/${key}`);
         return { categoria: cat, id: key, data: nivel[key], ruta: `doloya_aliados/${cat}/${key}` };
       }
     }
   }
-  const direct = await get(ref(db, `doloya_aliados/${idNegocio}`));
-  if(direct.exists()){ return { categoria: 'direct', id: idNegocio, data: direct.val(), ruta: `doloya_aliados/${idNegocio}` }; }
   return null;
 }
 
@@ -131,19 +136,11 @@ async function cargarCategoriasSelect(){
   try{
     const snap = await get(ref(db, 'config_global/categorias_inicio'));
     const select = document.getElementById('inpCategoria');
-    if(!snap.exists()){
-      select.innerHTML = '<option value="">No hay categorías</option>';
-      return;
-    }
+    if(!snap.exists()){ select.innerHTML = '<option value="">No hay categorías</option>'; return; }
     const data = snap.val();
     const arr = Object.values(data).filter(c=>c.key!=='info' && c.key!=='_info' && c.activa!==false).sort((a,b)=>(a.orden||99)-(b.orden||99));
     select.innerHTML = '<option value="">Selecciona categoría</option>';
-    arr.forEach(c=>{
-      const opt = document.createElement('option');
-      opt.value = c.key;
-      opt.textContent = c.nombre;
-      select.appendChild(opt);
-    });
+    arr.forEach(c=>{ const opt = document.createElement('option'); opt.value = c.key; opt.textContent = c.nombre; select.appendChild(opt); });
     if(categoriaActualGuardada){ select.value = categoriaActualGuardada.toLowerCase(); }
   }catch(e){ console.log('Error cargando categorias',e); }
 }
@@ -218,8 +215,7 @@ async function cargar(){
     const d=snap.val();
     const info = d.info || {};
 
-    // ===== SOLO MODIFICADO - LEE DE LA CARPETA INFO DONDE ESTA LA FLECHA =====
-    // info/telefono, info/whatsapp, info/direccion son los verdaderos
+    // AHORA LEE DE INFO DONDE ESTA LA FLECHA CON EL VERDADERO NUMERO
     const categoriaReal = info.categoria || d.categoria || '';
     categoriaActualGuardada = categoriaReal;
 
@@ -233,11 +229,11 @@ async function cargar(){
       document.getElementById('catPreview').textContent = txt + ' • vista previa cliente';
     }
 
-    document.getElementById('inpWhatsapp').value = info.whatsapp || '';
-    document.getElementById('inpTelefono').value = info.telefono || '';
-    document.getElementById('inpDireccion').value = info.direccion || info.ubicacion || '';
-    document.getElementById('inpLat').value = info.lat || '';
-    document.getElementById('inpLng').value = info.lng || '';
+    document.getElementById('inpWhatsapp').value = info.whatsapp || d.whatsapp || '';
+    document.getElementById('inpTelefono').value = info.telefono || d.telefono || '';
+    document.getElementById('inpDireccion').value = info.direccion || info.ubicacion || d.direccion || '';
+    document.getElementById('inpLat').value = info.lat || d.lat || '';
+    document.getElementById('inpLng').value = info.lng || d.lng || '';
     
     const imgPerfil = info.imagenPerfil || info.logo || d.logo || '';
     const imgPortada = info.banner || info.portada || d.portada || '';
@@ -255,7 +251,6 @@ async function cargar(){
   });
 }
 
-// ===== SOLO MODIFICADO - GUARDA EN LA CARPETA INFO DONDE ESTA LA FLECHA =====
 document.getElementById('btnGuardar').addEventListener('click', async ()=>{
   const btn=document.getElementById('btnGuardar'); btn.textContent='Guardando...'; btn.disabled=true;
   try{
@@ -290,10 +285,17 @@ document.getElementById('btnGuardar').addEventListener('click', async ()=>{
       ultimaActualizacion: fechaAhora
     };
 
+    // Guarda en info que es donde esta la flecha
     await update(ref(db, `${rutaReal}/info`), payloadInfo);
+    // Tambien actualiza raiz para sincronizar
+    await update(ref(db, rutaReal), { telefono: telefonoVal, whatsapp: whatsappVal, direccion: direccionVal, ubicacion: direccionVal, nombre: nombreVal, lat: latVal, lng: lngVal, portada: portadaVal, logo: logoVal, categoria: categoriaVal, estado: estadoVal, ultimaActualizacion: fechaAhora });
+
+    // Limpia el viejo tacos/el_caldito con 418... y 234...
+    try{ await set(ref(db, `doloya_aliados/tacos/${idNegocio}`), null); }catch(e){}
+
     await update(ref(db, `${rutaReal}/disponibilidad`), { estado: estadoVal, abierto: estadoVal==='activo' });
     sesion.nombre=nombreVal; localStorage.setItem('doloya_aliado_sesion', JSON.stringify(sesion));
-    const ok=document.getElementById('msgOk'); ok.style.display='block'; setTimeout(()=>ok.style.display='none',2500);
+    const ok=document.getElementById('msgOk'); ok.style.display='block'; setTimeout(()=>ok.style.display='none',3000);
   }catch(e){ alert('Error: '+e.message); console.log(e); }
   btn.textContent='Guardar cambios'; btn.disabled=false;
 });
