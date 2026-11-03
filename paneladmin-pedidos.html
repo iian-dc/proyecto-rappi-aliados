@@ -214,12 +214,27 @@ function render(){
     const dirRec=p.restaurante?.direccion||'Calle Independencia #124';
     const dirEnt=p.detalles?.direccion||p.cliente?.direccion||'Av. Hidalgo #256';
     const productos=p.productos||[];
-    let htmlProd=productos.map(it=>`<div class="product-item"><span>${it.nombre||it.name}</span><span>x${it.cantidad||1}</span><span>$${it.precio||0}</span></div>`).join('')||'<div class="product-item"><span>Producto</span><span>x1</span><span>$65</span></div>';
-    const costoProdBase = Number(p.totales?.costoProductos ?? p.totales?.totalProductos ?? p.totales?.subtotal ?? 0);
-    const tarifaServicio = Number(p.totales?.tarifaServicio ?? p.totales?.tarifa ?? p.totales?.servicio ?? p.totales?.comision ?? 0);
-    const totalProdConTarifa = costoProdBase + tarifaServicio;
-    const envio = Number(p.totales?.costoEnvio ?? p.totales?.envio ?? 30);
-    const totalFinal = totalProdConTarifa + envio;
+    let htmlProd=productos.map(it=>{
+      const precioReal = parseFloat(it.precio||0);
+      return `<div class="product-item"><span>${it.nombre||it.name}</span><span>x${it.cantidad||1}</span><span>$${precioReal.toFixed(2)}</span></div>`;
+    }).join('')||'<div class="product-item"><span>Producto</span><span>x1</span><span>$65</span></div>';
+    
+    // ===== CORREGIDO - DECIMALES REALES - NO MAS 215.0 =====
+    let costoCalculado = 0;
+    if(productos && productos.length>0){
+      costoCalculado = productos.reduce((acc, it)=>{
+        const precio = parseFloat(it.precio ?? it.price ?? 0);
+        const cant = parseFloat(it.cantidad ?? it.qty ?? 1);
+        return acc + (precio * cant);
+      }, 0);
+    }
+    const costoGuardado = parseFloat(p.totales?.costoProductos ?? p.totales?.totalProductos ?? p.totales?.subtotal ?? 0);
+    const costoProdBase = costoCalculado > 0 ? costoCalculado : costoGuardado;
+    const tarifaServicio = parseFloat(p.totales?.tarifaServicio ?? p.totales?.tarifa ?? p.totales?.servicio ?? p.totales?.comision ?? 0);
+    const envio = parseFloat(p.totales?.costoEnvio ?? p.totales?.envio ?? 30);
+    const totalProdConTarifa = parseFloat((costoProdBase + tarifaServicio).toFixed(2));
+    const totalFinal = parseFloat((totalProdConTarifa + envio).toFixed(2));
+    
     let hora='12:34'; let tsSec=0;
     if(p.timestampAdmin?.seconds){ tsSec=p.timestampAdmin.seconds; hora=new Date(tsSec*1000).toLocaleString('es-MX',{hour:'2-digit',minute:'2-digit'}); }
     else if(p.timestamp?.seconds){ tsSec=p.timestamp.seconds; hora=new Date(tsSec*1000).toLocaleString('es-MX',{hour:'2-digit',minute:'2-digit'}); }
@@ -249,10 +264,10 @@ function render(){
       <div class="card-bottom">
         <div><div class="label">Productos</div>${htmlProd}</div>
         <div class="total-box">
-          <div class="line"><span>Total productos</span><span>$${costoProdBase.toFixed(1)}</span></div>
-          <div class="line"><span>Tarifa servicio</span><span>$${tarifaServicio.toFixed(1)}</span></div>
-          <div class="line"><span>Envío</span><span>$${envio.toFixed(1)}</span></div>
-          <div class="total-final">Total<br><b>$${totalFinal.toFixed(1)} MXN</b></div>
+          <div class="line"><span>Total productos</span><span>$${costoProdBase.toFixed(2)}</span></div>
+          <div class="line"><span>Tarifa servicio</span><span>$${tarifaServicio.toFixed(2)}</span></div>
+          <div class="line"><span>Envío</span><span>$${envio.toFixed(2)}</span></div>
+          <div class="total-final">Total<br><b>$${totalFinal.toFixed(2)} MXN</b></div>
         </div>
         <div><div class="label">Datos del restaurante</div><div class="value" style="font-size:11px"><div class="icon-row"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#334155" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> ${rest}</div><div class="icon-row" style="color:#10b981"><span style="width:6px;height:6px;background:#10b981;border-radius:50%;display:inline-block"></span> Listo</div></div></div>
         <div>
@@ -345,7 +360,6 @@ window.asignarRepartidor = async (pedidoId, repId, repNombre)=>{
   }catch(e){ alert(e.message); }
 }
 
-// === MODIFICADO - ENVIO A HISTORIAL CON TODA LA INFO DEL CLIENTE ===
 window.siEnviarHistorial = async (id)=>{
   const pedido = pedidosCache.find(p=>p.id===id);
   if(!pedido){ alert('Pedido no encontrado'); return; }
@@ -356,10 +370,8 @@ window.siEnviarHistorial = async (id)=>{
     const cliente = pedido.cliente || {};
     const gps = pedido.gps || cliente.ubicacion || {};
     const ubiCompleta = pedido.ubicacionCompleta || {};
-
     const datosHistorial = {
       ...pedido,
-      // INFO CLIENTE COMPLETA GARANTIZADA
       clienteId: pedido.clienteId || cliente.clienteId || id,
       nombre: pedido.nombre || cliente.nombre || pedido.cliente?.nombre || 'Cliente',
       telefono: pedido.telefono || cliente.celular || cliente.telefono || pedido.detalles?.telefono || '',
@@ -383,31 +395,25 @@ window.siEnviarHistorial = async (id)=>{
         },
         gpsActualCliente: cliente.gpsActualCliente || gps
       },
-      // GPS, LAT, LNG
       gps: gps,
       latitud: gps.lat || pedido.latitud || cliente.ubicacion?.lat || 0,
       longitud: gps.lng || pedido.longitud || cliente.ubicacion?.lng || 0,
       ubicacionCompleta: ubiCompleta,
       detalles: pedido.detalles || {},
-      // IP Y RED - LO QUE TE FALTABA
       ip: pedido.ip || ubiCompleta.ip || '0.0.0.0',
       ipInfo: pedido.ipInfo || ubiCompleta.ipInfo || {},
-      // DISPOSITIVO Y NAVEGADOR
       dispositivo: pedido.dispositivo || {},
       userAgent: pedido.userAgent || pedido.dispositivo?.userAgent || '',
       plataforma: pedido.plataforma || pedido.dispositivo?.plataforma || '',
       navegador: pedido.dispositivo?.navegador || pedido.dispositivo?.userAgent || '',
-      // ESTADOS HISTORIAL
       estado: 'historial',
       estadoOriginal: pedido.estado,
       enviadoAHistorialEn: new Date().toISOString(),
       fechaEntrega: new Date().toISOString(),
       guardadoDesde: 'doloya-confirmacion'
     };
-
     await setDoc(doc(dbHistorial, "pedidos_entregados", id), datosHistorial);
     await deleteDoc(doc(db, "pedidos_admin", id));
-    console.log("✅ Enviado a historial con IP:", datosHistorial.ip, "GPS:", datosHistorial.latitud, datosHistorial.longitud);
   }catch(e){
     console.error(e);
     alert('Error: '+e.message);
@@ -419,24 +425,20 @@ window.siEnviarHistorial = async (id)=>{
 window.siEnviarCanceladoHistorial = async (id)=>{
   const pedido = pedidosCache.find(p=>p.id===id);
   if(!pedido){ alert('Pedido no encontrado'); return; }
-  
   const cardEl = document.getElementById('card-'+id);
   if(cardEl){ 
     cardEl.style.transition='all .35s ease';
     cardEl.style.transform='scale(0.88)';
     cardEl.style.opacity='0.5';
   }
-
   try{
     const cliente = pedido.cliente || {};
     const gps = pedido.gps || cliente.ubicacion || {};
     const ubiCompleta = pedido.ubicacionCompleta || {};
-
     const datosCompletos = {
       ...pedido,
       idOriginal: pedido.id,
       codigo: pedido.codigo || pedido.id,
-      // CLIENTE COMPLETO
       clienteId: pedido.clienteId || cliente.clienteId || id,
       nombre: pedido.nombre || cliente.nombre || 'Cliente',
       telefono: pedido.telefono || cliente.celular || cliente.telefono || pedido.detalles?.telefono || '',
@@ -460,21 +462,17 @@ window.siEnviarCanceladoHistorial = async (id)=>{
         },
         gpsActualCliente: cliente.gpsActualCliente || gps
       },
-      // GPS
       gps: gps,
       latitud: gps.lat || pedido.latitud || cliente.ubicacion?.lat || 0,
       longitud: gps.lng || pedido.longitud || cliente.ubicacion?.lng || 0,
       ubicacionCompleta: ubiCompleta,
       detalles: pedido.detalles || {},
-      // IP - YA NO NULL
       ip: pedido.ip || ubiCompleta.ip || '0.0.0.0',
       ipInfo: pedido.ipInfo || ubiCompleta.ipInfo || {},
-      // DISPOSITIVO
       dispositivo: pedido.dispositivo || {},
       userAgent: pedido.userAgent || pedido.dispositivo?.userAgent || '',
       plataforma: pedido.plataforma || pedido.dispositivo?.plataforma || '',
       navegador: pedido.dispositivo?.navegador || '',
-      // CANCELADO
       estado: 'cancelado_historial',
       estadoOriginal: pedido.estado,
       motivoCancelacion: pedido.motivoCancelacion || 'Sin motivo',
@@ -487,13 +485,10 @@ window.siEnviarCanceladoHistorial = async (id)=>{
       guardadoDesde: 'doloya-confirmacion',
       datosCompletosOriginales: pedido
     };
-
-    console.log('Guardando en pedidos_cancelados con IP:', datosCompletos.ip);
     await setDoc(doc(dbHistorial, "pedidos_cancelados", id), datosCompletos);
     await deleteDoc(doc(db, "pedidos_admin", id));
     pedidosCache = pedidosCache.filter(p=>p.id!==id);
     render();
-
   }catch(e){
     console.error('ERROR CANCELADO:', e);
     alert('Error al mover a historial:\n'+e.message);
