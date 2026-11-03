@@ -98,7 +98,7 @@ body{background:#f6f8fb;color:#0f172a;min-height:100vh}
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCTV1sm6McEIkv-cheaVFCD_svp_a--6wg&libraries=places"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-import { getDatabase, ref, get, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js";
+import { getDatabase, ref, get, onValue, update, set } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js";
 const configAliados = { apiKey: "AIzaSyD286qlJQT8D3rqbYTSfCyuTAEg9jjRchQ", authDomain: "doloya-aliados.firebaseapp.com", databaseURL: "https://doloya-aliados-default-rtdb.firebaseio.com", projectId: "doloya-aliados", storageBucket: "doloya-aliados.firebasestorage.app", messagingSenderId: "122314467740", appId: "1:122314467740:web:9947a0a9560557e3a00059" };
 const appAliados = initializeApp(configAliados, "aliados");
 const db = getDatabase(appAliados);
@@ -139,7 +139,6 @@ async function cargarCategoriasSelect(){
     const arr = Object.values(data)
       .filter(c=>c.key!=='info' && c.key!=='_info' && c.activa!==false)
       .sort((a,b)=>(a.orden||99)-(b.orden||99));
-    
     select.innerHTML = '<option value="">Selecciona categoría</option>';
     arr.forEach(c=>{
       const opt = document.createElement('option');
@@ -147,12 +146,8 @@ async function cargarCategoriasSelect(){
       opt.textContent = c.nombre;
       select.appendChild(opt);
     });
-    if(categoriaActualGuardada){
-      select.value = categoriaActualGuardada.toLowerCase();
-    }
-  }catch(e){
-    console.log('Error cargando categorias',e);
-  }
+    if(categoriaActualGuardada){ select.value = categoriaActualGuardada.toLowerCase(); }
+  }catch(e){ console.log('Error cargando categorias',e); }
 }
 
 function fileToDataURL(file){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(file); }); }
@@ -225,53 +220,48 @@ async function cargar(){
     const d=snap.val();
     const info = d.info || {};
     const perfil = d.perfil || {};
-    
-    const categoriaReal = d.info?.categoria || info.categoria || perfil.categoria || d.categoria || '';
+    const categoriaReal = d.categoria || info.categoria || perfil.categoria || '';
     categoriaActualGuardada = categoriaReal;
-
-    document.getElementById('inpNombre').value = info.nombre || perfil.nombre || d.nombre || sesion.nombre || encontrado.id;
-    document.getElementById('nombrePreview').textContent = info.nombre || perfil.nombre || d.nombre || encontrado.id;
-    
+    document.getElementById('inpNombre').value = d.nombre || info.nombre || perfil.nombre || sesion.nombre || encontrado.id;
+    document.getElementById('nombrePreview').textContent = d.nombre || info.nombre || perfil.nombre || encontrado.id;
     const selectCat = document.getElementById('inpCategoria');
     if(categoriaReal){
       selectCat.value = categoriaReal.toLowerCase();
       if(!selectCat.value){
         const norm = normalize(categoriaReal);
         for(let o of selectCat.options){
-          if(normalize(o.value)===norm || normalize(o.textContent)===norm){
-            selectCat.value = o.value;
-            break;
-          }
+          if(normalize(o.value)===norm || normalize(o.textContent)===norm){ selectCat.value = o.value; break; }
         }
       }
       const txt = selectCat.options[selectCat.selectedIndex]?.textContent || categoriaReal;
       document.getElementById('catPreview').textContent = txt + ' • vista previa cliente';
     }
-
-    // LEE DE DONDE MARCA LA FLECHA - perfil/
-    document.getElementById('inpWhatsapp').value = perfil.whatsapp || info.whatsapp || d.whatsapp || '';
-    document.getElementById('inpTelefono').value = perfil.telefono || info.telefono || d.telefono || '';
-    document.getElementById('inpDireccion').value = perfil.ubicacion || perfil.direccion || info.ubicacion || info.direccion || d.direccion || '';
-    document.getElementById('inpLat').value = perfil.lat || info.lat || d.lat || '';
-    document.getElementById('inpLng').value = perfil.lng || info.lng || d.lng || '';
-    
-    const imgPerfil = perfil.imagenPerfil || perfil.logo || info.logo || info.imagenPerfil || d.logo || '';
-    const imgPortada = perfil.portada || perfil.imagenPortada || info.portada || info.imagenPortada || d.portada || '';
+    // SINCRONIZADO - LEE DEL MISMO LUGAR QUE CONFIRMACION
+    // Prioridad: raiz (correcto arriba 418...) -> perfil (flecha) -> info
+    const telefonoCorrecto = d.telefono || perfil.telefono || info.telefono || '';
+    const whatsappCorrecto = d.whatsapp || perfil.whatsapp || info.whatsapp || '';
+    const ubicacionCorrecta = d.ubicacion || d.direccion || perfil.ubicacion || perfil.direccion || info.ubicacion || info.direccion || '';
+    document.getElementById('inpWhatsapp').value = whatsappCorrecto;
+    document.getElementById('inpTelefono').value = telefonoCorrecto;
+    document.getElementById('inpDireccion').value = ubicacionCorrecta;
+    document.getElementById('inpLat').value = d.lat || perfil.lat || info.lat || '';
+    document.getElementById('inpLng').value = d.lng || perfil.lng || info.lng || '';
+    const imgPerfil = d.logo || d.imagenPerfil || perfil.imagenPerfil || perfil.logo || info.logo || '';
+    const imgPortada = d.portada || d.imagenPortada || perfil.portada || perfil.imagenPortada || info.portada || '';
     if(imgPerfil){ document.getElementById('imgPerfil').src=imgPerfil; document.getElementById('inpPerfilUrl').value=imgPerfil; }
     if(imgPortada){ document.getElementById('imgPortada').src=imgPortada; document.getElementById('inpPortadaUrl').value=imgPortada; }
-    
     const estado = d.disponibilidad?.estado || d.estado || info.estado || 'activo';
     document.getElementById('inpEstado').value = estado==='abierto'?'activo':estado;
     document.getElementById('estadoTxt').textContent = estado==='activo'?'● ABIERTO':'● CERRADO';
     document.getElementById('estadoTxt').style.color = estado==='activo'?'#16a34a':'#E30613';
-    const lat=parseFloat(perfil.lat||info.lat||d.lat)||21.389; 
-    const lng=parseFloat(perfil.lng||info.lng||d.lng)||-100.934;
+    const lat=parseFloat(d.lat||perfil.lat||info.lat)||21.389; 
+    const lng=parseFloat(d.lng||perfil.lng||info.lng)||-100.934;
     if(!map){ initMap(lat,lng); } else { const p=new google.maps.LatLng(lat,lng); marker.setPosition(p); map.setCenter(p); }
-    if(perfil.ubicacion||info.direccion||perfil.direccion){ document.getElementById('txtDirMap').textContent=perfil.ubicacion||info.direccion||perfil.direccion; }
+    if(ubicacionCorrecta){ document.getElementById('txtDirMap').textContent=ubicacionCorrecta; }
   });
 }
 
-// ===== CORREGIDO - GUARDA DONDE MARCA LA FLECHA =====
+// ===== CORREGIDO Y SINCRONIZADO - ELIMINA DUPLICADO Y SINCRONIZA CON CONFIRMACION =====
 document.getElementById('btnGuardar').addEventListener('click', async ()=>{
   const btn=document.getElementById('btnGuardar'); btn.textContent='Guardando...'; btn.disabled=true;
   try{
@@ -285,14 +275,11 @@ document.getElementById('btnGuardar').addEventListener('click', async ()=>{
     const lngVal = document.getElementById('inpLng').value.trim();
     const categoriaVal = document.getElementById('inpCategoria').value.trim();
     const estadoVal = document.getElementById('inpEstado').value;
-    
     if(!categoriaVal){ alert('Selecciona una categoría'); btn.textContent='Guardar cambios'; btn.disabled=false; return; }
-    
     const fechaAhora = new Date().toISOString();
-
-    // PAYLOAD EXACTO DONDE ESTA LA FLECHA - doloya_aliados/{id}/perfil/
-    // portada, telefono, ubicacion, ultimaActualizacion, whatsapp
-    const payloadPerfilFlecha = {
+    
+    // MISMO PAYLOAD PARA TODOS - ASI SE VEN IGUAL EN MI RESTAURANTE Y CONFIRMACION
+    const payloadSincronizado = {
       portada: portadaVal,
       telefono: telefonoVal,
       ubicacion: direccionVal,
@@ -304,36 +291,25 @@ document.getElementById('btnGuardar').addEventListener('click', async ()=>{
       lng: lngVal,
       imagenPerfil: logoVal,
       logo: logoVal,
-      imagenPortada: portadaVal,
-      categoria: categoriaVal
-    };
-
-    // Para que confirmacion.html tambien lo lea
-    const payloadInfo = {
-      portada: portadaVal,
-      telefono: telefonoVal,
-      ubicacion: direccionVal,
-      ultimaActualizacion: fechaAhora,
-      whatsapp: whatsappVal,
-      direccion: direccionVal,
-      nombre: nombreVal,
-      lat: latVal,
-      lng: lngVal,
-      logo: logoVal,
-      imagenPerfil: logoVal,
       imagenPortada: portadaVal,
       categoria: categoriaVal,
       estado: estadoVal
     };
 
-    // 1. Guarda en PERFIL donde marcaste la flecha (PRINCIPAL)
-    await update(ref(db, `${rutaReal}/perfil`), payloadPerfilFlecha);
-    // 2. Guarda en INFO para que llame bien desde confirmacion
-    await update(ref(db, `${rutaReal}/info`), payloadInfo);
-    // 3. Solo estado y nombre en raiz para no crear duplicados
-    await update(refReal, { nombre: nombreVal, estado: estadoVal, categoria: categoriaVal, ultimaActualizacion: fechaAhora });
-    await update(ref(db, `${rutaReal}/disponibilidad`), { estado: estadoVal, abierto: estadoVal==='activo' });
+    // 1. Guarda en raiz (correcto arriba 418...) - DONDE LEE CONFIRMACION
+    await update(ref(db, rutaReal), payloadSincronizado);
+    // 2. Guarda en perfil donde marca la flecha
+    await update(ref(db, `${rutaReal}/perfil`), payloadSincronizado);
+    // 3. Guarda en info como respaldo
+    await update(ref(db, `${rutaReal}/info`), payloadSincronizado);
     
+    // 4. ELIMINA EL DUPLICADO DE ABAJO 4567890 (perfil/perfil)
+    try{
+      await set(ref(db, `${rutaReal}/perfil/perfil`), null);
+      await set(ref(db, `${rutaReal}/categorias`), null);
+    }catch(e){}
+    
+    await update(ref(db, `${rutaReal}/disponibilidad`), { estado: estadoVal, abierto: estadoVal==='activo' });
     sesion.nombre=nombreVal; localStorage.setItem('doloya_aliado_sesion', JSON.stringify(sesion));
     const ok=document.getElementById('msgOk'); ok.style.display='block'; setTimeout(()=>ok.style.display='none',2500);
   }catch(e){ alert('Error: '+e.message); console.log(e); }
