@@ -46,7 +46,7 @@ body{background:#f6f8fb;color:#0f172a;min-height:100vh}
 </div>
 
 <div class="container">
-<div id="msgOk" class="ok">✅ Guardado en tiempo real</div>
+<div id="msgOk" class="ok">✅ Guardado en tiempo real - info sincronizado</div>
 
 <div class="card" style="padding:0;overflow:hidden">
 <div class="preview-cliente" onclick="document.getElementById('filePortada').click()">
@@ -131,21 +131,11 @@ async function cargarCategoriasSelect(){
   try{
     const snap = await get(ref(db, 'config_global/categorias_inicio'));
     const select = document.getElementById('inpCategoria');
-    if(!snap.exists()){
-      select.innerHTML = '<option value="">No hay categorías</option>';
-      return;
-    }
+    if(!snap.exists()){ select.innerHTML = '<option value="">No hay categorías</option>'; return; }
     const data = snap.val();
-    const arr = Object.values(data)
-      .filter(c=>c.key!=='info' && c.key!=='_info' && c.activa!==false)
-      .sort((a,b)=>(a.orden||99)-(b.orden||99));
+    const arr = Object.values(data).filter(c=>c.key!=='info' && c.key!=='_info' && c.activa!==false).sort((a,b)=>(a.orden||99)-(b.orden||99));
     select.innerHTML = '<option value="">Selecciona categoría</option>';
-    arr.forEach(c=>{
-      const opt = document.createElement('option');
-      opt.value = c.key;
-      opt.textContent = c.nombre;
-      select.appendChild(opt);
-    });
+    arr.forEach(c=>{ const opt = document.createElement('option'); opt.value = c.key; opt.textContent = c.nombre; select.appendChild(opt); });
     if(categoriaActualGuardada){ select.value = categoriaActualGuardada.toLowerCase(); }
   }catch(e){ console.log('Error cargando categorias',e); }
 }
@@ -219,49 +209,46 @@ async function cargar(){
     if(!snap.exists()) return;
     const d=snap.val();
     const info = d.info || {};
-    const perfil = d.perfil || {};
-    const categoriaReal = d.categoria || info.categoria || perfil.categoria || '';
+
+    // ===== AQUI ESTA LA CORRECCION - LEE DIRECTO DE LA CARPETA INFO DONDE ESTA LA FLECHA =====
+    // Tu foto muestra: info -> telefono: 524181879597, whatsapp, direccion, lat, lng
+    const categoriaReal = info.categoria || d.categoria || '';
     categoriaActualGuardada = categoriaReal;
-    document.getElementById('inpNombre').value = d.nombre || info.nombre || perfil.nombre || sesion.nombre || encontrado.id;
-    document.getElementById('nombrePreview').textContent = d.nombre || info.nombre || perfil.nombre || encontrado.id;
+
+    document.getElementById('inpNombre').value = info.nombre || d.nombre || sesion.nombre || encontrado.id;
+    document.getElementById('nombrePreview').textContent = info.nombre || d.nombre || encontrado.id;
+    
     const selectCat = document.getElementById('inpCategoria');
     if(categoriaReal){
       selectCat.value = categoriaReal.toLowerCase();
-      if(!selectCat.value){
-        const norm = normalize(categoriaReal);
-        for(let o of selectCat.options){
-          if(normalize(o.value)===norm || normalize(o.textContent)===norm){ selectCat.value = o.value; break; }
-        }
-      }
       const txt = selectCat.options[selectCat.selectedIndex]?.textContent || categoriaReal;
       document.getElementById('catPreview').textContent = txt + ' • vista previa cliente';
     }
-    // SINCRONIZADO - LEE DEL MISMO LUGAR QUE CONFIRMACION
-    // Prioridad: raiz (correcto arriba 418...) -> perfil (flecha) -> info
-    const telefonoCorrecto = d.telefono || perfil.telefono || info.telefono || '';
-    const whatsappCorrecto = d.whatsapp || perfil.whatsapp || info.whatsapp || '';
-    const ubicacionCorrecta = d.ubicacion || d.direccion || perfil.ubicacion || perfil.direccion || info.ubicacion || info.direccion || '';
-    document.getElementById('inpWhatsapp').value = whatsappCorrecto;
-    document.getElementById('inpTelefono').value = telefonoCorrecto;
-    document.getElementById('inpDireccion').value = ubicacionCorrecta;
-    document.getElementById('inpLat').value = d.lat || perfil.lat || info.lat || '';
-    document.getElementById('inpLng').value = d.lng || perfil.lng || info.lng || '';
-    const imgPerfil = d.logo || d.imagenPerfil || perfil.imagenPerfil || perfil.logo || info.logo || '';
-    const imgPortada = d.portada || d.imagenPortada || perfil.portada || perfil.imagenPortada || info.portada || '';
+
+    // LEE DE INFO - ES EL VERDADERO NUMERO DE LA FLECHA
+    document.getElementById('inpWhatsapp').value = info.whatsapp || d.whatsapp || '';
+    document.getElementById('inpTelefono').value = info.telefono || d.telefono || '';
+    document.getElementById('inpDireccion').value = info.direccion || info.ubicacion || d.direccion || d.ubicacion || '';
+    document.getElementById('inpLat').value = info.lat || info.Lat || d.lat || '';
+    document.getElementById('inpLng').value = info.lng || info.Lng || d.lng || '';
+    
+    const imgPerfil = info.imagenPerfil || info.logo || d.logo || '';
+    const imgPortada = info.banner || info.portada || info.imagenPortada || d.portada || '';
     if(imgPerfil){ document.getElementById('imgPerfil').src=imgPerfil; document.getElementById('inpPerfilUrl').value=imgPerfil; }
     if(imgPortada){ document.getElementById('imgPortada').src=imgPortada; document.getElementById('inpPortadaUrl').value=imgPortada; }
-    const estado = d.disponibilidad?.estado || d.estado || info.estado || 'activo';
+    
+    const estado = d.disponibilidad?.estado || info.estado || d.estado || 'activo';
     document.getElementById('inpEstado').value = estado==='abierto'?'activo':estado;
     document.getElementById('estadoTxt').textContent = estado==='activo'?'● ABIERTO':'● CERRADO';
     document.getElementById('estadoTxt').style.color = estado==='activo'?'#16a34a':'#E30613';
-    const lat=parseFloat(d.lat||perfil.lat||info.lat)||21.389; 
-    const lng=parseFloat(d.lng||perfil.lng||info.lng)||-100.934;
+    const lat=parseFloat(info.lat||d.lat)||21.389; 
+    const lng=parseFloat(info.lng||d.lng)||-100.934;
     if(!map){ initMap(lat,lng); } else { const p=new google.maps.LatLng(lat,lng); marker.setPosition(p); map.setCenter(p); }
-    if(ubicacionCorrecta){ document.getElementById('txtDirMap').textContent=ubicacionCorrecta; }
+    if(info.direccion){ document.getElementById('txtDirMap').textContent=info.direccion; }
   });
 }
 
-// ===== CORREGIDO Y SINCRONIZADO - ELIMINA DUPLICADO Y SINCRONIZA CON CONFIRMACION =====
+// ===== GUARDA DIRECTO EN LA CARPETA INFO DONDE ESTA LA FLECHA - SINCRONIZADO =====
 document.getElementById('btnGuardar').addEventListener('click', async ()=>{
   const btn=document.getElementById('btnGuardar'); btn.textContent='Guardando...'; btn.disabled=true;
   try{
@@ -277,41 +264,51 @@ document.getElementById('btnGuardar').addEventListener('click', async ()=>{
     const estadoVal = document.getElementById('inpEstado').value;
     if(!categoriaVal){ alert('Selecciona una categoría'); btn.textContent='Guardar cambios'; btn.disabled=false; return; }
     const fechaAhora = new Date().toISOString();
-    
-    // MISMO PAYLOAD PARA TODOS - ASI SE VEN IGUAL EN MI RESTAURANTE Y CONFIRMACION
-    const payloadSincronizado = {
+
+    // ESTE ES EL PAYLOAD QUE VA A LA CARPETA INFO DONDE ESTA LA FLECHA
+    const payloadInfoFlecha = {
+      banner: portadaVal,
       portada: portadaVal,
       telefono: telefonoVal,
       ubicacion: direccionVal,
+      direccion: direccionVal,
       ultimaActualizacion: fechaAhora,
       whatsapp: whatsappVal,
+      nombre: nombreVal,
+      lat: latVal,
+      lng: lngVal,
+      Lat: latVal,
+      Lng: lngVal,
+      imagenPerfil: logoVal,
+      logo: logoVal,
+      imagenPortada: portadaVal,
+      imagen: logoVal,
+      categoria: categoriaVal,
+      estado: estadoVal,
+      id: idNegocio
+    };
+
+    // 1. Guarda en info (DONDE ESTA LA FLECHA - VERDADERO NUMERO)
+    await update(ref(db, `${rutaReal}/info`), payloadInfoFlecha);
+    // 2. Guarda tambien en raiz para que confirmacion lo lea
+    await update(ref(db, rutaReal), {
+      telefono: telefonoVal,
+      whatsapp: whatsappVal,
+      ubicacion: direccionVal,
       direccion: direccionVal,
       nombre: nombreVal,
       lat: latVal,
       lng: lngVal,
-      imagenPerfil: logoVal,
+      portada: portadaVal,
       logo: logoVal,
-      imagenPortada: portadaVal,
       categoria: categoriaVal,
-      estado: estadoVal
-    };
+      estado: estadoVal,
+      ultimaActualizacion: fechaAhora
+    });
 
-    // 1. Guarda en raiz (correcto arriba 418...) - DONDE LEE CONFIRMACION
-    await update(ref(db, rutaReal), payloadSincronizado);
-    // 2. Guarda en perfil donde marca la flecha
-    await update(ref(db, `${rutaReal}/perfil`), payloadSincronizado);
-    // 3. Guarda en info como respaldo
-    await update(ref(db, `${rutaReal}/info`), payloadSincronizado);
-    
-    // 4. ELIMINA EL DUPLICADO DE ABAJO 4567890 (perfil/perfil)
-    try{
-      await set(ref(db, `${rutaReal}/perfil/perfil`), null);
-      await set(ref(db, `${rutaReal}/categorias`), null);
-    }catch(e){}
-    
     await update(ref(db, `${rutaReal}/disponibilidad`), { estado: estadoVal, abierto: estadoVal==='activo' });
     sesion.nombre=nombreVal; localStorage.setItem('doloya_aliado_sesion', JSON.stringify(sesion));
-    const ok=document.getElementById('msgOk'); ok.style.display='block'; setTimeout(()=>ok.style.display='none',2500);
+    const ok=document.getElementById('msgOk'); ok.style.display='block'; setTimeout(()=>ok.style.display='none',3000);
   }catch(e){ alert('Error: '+e.message); console.log(e); }
   btn.textContent='Guardar cambios'; btn.disabled=false;
 });
