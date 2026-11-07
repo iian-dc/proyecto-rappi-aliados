@@ -26,7 +26,7 @@ body{background:#fff;display:flex;min-height:100vh}
 .menu a.active:hover{background:white}
 .badge-pedidos{margin-left:auto;background:#FF0000;color:white;min-width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;padding:0 6px}
 .menu a.active .badge-pedidos{background:#B70A1A;color:white}
-.badge-cancel{margin-left:auto;background:#111;color:white;min-width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;padding:0 6px}
+.badge-cancel{margin-left:auto;background:white;color:#B70A1A;min-width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;padding:0 6px}
 .footer-side{margin-top:auto;padding-top:20px;border-top:1px solid rgba(255,255,255,.25)}
 .negocio-msg{display:flex;gap:10px;align-items:flex-start;color:white;font-size:11px;line-height:1.3;opacity:.9;padding:8px}
 .main{margin-left:240px;flex:1;background:#FBFBFD;min-height:100vh}
@@ -224,25 +224,15 @@ function notificarSiempre(total){
   });
 }
 
-// ===== CORREGIDO: BADGE CUENTA pedidos + pedidos_admin, SIN DUPLICAR, SOLO ACTIVOS =====
+// ===== CORREGIDO: SOLO pedidos_admin, IGUAL QUE paneladmin-pedidos.html =====
+// Antes contaba pedidos + pedidos_admin y por eso no coincidia.
+// Ahora badge de Pedidos y campanita usan SOLO pedidos_admin activos.
 const ESTADOS_FINALES = ["entregado","finalizado","cancelado","rechazado","cancelado_por_no_recibir"];
-let mapaPedidos = new Map();
-let mapaPedidosAdmin = new Map();
-function esActivo(data){
-  const est = (data.estado || "").toLowerCase();
-  if(ESTADOS_FINALES.includes(est)) return false;
-  if(data.listo && est === 'listo_para_admin') return true;
-  return true;
-}
-function actualizarTotalPedidos(){
-  const ids = new Set([...mapaPedidos.keys(), ...mapaPedidosAdmin.keys()]);
-  let total = 0;
-  ids.forEach(id=>{
-    const d1 = mapaPedidos.get(id);
-    const d2 = mapaPedidosAdmin.get(id);
-    const data = d2 || d1;
-    if(data && esActivo(data)) total++;
-  });
+onSnapshot(collection(db,"pedidos_admin"), (snap)=>{
+  const total = snap.docs.filter(d=>{
+    const est = (d.data().estado || "").toLowerCase();
+    return !ESTADOS_FINALES.includes(est);
+  }).length;
   countEl.textContent = total;
   bellCount.textContent = total;
   countEl.style.display = total>0 ? 'flex' : 'none';
@@ -254,16 +244,6 @@ function actualizarTotalPedidos(){
   }
   ultimoTotal = total;
   primerCarga = false;
-}
-onSnapshot(collection(db,"pedidos"), (snap)=>{
-  mapaPedidos.clear();
-  snap.forEach(d=>{ mapaPedidos.set(d.id, d.data()); });
-  actualizarTotalPedidos();
-});
-onSnapshot(collection(db,"pedidos_admin"), (snap)=>{
-  mapaPedidosAdmin.clear();
-  snap.forEach(d=>{ mapaPedidosAdmin.set(d.id, d.data()); });
-  actualizarTotalPedidos();
 });
 onSnapshot(collection(db,"pedidos_cancelados"), (snap)=>{
   const totalCancel = snap.size;
