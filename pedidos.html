@@ -134,10 +134,8 @@ body{background:#f8f8f9;min-height:100vh}
   <div class="modal-box">
     <h3>¿Cancelar pedido?</h3>
     <p id="modalCancelarCodigo">El cliente verá que fue cancelado por el restaurante.</p>
-    <label class="op-cancel"><input type="radio" name="motivo" value="Sin repartidor disponible" checked> Sin repartidor disponible</label>
+    <label class="op-cancel"><input type="radio" name="motivo" value="Local sin stock / Sin ingredientes" checked> Local sin stock / Sin ingredientes</label>
     <label class="op-cancel"><input type="radio" name="motivo" value="Local cerrado"> Local cerrado</label>
-    <label class="op-cancel"><input type="radio" name="motivo" value="Sin stock / Sin ingredientes"> Sin stock / Sin ingredientes</label>
-    <label class="op-cancel"><input type="radio" name="motivo" value="Cliente no contestó"> Cliente no contestó</label>
     <label class="op-cancel"><input type="radio" name="motivo" value="Otro"> Otro motivo</label>
     <input id="motivoOtro" placeholder="Escribe el motivo...">
     <button class="btn-confirm-cancel" onclick="confirmarCancelacion()">Confirmar cancelación</button>
@@ -327,7 +325,7 @@ document.querySelectorAll('input[name="motivo"]').forEach(r=>{
 });
 window.confirmarCancelacion=async()=>{
   if(!pedidoACancelar) return;
-  let motivo=document.querySelector('input[name="motivo"]:checked')?.value || 'Sin repartidor disponible';
+  let motivo=document.querySelector('input[name="motivo"]:checked')?.value || 'Local sin stock / Sin ingredientes';
   if(motivo==='Otro'){
     const txt=document.getElementById('motivoOtro').value.trim();
     motivo = txt ? 'Otro: '+txt : 'Otro motivo';
