@@ -113,7 +113,6 @@ body{background:#fff;display:flex;min-height:100vh}
   </div>
 
   <div class="center-content">
-    <div class="ilustracion"><svg viewBox="0 0 260 180" fill="none"><ellipse cx="130" cy="95" rx="85" ry="70" fill="#FFE4E8"/><circle cx="125" cy="55" r="28" fill="#B70A1A"/></svg></div>
     <h2>Hola Administrador</h2>
     <p>Todo lo importante de tu negocio está en tus manos.<br>Gestiona, controla y haz crecer tu plataforma.</p>
   </div>
@@ -225,8 +224,7 @@ function notificarSiempre(total){
 }
 
 // ===== CORREGIDO: SOLO pedidos_admin, IGUAL QUE paneladmin-pedidos.html =====
-// Antes contaba pedidos + pedidos_admin y por eso no coincidia.
-// Ahora badge de Pedidos y campanita usan SOLO pedidos_admin activos.
+// Y SIEMPRE VISIBLE: si es 0 muestra 0, nunca se oculta.
 const ESTADOS_FINALES = ["entregado","finalizado","cancelado","rechazado","cancelado_por_no_recibir"];
 onSnapshot(collection(db,"pedidos_admin"), (snap)=>{
   const total = snap.docs.filter(d=>{
@@ -235,8 +233,8 @@ onSnapshot(collection(db,"pedidos_admin"), (snap)=>{
   }).length;
   countEl.textContent = total;
   bellCount.textContent = total;
-  countEl.style.display = total>0 ? 'flex' : 'none';
-  bellCount.style.display = total>0 ? 'flex' : 'none';
+  countEl.style.display = 'flex';
+  bellCount.style.display = 'flex';
   localStorage.setItem('doloya_ultimo_total', total.toString());
   if(!primerCarga && total>ultimoTotal){
     sonarSiempre();
@@ -249,7 +247,7 @@ onSnapshot(collection(db,"pedidos_cancelados"), (snap)=>{
   const totalCancel = snap.size;
   if(countCancelEl){
     countCancelEl.textContent = totalCancel;
-    countCancelEl.style.display = totalCancel>0 ? 'flex' : 'none';
+    countCancelEl.style.display = 'flex';
   }
 });
 
