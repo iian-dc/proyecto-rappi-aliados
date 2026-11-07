@@ -346,6 +346,16 @@ else {
 
   function sonarDoloYa(){ sonarFuerte(); }
 
+  // ===== CORREGIDO: SOLO PEDIDOS REALES DEL ALIADO, SIN CANCELADAS =====
+  // Solo cuenta: nuevo, pendiente, confirmado, aceptado, en_preparacion, preparando
+  // NO cuenta: cancelado, rechazado, listo, entregado, finalizado, etc.
+  // Si es 0, muestra 0, nunca se oculta.
+  function esPedidoActivo(d){
+    const est = normalize(d.estado || d.status || '');
+    const estLimpio = est.replace(/[\s_-]+/g, '_');
+    return ["nuevo","pendiente","confirmado","aceptado","en_preparacion","preparando","enpreparacion"].includes(estLimpio);
+  }
+
   function actualizarBadges(count){
     badge.style.display='flex'; badge.textContent=count;
     bellBadge.style.display='flex'; bellBadge.textContent=count;
@@ -367,7 +377,8 @@ else {
 
   if(sesion.rol==='administrador'){
     onSnapshot(collection(dbFirestore, "pedidos"), (snap)=>{
-      const nuevo = snap.size;
+      let nuevo = 0;
+      snap.forEach(doc=>{ if(esPedidoActivo(doc.data())) nuevo++; });
       if(!primerCarga && nuevo>ultimoCount){ sonarDoloYa(); }
       ultimoCount=nuevo; primerCarga=false;
       actualizarBadges(nuevo);
@@ -377,7 +388,7 @@ else {
       let count=0;
       snap.forEach(doc=>{ 
         const d=doc.data(); 
-        if(esPedidoDeEsteRestaurante(d)){ 
+        if(esPedidoDeEsteRestaurante(d) && esPedidoActivo(d)){ 
           count++; 
         } 
       });
