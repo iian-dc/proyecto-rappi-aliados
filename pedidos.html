@@ -44,7 +44,7 @@ body{background:#f8f8f9;min-height:100vh}
 .fecha-hora b{color:#111;font-size:11px}
 .tiempo-real{border-radius:999px;padding:4px 12px;font-size:11px;font-weight:900;transition:.3s;display:inline-flex;align-items:center;gap:4px}
 .tiempo-verde{background:#16a34a;color:white;box-shadow:0 0 12px rgba(22,163,74,0.6)}
-.tiempo-amarillo{background:#EAB308;color:white;box-shadow:0 0 12px rgba(234,179,8,0.7)}
+.tiempo-amarillo{background:#EAB308;color:white;box-shadow:0 0 14px rgba(234,179,8,0.7)}
 .tiempo-rojo{background:#EF4444;color:white;box-shadow:0 0 14px rgba(239,68,68,0.8);animation:pulseRojo 1s infinite}
 .tiempo-negro{background:#111;color:white;box-shadow:0 0 14px rgba(0,0,0,0.8);animation:pulseNegro 0.6s infinite;display:flex;align-items:center;gap:5px}
 @keyframes pulseRojo{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
@@ -57,17 +57,29 @@ body{background:#f8f8f9;min-height:100vh}
 .btn{border:none;border-radius:999px;padding:11px 18px;font-size:12.5px;font-weight:800;cursor:pointer;color:white;display:flex;align-items:center;gap:7px}
 .btn-verde{background:#16a34a}
 .btn-amarillo{background:#EAB308}
+.btn-cancelar{background:#C50D1F}
 .overlay-preg{display:none;position:absolute;inset:0;background:#38BDF8;z-index:10;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px}
 .card.confirmando .overlay-preg{display:flex}
 .overlay-preg h3{font-size:19px;font-weight:900;line-height:1.3;color:white;margin-bottom:18px}
 .btn-si{background:white;color:#0EA5E9;padding:11px 32px;border-radius:999px;border:none;font-weight:900;cursor:pointer;font-size:14px}
 .btn-no{background:transparent;color:white;padding:11px 32px;border-radius:999px;border:2px solid white;font-weight:900;cursor:pointer;font-size:14px}
 .empty{text-align:center;padding:60px 20px;color:#9ca3af}
-/* ===== SOLO CAMBIOS QUE PEDISTE ===== */
 .bell-badge{position:absolute;top:-6px;right:-6px;background:#C50D1F;color:white;min-width:20px;height:20px;border-radius:999px;font-size:11px;font-weight:900;display:flex;align-items:center;justify-content:center;padding:0 5px;border:2px solid white;box-shadow:0 2px 8px rgba(197,13,31,0.5);transform:scale(0);transition:transform .25s cubic-bezier(.34,1.56,.64,1);z-index:2}
 .bell-badge.show{transform:scale(1)}
 .bell-badge.pulse{animation:badgePulse .4s ease}
 @keyframes badgePulse{0%{transform:scale(1)}50%{transform:scale(1.35)}100%{transform:scale(1)}}
+/* ===== MODAL CANCELAR ===== */
+.modal-cancel{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:100;align-items:center;justify-content:center;padding:16px}
+.modal-cancel.open{display:flex}
+.modal-box{background:white;width:100%;max-width:400px;border-radius:20px;padding:22px}
+.modal-box h3{font-size:18px;font-weight:900;margin-bottom:6px}
+.modal-box p{font-size:13px;color:#6b7280;margin-bottom:16px}
+.op-cancel{display:flex;align-items:center;gap:10px;padding:12px;border:1px solid #e5e7eb;border-radius:12px;margin-bottom:8px;cursor:pointer;font-size:14px;font-weight:600}
+.op-cancel input{accent-color:#C50D1F;width:18px;height:18px}
+.op-cancel:has(input:checked){border-color:#C50D1F;background:#FFF1F2}
+#motivoOtro{width:100%;padding:11px 12px;border:1px solid #e5e7eb;border-radius:12px;margin-top:4px;font-size:13px;display:none}
+.btn-confirm-cancel{width:100%;background:#C50D1F;color:white;border:none;padding:13px;border-radius:999px;font-weight:900;font-size:14px;cursor:pointer;margin-top:14px}
+.btn-volver{width:100%;background:#f1f2f4;color:#111;border:none;padding:12px;border-radius:999px;font-weight:800;font-size:13px;cursor:pointer;margin-top:8px}
 @media(max-width:600px){
   .header{height:52px;padding:0 12px}
   .h-left{gap:10px}
@@ -116,6 +128,23 @@ body{background:#f8f8f9;min-height:100vh}
   <button class="tab" data-f="listo">Listos <span class="count" id="c-listo">0</span></button>
 </div>
 <div class="container" id="listaPedidos"><div class="empty">Cargando pedidos...</div></div>
+
+<!-- MODAL CANCELAR -->
+<div class="modal-cancel" id="modalCancelar">
+  <div class="modal-box">
+    <h3>¿Cancelar pedido?</h3>
+    <p id="modalCancelarCodigo">El cliente verá que fue cancelado por el restaurante.</p>
+    <label class="op-cancel"><input type="radio" name="motivo" value="Sin repartidor disponible" checked> Sin repartidor disponible</label>
+    <label class="op-cancel"><input type="radio" name="motivo" value="Local cerrado"> Local cerrado</label>
+    <label class="op-cancel"><input type="radio" name="motivo" value="Sin stock / Sin ingredientes"> Sin stock / Sin ingredientes</label>
+    <label class="op-cancel"><input type="radio" name="motivo" value="Cliente no contestó"> Cliente no contestó</label>
+    <label class="op-cancel"><input type="radio" name="motivo" value="Otro"> Otro motivo</label>
+    <input id="motivoOtro" placeholder="Escribe el motivo...">
+    <button class="btn-confirm-cancel" onclick="confirmarCancelacion()">Confirmar cancelación</button>
+    <button class="btn-volver" onclick="cerrarCancelar()">Volver</button>
+  </div>
+</div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
 import { getFirestore, collection, onSnapshot, doc, updateDoc, getDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
@@ -138,6 +167,7 @@ if(sesion?.nombreReal) restName.textContent = sesion.nombreReal;
 const bell = document.getElementById('bellIcon');
 const bellCountEl = document.getElementById('bellCount');
 let primerCarga=true, ultimoTotal=0, pedidosCache=[], filtroActual='todos';
+let pedidoACancelar = null;
 function desbloquearAudio(){try{const ctx=new (window.AudioContext||window.webkitAudioContext)();if(ctx.state==='suspended')ctx.resume();}catch{}}
 document.body.addEventListener('click',()=>{desbloquearAudio();},{once:true});
 document.body.addEventListener('touchstart',()=>{desbloquearAudio();},{once:true});
@@ -206,7 +236,7 @@ function render(lista){
     else if(p.fecha){ const d=new Date(p.fecha); tsSec=Math.floor(d.getTime()/1000); fechaStr=d.toLocaleDateString('es-MX',{day:'2-digit',month:'2-digit',year:'2-digit'}); horaStr=d.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit',hour12:true}); }
     const tiempo=calcularTiempoReal(tsSec);
     const div=document.createElement('div'); div.className=`card ${claseEstado}`; div.dataset.ts=tsSec; div.id=`card-${p.id}`;
-    div.innerHTML=`<div class="overlay-preg" id="overlay-${p.id}"><h3>¿Está listo tu producto?<br>Ya puede venir repartidor por él</h3><div style="display:flex;gap:12px"><button class="btn-si" onclick="confirmarListo('${p.id}')">Sí</button><button class="btn-no" onclick="negarListo('${p.id}')">No</button></div></div><div class="card-left"><span class="${badgeClass}"><span class="dot"></span> ${badgeText}</span><div><div class="cliente-line">cliente: <span>${nombreCliente}</span></div><div class="costo-box"><small>Costo del producto</small><span class="costo-original">$${costoOriginal.toFixed(0)} MXN</span><span class="costo-final">$${costoFinal} MXN</span></div></div></div><div class="card-center"></div><div class="card-right"><div class="prod-head"><div class="fecha-hora"><b>${fechaStr}</b> ${horaStr} <span class="tiempo-real ${tiempo.clase}" data-ts="${tsSec}">${tiempo.iconoSvg}${tiempo.texto}</span></div><div class="codigo-pedido">${codigoReal}</div></div><div class="prod-list">${productos.map(pr=>`<div class="prod-item"><span><b>${pr.cantidad||1}x</b> ${pr.nombre||'Producto'}</span></div>`).join('')}</div><div class="actions"><button class="btn btn-verde" onclick="cambiarEstado('${p.id}','aceptado')">Aceptar</button><button class="btn btn-amarillo" onclick="cambiarEstado('${p.id}','en_preparacion')">Preparando</button><button class="btn btn-verde" onclick="preguntarListo('${p.id}')">Listo</button></div></div>`;
+    div.innerHTML=`<div class="overlay-preg" id="overlay-${p.id}"><h3>¿Está listo tu producto?<br>Ya puede venir repartidor por él</h3><div style="display:flex;gap:12px"><button class="btn-si" onclick="confirmarListo('${p.id}')">Sí</button><button class="btn-no" onclick="negarListo('${p.id}')">No</button></div></div><div class="card-left"><span class="${badgeClass}"><span class="dot"></span> ${badgeText}</span><div><div class="cliente-line">cliente: <span>${nombreCliente}</span></div><div class="costo-box"><small>Costo del producto</small><span class="costo-original">$${costoOriginal.toFixed(0)} MXN</span><span class="costo-final">$${costoFinal} MXN</span></div></div></div><div class="card-center"></div><div class="card-right"><div class="prod-head"><div class="fecha-hora"><b>${fechaStr}</b> ${horaStr} <span class="tiempo-real ${tiempo.clase}" data-ts="${tsSec}">${tiempo.iconoSvg}${tiempo.texto}</span></div><div class="codigo-pedido">${codigoReal}</div></div><div class="prod-list">${productos.map(pr=>`<div class="prod-item"><span><b>${pr.cantidad||1}x</b> ${pr.nombre||'Producto'}</span></div>`).join('')}</div><div class="actions"><button class="btn btn-verde" onclick="cambiarEstado('${p.id}','aceptado')">Aceptar</button><button class="btn btn-amarillo" onclick="cambiarEstado('${p.id}','en_preparacion')">Preparando</button><button class="btn btn-verde" onclick="preguntarListo('${p.id}')">Listo</button><button class="btn btn-cancelar" onclick="abrirCancelar('${p.id}','${codigoReal}')">✕ Cancelar</button></div></div>`;
     cont.appendChild(div);
   });
 }
@@ -221,7 +251,7 @@ function actualizarContadores(lista){
 }
 setInterval(()=>{document.querySelectorAll('.tiempo-real').forEach(el=>{const ts=parseInt(el.dataset.ts||0); if(ts){const t=calcularTiempoReal(ts); el.innerHTML=t.iconoSvg+t.texto; el.className='tiempo-real '+t.clase;}});},1000);
 onSnapshot(collection(db, "pedidos"), (snap)=>{
-  let lista=[]; snap.forEach(d=>{const data=d.data(); const cat=(data.restaurante?.cat||'').toLowerCase(); if(sesion?.rol==='administrador'||cat===catBuscada||!cat){lista.push({id:d.id, ...data, estado:data.estado||'nuevo'}); if(data.restaurante?.nombre) restName.textContent=data.restaurante.nombre;}});
+  let lista=[]; snap.forEach(d=>{const data=d.data(); if(data.estado==='cancelado') return; const cat=(data.restaurante?.cat||'').toLowerCase(); if(sesion?.rol==='administrador'||cat===catBuscada||!cat){lista.push({id:d.id, ...data, estado:data.estado||'nuevo'}); if(data.restaurante?.nombre) restName.textContent=data.restaurante.nombre;}});
   lista.sort((a,b)=>{const ta=a.timestamp?.seconds|| (a.fecha?new Date(a.fecha).getTime()/1000:0)||0; const tb=b.timestamp?.seconds|| (b.fecha?new Date(b.fecha).getTime()/1000:0)||0; return ta-tb;});
   pedidosCache=lista; actualizarContadores(lista); render(lista);
   if(!primerCarga && lista.length>ultimoTotal) sonarDoloYa();
@@ -278,6 +308,57 @@ window.negarListo=async(id)=>{
   const card=document.getElementById('card-'+id);
   card.classList.remove('confirmando'); card.classList.add('preparando');
   try{ await updateDoc(doc(db,"pedidos",id),{estado:'en_preparacion', actualizadoEn: new Date()}); }catch(e){}
+}
+// ===== CANCELAR PEDIDO =====
+window.abrirCancelar=(id,codigo)=>{
+  pedidoACancelar=id;
+  document.getElementById('modalCancelarCodigo').textContent='Pedido '+codigo+' - El cliente verá que fue cancelado por el restaurante.';
+  document.getElementById('modalCancelar').classList.add('open');
+}
+window.cerrarCancelar=()=>{
+  pedidoACancelar=null;
+  document.getElementById('modalCancelar').classList.remove('open');
+}
+document.querySelectorAll('input[name="motivo"]').forEach(r=>{
+  r.addEventListener('change',()=>{
+    const otro=document.getElementById('motivoOtro');
+    otro.style.display = (r.value==='Otro' && r.checked) ? 'block' : 'none';
+  });
+});
+window.confirmarCancelacion=async()=>{
+  if(!pedidoACancelar) return;
+  let motivo=document.querySelector('input[name="motivo"]:checked')?.value || 'Sin repartidor disponible';
+  if(motivo==='Otro'){
+    const txt=document.getElementById('motivoOtro').value.trim();
+    motivo = txt ? 'Otro: '+txt : 'Otro motivo';
+  }
+  try{
+    const ref=doc(db,"pedidos",pedidoACancelar);
+    const snap=await getDoc(ref);
+    const data=snap.exists()?snap.data():{};
+    // 1. Actualiza el pedido original para que el cliente lo vea cancelado
+    await updateDoc(ref,{
+      estado:'cancelado',
+      motivoCancelacion: motivo,
+      canceladoPor:'restaurante',
+      canceladoEn: new Date(),
+      actualizadoEn: new Date()
+    });
+    // 2. Copia a pedidos_cancelados para tu panel admin
+    await setDoc(doc(db,"pedidos_cancelados",pedidoACancelar),{
+      ...data,
+      estado:'cancelado',
+      motivoCancelacion: motivo,
+      canceladoPor:'restaurante',
+      restauranteNombre: data.restaurante?.nombre || sesion?.nombreReal || 'Restaurante',
+      restauranteCat: data.restaurante?.cat || catBuscada,
+      canceladoEn: new Date(),
+      actualizadoEn: new Date(),
+      idOriginal: pedidoACancelar
+    });
+    cerrarCancelar();
+    alert('Pedido cancelado. Motivo: '+motivo);
+  }catch(e){ alert('Error al cancelar: '+e.message); }
 }
 </script>
 </body>
