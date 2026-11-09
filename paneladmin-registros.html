@@ -5,39 +5,41 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Registros - DoloYa</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-<!-- FIREBASE COMPAT PARA REALTIME -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
 body{background:#FBFBFD;min-height:100vh}
-.wrap{max-width:900px;margin:0 auto;padding:18px 16px 40px}
-/* HEADER - CIRCULO ROJO X + TITULO */
-.top{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.wrap{max-width:1000px;margin:0 auto;padding:0 0 40px}
+/* HEADER - BIEN A LA IZQUIERDA, PEGADO A LA ESQUINA */
+.top{display:flex;align-items:center;gap:12px;padding:14px 12px 14px 10px;margin-bottom:6px}
 .btn-x{width:42px;height:42px;background:#B70A1A;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;font-weight:800;text-decoration:none;flex-shrink:0;box-shadow:0 4px 12px rgba(183,10,26,.3)}
 .btn-x:active{transform:scale(.95)}
 .top h1{font-size:24px;font-weight:800;color:#111;line-height:1}
 .top p{font-size:12.5px;color:#6b7280;margin-top:3px}
-.count{background:#FFE7EA;color:#B70A1A;font-size:12px;font-weight:800;padding:5px 10px;border-radius:999px;margin-left:auto}
-/* LISTADO */
-#lista{display:flex;flex-direction:column;gap:12px}
-.card{background:#fff;border:1px solid #eee;border-radius:16px;padding:12px;display:flex;align-items:center;gap:12px;box-shadow:0 2px 10px rgba(0,0,0,.04)}
-.avatar{width:56px;height:56px;border-radius:50%;background:#FFF0F1;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;border:1px solid #FFE0E3}
-.avatar img{width:100%;height:100%;object-fit:cover}
-.avatar span{font-size:22px;font-weight:900;color:#B70A1A}
-.info{flex:1;min-width:0}
-.info b{font-size:15.5px;color:#111;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.info .tipo{font-size:12px;color:#B70A1A;font-weight:700;margin-top:1px}
-.info .fecha{font-size:12px;color:#6b7280;margin-top:3px;display:flex;align-items:center;gap:5px}
-.btn-abrir{background:#B70A1A;color:#fff;border:none;padding:10px 18px;border-radius:999px;font-size:13px;font-weight:800;cursor:pointer;flex-shrink:0}
+.count{background:#FFE7EA;color:#B70A1A;font-size:12px;font-weight:800;padding:5px 10px;border-radius:999px;margin-left:auto;white-space:nowrap}
+/* LISTADO TIPO EXCEL */
+.tabla-wrap{background:#fff;border:1px solid #eee;border-radius:16px;overflow:hidden;margin:0 10px;box-shadow:0 2px 10px rgba(0,0,0,.04);overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:720px}
+thead th{background:#FFF0F1;color:#B70A1A;font-size:11px;text-transform:uppercase;letter-spacing:.5px;text-align:left;padding:11px 12px;font-weight:800}
+tbody td{padding:11px 12px;border-top:1px solid #f1f1f1;font-size:14px;color:#111;vertical-align:middle;white-space:nowrap}
+tbody tr:first-child td{border-top:none}
+.avatar{width:48px;height:48px;border-radius:50%;background:#FFF0F1;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;border:1px solid #FFE0E3}
+.avatar img{width:100%;height:100%;object-fit:cover;display:block}
+.avatar span{font-size:20px;font-weight:900;color:#B70A1A}
+td.nombre b{font-size:14.5px;display:block}
+td.tipo{color:#B70A1A;font-weight:700;font-size:13.5px}
+td.fecha{color:#6b7280;font-size:13px}
+td.btn-cell{text-align:right}
+.btn-abrir{background:#B70A1A;color:#fff;border:none;padding:9px 18px;border-radius:999px;font-size:13px;font-weight:800;cursor:pointer}
 .btn-abrir:active{transform:scale(.97)}
-.empty{background:#fff;border:1px dashed #ddd;border-radius:16px;padding:40px 20px;text-align:center;color:#6b7280;font-size:14px;line-height:1.5}
+.empty{background:#fff;border:1px dashed #ddd;border-radius:16px;padding:40px 20px;text-align:center;color:#6b7280;font-size:14px;line-height:1.5;margin:0 10px}
 .empty b{color:#111;font-size:16px;display:block;margin-bottom:6px}
-/* MODAL DETALLE */
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:flex-end;justify-content:center;z-index:100;padding:0}
+/* MODAL CENTRADO */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:100;padding:16px}
 .modal.show{display:flex}
-.modal .box{background:#fff;width:100%;max-width:480px;border-radius:22px 22px 0 0;padding:20px 18px 18px;animation:subir .3s ease;max-height:90vh;overflow-y:auto}
-@keyframes subir{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal .box{background:#fff;width:100%;max-width:480px;border-radius:22px;padding:20px 18px 18px;animation:subir .3s ease;max-height:90vh;overflow-y:auto}
+@keyframes subir{from{transform:scale(.92);opacity:0}to{transform:scale(1);opacity:1}}
 .modal .box-top{display:flex;align-items:center;gap:12px;margin-bottom:16px}
 .modal .box-top .avatar{width:64px;height:64px}
 .modal .box-top b{font-size:18px;color:#111}
@@ -50,9 +52,6 @@ body{background:#FBFBFD;min-height:100vh}
 .btn-wa img{width:22px;height:22px}
 @media(max-width:600px){
   .top h1{font-size:21px}
-  .card{padding:10px}
-  .avatar{width:50px;height:50px}
-  .btn-abrir{padding:9px 14px}
 }
 </style>
 </head>
@@ -73,7 +72,6 @@ body{background:#FBFBFD;min-height:100vh}
   </div>
 </div>
 
-<!-- MODAL ABRIR -->
 <div class="modal" id="modal">
   <div class="box">
     <div class="box-top">
@@ -96,7 +94,6 @@ body{background:#FBFBFD;min-height:100vh}
 </div>
 
 <script>
-// MISMO FIREBASE DEL REGISTRO
 const firebaseConfig = {
   apiKey: "AIzaSyD462705yVQfM8McF8LxnhkR9utTlW3tkE",
   authDomain: "doloya-registro.firebaseapp.com",
@@ -121,38 +118,51 @@ function formatearFecha(iso){
 function inicial(nombre){
   return (nombre||'N').trim().charAt(0).toUpperCase();
 }
+function fotoDe(r){
+  // Acepta cualquier campo donde venga la foto: foto, fotoUrl, imagen, fotoData
+  return r.foto || r.fotoUrl || r.imagen || r.fotoData || r.image || '';
+}
+function avatarHTML(r){
+  const f = fotoDe(r);
+  if(f) return `<img src="${f}" alt="">`;
+  return `<span>${inicial(r.nombre)}</span>`;
+}
 function limpiarNumero(num){
   let n = (num||'').toString().replace(/\D/g,'');
-  // Si es de México y tiene 10 dígitos, agregamos 52
   if(n.length===10) n = '52'+n;
   if(n.length===12 && n.startsWith('521')) n = '52'+n.slice(3);
   return n;
 }
 
-// ESCUCHAR REGISTROS EN TIEMPO REAL
 db.ref('aliados').on('value', (snap)=>{
   const data = snap.val() || {};
   listaDatos = data;
   const lista = document.getElementById('lista');
-  const keys = Object.keys(data).reverse(); // Más recientes primero
+  const keys = Object.keys(data).reverse();
   document.getElementById('totalCount').textContent = keys.length + ' registro' + (keys.length!==1?'s':'');
   if(keys.length===0){
     lista.innerHTML = '<div class="empty"><b>Aún no hay registros</b>Cuando un negocio se registre en el formulario, aquí te va a aparecer.</div>';
     return;
   }
-  lista.innerHTML = keys.map(k=>{
-    const r = data[k];
-    return `
-    <div class="card">
-      <div class="avatar"><span>${inicial(r.nombre)}</span></div>
-      <div class="info">
-        <b>${r.nombre||'Sin nombre'}</b>
-        <div class="tipo">${r.tipo||''}</div>
-        <div class="fecha">📅 ${formatearFecha(r.fecha)}</div>
-      </div>
-      <button class="btn-abrir" onclick="abrirRegistro('${k}')">Abrir</button>
-    </div>`;
-  }).join('');
+  lista.innerHTML = `
+  <div class="tabla-wrap">
+    <table>
+      <thead><tr><th>Foto</th><th>Nombre del restaurante</th><th>Tipo de negocio</th><th>Fecha</th><th style="text-align:right">Acción</th></tr></thead>
+      <tbody>
+      ${keys.map(k=>{
+        const r = data[k];
+        return `
+        <tr>
+          <td><div class="avatar">${avatarHTML(r)}</div></td>
+          <td class="nombre"><b>${r.nombre||'Sin nombre'}</b></td>
+          <td class="tipo">${r.tipo||''}</td>
+          <td class="fecha">📅 ${formatearFecha(r.fecha)}</td>
+          <td class="btn-cell"><button class="btn-abrir" onclick="abrirRegistro('${k}')">Abrir</button></td>
+        </tr>`;
+      }).join('')}
+      </tbody>
+    </table>
+  </div>`;
 });
 
 function abrirRegistro(id){
@@ -166,7 +176,7 @@ function abrirRegistro(id){
   document.getElementById('mDir').textContent = actual.direccion||'';
   document.getElementById('mFecha').textContent = formatearFecha(actual.fecha);
   document.getElementById('mEstado').textContent = actual.estado||'pendiente';
-  document.getElementById('mAvatar').innerHTML = '<span>'+inicial(actual.nombre)+'</span>';
+  document.getElementById('mAvatar').innerHTML = avatarHTML(actual);
   document.getElementById('modal').classList.add('show');
 }
 function cerrarModal(){
