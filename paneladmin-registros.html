@@ -24,6 +24,11 @@ table{width:100%;border-collapse:collapse;min-width:720px}
 thead th{background:#FFF0F1;color:#B70A1A;font-size:11px;text-transform:uppercase;letter-spacing:.5px;text-align:left;padding:11px 12px;font-weight:800}
 tbody td{padding:11px 12px;border-top:1px solid #f1f1f1;font-size:14px;color:#111;vertical-align:middle;white-space:nowrap}
 tbody tr:first-child td{border-top:none}
+/* FILA COMPLETA ROJA / VERDE NEON */
+tbody tr.row-rojo{background:#FFE9EB}
+tbody tr.row-rojo td{border-top-color:#FFD0D4}
+tbody tr.row-verde{background:#E2FFEC}
+tbody tr.row-verde td{border-top-color:#B8F5CB}
 .avatar{width:48px;height:48px;border-radius:50%;background:#FFF0F1;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;border:1px solid #FFE0E3}
 .avatar img{width:100%;height:100%;object-fit:cover;display:block}
 .avatar span{font-size:20px;font-weight:900;color:#B70A1A}
@@ -48,10 +53,17 @@ td.btn-cell{text-align:right}
 .fila{background:#F8F8F8;border-radius:12px;padding:11px 12px;margin-bottom:9px;display:flex;gap:10px;align-items:flex-start}
 .fila small{font-size:11px;color:#6b7280;font-weight:700;text-transform:uppercase;min-width:78px;padding-top:2px}
 .fila span{font-size:14px;color:#111;font-weight:600;line-height:1.35;word-break:break-word}
-.btn-wa{width:100%;background:#25D366;color:#fff;border:none;padding:14px;border-radius:999px;font-size:15px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:9px;cursor:pointer;margin-top:14px}
+/* BOTONES ABAJO - UNO AL LADO DEL OTRO */
+.btns-row{display:flex;gap:10px;margin-top:14px}
+.btn-wa{flex:1;background:#25D366;color:#fff;border:none;padding:14px 10px;border-radius:999px;font-size:14px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer}
 .btn-wa img{width:22px;height:22px}
+.btn-marcar{flex:1;border:none;padding:14px 10px;border-radius:999px;font-size:14px;font-weight:800;cursor:pointer;color:#fff}
+/* ROJO NEON = SIN REGISTRAR / VERDE NEON = YA REGISTRADO */
+.btn-marcar.rojo{background:#FF1E2D;box-shadow:0 0 14px rgba(255,30,45,.65)}
+.btn-marcar.verde{background:#00E676;box-shadow:0 0 14px rgba(0,230,118,.65)}
 @media(max-width:600px){
   .top h1{font-size:21px}
+  .btns-row{flex-direction:column}
 }
 </style>
 </head>
@@ -87,9 +99,12 @@ td.btn-cell{text-align:right}
     <div class="fila"><small>Fecha</small><span id="mFecha"></span></div>
     <div class="fila"><small>Estado</small><span id="mEstado"></span></div>
 
-    <button class="btn-wa" id="btnWa" onclick="enviarWhatsApp()">
-      <img src="https://img.icons8.com/color/96/whatsapp--v1.png" alt=""> Enviar a WhatsApp
-    </button>
+    <div class="btns-row">
+      <button class="btn-wa" id="btnWa" onclick="enviarWhatsApp()">
+        <img src="https://img.icons8.com/color/96/whatsapp--v1.png" alt=""> Notificar registro
+      </button>
+      <button class="btn-marcar rojo" id="btnMarcar" onclick="toggleRegistrado()">Marcar registrado</button>
+    </div>
   </div>
 </div>
 
@@ -108,6 +123,7 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 let actual = null;
+let actualId = null;
 let listaDatos = {};
 
 function formatearFecha(iso){
@@ -119,7 +135,6 @@ function inicial(nombre){
   return (nombre||'N').trim().charAt(0).toUpperCase();
 }
 function fotoDe(r){
-  // Acepta cualquier campo donde venga la foto: foto, fotoUrl, imagen, fotoData
   return r.foto || r.fotoUrl || r.imagen || r.fotoData || r.image || '';
 }
 function avatarHTML(r){
@@ -133,6 +148,20 @@ function limpiarNumero(num){
   if(n.length===12 && n.startsWith('521')) n = '52'+n.slice(3);
   return n;
 }
+function esRegistrado(r){
+  return r.registrado === true || r.estado === 'registrado';
+}
+function actualizarBotonMarcar(){
+  const btn = document.getElementById('btnMarcar');
+  if(!actual) return;
+  if(esRegistrado(actual)){
+    btn.className = 'btn-marcar verde';
+    btn.textContent = '✓ Registrado';
+  } else {
+    btn.className = 'btn-marcar rojo';
+    btn.textContent = 'Marcar registrado';
+  }
+}
 
 db.ref('aliados').on('value', (snap)=>{
   const data = snap.val() || {};
@@ -144,6 +173,12 @@ db.ref('aliados').on('value', (snap)=>{
     lista.innerHTML = '<div class="empty"><b>Aún no hay registros</b>Cuando un negocio se registre en el formulario, aquí te va a aparecer.</div>';
     return;
   }
+  // Si el modal está abierto, actualizar el estado actual
+  if(actualId && listaDatos[actualId]){
+    actual = listaDatos[actualId];
+    actualizarBotonMarcar();
+    document.getElementById('mEstado').textContent = esRegistrado(actual) ? 'registrado' : (actual.estado||'pendiente');
+  }
   lista.innerHTML = `
   <div class="tabla-wrap">
     <table>
@@ -151,8 +186,9 @@ db.ref('aliados').on('value', (snap)=>{
       <tbody>
       ${keys.map(k=>{
         const r = data[k];
+        const claseFila = esRegistrado(r) ? 'row-verde' : 'row-rojo';
         return `
-        <tr>
+        <tr class="${claseFila}">
           <td><div class="avatar">${avatarHTML(r)}</div></td>
           <td class="nombre"><b>${r.nombre||'Sin nombre'}</b></td>
           <td class="tipo">${r.tipo||''}</td>
@@ -166,6 +202,7 @@ db.ref('aliados').on('value', (snap)=>{
 });
 
 function abrirRegistro(id){
+  actualId = id;
   actual = listaDatos[id];
   if(!actual) return;
   document.getElementById('mNombre').textContent = actual.nombre||'';
@@ -175,8 +212,9 @@ function abrirRegistro(id){
   document.getElementById('mWhats').textContent = actual.whatsapp||'';
   document.getElementById('mDir').textContent = actual.direccion||'';
   document.getElementById('mFecha').textContent = formatearFecha(actual.fecha);
-  document.getElementById('mEstado').textContent = actual.estado||'pendiente';
+  document.getElementById('mEstado').textContent = esRegistrado(actual) ? 'registrado' : (actual.estado||'pendiente');
   document.getElementById('mAvatar').innerHTML = avatarHTML(actual);
+  actualizarBotonMarcar();
   document.getElementById('modal').classList.add('show');
 }
 function cerrarModal(){
@@ -185,6 +223,16 @@ function cerrarModal(){
 document.getElementById('modal').addEventListener('click', e=>{
   if(e.target.id==='modal') cerrarModal();
 });
+
+async function toggleRegistrado(){
+  if(!actualId || !actual) return;
+  const nuevo = !esRegistrado(actual);
+  await db.ref('aliados/' + actualId).update({
+    registrado: nuevo,
+    estado: nuevo ? 'registrado' : 'pendiente'
+  });
+  // El listener de Firebase ya actualiza el botón y la fila solito
+}
 
 function enviarWhatsApp(){
   if(!actual) return;
