@@ -61,6 +61,8 @@ td.btn-cell{text-align:right}
 /* ROJO NEON = SIN REGISTRAR / VERDE NEON = YA REGISTRADO */
 .btn-marcar.rojo{background:#FF1E2D;box-shadow:0 0 14px rgba(255,30,45,.65)}
 .btn-marcar.verde{background:#00E676;box-shadow:0 0 14px rgba(0,230,118,.65)}
+.btn-eliminar{flex:1;background:#111;color:#fff;border:none;padding:14px 10px;border-radius:999px;font-size:14px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:7px;cursor:pointer}
+.btn-eliminar:active{transform:scale(.97)}
 @media(max-width:600px){
   .top h1{font-size:21px}
   .btns-row{flex-direction:column}
@@ -104,6 +106,7 @@ td.btn-cell{text-align:right}
         <img src="https://img.icons8.com/color/96/whatsapp--v1.png" alt=""> Notificar registro
       </button>
       <button class="btn-marcar rojo" id="btnMarcar" onclick="toggleRegistrado()">Marcar registrado</button>
+      <button class="btn-eliminar" id="btnEliminar" onclick="eliminarRegistro()">🗑 Eliminar</button>
     </div>
   </div>
 </div>
@@ -232,6 +235,16 @@ async function toggleRegistrado(){
     estado: nuevo ? 'registrado' : 'pendiente'
   });
   // El listener de Firebase ya actualiza el botón y la fila solito
+}
+
+async function eliminarRegistro(){
+  if(!actualId || !actual) return;
+  const ok = confirm('¿Seguro quieres eliminar a "' + (actual.nombre||'este negocio') + '"?\n\nYa no va a aparecer en Registros.');
+  if(!ok) return;
+  await db.ref('aliados/' + actualId).remove();
+  actual = null;
+  actualId = null;
+  cerrarModal();
 }
 
 function enviarWhatsApp(){
