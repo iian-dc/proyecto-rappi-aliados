@@ -18,6 +18,7 @@ body{background:#FBFBFD;min-height:100vh}
 .top h1{font-size:24px;font-weight:800;color:#111;line-height:1}
 .top p{font-size:12.5px;color:#6b7280;margin-top:3px}
 .count{background:#FFE7EA;color:#B70A1A;font-size:12px;font-weight:800;padding:5px 10px;border-radius:999px;margin-left:auto;white-space:nowrap}
+.count-visitas{background:#EAF2FF;color:#1D4ED8;font-size:12px;font-weight:800;padding:5px 10px;border-radius:999px;white-space:nowrap}
 /* LISTADO TIPO EXCEL */
 .tabla-wrap{background:#fff;border:1px solid #eee;border-radius:16px;overflow:hidden;margin:0 10px;box-shadow:0 2px 10px rgba(0,0,0,.04);overflow-x:auto}
 table{width:100%;border-collapse:collapse;min-width:720px}
@@ -79,6 +80,7 @@ td.btn-cell{text-align:right}
       <p>Negocios que se registraron en DoloYa</p>
     </div>
     <div class="count" id="totalCount">0 registros</div>
+    <div class="count-visitas" id="totalVisitas">👁️ 0 visitas</div>
   </div>
 
   <div id="lista">
@@ -165,6 +167,12 @@ function actualizarBotonMarcar(){
     btn.textContent = 'Marcar registrado';
   }
 }
+
+// CONTADOR DE VISITAS - desde estadisticas/visitas
+db.ref('estadisticas/visitas').on('value', (snap)=>{
+  const visitas = snap.val() || 0;
+  document.getElementById('totalVisitas').textContent = '👁️ ' + Number(visitas).toLocaleString('es-MX') + ' visitas';
+});
 
 db.ref('aliados').on('value', (snap)=>{
   const data = snap.val() || {};
