@@ -37,6 +37,8 @@ body{background:#f8fafc;color:#0f172a;min-height:100vh}
 .tag{font-size:10px;padding:3px 8px;border-radius:999px;background:#F3F4F6;color:#475569;font-weight:700}
 .formula{margin-top:12px;background:#FFF1F2;border:1px solid #FFE4E6;border-radius:12px;padding:10px 12px;font-size:11px;color:#881337;line-height:1.4}
 .formula b{color:#E30613}
+.formula.gratis{background:#E6F9ED;border-color:#B5ECC5;color:#0A7D2E}
+.formula.gratis b{color:#0A7D2E}
 .status{margin-top:10px;padding:10px 12px;border-radius:10px;font-size:11px;font-weight:700;display:none}
 .status.ok{background:#E6F9ED;color:#0A7D2E;border:1px solid #B5ECC5;display:block}
 .status.err{background:#FFF1F2;color:#9F1239;border:1px solid #FECDD3;display:block}
@@ -44,6 +46,7 @@ body{background:#f8fafc;color:#0f172a;min-height:100vh}
 .sim-table th{font-size:10px;text-align:left;color:#64748b;text-transform:uppercase;padding:6px 4px;border-bottom:1px solid #eef2f7}
 .sim-table td{font-size:12px;padding:8px 4px;border-bottom:1px solid #f1f5f9;font-weight:600}
 .sim-table td:last-child{font-weight:800;color:#E30613}
+.sim-table td.gratis{color:#0A7D2E}
 </style>
 </head>
 <body>
@@ -71,7 +74,7 @@ body{background:#f8fafc;color:#0f172a;min-height:100vh}
         <div class="input-group"><span>$</span><input id="inpKm" type="number" value="4" step="1" min="0"></div>
       </div>
     </div>
-    <div class="formula">
+    <div class="formula" id="boxFormula">
       Fórmula actual: <b>Costo = Base + (Distancia_km × Precio_km)</b><br>
       Ejemplo: <b id="txtFormula">$22 + (2.3 km × $4) = $31.20</b>
     </div>
@@ -96,7 +99,6 @@ body{background:#f8fafc;color:#0f172a;min-height:100vh}
     </table>
   </div>
 
-  <!-- RUTA EN FIREBASE - OCULTO VISUAL PERO INTERNO SIGUE FUNCIONANDO -->
   <div class="card" style="display:none">
     <h2>Ruta en Firebase</h2>
     <p class="sub">Se guarda automáticamente aquí para que inicio lo lea</p>
@@ -105,6 +107,7 @@ body{background:#f8fafc;color:#0f172a;min-height:100vh}
       {<br>
       &nbsp;&nbsp;base: <span id="jsonBase">22</span>,<br>
       &nbsp;&nbsp;precio_km: <span id="jsonKm">4</span>,<br>
+      &nbsp;&nbsp;envio_gratis: <span id="jsonGratis">false</span>,<br>
       &nbsp;&nbsp;actualizado: <span id="jsonFecha">-</span><br>
       }
     </div>
@@ -133,27 +136,33 @@ const inpDist = document.getElementById('inpDistancia');
 const status = document.getElementById('status');
 
 function calcular(base, precioKm, dist){
+  // CORREGIDO: si es envio gratis, siempre 0, no importa la distancia
+  if(base === 0 && precioKm === 0) return 0;
   return base + (dist * precioKm);
 }
 function renderPreview(){
-  const base = parseFloat(inpBase.value)||0;
-  const precioKm = parseFloat(inpKm.value)||0;
-  const dist = parseFloat(inpDist.value)||0;
+  const base = inpBase.value === '' ? 0 : parseFloat(inpBase.value);
+  const precioKm = inpKm.value === '' ? 0 : parseFloat(inpKm.value);
+  const dist = parseFloat(inpDist.value) || 0;
   const total = calcular(base, precioKm, dist);
+  const esGratis = (base === 0 && precioKm === 0);
   document.getElementById('txtDist').textContent = dist.toFixed(1) + ' km';
-  document.getElementById('prevBase').textContent = '$' + base.toFixed(2);
+  document.getElementById('prevBase').textContent = esGratis ? 'GRATIS' : '$' + base.toFixed(2);
   document.getElementById('prevDist').textContent = dist.toFixed(1) + ' km';
-  document.getElementById('prevKm').textContent = '$' + precioKm + ' x ' + dist.toFixed(1);
-  document.getElementById('prevTotal').textContent = '$' + total.toFixed(2);
-  document.getElementById('txtFormula').textContent = `$${base} + (${dist.toFixed(1)} km × $${precioKm}) = $${total.toFixed(2)}`;
+  document.getElementById('prevKm').textContent = esGratis ? 'GRATIS' : '$' + precioKm + ' x ' + dist.toFixed(1);
+  document.getElementById('prevTotal').textContent = esGratis ? 'GRATIS' : '$' + total.toFixed(2);
+  document.getElementById('txtFormula').textContent = esGratis ? 'ENVÍO GRATIS - $0 para cualquier distancia' : `$${base} + (${dist.toFixed(1)} km × $${precioKm}) = $${total.toFixed(2)}`;
+  document.getElementById('boxFormula').classList.toggle('gratis', esGratis);
   const jBase = document.getElementById('jsonBase');
   const jKm = document.getElementById('jsonKm');
+  const jGratis = document.getElementById('jsonGratis');
   if(jBase) jBase.textContent = base;
   if(jKm) jKm.textContent = precioKm;
+  if(jGratis) jGratis.textContent = esGratis;
   let html = '';
   [0.5,1,1.5,2,2.5,3,4,5,7,10].forEach(d=>{
     let t = calcular(base, precioKm, d);
-    html += `<tr><td>${d} km</td><td>$${base} + (${d}×$${precioKm})</td><td>$${t.toFixed(2)}</td></tr>`;
+    html += `<tr><td>${d} km</td><td>${esGratis ? 'Envío gratis' : `$${base} + (${d}×$${precioKm})`}</td><td class="${esGratis ? 'gratis' : ''}">${esGratis ? 'GRATIS' : '$' + t.toFixed(2)}</td></tr>`;
   });
   document.getElementById('tablaSim').innerHTML = html;
 }
@@ -163,8 +172,9 @@ inpDist.addEventListener('input', renderPreview);
 onValue(ref(db, 'config_global/tarifa_default'), (snap)=>{
   const v = snap.val();
   if(v){
-    if(v.base !== undefined) inpBase.value = v.base;
-    if(v.precio_km !== undefined) inpKm.value = v.precio_km;
+    // CORREGIDO: usar ?? y !== undefined, NO usar || porque || borra el 0
+    if(v.base !== undefined && v.base !== null) inpBase.value = v.base;
+    if(v.precio_km !== undefined && v.precio_km !== null) inpKm.value = v.precio_km;
     const jFecha = document.getElementById('jsonFecha');
     if(jFecha) jFecha.textContent = v.actualizado ? new Date(v.actualizado).toLocaleString() : new Date().toLocaleString();
     renderPreview();
@@ -173,13 +183,16 @@ onValue(ref(db, 'config_global/tarifa_default'), (snap)=>{
   }
 });
 document.getElementById('btnGuardar').addEventListener('click', async ()=>{
-  const base = parseFloat(inpBase.value);
-  const precio_km = parseFloat(inpKm.value);
-  if(isNaN(base) || isNaN(precio_km)){
+  const baseRaw = inpBase.value;
+  const kmRaw = inpKm.value;
+  const base = baseRaw === '' ? 0 : parseFloat(baseRaw);
+  const precio_km = kmRaw === '' ? 0 : parseFloat(kmRaw);
+  if(isNaN(base) || isNaN(precio_km) || base < 0 || precio_km < 0){
     status.className = 'status err';
-    status.textContent = 'Pon valores válidos';
+    status.textContent = 'Pon valores válidos (0 permitido para envío gratis)';
     return;
   }
+  const envio_gratis = (base === 0 && precio_km === 0);
   const btn = document.getElementById('btnGuardar');
   btn.disabled = true;
   btn.textContent = 'Guardando...';
@@ -187,10 +200,11 @@ document.getElementById('btnGuardar').addEventListener('click', async ()=>{
     await set(ref(db, 'config_global/tarifa_default'), {
       base: base,
       precio_km: precio_km,
+      envio_gratis: envio_gratis,
       actualizado: new Date().toISOString()
     });
     status.className = 'status ok';
-    status.textContent = `✓ Tarifa guardada: Base $${base} + $${precio_km}/km - Ya se refleja en inicio automáticamente`;
+    status.textContent = envio_gratis ? '✓ Envío GRATIS guardado: $0 para todas las distancias' : `✓ Tarifa guardada: Base $${base} + $${precio_km}/km - Ya se refleja en inicio automáticamente`;
     btn.textContent = 'Guardado ✓';
     setTimeout(()=>{ btn.textContent = 'Guardar tarifa en Firebase'; btn.disabled=false; }, 1500);
   }catch(e){
