@@ -9,12 +9,9 @@
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
 body{background:#f9f9fb;min-height:100vh}
 :root{--rojo:#C8102E}
-
-/* HEADER - IGUAL QUE CONFIGURACION / AYUDA */
 .header{height:56px;background:white;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;gap:12px;padding:0 14px;position:sticky;top:0;z-index:10}
 .btn-x{width:34px;height:34px;border-radius:50%;background:var(--rojo);border:none;color:white;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;font-weight:700;text-decoration:none;flex-shrink:0}
 .header h2{font-size:16px;font-weight:800;color:#111}
-
 .content{max-width:520px;margin:0 auto;padding:18px 14px 90px}
 .subtitulo{font-size:13px;color:#6b7280;line-height:1.4;margin-bottom:16px}
 .card{background:white;border-radius:16px;padding:6px 14px;box-shadow:0 1px 4px rgba(0,0,0,0.06);border:1px solid #f0f0f0}
@@ -42,15 +39,13 @@ body{background:#f9f9fb;min-height:100vh}
 </head>
 <body>
 
-<!-- ARRIBA - CIRCULO ROJO CON X BLANCA + HORARIOS -->
 <div class="header">
   <a href="panelaliado.html" class="btn-x">✕</a>
   <h2>Horarios</h2>
 </div>
 
 <div class="content">
-  <p class="subtitulo">Configura el horario de apertura y cierre de tu negocio para cada día de la semana.</p>
-
+  <p class="subtitulo" id="subNegocio">Configura el horario de apertura y cierre de tu negocio para cada día de la semana.</p>
   <div class="card" id="listaHorarios"></div>
   <div class="msg" id="msg"></div>
 </div>
@@ -65,10 +60,14 @@ const configAliados = { apiKey: "AIzaSyD286qlJQT8D3rqbYTSfCyuTAEg9jjRchQ", authD
 const appAliados = initializeApp(configAliados, "aliados");
 const dbAliados = getDatabase(appAliados);
 
+function normalize(t){ return String(t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim(); }
+
 const sesion = JSON.parse(localStorage.getItem('doloya_aliado_sesion')||'null');
 if(!sesion){ window.location.href='index.html'; }
 
 const idNegocio = (sesion?.id || sesion?.negocio || 'alitas_factory').toLowerCase();
+document.getElementById('subNegocio').textContent = 'Horarios de ' + (sesion?.nombre || idNegocio) + ' - Lunes a Domingo';
+
 const dias = [
   {id:'lunes', nombre:'Lunes'},
   {id:'martes', nombre:'Martes'},
@@ -98,7 +97,6 @@ dias.forEach(d=>{
     </div>
   `;
   lista.appendChild(div);
-
   const sw = div.querySelector('#sw-'+d.id);
   sw.addEventListener('click', ()=>{
     sw.classList.toggle('on');
@@ -108,9 +106,34 @@ dias.forEach(d=>{
   });
 });
 
-// Cargar horarios guardados si existen
-get(ref(dbAliados, `doloya_aliados/${idNegocio}/horarios`)).then(snap=>{
-  if(!snap.exists()) return;
+let pathBaseNegocio = `doloya_aliados/${idNegocio}`;
+
+// ==== BUSCA LA RUTA REAL DEL RESTAURANTE, IGUAL QUE PANELALIADO.HTML ====
+get(ref(dbAliados, 'doloya_aliados')).then(allSnap=>{
+  if(allSnap.exists()){
+    const todas = allSnap.val();
+    const target = normalize(idNegocio);
+    let encontrado = false;
+    // 1. Ruta nueva: doloya_aliados/valhalla
+    for(const k of Object.keys(todas)){
+      if(normalize(k) === target){ pathBaseNegocio = `doloya_aliados/${k}`; encontrado = true; break; }
+    }
+    // 2. Ruta vieja: doloya_aliados/alitas/valhalla
+    if(!encontrado){
+      for(const cat of Object.keys(todas)){
+        const nivel = todas[cat];
+        if(typeof nivel !== 'object' || !nivel) continue;
+        for(const key of Object.keys(nivel)){
+          if(normalize(key) === target){ pathBaseNegocio = `doloya_aliados/${cat}/${key}`; encontrado = true; break; }
+        }
+        if(encontrado) break;
+      }
+    }
+  }
+  // Ya con la ruta correcta, carga los horarios de ESE restaurante
+  return get(ref(dbAliados, `${pathBaseNegocio}/horarios`));
+}).then(snap=>{
+  if(!snap || !snap.exists()) return;
   const data = snap.val();
   dias.forEach(d=>{
     const h = data[d.id];
@@ -136,8 +159,9 @@ document.getElementById('btnGuardar').addEventListener('click', async ()=>{
     };
   });
   try{
-    await update(ref(dbAliados, `doloya_aliados/${idNegocio}`), { horarios });
-    msg.textContent = 'Horarios guardados correctamente';
+    // GUARDA SOLO EN ESE RESTAURANTE, NO EN GENERAL
+    await update(ref(dbAliados, pathBaseNegocio), { horarios });
+    msg.textContent = 'Horarios guardados en ' + idNegocio;
     setTimeout(()=>{ window.location.href='panelaliado.html'; }, 800);
   }catch(e){
     msg.textContent = 'Error al guardar, intenta de nuevo';
