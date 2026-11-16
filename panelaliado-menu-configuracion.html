@@ -40,6 +40,10 @@ body{background:#fff;min-height:100vh}
 .btn-del{width:32px;height:32px;border-radius:8px;border:1px solid #fee2e2;background:#fff5f5;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.2s}
 .btn-del:hover{background:#fee2e2}
 .btn-del svg{width:16px;height:16px;stroke:#C50D1F;stroke-width:2;fill:none}
+/* SOLO NUEVO - BOTON EDITAR */
+.btn-edit{width:32px;height:32px;border-radius:8px;border:1px solid #E0E7FF;background:#EEF2FF;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.2s}
+.btn-edit:hover{background:#E0E7FF}
+.btn-edit svg{width:16px;height:16px;stroke:#4F46E5;stroke-width:2;fill:none}
 .footer{margin-top:24px;border:1.5px solid #EEF1F6;border-radius:10px;background:#FBFCFF;height:88px;display:flex;align-items:center;justify-content:flex-end;gap:14px;padding:0 18px}
 @media(max-width:600px){.t-head,.row{grid-template-columns:50px 1fr 90px 70px}.footer{flex-direction:column;height:auto;padding:14px}}
 .btn-cancel{height:44px;min-width:200px;padding:0 24px;border:1.5px solid #E5E9F0;background:white;border-radius:8px;font-size:13.5px;font-weight:600;cursor:pointer}
@@ -54,11 +58,26 @@ body{background:#fff;min-height:100vh}
 .modal-box h3{font-size:16px;font-weight:800;margin-bottom:6px}
 .modal-box p{font-size:12.5px;color:#6B7280;margin-bottom:16px}
 .modal-btns{display:flex;gap:10px;justify-content:center}
+/* SOLO NUEVO - MODAL HORARIO */
+#modalHorario{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:1001;padding:20px}
+#modalHorario.show{display:flex}
+.modal-horario-box{background:white;border-radius:14px;padding:22px;max-width:440px;width:100%;max-height:90vh;overflow-y:auto}
+.modal-horario-box h3{font-size:17px;font-weight:800;margin-bottom:4px;text-transform:capitalize}
+.modal-horario-box .sub{font-size:12.5px;color:#6B7280;margin-bottom:16px}
+.horario-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid #EEF1F6}
+.horario-row label{font-size:13.5px;font-weight:600;color:#111827;width:90px}
+.horario-inputs{display:flex;align-items:center;gap:6px}
+.horario-inputs input[type="time"]{height:36px;border:1.5px solid #E5E9F0;border-radius:8px;padding:0 8px;font-size:13px;font-family:'Inter',sans-serif;outline:none}
+.horario-inputs span{font-size:12px;color:#6B7280}
+.horario-nota{font-size:11.5px;color:#94a3b8;margin-top:10px;line-height:1.4}
 </style>
 </head>
 <body>
 <div id="toast"><div class="toast-box"><b id="tTitle">Guardado</b><p id="tMsg" style="font-size:12px;color:#6b7280;margin-top:4px">Cambios guardados</p></div></div>
 <div id="modalDel"><div class="modal-box"><h3>¿Eliminar categoría?</h3><p id="msgDel">Esta acción no se puede deshacer.</p><div class="modal-btns"><button class="btn-cancel" style="min-width:120px" onclick="cerrarModalDel()">Cancelar</button><button class="btn-save" style="min-width:120px;background:#111" onclick="confirmarEliminar()">Eliminar</button></div></div></div>
+
+<!-- SOLO NUEVO - MODAL EDITAR HORARIO -->
+<div id="modalHorario"><div class="modal-horario-box"><h3 id="tituloHorario">Editar horario</h3><p class="sub">Elige en qué horario estará disponible esta categoría. Fuera de ese horario se ocultará.</p><div id="listaHorarios"></div><p class="horario-nota">Si dejas un día sin hora, esa categoría quedará disponible todo ese día.</p><div class="modal-btns" style="margin-top:18px"><button class="btn-cancel" style="min-width:120px" onclick="cerrarModalHorario()">Cancelar</button><button class="btn-save" style="min-width:120px" onclick="guardarHorario()">Guardar</button></div></div></div>
 
 <div class="top-header">
   <button class="btn-x" onclick="location.href='panelaliado-menu.html'"><svg viewBox="0 0 24 24"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg></button>
@@ -95,9 +114,47 @@ function normalize(t){ return String(t||'').toLowerCase().normalize('NFD').repla
 let cats=[];
 let sesion=null;
 let catAEliminar=null;
+// SOLO NUEVO - VARIABLES HORARIO
+let catEditando=null;
+const DIAS=[{key:'lunes',label:'Lunes'},{key:'martes',label:'Martes'},{key:'miercoles',label:'Miércoles'},{key:'jueves',label:'Jueves'},{key:'viernes',label:'Viernes'},{key:'sabado',label:'Sábado'},{key:'domingo',label:'Domingo'}];
 
 function toast(t,m){document.getElementById('tTitle').textContent=t;document.getElementById('tMsg').textContent=m;document.getElementById('toast').classList.add('show');setTimeout(()=>document.getElementById('toast').classList.remove('show'),2000);}
 window.cerrarModalDel = ()=>{ document.getElementById('modalDel').classList.remove('show'); catAEliminar=null; }
+// SOLO NUEVO - ABRIR / CERRAR / GUARDAR HORARIO
+window.cerrarModalHorario = ()=>{ document.getElementById('modalHorario').classList.remove('show'); catEditando=null; }
+window.editarHorario=function(key){
+  const c=cats.find(x=>x.key===key);
+  if(!c) return;
+  catEditando=c;
+  document.getElementById('tituloHorario').textContent='Editar horario - '+c.nombre;
+  const cont=document.getElementById('listaHorarios');
+  cont.innerHTML='';
+  DIAS.forEach(d=>{
+    const h=(c.horarios && c.horarios[d.key]) || {};
+    const div=document.createElement('div');
+    div.className='horario-row';
+    div.innerHTML=`<label>${d.label}</label><div class="horario-inputs"><input type="time" id="ini-${d.key}" value="${h.inicio||''}"><span>a</span><input type="time" id="fin-${d.key}" value="${h.fin||''}"></div>`;
+    cont.appendChild(div);
+  });
+  document.getElementById('modalHorario').classList.add('show');
+}
+window.guardarHorario=async function(){
+  if(!catEditando) return;
+  const horarios={};
+  DIAS.forEach(d=>{
+    const ini=document.getElementById('ini-'+d.key).value;
+    const fin=document.getElementById('fin-'+d.key).value;
+    if(ini && fin){ horarios[d.key]={inicio:ini, fin:fin}; }
+  });
+  catEditando.horarios=horarios;
+  try{
+    let updates={};
+    updates[`${catEditando.fullPath}/horarios`]=horarios;
+    await update(ref(db),updates);
+    cerrarModalHorario();
+    toast('Guardado','Horario guardado');
+  }catch(e){ toast('Error', e.message); }
+}
 
 function render(){
   const cont=document.getElementById('lista');
@@ -124,6 +181,9 @@ function render(){
         <span class="txt-est ${c.activa!==false?'on':''}">${c.activa!==false?'Activa':'Inactiva'}</span>
       </div>
       <div class="actions">
+        <button class="btn-edit" onclick="editarHorario('${c.key}')" title="Editar horario">
+          <svg viewBox="0 0 24 24"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+        </button>
         <button class="btn-del" onclick="pedirEliminar('${c.key}')" title="Eliminar">
           <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
         </button>
@@ -253,6 +313,7 @@ async function cargar(){
             activa: v.activa!==false,
             orden: v.orden ?? v.fecha ?? 9999,
             fecha: v.fecha,
+            horarios: v.horarios || {},
             fullPath: `${pathActual}/${k}`
           });
         } else {
@@ -291,6 +352,7 @@ window.guardar=async function(){
     updates[`${c.fullPath}/orden`]=c.orden;
     updates[`${c.fullPath}/nombre`]=c.nombre;
     updates[`${c.fullPath}/nombreLower`]=c.nombreLower;
+    if(c.horarios) updates[`${c.fullPath}/horarios`]=c.horarios;
   });
   await update(ref(db),updates);
   toast('Guardado','Orden y estado actualizados - disponibilidad vinculada');
