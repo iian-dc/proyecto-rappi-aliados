@@ -38,6 +38,17 @@ body{background:#f5f5f7;min-height:100vh;padding-bottom:30px}
 .toggle-dot{width:18px;height:18px;background:white;border-radius:50%;position:absolute;top:3px;left:3px;transition:.2s;box-shadow:0 1px 4px rgba(0,0,0,0.2)}
 .toggle.on .toggle-dot{left:21px}
 .empty{text-align:center;padding:30px;color:#999;font-size:13px}
+/* SOLO NUEVO - ESTADO Y REALIZADAS */
+.estado-badge{font-size:10px;font-weight:800;padding:3px 8px;border-radius:999px;display:inline-block;margin-top:4px}
+.estado-badge.activa{background:#DCFCE7;color:#15803D}
+.estado-badge.apagada{background:#E5E7EB;color:#6B7280}
+.banner-item.apagada{opacity:.65}
+.horario-txt{font-size:10.5px;color:#777;display:block;margin-top:2px}
+.realizada-item{display:flex;gap:12px;padding:12px;background:#F9FAFB;border-radius:14px;border:1px solid #eee;align-items:center}
+.realizada-item img{width:56px;height:40px;border-radius:8px;object-fit:cover;flex-shrink:0}
+.realizada-info{flex:1;min-width:0}
+.realizada-info b{font-size:12px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.realizada-info small{font-size:11px;color:#777}
 </style>
 </head>
 <body>
@@ -73,6 +84,13 @@ body{background:#f5f5f7;min-height:100vh;padding-bottom:30px}
       <option value="">Cargando restaurantes...</option>
     </select>
 
+    <!-- SOLO NUEVO - HORARIO 24H -->
+    <label class="label">Desde qué hora inicia</label>
+    <input id="fechaInicio" class="input" type="datetime-local">
+    <label class="label">Hasta qué hora termina</label>
+    <input id="fechaFin" class="input" type="datetime-local">
+    <p style="font-size:11px;color:#94a3b8;margin:-6px 0 12px">Si no pones hora de fin, dura 24 horas automáticamente desde el inicio.</p>
+
     <label class="label">Activo</label>
     <div style="margin-bottom:14px"><div id="toggleActivo" class="toggle on" onclick="this.classList.toggle('on')"><div class="toggle-dot"></div></div></div>
 
@@ -83,6 +101,13 @@ body{background:#f5f5f7;min-height:100vh;padding-bottom:30px}
   <div class="card">
     <h3>Listado de promociones</h3>
     <div id="listaBanners" class="lista"><div class="empty">Cargando...</div></div>
+  </div>
+
+  <!-- SOLO NUEVO - PROMOCIONES REALIZADAS / LADO DERECHO EN PC -->
+  <div class="card">
+    <h3>Promociones realizadas</h3>
+    <p style="font-size:11px;color:#94a3b8;margin-bottom:12px">Promociones que ya terminaron o se apagaron, con el cliente que la pagó.</p>
+    <div id="listaRealizadas" class="lista"><div class="empty">Sin promociones realizadas aún</div></div>
   </div>
 </div>
 
@@ -96,6 +121,7 @@ const db = getDatabase(app);
 
 let aliadosList = [];
 let editId = null;
+let bannersData = {};
 
 const imgUrlEl = document.getElementById('imgUrl');
 const previewBox = document.getElementById('previewBox');
@@ -110,6 +136,25 @@ imgUrlEl.addEventListener('input', ()=>{
   }
 });
 
+// SOLO NUEVO - HELPERS HORARIO
+function toLocalInput(ms){
+  if(!ms) return '';
+  const d = new Date(ms);
+  const pad = n=>String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+function fmtFecha(ms){
+  if(!ms) return '';
+  const d = new Date(ms);
+  return d.toLocaleString('es-MX',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+}
+function estaVigente(b){
+  if(b.activo===false) return false;
+  if(b.fechaFin && Date.now() > b.fechaFin) return false;
+  if(b.fechaInicio && Date.now() < b.fechaInicio) return false;
+  return true;
+}
+
 // Cargar restaurantes para el select
 onValue(ref(db, 'doloya_aliados'), snap=>{
   const val = snap.val();
@@ -121,7 +166,6 @@ onValue(ref(db, 'doloya_aliados'), snap=>{
     const g = val[key];
     if(!g || typeof g !== 'object') return;
     if(g.precio !== undefined && g.nombre) return;
-    // obtener nombre real
     let nombre = key;
     if(g.info?.nombreRestaurante) nombre = g.info.nombreRestaurante;
     else if(g.perfil?.nombre) nombre = g.perfil.nombre;
@@ -143,6 +187,8 @@ function resetForm(){
   document.getElementById('subtitulo').value = '';
   document.getElementById('btnTexto').value = '';
   document.getElementById('restSelect').value = '';
+  document.getElementById('fechaInicio').value = '';
+  document.getElementById('fechaFin').value = '';
   document.getElementById('toggleActivo').classList.add('on');
   document.getElementById('previewBox').innerHTML = '<span>Vista previa</span>';
   document.getElementById('btnGuardar').textContent = 'Guardar promoción';
@@ -156,8 +202,15 @@ window.guardarBanner = async ()=>{
   const btnTexto = document.getElementById('btnTexto').value.trim() || 'Pide ahora';
   const restId = document.getElementById('restSelect').value;
   const activo = document.getElementById('toggleActivo').classList.contains('on');
+  const inicioVal = document.getElementById('fechaInicio').value;
+  const finVal = document.getElementById('fechaFin').value;
   
   if(!img || !titulo){ alert('Imagen y título obligatorios'); return; }
+
+  // SOLO NUEVO - SI NO HAY INICIO, AHORA. SI NO HAY FIN, +24H
+  let fechaInicio = inicioVal ? new Date(inicioVal).getTime() : Date.now();
+  let fechaFin = finVal ? new Date(finVal).getTime() : (fechaInicio + 24*60*60*1000);
+  if(fechaFin <= fechaInicio){ alert('La hora de fin debe ser después del inicio'); return; }
   
   document.getElementById('btnGuardar').disabled = true;
   const data = {
@@ -168,7 +221,9 @@ window.guardarBanner = async ()=>{
     restauranteId: restId,
     restauranteNombre: aliadosList.find(r=>r.id===restId)?.nombre || '',
     activo: activo,
-    fecha: Date.now()
+    fecha: Date.now(),
+    fechaInicio: fechaInicio,
+    fechaFin: fechaFin
   };
   
   try{
@@ -185,24 +240,34 @@ window.guardarBanner = async ()=>{
   document.getElementById('btnGuardar').disabled = false;
 };
 
-// Listar banners
-onValue(ref(db, 'config_global/banners_promociones'), snap=>{
+// SOLO NUEVO - RENDER CON ESTADO VERDE / APAGADO + REALIZADAS
+function renderListas(){
   const lista = document.getElementById('listaBanners');
-  const val = snap.val();
-  if(!val){ lista.innerHTML = '<div class="empty">Sin promociones aún</div>'; return; }
+  const listaReal = document.getElementById('listaRealizadas');
+  const val = bannersData;
+  if(!val || Object.keys(val).length===0){ lista.innerHTML = '<div class="empty">Sin promociones aún</div>'; listaReal.innerHTML = '<div class="empty">Sin promociones realizadas aún</div>'; return; }
   const arr = Object.entries(val).sort((a,b)=> (b[1].fecha||0)-(a[1].fecha||0));
   lista.innerHTML = '';
+  listaReal.innerHTML = '';
+  let realizadas = 0;
   arr.forEach(([id, b])=>{
+    const vigente = estaVigente(b);
+    // Si ya venció pero sigue marcado activo en DB, apagarlo solo
+    if(!vigente && b.activo!==false && b.fechaFin && Date.now() > b.fechaFin){
+      update(ref(db, 'config_global/banners_promociones/'+id), {activo:false});
+    }
     const div = document.createElement('div');
-    div.className = 'banner-item';
+    div.className = 'banner-item' + (vigente ? '' : ' apagada');
     div.innerHTML = `
       <img src="${b.imagen}" onerror="this.src='https://via.placeholder.com/70x50'">
       <div class="banner-info">
         <b>${b.titulo}</b>
         <small>${b.subtitulo || ''} ${b.restauranteNombre ? '→ '+b.restauranteNombre : '(sin vínculo)'}</small>
+        <span class="estado-badge ${vigente?'activa':'apagada'}">${vigente?'● ACTIVA':'○ APAGADA'}</span>
+        <span class="horario-txt">${b.fechaInicio?fmtFecha(b.fechaInicio):''} ${b.fechaFin?' → '+fmtFecha(b.fechaFin):''}</span>
       </div>
       <div style="display:flex;flex-direction:column;gap:6px;align-items:center">
-        <div class="toggle ${b.activo!==false?'on':''}" onclick="toggleActivo('${id}', ${b.activo!==false})"><div class="toggle-dot"></div></div>
+        <div class="toggle ${vigente?'on':''}" onclick="toggleActivo('${id}', ${b.activo!==false})"><div class="toggle-dot"></div></div>
       </div>
       <div class="actions">
         <button class="btn-icon" onclick="editarBanner('${id}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
@@ -210,8 +275,34 @@ onValue(ref(db, 'config_global/banners_promociones'), snap=>{
       </div>
     `;
     lista.appendChild(div);
+    // Realizadas = ya terminó su horario o está apagada y ya tuvo horario
+    const esRealizada = (b.fechaFin && Date.now() > b.fechaFin) || (b.activo===false && b.fechaFin);
+    if(esRealizada){
+      realizadas++;
+      const r = document.createElement('div');
+      r.className = 'realizada-item';
+      r.innerHTML = `
+        <img src="${b.imagen}" onerror="this.src='https://via.placeholder.com/70x50'">
+        <div class="realizada-info">
+          <b>${b.titulo}</b>
+          <small>Cliente: ${b.restauranteNombre || b.restauranteId || 'Sin cliente'}</small><br>
+          <small>${b.fechaInicio?fmtFecha(b.fechaInicio):''} → ${b.fechaFin?fmtFecha(b.fechaFin):''}</small>
+        </div>
+        <span class="estado-badge apagada">Finalizada</span>
+      `;
+      listaReal.appendChild(r);
+    }
   });
+  if(realizadas===0) listaReal.innerHTML = '<div class="empty">Sin promociones realizadas aún</div>';
+}
+
+// Listar banners
+onValue(ref(db, 'config_global/banners_promociones'), snap=>{
+  bannersData = snap.val() || {};
+  renderListas();
 });
+// Re-revisar cada 30 segundos para que se apague sola al vencer
+setInterval(()=>{ renderListas(); }, 30000);
 
 window.toggleActivo = async (id, estadoActual)=>{
   await update(ref(db, 'config_global/banners_promociones/'+id), {activo: !estadoActual});
@@ -228,6 +319,8 @@ window.editarBanner = async (id)=>{
   document.getElementById('subtitulo').value = b.subtitulo || '';
   document.getElementById('btnTexto').value = b.btnTexto || '';
   document.getElementById('restSelect').value = b.restauranteId || '';
+  document.getElementById('fechaInicio').value = b.fechaInicio ? toLocalInput(b.fechaInicio) : '';
+  document.getElementById('fechaFin').value = b.fechaFin ? toLocalInput(b.fechaFin) : '';
   if(b.activo!==false) document.getElementById('toggleActivo').classList.add('on'); else document.getElementById('toggleActivo').classList.remove('on');
   document.getElementById('previewBox').innerHTML = b.imagen ? `<img src="${b.imagen}">` : '<span>Vista previa</span>';
   document.getElementById('btnGuardar').textContent = 'Actualizar promoción';
