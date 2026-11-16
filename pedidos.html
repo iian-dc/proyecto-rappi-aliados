@@ -144,6 +144,8 @@ body{background:#f8f8f9;min-height:100vh}
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
 import { getFirestore, collection, onSnapshot, doc, updateDoc, getDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+// SOLO NUEVO - PARA CORREGIR UNA SOLA VEZ LOS PEDIDOS QUE LLEGARON EN 0%
+import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js";
 const configConfirmacion = {
   apiKey: "AIzaSyDLKngPyi_SWAXEQwdrHO5h8L8OufulAR4",
   authDomain: "doloya-confirmacion.firebaseapp.com",
@@ -152,8 +154,19 @@ const configConfirmacion = {
   messagingSenderId: "832228761099",
   appId: "1:832228761099:web:ddd4b6a0ee0d7f0494b10e"
 };
+const configAliados = {
+  apiKey: "AIzaSyD286qlJQT8D3rqbYTSfCyuTAEg9jjRchQ",
+  authDomain: "doloya-aliados.firebaseapp.com",
+  databaseURL: "https://doloya-aliados-default-rtdb.firebaseio.com",
+  projectId: "doloya-aliados",
+  storageBucket: "doloya-aliados.firebasestorage.app",
+  messagingSenderId: "122314467740",
+  appId: "1:122314467740:web:9947a0a9560557e3a00059"
+};
 const app = initializeApp(configConfirmacion);
 const db = getFirestore(app);
+const appAliados = initializeApp(configAliados, "aliadosPedidos");
+const dbAliadosRT = getDatabase(appAliados);
 const sesion = JSON.parse(localStorage.getItem('doloya_aliado_sesion')||'null');
 const idNegocio = sesion?.id || sesion?.negocio || 'burgers';
 const mapaCat = { alitas:'alitas', burgers:'burgers', pizzas:'pizzas' };
@@ -164,6 +177,103 @@ const bell = document.getElementById('bellIcon');
 const bellCountEl = document.getElementById('bellCount');
 let primerCarga=true, ultimoTotal=0, pedidosCache=[], filtroActual='todos';
 let pedidoACancelar = null;
+let pedidosYaCorregidos = new Set(JSON.parse(localStorage.getItem('doloya_comision_corregidos')||'[]'));
+
+// SOLO NUEVO - BUSCA EL % ACTUAL EN EL ADMIN, PERO SOLO PARA CONGELARLO UNA VEZ
+function normalizarTxt(t){ return String(t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().replace(/[_-]+/g,' ').replace(/\s+/g,' '); }
+function extraerComisionNodo(nodo){
+  if(!nodo || typeof nodo !== 'object') return null;
+  const claves = ['comision','comisionPorcentaje','porcentaje','porcentajeComision','comision_porcentaje'];
+  for(const c of claves){
+    if(nodo[c] !== undefined && nodo[c] !== '' && nodo[c] !== null){
+      const n = parseFloat(nodo[c]); if(!isNaN(n)) return n;
+    }
+    if(nodo.info && nodo.info[c] !== undefined && nodo.info[c] !== '' && nodo.info[c] !== null){
+      const n = parseFloat(nodo.info[c]); if(!isNaN(n)) return n;
+    }
+  }
+  return null;
+}
+async function buscarComisionActualAdmin(idRest, catRest, nombreRest){
+  try{
+    const idN = normalizarTxt(idRest);
+    const nomN = normalizarTxt(nombreRest);
+    const catN = normalizarTxt(catRest);
+    // 1. Directo por cat/id y por id
+    const intentos = [];
+    if(catRest && idRest) intentos.push(`doloya_aliados/${catRest}/${idRest}`);
+    if(idRest) intentos.push(`doloya_aliados/${idRest}`);
+    if(catRest && nombreRest) intentos.push(`doloya_aliados/${catRest}/${nombreRest}`);
+    for(const path of intentos){
+      const s = await get(ref(dbAliadosRT, path));
+      if(s.exists()){
+        const c = extraerComisionNodo(s.val());
+        if(c !== null) return c;
+      }
+    }
+    // 2. Barrido completo, compara por id o nombre
+    const sAll = await get(ref(dbAliadosRT, 'doloya_aliados'));
+    if(sAll.exists()){
+      const todos = sAll.val();
+      const revisar = (nodo, clave) => {
+        if(!nodo || typeof nodo !== 'object') return null;
+        if(normalizarTxt(clave) === idN || normalizarTxt(clave) === nomN){
+          const c = extraerComisionNodo(nodo); if(c !== null) return c;
+        }
+        if(nodo.info && (normalizarTxt(nodo.info.nombre) === idN || normalizarTxt(nodo.info.nombre) === nomN)){
+          const c = extraerComisionNodo(nodo); if(c !== null) return c;
+        }
+        if(nodo.nombre && (normalizarTxt(nodo.nombre) === idN || normalizarTxt(nodo.nombre) === nomN)){
+          const c = extraerComisionNodo(nodo); if(c !== null) return c;
+        }
+        for(const k of Object.keys(nodo)){
+          const h = nodo[k];
+          if(h && typeof h === 'object' && !Array.isArray(h)){
+            const r = revisar(h, k); if(r !== null) return r;
+          }
+        }
+        return null;
+      };
+      for(const k of Object.keys(todos)){
+        if(k === 'admin') continue;
+        const r = revisar(todos[k], k); if(r !== null) return r;
+      }
+    }
+  }catch(e){ console.log('buscar comision', e); }
+  return null;
+}
+// SOLO NUEVO - SI EL PEDIDO LLEGO EN 0% O SIN %, LO CONGELA UNA SOLA VEZ CON EL % DE HOY Y YA NO LO VUELVE A TOCAR
+async function congelarComisionSiFalta(p){
+  const totales = p.totales || {};
+  const porc = totales.comisionPorcentaje ?? p.comision?.porcentaje ?? p.comisionPorcentaje ?? null;
+  const porcNum = porc === null || porc === '' ? null : parseFloat(porc);
+  // Si ya tiene % mayor a 0, NO SE TOCA. Es pedido viejo, se respeta.
+  if(porcNum !== null && !isNaN(porcNum) && porcNum > 0) return;
+  if(pedidosYaCorregidos.has(p.id)) return;
+  pedidosYaCorregidos.add(p.id);
+  localStorage.setItem('doloya_comision_corregidos', JSON.stringify([...pedidosYaCorregidos]));
+  const costoProductos = Number((totales.costoProductos || 0).toFixed(2)) || p.productos?.reduce((s,pr)=>s+(pr.cantidad||1)*parseFloat(pr.precio||0),0) || 0;
+  const nuevoPorc = await buscarComisionActualAdmin(p.restaurante?.id || idNegocio, p.restaurante?.cat, p.restaurante?.nombre);
+  if(nuevoPorc === null || nuevoPorc <= 0) return;
+  const monto = Number((costoProductos * nuevoPorc / 100).toFixed(2));
+  const ganancia = Number((costoProductos - monto).toFixed(2));
+  try{
+    await updateDoc(doc(db, "pedidos", p.id), {
+      "totales.comisionPorcentaje": nuevoPorc,
+      "totales.comisionMonto": monto,
+      "totales.gananciaAliado": ganancia,
+      "comision.porcentaje": nuevoPorc,
+      "comision.monto": monto,
+      "comision.gananciaAliado": ganancia,
+      "comision.base": costoProductos,
+      "comisionCongeladaEn": new Date().toISOString()
+    });
+    // Actualiza en memoria para que ya se vea bien sin recargar
+    p.totales = { ...totales, comisionPorcentaje: nuevoPorc, comisionMonto: monto, gananciaAliado: ganancia };
+    p.comision = { porcentaje: nuevoPorc, monto, gananciaAliado: ganancia, base: costoProductos };
+    render(pedidosCache);
+  }catch(e){ console.log('congelar comision', e); }
+}
 function desbloquearAudio(){try{const ctx=new (window.AudioContext||window.webkitAudioContext)();if(ctx.state==='suspended')ctx.resume();}catch{}}
 document.body.addEventListener('click',()=>{desbloquearAudio();},{once:true});
 document.body.addEventListener('touchstart',()=>{desbloquearAudio();},{once:true});
@@ -222,23 +332,24 @@ function render(lista){
     const productos=p.productos||[]; const totales=p.totales||{}; let costoProductos=totales.costoProductos||0;
     if(!costoProductos){ productos.forEach(pr=>{ costoProductos+= (pr.cantidad||1)*parseFloat(pr.precio||0); }); }
     const costoOriginal=parseFloat(costoProductos);
-    // CORREGIDO - SOLO LEE EL % CONGELADO EN ESTE PEDIDO, NUNCA BUSCA EL % EN VIVO
-    // Así el pedido viejo se queda con su % viejo y el nuevo llega con su % nuevo
+    // SOLO LEE LO CONGELADO EN EL PEDIDO. NO BUSCA EN VIVO EN CADA RENDER.
     const porcComision = (totales.comisionPorcentaje ?? p.comision?.porcentaje ?? p.comisionPorcentaje ?? null);
     const montoComisionGuardado = (totales.comisionMonto ?? p.comision?.monto ?? null);
     let costoFinalNum = costoOriginal;
     let textoComision = '';
-    if(porcComision !== null && porcComision !== undefined && porcComision !== ''){
+    if(porcComision !== null && porcComision !== undefined && porcComision !== '' && parseFloat(porcComision) > 0){
       const porcNum = parseFloat(porcComision);
       if(!isNaN(porcNum)){
         costoFinalNum = costoOriginal * (1 - porcNum/100);
         textoComision = `Comisión DoloYa ${porcNum}% • Te quedan $${costoFinalNum.toFixed(0)} MXN`;
       }
-    } else if(montoComisionGuardado !== null && montoComisionGuardado !== undefined && montoComisionGuardado !== ''){
+    } else if(montoComisionGuardado !== null && montoComisionGuardado !== undefined && montoComisionGuardado !== '' && parseFloat(montoComisionGuardado) > 0){
       const m = parseFloat(montoComisionGuardado);
       if(!isNaN(m)){ costoFinalNum = costoOriginal - m; textoComision = `Comisión DoloYa $${m.toFixed(0)} • Te quedan $${costoFinalNum.toFixed(0)} MXN`; }
     } else {
       textoComision = `Sin comisión guardada • Te quedan $${costoFinalNum.toFixed(0)} MXN`;
+      // Si llegó en 0%, lo congela UNA sola vez y ya no lo vuelve a tocar
+      congelarComisionSiFalta(p);
     }
     const costoFinal=costoFinalNum.toFixed(0);
     const nombreCliente=obtenerNombreCliente(p); const codigoReal=p.codigo||'ST-00'; const estado=p.estado||'nuevo';
