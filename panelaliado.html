@@ -45,7 +45,8 @@ body{background:#f9f9fb;min-height:100vh;display:flex}
 .topbar-left span.line{width:3px;height:18px;background:var(--rojo);border-radius:2px;display:inline-block}
 .topbar-left span.sub{font-size:13px;color:#111;font-weight:700;max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:capitalize}
 .topbar-right{display:flex;align-items:center;gap:10px}
-.btn-instalar{display:none;background:#111;color:white;border:none;border-radius:999px;padding:8px 14px;font-size:12px;font-weight:700;align-items:center;gap:6px;cursor:pointer}
+/* CORREGIDO - BOTON INSTALAR APP SIEMPRE VISIBLE, ANTES ESTABA EN display:none */
+.btn-instalar{display:flex;background:#111;color:white;border:none;border-radius:999px;padding:8px 14px;font-size:12px;font-weight:700;align-items:center;gap:6px;cursor:pointer}
 .bell{position:relative;cursor:pointer;width:38px;height:38px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:#FFF1F2}
 .bell-badge{position:absolute;top:-4px;right:-4px;background:#E30613 !important;color:#FFFFFF !important;font-size:10px;font-weight:900;min-width:20px;height:20px;border-radius:999px;display:flex;align-items:center;justify-content:center;padding:0 5px;border:2px solid white;z-index:2}
 .bell.vibrar{animation:bell3d 0.15s infinite}
@@ -116,7 +117,7 @@ body{background:#f9f9fb;min-height:100vh;display:flex}
   <div class="topbar">
     <div class="topbar-left"><button class="hamburger" onclick="toggleMenu()"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button><strong>Panel de aliados</strong><span class="line"></span><span class="sub" id="subTexto">Cargando...</span></div>
     <div class="topbar-right">
-      <!-- RESTABLECIDO - BOTON INSTALAR APP - SIN CAMBIOS, IGUAL QUE TU CODIGO ORIGINAL -->
+      <!-- RESTABLECIDO - BOTON INSTALAR APP SIEMPRE VISIBLE -->
       <button id="btnInstalar" class="btn-instalar"><svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Instalar App</button>
       <div class="bell" id="bellIcon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C50D1F" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 6 5 6 9H0s6-2 6-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span class="bell-badge" id="bellBadge">0</span></div>
       <a href="index.html" class="btn-cerrar" onclick="cerrarSesion()"><span class="txt">Cerrar sesión</span></a>
@@ -172,7 +173,7 @@ btnInstalar.addEventListener('click', async ()=>{
   deferredPrompt.prompt();
   await deferredPrompt.userChoice;
   deferredPrompt = null;
-  btnInstalar.style.display = 'none';
+  btnInstalar.style.display = 'flex';
 });
 
 async function guardarTokenFCM(idNegocio){
