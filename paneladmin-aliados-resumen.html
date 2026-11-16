@@ -15,12 +15,10 @@ body{background:#fff;min-height:100vh}
 .divider{width:2px;height:36px;background:rgba(255,255,255,0.35);flex-shrink:0}
 .top-text h1{color:white;font-size:26px;font-weight:800;line-height:1}
 .top-text p{color:rgba(255,255,255,0.9);font-size:13.5px;font-weight:400;margin-top:4px}
-/* SOLO NUEVO - BOTON ELIMINAR ARRIBA DERECHA */
 .btn-eliminar-top{margin-left:auto;background:white;color:var(--rojo2);border:none;border-radius:999px;padding:9px 16px;font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:7px;white-space:nowrap;flex-shrink:0}
 .btn-eliminar-top svg{width:17px;height:17px;stroke:var(--rojo2);stroke-width:2;fill:none}
 .main{padding:22px;display:flex;justify-content:center}
 .card-resumen{width:100%;max-width:1100px;background:white;border:1.5px solid #E8E9F0;border-radius:12px;overflow:hidden}
-/* SOLO NUEVO - 3 COLUMNAS: IZQ / CENTRO / DER */
 .resumen-body{padding:22px;display:grid;grid-template-columns:1fr 1.1fr 1.1fr;gap:16px}
 @media(max-width:900px){.resumen-body{grid-template-columns:1fr}}
 .col-titulo{font-size:13px;font-weight:800;color:#111827;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;padding-bottom:8px;border-bottom:1.5px solid #F0F0F5}
@@ -82,7 +80,6 @@ body{background:#fff;min-height:100vh}
   <button class="btn-x" onclick="window.location.href='paneladmin-aliados.html'"><svg viewBox="0 0 24 24"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg></button>
   <div class="divider"></div>
   <div class="top-text"><h1>Resumen</h1><p id="subResumen">Estadísticas de tu negocio</p></div>
-  <!-- SOLO MOVIDO - ELIMINAR ARRIBA DERECHA, FONDO BLANCO TEXTO ROJO -->
   <button class="btn-eliminar-top" onclick="abrirConfirm()">
     <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
     Eliminar restaurante
@@ -105,6 +102,8 @@ body{background:#fff;min-height:100vh}
           <div class="info-line"><b>Ubicación:</b><span id="infoUbicacion">-</span></div>
           <div class="info-line"><b>Estado:</b><span id="infoEstado">-</span></div>
           <div class="info-line"><b>Horario:</b><span id="infoHorario">-</span></div>
+          <!-- SOLO NUEVO - MUESTRA USUARIO TAMBIEN A LA IZQUIERDA -->
+          <div class="info-line"><b>Usuario:</b><span id="infoUsuario">-</span></div>
         </div>
       </div>
 
@@ -133,7 +132,7 @@ body{background:#fff;min-height:100vh}
         </div>
       </div>
 
-      <!-- DERECHA - EDITAR + COMISION + ESTADISTICAS POR MES -->
+      <!-- DERECHA - EDITAR + COMISION + USUARIO / CONTRASEÑA + ESTADISTICAS POR MES -->
       <div>
         <div class="col-titulo">Editar restaurante</div>
         <div class="edit-card">
@@ -142,7 +141,14 @@ body{background:#fff;min-height:100vh}
           <div class="campo"><label>Categoría</label><input id="editCategoria" placeholder="Ej: Pizzas, Burgers"></div>
           <div class="campo"><label>Ubicación / Dirección</label><input id="editUbicacion" placeholder="Ubicación"></div>
 
-          <div class="campo"><label>Comisión DoloYa (%)</label>
+          <!-- SOLO NUEVO - USUARIO Y CONTRASEÑA -->
+          <div style="border-top:1.5px solid #F0F0F5;padding-top:12px;margin-top:4px">
+            <div class="campo"><label>Usuario</label><input id="editUsuario" placeholder="Usuario para entrar al panel"></div>
+            <div class="campo"><label>Contraseña</label><input id="editPassword" type="text" placeholder="Contraseña para entrar al panel"></div>
+            <p style="font-size:11px;color:#6B7280;margin-top:-6px">Si lo cambias aquí, el aliado entra con el nuevo usuario y contraseña.</p>
+          </div>
+
+          <div class="campo" style="margin-top:12px"><label>Comisión DoloYa (%)</label>
             <div class="comision-box"><input id="editComision" type="number" min="0" max="100" value="0"><span style="font-weight:800">% por pedido</span></div>
             <p style="font-size:11px;color:#6B7280;margin-top:6px">Ej: 10% o 15% - se guarda en este restaurante.</p>
           </div>
@@ -239,7 +245,6 @@ async function cargarResumen(){
     if(snap.exists()){
       const data = snap.val();
       const info = data.info || data || {};
-      // IZQUIERDA - INFO
       const nombre = info.nombre || data.nombre || idRest;
       const logo = info.logo || info.imagen || info.image || data.logo || data.imagen || data.image || data.foto || '';
       const cat = info.categoria || info.cat || data.categoria || data.cat || '';
@@ -248,22 +253,28 @@ async function cargarResumen(){
       const abierto = data.categorias?.disponibilidad?.abierto;
       const horarioTxt = data.horarios ? Object.entries(data.horarios).map(([d,h])=> d+': '+(h.abierto? h.inicio+'-'+h.fin : 'Cerrado')).slice(0,2).join(' | ') : '-';
 
+      // SOLO NUEVO - LEE USUARIO Y CONTRASEÑA DE TODOS LOS LUGARES DONDE PUEDEN ESTAR GUARDADOS
+      const usuario = info.usuario || info.user || data.usuario || data.user || data.loginUsuario || idRest;
+      const password = info.password || info.contrasena || info.contraseña || data.password || data.contrasena || data.contraseña || '';
+
       document.getElementById('infoNombre').textContent = bonito(nombre);
       document.getElementById('infoCategoria').textContent = cat ? bonito(cat) : 'Sin categoría';
       document.getElementById('infoTelefono').textContent = tel;
       document.getElementById('infoUbicacion').textContent = ubi;
       document.getElementById('infoEstado').textContent = abierto === false ? 'Cerrado' : 'Abierto';
       document.getElementById('infoHorario').textContent = horarioTxt;
+      document.getElementById('infoUsuario').textContent = usuario;
       if(logo){
         const img = document.getElementById('imgLogo');
         img.src = logo; img.style.display='block';
         document.getElementById('logoPlaceholder').style.display='none';
       }
-      // DERECHA - EDITAR PRELLENADO
       document.getElementById('editNombre').value = nombre === idRest ? bonito(idRest) : nombre;
       document.getElementById('editTelefono').value = tel === '-' ? '' : tel;
       document.getElementById('editCategoria').value = cat || '';
       document.getElementById('editUbicacion').value = ubi === '-' ? '' : ubi;
+      document.getElementById('editUsuario').value = usuario;
+      document.getElementById('editPassword').value = password;
       comision = data.comision ?? data.comisionPorcentaje ?? info.comision ?? 0;
       document.getElementById('editComision').value = comision;
 
@@ -302,7 +313,7 @@ async function cargarResumen(){
     const qSnap = await getDocs(collection(dbPedidos, "pedidos"));
     let pedidosCount = 0;
     let ventasTotal = 0;
-    const porMes = {}; // "2026-01" -> total
+    const porMes = {};
     const mesesNombres = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
     qSnap.forEach(doc=>{
       const d = doc.data();
@@ -313,7 +324,6 @@ async function cargarResumen(){
         pedidosCount++;
         const total = parseFloat(d.total || d.monto || 0);
         if(!isNaN(total)) ventasTotal += total;
-        // Fecha para estadistica por mes
         let fecha = null;
         if(d.fecha?.toDate) fecha = d.fecha.toDate();
         else if(d.creadoEn?.toDate) fecha = d.creadoEn.toDate();
@@ -328,7 +338,6 @@ async function cargarResumen(){
     document.getElementById('txtPedidos').textContent = pedidosCount;
     document.getElementById('txtVentas').textContent = "$" + ventasTotal.toFixed(2);
 
-    // DERECHA - VENTAS POR MES
     const cont = document.getElementById('ventasMes');
     const keys = Object.keys(porMes).sort().slice(-6);
     if(keys.length===0){ cont.innerHTML = '<p style="font-size:13px;color:#6B7280">Aún no hay ventas registradas por mes.</p>'; }
@@ -355,12 +364,24 @@ document.getElementById('btnGuardarCambios').addEventListener('click', async ()=
       telefono: document.getElementById('editTelefono').value.trim(),
       categoria: document.getElementById('editCategoria').value.trim(),
       ubicacion: document.getElementById('editUbicacion').value.trim(),
+      usuario: document.getElementById('editUsuario').value.trim(),
+      user: document.getElementById('editUsuario').value.trim(),
+      password: document.getElementById('editPassword').value.trim(),
+      contrasena: document.getElementById('editPassword').value.trim(),
       comision: parseFloat(document.getElementById('editComision').value) || 0,
       comisionPorcentaje: parseFloat(document.getElementById('editComision').value) || 0,
     };
-    // Guarda en info + raiz para que lo lean ambas partes
-    await update(ref(dbAliados, pathBase), { info: datos, comision: datos.comision, comisionPorcentaje: datos.comisionPorcentaje });
-    toast("Guardado","Cambios guardados en " + idRest);
+    // SOLO NUEVO - GUARDA USUARIO / CONTRASEÑA EN INFO + RAIZ PARA QUE EL LOGIN DEL ALIADO LO LEA EN TIEMPO REAL
+    await update(ref(dbAliados, pathBase), {
+      info: datos,
+      usuario: datos.usuario,
+      user: datos.user,
+      password: datos.password,
+      contrasena: datos.contrasena,
+      comision: datos.comision,
+      comisionPorcentaje: datos.comisionPorcentaje
+    });
+    toast("Guardado","Usuario y contraseña actualizados");
     cargarResumen();
   }catch(e){ toast("Error", e.message); }
   btn.disabled = false; btn.textContent = 'Guardar cambios';
