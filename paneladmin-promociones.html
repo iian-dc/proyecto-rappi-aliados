@@ -12,7 +12,6 @@ body{background:#f5f5f7;min-height:100vh;padding-bottom:30px}
 .header-left{display:flex;align-items:center;gap:12px}
 .btn-close{width:38px;height:38px;background:#E30613;border-radius:50%;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 12px rgba(227,6,19,0.3)}
 .header-title{font-size:16px;font-weight:800}
-/* SOLO NUEVO - LAYOUT 3 COLUMNAS EN PC */
 .container{padding:16px;max-width:1280px;margin:0 auto}
 .layout3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;align-items:start}
 @media(max-width:900px){.layout3{grid-template-columns:1fr}}
@@ -66,7 +65,6 @@ body{background:#f5f5f7;min-height:100vh;padding-bottom:30px}
 </div>
 
 <div class="container">
-  <!-- SOLO NUEVO - 3 COLUMNAS -->
   <div class="layout3">
   <div class="card">
     <h3 id="formTitle">Nueva promoción / banner</h3>
@@ -103,12 +101,13 @@ body{background:#f5f5f7;min-height:100vh;padding-bottom:30px}
 
   <div class="card">
     <h3>Listado de promociones</h3>
+    <p style="font-size:11px;color:#94a3b8;margin-bottom:12px">Solo las que están activas / en proceso.</p>
     <div id="listaBanners" class="lista"><div class="empty">Cargando...</div></div>
   </div>
 
   <div class="card">
     <h3>Promociones realizadas</h3>
-    <p style="font-size:11px;color:#94a3b8;margin-bottom:12px">Promociones que ya terminaron o se apagaron, con el cliente que la pagó.</p>
+    <p style="font-size:11px;color:#94a3b8;margin-bottom:12px">Las que ya culminaron. Cliente que la pagó.</p>
     <div id="listaRealizadas" class="lista"><div class="empty">Sin promociones realizadas aún</div></div>
   </div>
   </div>
@@ -155,6 +154,11 @@ function estaVigente(b){
   if(b.fechaFin && Date.now() > b.fechaFin) return false;
   if(b.fechaInicio && Date.now() < b.fechaInicio) return false;
   return true;
+}
+// SOLO NUEVO - YA TERMINÓ = PASÓ SU HORA DE FIN
+function estaRealizada(b){
+  if(b.fechaFin && Date.now() > b.fechaFin) return true;
+  return false;
 }
 
 onValue(ref(db, 'doloya_aliados'), snap=>{
@@ -240,41 +244,49 @@ window.guardarBanner = async ()=>{
   document.getElementById('btnGuardar').disabled = false;
 };
 
+// SOLO NUEVO - SIN DUPLICADOS: CENTRO SOLO ACTIVAS, DERECHA SOLO TERMINADAS
 function renderListas(){
   const lista = document.getElementById('listaBanners');
   const listaReal = document.getElementById('listaRealizadas');
   const val = bannersData;
-  if(!val || Object.keys(val).length===0){ lista.innerHTML = '<div class="empty">Sin promociones aún</div>'; listaReal.innerHTML = '<div class="empty">Sin promociones realizadas aún</div>'; return; }
+  if(!val || Object.keys(val).length===0){ lista.innerHTML = '<div class="empty">Sin promociones activas</div>'; listaReal.innerHTML = '<div class="empty">Sin promociones realizadas aún</div>'; return; }
   const arr = Object.entries(val).sort((a,b)=> (b[1].fecha||0)-(a[1].fecha||0));
   lista.innerHTML = '';
   listaReal.innerHTML = '';
+  let activas = 0;
   let realizadas = 0;
   arr.forEach(([id, b])=>{
     const vigente = estaVigente(b);
-    if(!vigente && b.activo!==false && b.fechaFin && Date.now() > b.fechaFin){
+    const realizada = estaRealizada(b);
+    // Si ya venció pero sigue marcado activo, apagarlo solo para que no salga en inicio
+    if(realizada && b.activo!==false){
       update(ref(db, 'config_global/banners_promociones/'+id), {activo:false});
     }
-    const div = document.createElement('div');
-    div.className = 'banner-item' + (vigente ? '' : ' apagada');
-    div.innerHTML = `
-      <img src="${b.imagen}" onerror="this.src='https://via.placeholder.com/70x50'">
-      <div class="banner-info">
-        <b>${b.titulo}</b>
-        <small>${b.subtitulo || ''} ${b.restauranteNombre ? '→ '+b.restauranteNombre : '(sin vínculo)'}</small>
-        <span class="estado-badge ${vigente?'activa':'apagada'}">${vigente?'● ACTIVA':'○ APAGADA'}</span>
-        <span class="horario-txt">${b.fechaInicio?fmtFecha(b.fechaInicio):''} ${b.fechaFin?' → '+fmtFecha(b.fechaFin):''}</span>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:6px;align-items:center">
-        <div class="toggle ${vigente?'on':''}" onclick="toggleActivo('${id}', ${b.activo!==false})"><div class="toggle-dot"></div></div>
-      </div>
-      <div class="actions">
-        <button class="btn-icon" onclick="editarBanner('${id}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
-        <button class="btn-icon btn-del" onclick="borrarBanner('${id}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#E30613" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>
-      </div>
-    `;
-    lista.appendChild(div);
-    const esRealizada = (b.fechaFin && Date.now() > b.fechaFin) || (b.activo===false && b.fechaFin);
-    if(esRealizada){
+    // CENTRO: SOLO ACTIVAS / EN PROCESO
+    if(vigente && !realizada){
+      activas++;
+      const div = document.createElement('div');
+      div.className = 'banner-item';
+      div.innerHTML = `
+        <img src="${b.imagen}" onerror="this.src='https://via.placeholder.com/70x50'">
+        <div class="banner-info">
+          <b>${b.titulo}</b>
+          <small>${b.subtitulo || ''} ${b.restauranteNombre ? '→ '+b.restauranteNombre : '(sin vínculo)'}</small>
+          <span class="estado-badge activa">● ACTIVA</span>
+          <span class="horario-txt">${b.fechaInicio?fmtFecha(b.fechaInicio):''} ${b.fechaFin?' → '+fmtFecha(b.fechaFin):''}</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;align-items:center">
+          <div class="toggle on" onclick="toggleActivo('${id}', true)"><div class="toggle-dot"></div></div>
+        </div>
+        <div class="actions">
+          <button class="btn-icon" onclick="editarBanner('${id}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+          <button class="btn-icon btn-del" onclick="borrarBanner('${id}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#E30613" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>
+        </div>
+      `;
+      lista.appendChild(div);
+    }
+    // DERECHA: SOLO TERMINADAS
+    if(realizada){
       realizadas++;
       const r = document.createElement('div');
       r.className = 'realizada-item';
@@ -290,6 +302,7 @@ function renderListas(){
       listaReal.appendChild(r);
     }
   });
+  if(activas===0) lista.innerHTML = '<div class="empty">Sin promociones activas</div>';
   if(realizadas===0) listaReal.innerHTML = '<div class="empty">Sin promociones realizadas aún</div>';
 }
 
