@@ -23,8 +23,6 @@ body{background:#CF0A2C;min-height:100vh;display:flex;justify-content:center}
 .forgot{width:100%;text-align:right;color:white;font-size:13px;font-weight:600;margin:-2px 6px 18px 0;cursor:pointer;text-decoration:underline}
 .btn-login{width:100%;background:white;border:none;border-radius:999px;padding:15px;font-size:19px;font-weight:800;color:#CF0A2C;cursor:pointer}
 .terms{color:white;font-size:10.5px;text-align:center;margin-top:14px;opacity:.9}
-
-/* MODAL OLVIDO CONTRASEÑA PANTALLA COMPLETA */
 .modal-olvido{position:fixed;inset:0;background:#CF0A2C;z-index:500;display:none;flex-direction:column;overflow:auto}
 .modal-olvido.show{display:flex}
 .modal-olvido-header{padding:16px 20px;display:flex;align-items:center;justify-content:space-between;background:#CF0A2C;position:sticky;top:0}
@@ -80,7 +78,6 @@ body{background:#CF0A2C;min-height:100vh;display:flex;justify-content:center}
   <p class="terms">Al continuar, aceptas nuestros términos y políticas de privacidad</p>
 </div>
 
-<!-- FORMULARIO OLVIDO CONTRASEÑA -->
 <div class="modal-olvido" id="modalOlvido">
   <div class="modal-olvido-header">
     <h2>Recuperar contraseña</h2>
@@ -111,8 +108,7 @@ body{background:#CF0A2C;min-height:100vh;display:flex;justify-content:center}
 </div>
 
 <script>
-const NUMERO_WHATSAPP = "524181083793"; // CAMBIA AQUI TU NUMERO CON CODIGO PAIS SIN +
-
+const NUMERO_WHATSAPP = "524181083793";
 function toggleClear(inputId, btnId){
   const input = document.getElementById(inputId);
   const btn = document.getElementById(btnId);
@@ -197,32 +193,64 @@ window.iniciarSesion = async function(){
       return;
     }
     const datos = snap.val();
+    // SOLO MODIFICADO - BUSCA USUARIO / CONTRASEÑA EN INFO + RAIZ, Y EN ESTRUCTURA VIEJA categoria/restaurante
+    function probarNodo(key, nodo){
+      if(!nodo || typeof nodo !== 'object') return null;
+      const info = nodo.info || {};
+      // Usuarios posibles: info + raiz
+      const usuarios = [info.usuario, info.user, info.correo, info.email, nodo.usuario, nodo.user, nodo.correo, nodo.email, key, info.id].map(v=>String(v||'').trim().toLowerCase()).filter(Boolean);
+      // Contraseñas posibles: info + raiz
+      const passwords = [info.password, info.contraseña, info.contrasena, nodo.password, nodo.contraseña, nodo.contrasena].map(v=>String(v||'').trim()).filter(Boolean);
+      const okUser = usuarios.includes(user);
+      const okPass = passwords.includes(pass);
+      if(okUser && okPass){
+        return { key, nodo, info };
+      }
+      return null;
+    }
     for(const key in datos){
       if(key === 'admin') continue;
       const nodo = datos[key];
-      if(!nodo || !nodo.info) continue;
-      const info = nodo.info;
-      const u = String(info.usuario||'').trim().toLowerCase();
-      const e = String(info.correo||'').trim().toLowerCase();
-      const id = String(key||'').trim().toLowerCase();
-      const idInfo = String(info.id||'').trim().toLowerCase();
-      const p1 = String(info.password||'').trim();
-      const p2 = String(info.contraseña||'').trim();
-      const okUser = (u===user || e===user || id===user || idInfo===user);
-      const okPass = (p1===pass || p2===pass);
-      if(okUser && okPass){
+      if(!nodo || typeof nodo !== 'object') continue;
+      // 1. Directo: doloya_aliados/santillos
+      let encontrado = probarNodo(key, nodo);
+      if(encontrado){
+        const info = encontrado.info;
         localStorage.setItem('doloya_aliado_sesion', JSON.stringify({
           rol:'aliado',
-          usuario: info.usuario,
+          usuario: info.usuario || nodo.usuario || nodo.user || key,
           id: info.id || key,
-          nombre: info.nombre || key,
+          nombre: info.nombre || nodo.nombre || key,
           negocio: key,
-          categoria: info.categoria || 'general',
-          correo: info.correo || '',
-          telefono: info.telefono || ''
+          categoria: info.categoria || nodo.categoria || 'general',
+          correo: info.correo || nodo.correo || '',
+          telefono: info.telefono || nodo.telefono || ''
         }));
         window.location.href='panelaliado.html';
         return;
+      }
+      // 2. Viejo: doloya_aliados/alitas/santillos
+      if(!nodo.info){
+        for(const subKey in nodo){
+          const subNodo = nodo[subKey];
+          if(!subNodo || typeof subNodo !== 'object' || !subNodo.info && !subNodo.usuario && !subNodo.password) continue;
+          const enc2 = probarNodo(subKey, subNodo);
+          if(enc2){
+            const info2 = enc2.info;
+            localStorage.setItem('doloya_aliado_sesion', JSON.stringify({
+              rol:'aliado',
+              usuario: info2.usuario || subNodo.usuario || subNodo.user || subKey,
+              id: info2.id || subKey,
+              nombre: info2.nombre || subNodo.nombre || subKey,
+              negocio: subKey,
+              categoria: info2.categoria || subNodo.categoria || key,
+              correo: info2.correo || subNodo.correo || '',
+              telefono: info2.telefono || subNodo.telefono || ''
+            }));
+            window.location.href='panelaliado.html';
+            return;
+          }
+        }
       }
     }
   }catch(e){
