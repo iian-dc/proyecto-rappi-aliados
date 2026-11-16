@@ -68,7 +68,6 @@ body{background:#f8f8f9;min-height:100vh}
 .bell-badge.show{transform:scale(1)}
 .bell-badge.pulse{animation:badgePulse .4s ease}
 @keyframes badgePulse{0%{transform:scale(1)}50%{transform:scale(1.35)}100%{transform:scale(1)}}
-/* ===== MODAL CANCELAR ===== */
 .modal-cancel{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:100;align-items:center;justify-content:center;padding:16px}
 .modal-cancel.open{display:flex}
 .modal-box{background:white;width:100%;max-width:400px;border-radius:20px;padding:22px}
@@ -129,7 +128,6 @@ body{background:#f8f8f9;min-height:100vh}
 </div>
 <div class="container" id="listaPedidos"><div class="empty">Cargando pedidos...</div></div>
 
-<!-- MODAL CANCELAR -->
 <div class="modal-cancel" id="modalCancelar">
   <div class="modal-box">
     <h3>¿Cancelar pedido?</h3>
@@ -223,7 +221,25 @@ function render(lista){
   filtrados.forEach((p)=>{
     const productos=p.productos||[]; const totales=p.totales||{}; let costoProductos=totales.costoProductos||0;
     if(!costoProductos){ productos.forEach(pr=>{ costoProductos+= (pr.cantidad||1)*parseFloat(pr.precio||0); }); }
-    const costoOriginal=parseFloat(costoProductos); const costoFinal=(costoOriginal*0.9).toFixed(0);
+    const costoOriginal=parseFloat(costoProductos);
+    // SOLO MODIFICADO - ANTES ERA FIJO 0.9 (10%). AHORA LEE EL % REAL QUE VIENE EN EL PEDIDO
+    const porcComision = (totales.comisionPorcentaje ?? p.comision?.porcentaje ?? p.comisionPorcentaje ?? p.comision?.porcentajeComision ?? null);
+    const montoComisionGuardado = (totales.comisionMonto ?? p.comision?.monto ?? null);
+    let costoFinalNum = costoOriginal;
+    let textoComision = '';
+    if(porcComision !== null && porcComision !== undefined && porcComision !== ''){
+      const porcNum = parseFloat(porcComision);
+      if(!isNaN(porcNum)){
+        costoFinalNum = costoOriginal * (1 - porcNum/100);
+        textoComision = `Comisión DoloYa ${porcNum}% • Te quedan $${costoFinalNum.toFixed(0)} MXN`;
+      }
+    } else if(montoComisionGuardado !== null && montoComisionGuardado !== undefined && montoComisionGuardado !== ''){
+      const m = parseFloat(montoComisionGuardado);
+      if(!isNaN(m)){ costoFinalNum = costoOriginal - m; textoComision = `Comisión DoloYa $${m.toFixed(0)} • Te quedan $${costoFinalNum.toFixed(0)} MXN`; }
+    } else {
+      textoComision = `Sin comisión guardada • Te quedan $${costoFinalNum.toFixed(0)} MXN`;
+    }
+    const costoFinal=costoFinalNum.toFixed(0);
     const nombreCliente=obtenerNombreCliente(p); const codigoReal=p.codigo||'ST-00'; const estado=p.estado||'nuevo';
     let claseEstado='', badgeClass='badge-nuevo', badgeText='Nuevo';
     if(estado==='aceptado'){ claseEstado='aceptado'; badgeClass='badge-nuevo verde'; badgeText='Aceptado'; }
@@ -234,7 +250,7 @@ function render(lista){
     else if(p.fecha){ const d=new Date(p.fecha); tsSec=Math.floor(d.getTime()/1000); fechaStr=d.toLocaleDateString('es-MX',{day:'2-digit',month:'2-digit',year:'2-digit'}); horaStr=d.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit',hour12:true}); }
     const tiempo=calcularTiempoReal(tsSec);
     const div=document.createElement('div'); div.className=`card ${claseEstado}`; div.dataset.ts=tsSec; div.id=`card-${p.id}`;
-    div.innerHTML=`<div class="overlay-preg" id="overlay-${p.id}"><h3>¿Está listo tu producto?<br>Ya puede venir repartidor por él</h3><div style="display:flex;gap:12px"><button class="btn-si" onclick="confirmarListo('${p.id}')">Sí</button><button class="btn-no" onclick="negarListo('${p.id}')">No</button></div></div><div class="card-left"><span class="${badgeClass}"><span class="dot"></span> ${badgeText}</span><div><div class="cliente-line">cliente: <span>${nombreCliente}</span></div><div class="costo-box"><small>Costo del producto</small><span class="costo-original">$${costoOriginal.toFixed(0)} MXN</span><span class="costo-final">$${costoFinal} MXN</span></div></div></div><div class="card-center"></div><div class="card-right"><div class="prod-head"><div class="fecha-hora"><b>${fechaStr}</b> ${horaStr} <span class="tiempo-real ${tiempo.clase}" data-ts="${tsSec}">${tiempo.iconoSvg}${tiempo.texto}</span></div><div class="codigo-pedido">${codigoReal}</div></div><div class="prod-list">${productos.map(pr=>`<div class="prod-item"><span><b>${pr.cantidad||1}x</b> ${pr.nombre||'Producto'}</span></div>`).join('')}</div><div class="actions"><button class="btn btn-verde" onclick="cambiarEstado('${p.id}','aceptado')">Aceptar</button><button class="btn btn-amarillo" onclick="cambiarEstado('${p.id}','en_preparacion')">Preparando</button><button class="btn btn-verde" onclick="preguntarListo('${p.id}')">Listo</button><button class="btn btn-cancelar" onclick="abrirCancelar('${p.id}','${codigoReal}')">✕ Cancelar</button></div></div>`;
+    div.innerHTML=`<div class="overlay-preg" id="overlay-${p.id}"><h3>¿Está listo tu producto?<br>Ya puede venir repartidor por él</h3><div style="display:flex;gap:12px"><button class="btn-si" onclick="confirmarListo('${p.id}')">Sí</button><button class="btn-no" onclick="negarListo('${p.id}')">No</button></div></div><div class="card-left"><span class="${badgeClass}"><span class="dot"></span> ${badgeText}</span><div><div class="cliente-line">cliente: <span>${nombreCliente}</span></div><div class="costo-box"><small>Costo del producto</small><span class="costo-original">$${costoOriginal.toFixed(0)} MXN</span><span class="costo-final">$${costoFinal} MXN</span><small style="color:#C50D1F;margin-top:4px">${textoComision}</small></div></div></div><div class="card-center"></div><div class="card-right"><div class="prod-head"><div class="fecha-hora"><b>${fechaStr}</b> ${horaStr} <span class="tiempo-real ${tiempo.clase}" data-ts="${tsSec}">${tiempo.iconoSvg}${tiempo.texto}</span></div><div class="codigo-pedido">${codigoReal}</div></div><div class="prod-list">${productos.map(pr=>`<div class="prod-item"><span><b>${pr.cantidad||1}x</b> ${pr.nombre||'Producto'}</span></div>`).join('')}</div><div class="actions"><button class="btn btn-verde" onclick="cambiarEstado('${p.id}','aceptado')">Aceptar</button><button class="btn btn-amarillo" onclick="cambiarEstado('${p.id}','en_preparacion')">Preparando</button><button class="btn btn-verde" onclick="preguntarListo('${p.id}')">Listo</button><button class="btn btn-cancelar" onclick="abrirCancelar('${p.id}','${codigoReal}')">✕ Cancelar</button></div></div>`;
     cont.appendChild(div);
   });
 }
@@ -307,7 +323,6 @@ window.negarListo=async(id)=>{
   card.classList.remove('confirmando'); card.classList.add('preparando');
   try{ await updateDoc(doc(db,"pedidos",id),{estado:'en_preparacion', actualizadoEn: new Date()}); }catch(e){}
 }
-// ===== CANCELAR PEDIDO =====
 window.abrirCancelar=(id,codigo)=>{
   pedidoACancelar=id;
   document.getElementById('modalCancelarCodigo').textContent='Pedido '+codigo+' - El cliente verá que fue cancelado por el restaurante.';
@@ -334,7 +349,6 @@ window.confirmarCancelacion=async()=>{
     const ref=doc(db,"pedidos",pedidoACancelar);
     const snap=await getDoc(ref);
     const data=snap.exists()?snap.data():{};
-    // 1. Actualiza el pedido original para que el cliente lo vea cancelado
     await updateDoc(ref,{
       estado:'cancelado',
       motivoCancelacion: motivo,
@@ -342,7 +356,6 @@ window.confirmarCancelacion=async()=>{
       canceladoEn: new Date(),
       actualizadoEn: new Date()
     });
-    // 2. Copia a pedidos_cancelados para tu panel admin
     await setDoc(doc(db,"pedidos_cancelados",pedidoACancelar),{
       ...data,
       estado:'cancelado',
