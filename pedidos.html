@@ -127,7 +127,6 @@ body{background:#f8f8f9;min-height:100vh}
   <button class="tab" data-f="listo">Listos <span class="count" id="c-listo">0</span></button>
 </div>
 <div class="container" id="listaPedidos"><div class="empty">Cargando pedidos...</div></div>
-
 <div class="modal-cancel" id="modalCancelar">
   <div class="modal-box">
     <h3>¿Cancelar pedido?</h3>
@@ -144,6 +143,8 @@ body{background:#f8f8f9;min-height:100vh}
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
 import { getFirestore, collection, onSnapshot, doc, updateDoc, getDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+// SOLO NUEVO - CONEXION A REALTIME PARA LEER LA COMISION EN VIVO DEL ADMIN
+import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js";
 const configConfirmacion = {
   apiKey: "AIzaSyDLKngPyi_SWAXEQwdrHO5h8L8OufulAR4",
   authDomain: "doloya-confirmacion.firebaseapp.com",
@@ -152,8 +153,20 @@ const configConfirmacion = {
   messagingSenderId: "832228761099",
   appId: "1:832228761099:web:ddd4b6a0ee0d7f0494b10e"
 };
+const configAliados = {
+  apiKey: "AIzaSyD286qlJQT8D3rqbYTSfCyuTAEg9jjRchQ",
+  authDomain: "doloya-aliados.firebaseapp.com",
+  databaseURL: "https://doloya-aliados-default-rtdb.firebaseio.com",
+  projectId: "doloya-aliados",
+  storageBucket: "doloya-aliados.firebasestorage.app",
+  messagingSenderId: "122314467740",
+  appId: "1:122314467740:web:9947a0a9560557e3a00059"
+};
 const app = initializeApp(configConfirmacion);
 const db = getFirestore(app);
+// SOLO NUEVO - APP ALIADOS PARA LEER COMISION
+const appAliados = initializeApp(configAliados, "aliadosPedidos");
+const dbAliadosRT = getDatabase(appAliados);
 const sesion = JSON.parse(localStorage.getItem('doloya_aliado_sesion')||'null');
 const idNegocio = sesion?.id || sesion?.negocio || 'burgers';
 const mapaCat = { alitas:'alitas', burgers:'burgers', pizzas:'pizzas' };
@@ -164,6 +177,54 @@ const bell = document.getElementById('bellIcon');
 const bellCountEl = document.getElementById('bellCount');
 let primerCarga=true, ultimoTotal=0, pedidosCache=[], filtroActual='todos';
 let pedidoACancelar = null;
+
+// SOLO NUEVO - MAPA DE COMISIONES EN VIVO DESDE EL ADMIN
+let comisionesVivo = {};
+function normalizarTxt(t){ return String(t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().replace(/[_-]+/g,' ').replace(/\s+/g,' '); }
+function extraerComisionNodo(nodo){
+  if(!nodo || typeof nodo !== 'object') return null;
+  const v = nodo.comision ?? nodo.comisionPorcentaje ?? nodo.info?.comision ?? nodo.info?.comisionPorcentaje ?? null;
+  if(v === null || v === undefined || v === '') return null;
+  const n = parseFloat(v);
+  return isNaN(n) ? null : n;
+}
+function buscarComisionVivo(idRest, catRest, nombreRest){
+  const idN = normalizarTxt(idRest);
+  const nomN = normalizarTxt(nombreRest);
+  // Busca por id o nombre exacto en todo el mapa
+  for(const k of Object.keys(comisionesVivo)){
+    if(k === idN || k === nomN) return comisionesVivo[k];
+  }
+  // Si solo hay un restaurante en el mapa, usa ese (es el del aliado logueado)
+  return null;
+}
+onValue(ref(dbAliadosRT, 'doloya_aliados'), (snap)=>{
+  comisionesVivo = {};
+  if(!snap.exists()) return;
+  const todos = snap.val();
+  function recorrer(nodo, clave){
+    if(!nodo || typeof nodo !== 'object') return;
+    const c = extraerComisionNodo(nodo);
+    if(c !== null){
+      comisionesVivo[normalizarTxt(clave)] = c;
+      if(nodo.info?.nombre) comisionesVivo[normalizarTxt(nodo.info.nombre)] = c;
+      if(nodo.nombre) comisionesVivo[normalizarTxt(nodo.nombre)] = c;
+    }
+    // Baja un nivel: doloya_aliados/categoria/restaurante
+    for(const k of Object.keys(nodo)){
+      const hijo = nodo[k];
+      if(hijo && typeof hijo === 'object' && !Array.isArray(hijo) && (hijo.info || hijo.comision !== undefined || hijo.categorias)){
+        recorrer(hijo, k);
+      }
+    }
+  }
+  for(const k of Object.keys(todos)){
+    if(k === 'admin') continue;
+    recorrer(todos[k], k);
+  }
+  if(pedidosCache.length) render(pedidosCache);
+});
+
 function desbloquearAudio(){try{const ctx=new (window.AudioContext||window.webkitAudioContext)();if(ctx.state==='suspended')ctx.resume();}catch{}}
 document.body.addEventListener('click',()=>{desbloquearAudio();},{once:true});
 document.body.addEventListener('touchstart',()=>{desbloquearAudio();},{once:true});
@@ -222,8 +283,12 @@ function render(lista){
     const productos=p.productos||[]; const totales=p.totales||{}; let costoProductos=totales.costoProductos||0;
     if(!costoProductos){ productos.forEach(pr=>{ costoProductos+= (pr.cantidad||1)*parseFloat(pr.precio||0); }); }
     const costoOriginal=parseFloat(costoProductos);
-    // SOLO MODIFICADO - ANTES ERA FIJO 0.9 (10%). AHORA LEE EL % REAL QUE VIENE EN EL PEDIDO
-    const porcComision = (totales.comisionPorcentaje ?? p.comision?.porcentaje ?? p.comisionPorcentaje ?? p.comision?.porcentajeComision ?? null);
+    // SOLO MODIFICADO - 1. PEDIDO, 2. SI NO TRAE, BUSCA EN VIVO EN EL ADMIN
+    let porcComision = (totales.comisionPorcentaje ?? p.comision?.porcentaje ?? p.comisionPorcentaje ?? null);
+    if(porcComision === null || porcComision === undefined || porcComision === '' || parseFloat(porcComision) === 0){
+      const vivo = buscarComisionVivo(p.restaurante?.id || idNegocio, p.restaurante?.cat, p.restaurante?.nombre);
+      if(vivo !== null && vivo !== undefined) porcComision = vivo;
+    }
     const montoComisionGuardado = (totales.comisionMonto ?? p.comision?.monto ?? null);
     let costoFinalNum = costoOriginal;
     let textoComision = '';
