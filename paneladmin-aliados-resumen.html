@@ -15,18 +15,41 @@ body{background:#fff;min-height:100vh}
 .divider{width:2px;height:36px;background:rgba(255,255,255,0.35);flex-shrink:0}
 .top-text h1{color:white;font-size:26px;font-weight:800;line-height:1}
 .top-text p{color:rgba(255,255,255,0.9);font-size:13.5px;font-weight:400;margin-top:4px}
+/* SOLO NUEVO - BOTON ELIMINAR ARRIBA DERECHA */
+.btn-eliminar-top{margin-left:auto;background:white;color:var(--rojo2);border:none;border-radius:999px;padding:9px 16px;font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:7px;white-space:nowrap;flex-shrink:0}
+.btn-eliminar-top svg{width:17px;height:17px;stroke:var(--rojo2);stroke-width:2;fill:none}
 .main{padding:22px;display:flex;justify-content:center}
-.card-resumen{width:100%;max-width:980px;background:white;border:1.5px solid #E8E9F0;border-radius:12px;overflow:hidden}
-.resumen-body{padding:22px;display:grid;grid-template-columns:1fr 1fr;gap:16px}
-@media(max-width:700px){.resumen-body{grid-template-columns:1fr}}
-.stat-card{border:1.5px solid #E8E9F0;border-radius:10px;padding:16px;display:flex;align-items:center;gap:14px;background:#F8FAFF}
+.card-resumen{width:100%;max-width:1100px;background:white;border:1.5px solid #E8E9F0;border-radius:12px;overflow:hidden}
+/* SOLO NUEVO - 3 COLUMNAS: IZQ / CENTRO / DER */
+.resumen-body{padding:22px;display:grid;grid-template-columns:1fr 1.1fr 1.1fr;gap:16px}
+@media(max-width:900px){.resumen-body{grid-template-columns:1fr}}
+.col-titulo{font-size:13px;font-weight:800;color:#111827;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;padding-bottom:8px;border-bottom:1.5px solid #F0F0F5}
+.info-card{border:1.5px solid #E8E9F0;border-radius:10px;padding:16px;background:#fff}
+.info-logo{width:100%;height:150px;border-radius:10px;object-fit:cover;background:#F8FAFF;display:block}
+.info-logo-placeholder{width:100%;height:150px;border-radius:10px;background:#FEE2E2;display:flex;align-items:center;justify-content:center;font-size:42px;font-weight:900;color:var(--rojo2)}
+.info-nombre{font-size:19px;font-weight:800;color:#111827;margin-top:12px;line-height:1.2;text-transform:capitalize}
+.info-line{font-size:13px;color:#6B7280;margin-top:8px;line-height:1.4;display:flex;gap:8px}
+.info-line b{color:#111827;min-width:70px}
+.badge-cat{display:inline-block;background:#FEF3C7;color:#92400E;font-size:11px;font-weight:800;padding:4px 10px;border-radius:999px;margin-top:10px;text-transform:capitalize}
+.stat-card{border:1.5px solid #E8E9F0;border-radius:10px;padding:16px;display:flex;align-items:center;gap:14px;background:#F8FAFF;margin-bottom:12px}
 .stat-icon{width:52px;height:52px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .stat-icon svg{width:26px;height:26px;stroke-width:2;fill:none}
 .stat-info b{font-size:22px;font-weight:800;color:#111827;display:block;line-height:1}
 .stat-info span{font-size:12.5px;color:#6B7280;font-weight:600;margin-top:4px;display:block}
-.footer{border-top:1.5px solid #F0F0F5;padding:18px 22px;display:flex;justify-content:flex-end;background:white}
-.btn-eliminar{flex:1;max-width:420px;height:48px;border:none;background:var(--rojo2);border-radius:10px;font-size:14px;font-weight:700;color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
-.btn-eliminar svg{width:20px;height:20px;stroke:white;stroke-width:2;fill:none}
+.edit-card{border:1.5px solid #E8E9F0;border-radius:10px;padding:16px;background:#fff}
+.campo{margin-bottom:12px}
+.campo label{font-size:12px;font-weight:700;color:#6B7280;display:block;margin-bottom:5px}
+.campo input,.campo select{width:100%;height:42px;border:1.5px solid #E5E9F0;border-radius:8px;padding:0 12px;font-size:14px;font-weight:600;outline:none}
+.campo input:focus{border-color:var(--rojo2)}
+.comision-box{background:#FFF1F2;border:1.5px solid #FECDD3;border-radius:10px;padding:12px;display:flex;align-items:center;gap:10px}
+.comision-box input{width:90px;height:42px;text-align:center;font-size:18px;font-weight:800;border:1.5px solid #FECDD3;border-radius:8px;outline:none}
+.btn-guardar{width:100%;height:46px;background:var(--rojo2);color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;margin-top:4px}
+.btn-guardar:disabled{opacity:.6}
+.mes-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.mes-row span{font-size:12px;font-weight:600;color:#6B7280;width:38px}
+.barra{flex:1;height:12px;background:#F0F0F5;border-radius:999px;overflow:hidden}
+.barra-fill{height:100%;background:var(--rojo2);border-radius:999px}
+.mes-valor{font-size:12px;font-weight:800;color:#111827;width:70px;text-align:right}
 #overlayConfirm{position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;display:none;align-items:center;justify-content:center;padding:20px}
 #overlayConfirm.show{display:flex}
 .confirm-card{background:white;border-radius:16px;padding:24px;min-width:320px;max-width:400px;width:100%;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,0.3);border-top:4px solid var(--rojo2)}
@@ -59,41 +82,86 @@ body{background:#fff;min-height:100vh}
   <button class="btn-x" onclick="window.location.href='paneladmin-aliados.html'"><svg viewBox="0 0 24 24"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg></button>
   <div class="divider"></div>
   <div class="top-text"><h1>Resumen</h1><p id="subResumen">Estadísticas de tu negocio</p></div>
+  <!-- SOLO MOVIDO - ELIMINAR ARRIBA DERECHA, FONDO BLANCO TEXTO ROJO -->
+  <button class="btn-eliminar-top" onclick="abrirConfirm()">
+    <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+    Eliminar restaurante
+  </button>
 </div>
 
 <div class="main">
   <div class="card-resumen">
     <div class="resumen-body">
-      <div class="stat-card">
-        <div class="stat-icon" style="background:#FEE2E2"><svg viewBox="0 0 24 24" stroke="#C50D1F"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8M8 11h8M8 15h5"/></svg></div>
-        <div class="stat-info"><b id="txtPedidos">0</b><span>Pedidos totales</span></div>
+
+      <!-- IZQUIERDA - INFO DEL RESTAURANTE -->
+      <div>
+        <div class="col-titulo">Información del restaurante</div>
+        <div class="info-card">
+          <img id="imgLogo" class="info-logo" style="display:none">
+          <div id="logoPlaceholder" class="info-logo-placeholder">🍔</div>
+          <div class="info-nombre" id="infoNombre">Cargando...</div>
+          <span class="badge-cat" id="infoCategoria">Categoría</span>
+          <div class="info-line"><b>Teléfono:</b><span id="infoTelefono">-</span></div>
+          <div class="info-line"><b>Ubicación:</b><span id="infoUbicacion">-</span></div>
+          <div class="info-line"><b>Estado:</b><span id="infoEstado">-</span></div>
+          <div class="info-line"><b>Horario:</b><span id="infoHorario">-</span></div>
+        </div>
       </div>
-      <div class="stat-card">
-        <div class="stat-icon" style="background:#FCE7F3"><svg viewBox="0 0 24 24" stroke="#DB2777"><path d="M20.8 8.2a5.5 5.5 0 0 0-7.8-7.8L12 1.5l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 17l7.8-7.8 1-1z"/></svg></div>
-        <div class="stat-info"><b id="txtLikes">0</b><span>Likes</span></div>
+
+      <!-- CENTRO - PEDIDOS / LIVES / PRODUCTOS / VENTAS -->
+      <div>
+        <div class="col-titulo">Pedidos y ventas</div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#FEE2E2"><svg viewBox="0 0 24 24" stroke="#C50D1F"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8M8 11h8M8 15h5"/></svg></div>
+          <div class="stat-info"><b id="txtPedidos">0</b><span>Pedidos totales</span></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#FCE7F3"><svg viewBox="0 0 24 24" stroke="#DB2777"><path d="M20.8 8.2a5.5 5.5 0 0 0-7.8-7.8L12 1.5l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 17l7.8-7.8 1-1z"/></svg></div>
+          <div class="stat-info"><b id="txtLikes">0</b><span>Likes</span></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#EDE9FE"><svg viewBox="0 0 24 24" stroke="#7C3AED"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></div>
+          <div class="stat-info"><b id="txtLives">0</b><span>Lives realizados</span></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#E0F2FE"><svg viewBox="0 0 24 24" stroke="#0284C7"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18"/></svg></div>
+          <div class="stat-info"><b id="txtProductos">0</b><span>Productos en menú</span></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#DCFCE7"><svg viewBox="0 0 24 24" stroke="#16A34A"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg></div>
+          <div class="stat-info"><b id="txtVentas">$0.00</b><span>Ventas generadas</span></div>
+        </div>
       </div>
-      <div class="stat-card">
-        <div class="stat-icon" style="background:#E0F2FE"><svg viewBox="0 0 24 24" stroke="#0284C7"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18"/></svg></div>
-        <div class="stat-info"><b id="txtProductos">0</b><span>Productos en menú</span></div>
+
+      <!-- DERECHA - EDITAR + COMISION + ESTADISTICAS POR MES -->
+      <div>
+        <div class="col-titulo">Editar restaurante</div>
+        <div class="edit-card">
+          <div class="campo"><label>Nombre</label><input id="editNombre" placeholder="Nombre del restaurante"></div>
+          <div class="campo"><label>Teléfono</label><input id="editTelefono" placeholder="Teléfono"></div>
+          <div class="campo"><label>Categoría</label><input id="editCategoria" placeholder="Ej: Pizzas, Burgers"></div>
+          <div class="campo"><label>Ubicación / Dirección</label><input id="editUbicacion" placeholder="Ubicación"></div>
+
+          <div class="campo"><label>Comisión DoloYa (%)</label>
+            <div class="comision-box"><input id="editComision" type="number" min="0" max="100" value="0"><span style="font-weight:800">% por pedido</span></div>
+            <p style="font-size:11px;color:#6B7280;margin-top:6px">Ej: 10% o 15% - se guarda en este restaurante.</p>
+          </div>
+
+          <button class="btn-guardar" id="btnGuardarCambios">Guardar cambios</button>
+        </div>
+
+        <div class="col-titulo" style="margin-top:16px">Ventas por mes</div>
+        <div class="edit-card" id="ventasMes">Cargando...</div>
       </div>
-      <div class="stat-card">
-        <div class="stat-icon" style="background:#DCFCE7"><svg viewBox="0 0 24 24" stroke="#16A34A"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg></div>
-        <div class="stat-info"><b id="txtVentas">$0.00</b><span>Ventas generadas</span></div>
-      </div>
-    </div>
-    <div class="footer">
-      <button class="btn-eliminar" onclick="abrirConfirm()">
-        <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-        Eliminar restaurante
-      </button>
+
     </div>
   </div>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-import { getDatabase, ref, get, remove } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js";
-import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+import { getDatabase, ref, get, remove, update } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
 const firebaseConfigAliados = {
   apiKey: "AIzaSyD286qlJQT8D3rqbYTSfCyuTAEg9jjRchQ",
@@ -117,8 +185,7 @@ const firebaseConfigPedidos = {
 const appAliados = initializeApp(firebaseConfigAliados, "aliadosResumen");
 const dbAliados = getDatabase(appAliados);
 const appPedidos = initializeApp(firebaseConfigPedidos, "pedidosResumen");
-import { getFirestore as getFS } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
-const dbPedidos = getFS(appPedidos);
+const dbPedidos = getFirestore(appPedidos);
 
 function getIdRestaurante(){
   const urlParams = new URLSearchParams(window.location.search);
@@ -140,20 +207,71 @@ function toast(t,m){
 }
 
 const idRest = getIdRestaurante();
+let pathBase = `doloya_aliados/${idRest}`;
 document.getElementById('subResumen').textContent = idRest.replace(/_/g,' ');
 document.getElementById('nombreBorrar').textContent = idRest;
 
 function normalize(t){ return String(t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim(); }
+function bonito(s){ if(!s) return '-'; return String(s).replace(/[_-]+/g,' ').replace(/\s+/g,' ').trim().split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1).toLowerCase()).join(' '); }
+
+async function buscarPathReal(){
+  const snapAll = await get(ref(dbAliados, 'doloya_aliados'));
+  if(!snapAll.exists()) return pathBase;
+  const todas = snapAll.val();
+  const target = normalize(idRest);
+  for(const k of Object.keys(todas)){ if(normalize(k)===target) return `doloya_aliados/${k}`; }
+  for(const cat of Object.keys(todas)){
+    const nivel = todas[cat];
+    if(typeof nivel!=='object'||!nivel) continue;
+    for(const key of Object.keys(nivel)){ if(normalize(key)===target) return `doloya_aliados/${cat}/${key}`; }
+  }
+  return pathBase;
+}
 
 async function cargarResumen(){
   try{
-    const snap = await get(ref(dbAliados, `doloya_aliados/${idRest}`));
+    pathBase = await buscarPathReal();
+    const snap = await get(ref(dbAliados, pathBase));
     let totalProductos = 0;
     let likes = 0;
+    let lives = 0;
+    let comision = 0;
     if(snap.exists()){
       const data = snap.val();
+      const info = data.info || data || {};
+      // IZQUIERDA - INFO
+      const nombre = info.nombre || data.nombre || idRest;
+      const logo = info.logo || info.imagen || info.image || data.logo || data.imagen || data.image || data.foto || '';
+      const cat = info.categoria || info.cat || data.categoria || data.cat || '';
+      const tel = info.telefono || info.phone || data.telefono || data.phone || '-';
+      const ubi = info.direccion || info.ubicacion || info.address || data.direccion || data.ubicacion || data.address || '-';
+      const abierto = data.categorias?.disponibilidad?.abierto;
+      const horarioTxt = data.horarios ? Object.entries(data.horarios).map(([d,h])=> d+': '+(h.abierto? h.inicio+'-'+h.fin : 'Cerrado')).slice(0,2).join(' | ') : '-';
+
+      document.getElementById('infoNombre').textContent = bonito(nombre);
+      document.getElementById('infoCategoria').textContent = cat ? bonito(cat) : 'Sin categoría';
+      document.getElementById('infoTelefono').textContent = tel;
+      document.getElementById('infoUbicacion').textContent = ubi;
+      document.getElementById('infoEstado').textContent = abierto === false ? 'Cerrado' : 'Abierto';
+      document.getElementById('infoHorario').textContent = horarioTxt;
+      if(logo){
+        const img = document.getElementById('imgLogo');
+        img.src = logo; img.style.display='block';
+        document.getElementById('logoPlaceholder').style.display='none';
+      }
+      // DERECHA - EDITAR PRELLENADO
+      document.getElementById('editNombre').value = nombre === idRest ? bonito(idRest) : nombre;
+      document.getElementById('editTelefono').value = tel === '-' ? '' : tel;
+      document.getElementById('editCategoria').value = cat || '';
+      document.getElementById('editUbicacion').value = ubi === '-' ? '' : ubi;
+      comision = data.comision ?? data.comisionPorcentaje ?? info.comision ?? 0;
+      document.getElementById('editComision').value = comision;
+
       if(data.likes !== undefined) likes = data.likes;
       if(data.info && data.info.likes) likes = data.info.likes;
+      lives = data.lives ?? data.live ?? data.totalLives ?? info.lives ?? 0;
+      if(typeof lives === 'object') lives = Object.keys(lives).length;
+
       if(data.categorias){
         for(const catKey in data.categorias){
           if(['disponibilidad','info','likes','banner','banners','carritos','direccion'].includes(catKey)) continue;
@@ -179,10 +297,13 @@ async function cargarResumen(){
     }
     document.getElementById('txtProductos').textContent = totalProductos;
     document.getElementById('txtLikes').textContent = likes;
+    document.getElementById('txtLives').textContent = lives;
 
     const qSnap = await getDocs(collection(dbPedidos, "pedidos"));
     let pedidosCount = 0;
     let ventasTotal = 0;
+    const porMes = {}; // "2026-01" -> total
+    const mesesNombres = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
     qSnap.forEach(doc=>{
       const d = doc.data();
       const r = d.restaurante || {};
@@ -192,16 +313,58 @@ async function cargarResumen(){
         pedidosCount++;
         const total = parseFloat(d.total || d.monto || 0);
         if(!isNaN(total)) ventasTotal += total;
+        // Fecha para estadistica por mes
+        let fecha = null;
+        if(d.fecha?.toDate) fecha = d.fecha.toDate();
+        else if(d.creadoEn?.toDate) fecha = d.creadoEn.toDate();
+        else if(d.fecha) fecha = new Date(d.fecha);
+        else if(d.timestamp) fecha = new Date(d.timestamp);
+        if(fecha && !isNaN(fecha)){
+          const key = fecha.getFullYear() + '-' + String(fecha.getMonth()+1).padStart(2,'0');
+          porMes[key] = (porMes[key]||0) + (isNaN(total)?0:total);
+        }
       }
     });
     document.getElementById('txtPedidos').textContent = pedidosCount;
     document.getElementById('txtVentas').textContent = "$" + ventasTotal.toFixed(2);
+
+    // DERECHA - VENTAS POR MES
+    const cont = document.getElementById('ventasMes');
+    const keys = Object.keys(porMes).sort().slice(-6);
+    if(keys.length===0){ cont.innerHTML = '<p style="font-size:13px;color:#6B7280">Aún no hay ventas registradas por mes.</p>'; }
+    else {
+      const max = Math.max(...keys.map(k=>porMes[k]), 1);
+      cont.innerHTML = keys.map(k=>{
+        const [y,m] = k.split('-');
+        return `<div class="mes-row"><span>${mesesNombres[parseInt(m)-1]}</span><div class="barra"><div class="barra-fill" style="width:${Math.max(4, porMes[k]/max*100)}%"></div></div><span class="mes-valor">$${porMes[k].toFixed(0)}</span></div>`;
+      }).join('');
+    }
 
   }catch(e){
     console.error(e);
     toast("Error","No se pudo cargar resumen");
   }
 }
+
+document.getElementById('btnGuardarCambios').addEventListener('click', async ()=>{
+  const btn = document.getElementById('btnGuardarCambios');
+  btn.disabled = true; btn.textContent = 'Guardando...';
+  try{
+    const datos = {
+      nombre: document.getElementById('editNombre').value.trim(),
+      telefono: document.getElementById('editTelefono').value.trim(),
+      categoria: document.getElementById('editCategoria').value.trim(),
+      ubicacion: document.getElementById('editUbicacion').value.trim(),
+      comision: parseFloat(document.getElementById('editComision').value) || 0,
+      comisionPorcentaje: parseFloat(document.getElementById('editComision').value) || 0,
+    };
+    // Guarda en info + raiz para que lo lean ambas partes
+    await update(ref(dbAliados, pathBase), { info: datos, comision: datos.comision, comisionPorcentaje: datos.comisionPorcentaje });
+    toast("Guardado","Cambios guardados en " + idRest);
+    cargarResumen();
+  }catch(e){ toast("Error", e.message); }
+  btn.disabled = false; btn.textContent = 'Guardar cambios';
+});
 
 window.abrirConfirm = function(){
   document.getElementById('overlayConfirm').classList.add('show');
@@ -213,9 +376,9 @@ window.confirmarEliminar = async function(){
   try{
     cerrarConfirm();
     toast("Eliminando...","Borrando restaurante");
-    const snapCheck = await get(ref(dbAliados, `doloya_aliados/${idRest}`));
+    const snapCheck = await get(ref(dbAliados, pathBase));
     if(snapCheck.exists()){
-      await remove(ref(dbAliados, `doloya_aliados/${idRest}`));
+      await remove(ref(dbAliados, pathBase));
     }
     await remove(ref(dbAliados, `doloya_tokens/${idRest}`)).catch(()=>{});
     toast("Eliminado", idRest + " eliminado correctamente");
