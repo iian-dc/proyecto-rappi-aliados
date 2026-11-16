@@ -45,7 +45,6 @@ body{background:#f9f9fb;min-height:100vh;display:flex}
 .topbar-left span.line{width:3px;height:18px;background:var(--rojo);border-radius:2px;display:inline-block}
 .topbar-left span.sub{font-size:13px;color:#111;font-weight:700;max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:capitalize}
 .topbar-right{display:flex;align-items:center;gap:10px}
-/* CORREGIDO - BOTON INSTALAR APP SIEMPRE VISIBLE, ANTES ESTABA EN display:none */
 .btn-instalar{display:flex;background:#111;color:white;border:none;border-radius:999px;padding:8px 14px;font-size:12px;font-weight:700;align-items:center;gap:6px;cursor:pointer}
 .bell{position:relative;cursor:pointer;width:38px;height:38px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:#FFF1F2}
 .bell-badge{position:absolute;top:-4px;right:-4px;background:#E30613 !important;color:#FFFFFF !important;font-size:10px;font-weight:900;min-width:20px;height:20px;border-radius:999px;display:flex;align-items:center;justify-content:center;padding:0 5px;border:2px solid white;z-index:2}
@@ -104,9 +103,7 @@ body{background:#f9f9fb;min-height:100vh;display:flex}
       <li><a href="panelaliado-historial.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M10 13h4M10 17h4"/></svg>Historial de órdenes</a></li>
       <li><a href="panelaliado-resumendeventas.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>Resumen de ventas</a></li>
       <li><a href="panelaliado-mirestaurante.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Mi restaurante</a></li>
-      <!-- SOLO NUEVO - HORARIOS -->
       <li><a href="panelaliado-horarios.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Horarios</a></li>
-      <!-- SOLO CORREGIDO - CONFIGURACION TUERCA COMPLETA -->
       <li><a href="#" id="linkConfig"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Configuración</a></li>
       <li><a href="#" id="linkAyuda"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Centro de ayuda</a></li>
     </ul>
@@ -117,7 +114,6 @@ body{background:#f9f9fb;min-height:100vh;display:flex}
   <div class="topbar">
     <div class="topbar-left"><button class="hamburger" onclick="toggleMenu()"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button><strong>Panel de aliados</strong><span class="line"></span><span class="sub" id="subTexto">Cargando...</span></div>
     <div class="topbar-right">
-      <!-- RESTABLECIDO - BOTON INSTALAR APP SIEMPRE VISIBLE -->
       <button id="btnInstalar" class="btn-instalar"><svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Instalar App</button>
       <div class="bell" id="bellIcon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C50D1F" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 6 5 6 9H0s6-2 6-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span class="bell-badge" id="bellBadge">0</span></div>
       <a href="index.html" class="btn-cerrar" onclick="cerrarSesion()"><span class="txt">Cerrar sesión</span></a>
@@ -271,11 +267,57 @@ else {
     });
   }
 
+  // ==== SOLO NUEVO - VINCULO BOTON ABIERTO / CERRADO CON HORARIOS ====
+  let horariosGuardados = null;
+  let cierreManual = false; // true si el aliado lo cerro a mano dentro del horario
+  const diasSemana = ['domingo','lunes','martes','miercoles','jueves','viernes','sabado'];
+  function aMinutos(hhmm){ if(!hhmm) return null; const p = String(hhmm).split(':'); return parseInt(p[0])*60 + parseInt(p[1]||0); }
+  function estaAbiertoSegunHorario(){
+    if(!horariosGuardados) return null; // aun no hay horarios, no forzamos nada
+    const ahora = new Date();
+    const diaHoy = diasSemana[ahora.getDay()];
+    const h = horariosGuardados[diaHoy];
+    if(!h) return null;
+    if(h.abierto === false) return false;
+    const ini = aMinutos(h.inicio), fin = aMinutos(h.fin);
+    if(ini == null || fin == null) return null;
+    const ahoraMin = ahora.getHours()*60 + ahora.getMinutes();
+    if(fin > ini) return ahoraMin >= ini && ahoraMin < fin; // ej 09:00 - 22:00
+    if(fin < ini) return ahoraMin >= ini || ahoraMin < fin; // cruza medianoche ej 18:00 - 02:00
+    return true;
+  }
+  function aplicarEstadoPorHorario(sincronizarFirebase){
+    const porHorario = estaAbiertoSegunHorario();
+    if(porHorario === null) return;
+    let final = porHorario;
+    if(porHorario === true && cierreManual) final = false; // cerrado a mano, aunque el horario diga abierto
+    if(final !== estadoActual){
+      estadoActual = final;
+      actualizarUIEstado(final);
+    } else {
+      actualizarUIEstado(final);
+    }
+    // Sincroniza para que el cliente tambien lo vea cerrado / abierto
+    if(sincronizarFirebase && refEstadoReal){
+      update(refEstadoReal, { abierto: final, estado: final ? 'activo' : 'cerrado' }).catch(()=>{});
+    }
+  }
+  function escucharHorarios(){
+    if(!pathBaseNegocio) return;
+    onValue(ref(dbAliados, `${pathBaseNegocio}/horarios`), (snap)=>{
+      horariosGuardados = snap.exists() ? snap.val() : null;
+      cierreManual = false; // al cambiar horarios se resetea el cierre manual
+      aplicarEstadoPorHorario(true);
+    });
+    setInterval(()=>{ aplicarEstadoPorHorario(true); }, 30000); // revision cada 30 seg en tiempo real
+  }
+
   // ==== ORGANIZADO UNIFICADO - SOPORTA LAS DOS FORMAS DE GUARDADO ====
   get(ref(dbAliados, 'doloya_aliados')).then(allSnap=>{
     if(!allSnap.exists()){
       refEstadoReal = ref(dbAliados, `${pathBaseNegocio}/categorias/disponibilidad`);
       escucharEstado(); 
+      escucharHorarios();
       return;
     }
     const todas = allSnap.val();
@@ -317,6 +359,7 @@ else {
 
     refEstadoReal = ref(dbAliados, `${pathBaseNegocio}/categorias/disponibilidad`);
     escucharEstado();
+    escucharHorarios();
   });
 
   function escucharEstado(){ 
@@ -324,17 +367,23 @@ else {
     onValue(refEstadoReal, (snap)=>{ 
       if(snap.exists()){ 
         const data = snap.val(); 
+        let manual = true;
         if(typeof data === 'boolean'){
-          estadoActual = data;
+          manual = data;
         } else if(data.abierto !== undefined){
-          estadoActual = data.abierto === true || data.abierto === 'true' || data.abierto === 'abierto';
+          manual = data.abierto === true || data.abierto === 'true' || data.abierto === 'abierto';
         } else if(data.estado !== undefined){
-          estadoActual = data.estado === 'abierto' || data.estado === 'activo';
+          manual = data.estado === 'abierto' || data.estado === 'activo';
         }
-        actualizarUIEstado(estadoActual); 
+        // Si hay horarios, el horario manda. Si no hay horarios, manda el boton manual.
+        if(horariosGuardados){
+          aplicarEstadoPorHorario(false);
+        } else {
+          estadoActual = manual;
+          actualizarUIEstado(manual);
+        }
       } else {
-        estadoActual = true;
-        actualizarUIEstado(true);
+        aplicarEstadoPorHorario(false);
       }
     }); 
   }
@@ -342,9 +391,18 @@ else {
   function actualizarUIEstado(abierto){ if(abierto){ switchEl.classList.add('on'); badgeEstado.textContent='ABIERTO'; badgeEstado.className='estado-badge abierto'; textoEstado.textContent='Abierto'; } else { switchEl.classList.remove('on'); badgeEstado.textContent='CERRADO'; badgeEstado.className='estado-badge cerrado'; textoEstado.textContent='Cerrado'; } }
 
   window.toggleEstado = function(){ 
-    const nuevo = !estadoActual; 
+    // SOLO MODIFICADO - RESPETA EL HORARIO
+    const porHorario = estaAbiertoSegunHorario();
+    if(porHorario === false){
+      // Fuera de horario o dia cerrado: no se puede abrir a mano
+      actualizarUIEstado(false); estadoActual = false;
+      return;
+    }
+    // Dentro del horario: permite cierre manual de emergencia, y volver a abrir
+    const nuevo = !estadoActual;
+    cierreManual = !nuevo;
+    estadoActual = nuevo;
     actualizarUIEstado(nuevo); 
-    estadoActual = nuevo; 
     if(!refEstadoReal) refEstadoReal = ref(dbAliados, `${pathBaseNegocio}/categorias/disponibilidad`); 
     update(refEstadoReal, { abierto: nuevo, estado: nuevo ? 'activo' : 'cerrado' });
   }
