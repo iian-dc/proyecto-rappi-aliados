@@ -88,6 +88,33 @@ body{background:#f9f9fb;min-height:100vh;display:flex}
   }
   .btn-instalar{padding:6px 10px;font-size:11px}
 }
+/* SOLO NUEVO - BOTONES DE ARRIBA PARA CELULAR, BIEN ORGANIZADOS EN UNA SOLA LINEA */
+@media(max-width:900px){
+  .topbar{padding:8px 10px;gap:8px;flex-wrap:nowrap}
+  .topbar-left{gap:8px;flex:1;min-width:0}
+  .topbar-left strong{font-size:13px;white-space:nowrap}
+  .topbar-left span.sub{font-size:11px;max-width:80px}
+  .topbar-right{gap:6px;flex-shrink:0;flex-wrap:nowrap}
+  .btn-instalar{height:32px;padding:0 10px;font-size:11px;gap:5px;white-space:nowrap}
+  .btn-instalar svg{width:12px;height:12px;flex-shrink:0}
+  .bell{width:32px;height:32px;flex-shrink:0}
+  .bell svg{width:18px;height:18px}
+  .bell-badge{min-width:17px;height:17px;font-size:9px;padding:0 4px;top:-3px;right:-3px}
+  /* ANTES: 52px EN CIRCULO CON TEXTO PARTIDO. AHORA: PILL CHICA EN UNA SOLA LINEA COMO BOTON REAL */
+  .btn-cerrar{width:auto;height:32px;border-radius:999px;padding:0 10px;flex-direction:row;justify-content:center;align-items:center;gap:0;border-width:1.5px}
+  .btn-cerrar span.txt{display:block !important;font-size:11px !important;font-weight:700 !important;line-height:1 !important;white-space:nowrap !important;text-align:center;max-width:none}
+}
+@media(max-width:480px){
+  .topbar{padding:7px 8px;gap:6px}
+  .topbar-left strong{font-size:12px}
+  .topbar-left span.sub{max-width:60px;font-size:10px}
+  .topbar-right{gap:5px}
+  /* EN CELULAR MUY CHICO EL INSTALAR QUEDA SOLO EL ICONO PARA QUE NO SE AMONTONE */
+  .btn-instalar{width:32px;height:32px;padding:0;justify-content:center;border-radius:50%}
+  .btn-instalar .txt-instalar{display:none}
+  .btn-cerrar{height:32px;padding:0 8px}
+  .btn-cerrar span.txt{font-size:10px !important}
+}
 </style>
 </head>
 <body>
@@ -114,7 +141,7 @@ body{background:#f9f9fb;min-height:100vh;display:flex}
   <div class="topbar">
     <div class="topbar-left"><button class="hamburger" onclick="toggleMenu()"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button><strong>Panel de aliados</strong><span class="line"></span><span class="sub" id="subTexto">Cargando...</span></div>
     <div class="topbar-right">
-      <button id="btnInstalar" class="btn-instalar"><svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Instalar App</button>
+      <button id="btnInstalar" class="btn-instalar"><svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg><span class="txt-instalar">Instalar App</span></button>
       <div class="bell" id="bellIcon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C50D1F" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 6 5 6 9H0s6-2 6-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span class="bell-badge" id="bellBadge">0</span></div>
       <a href="index.html" class="btn-cerrar" onclick="cerrarSesion()"><span class="txt">Cerrar sesión</span></a>
     </div>
@@ -267,13 +294,12 @@ else {
     });
   }
 
-  // ==== SOLO NUEVO - VINCULO BOTON ABIERTO / CERRADO CON HORARIOS ====
   let horariosGuardados = null;
-  let cierreManual = false; // true si el aliado lo cerro a mano dentro del horario
+  let cierreManual = false;
   const diasSemana = ['domingo','lunes','martes','miercoles','jueves','viernes','sabado'];
   function aMinutos(hhmm){ if(!hhmm) return null; const p = String(hhmm).split(':'); return parseInt(p[0])*60 + parseInt(p[1]||0); }
   function estaAbiertoSegunHorario(){
-    if(!horariosGuardados) return null; // aun no hay horarios, no forzamos nada
+    if(!horariosGuardados) return null;
     const ahora = new Date();
     const diaHoy = diasSemana[ahora.getDay()];
     const h = horariosGuardados[diaHoy];
@@ -282,22 +308,21 @@ else {
     const ini = aMinutos(h.inicio), fin = aMinutos(h.fin);
     if(ini == null || fin == null) return null;
     const ahoraMin = ahora.getHours()*60 + ahora.getMinutes();
-    if(fin > ini) return ahoraMin >= ini && ahoraMin < fin; // ej 09:00 - 22:00
-    if(fin < ini) return ahoraMin >= ini || ahoraMin < fin; // cruza medianoche ej 18:00 - 02:00
+    if(fin > ini) return ahoraMin >= ini && ahoraMin < fin;
+    if(fin < ini) return ahoraMin >= ini || ahoraMin < fin;
     return true;
   }
   function aplicarEstadoPorHorario(sincronizarFirebase){
     const porHorario = estaAbiertoSegunHorario();
     if(porHorario === null) return;
     let final = porHorario;
-    if(porHorario === true && cierreManual) final = false; // cerrado a mano, aunque el horario diga abierto
+    if(porHorario === true && cierreManual) final = false;
     if(final !== estadoActual){
       estadoActual = final;
       actualizarUIEstado(final);
     } else {
       actualizarUIEstado(final);
     }
-    // Sincroniza para que el cliente tambien lo vea cerrado / abierto
     if(sincronizarFirebase && refEstadoReal){
       update(refEstadoReal, { abierto: final, estado: final ? 'activo' : 'cerrado' }).catch(()=>{});
     }
@@ -306,13 +331,12 @@ else {
     if(!pathBaseNegocio) return;
     onValue(ref(dbAliados, `${pathBaseNegocio}/horarios`), (snap)=>{
       horariosGuardados = snap.exists() ? snap.val() : null;
-      cierreManual = false; // al cambiar horarios se resetea el cierre manual
+      cierreManual = false;
       aplicarEstadoPorHorario(true);
     });
-    setInterval(()=>{ aplicarEstadoPorHorario(true); }, 30000); // revision cada 30 seg en tiempo real
+    setInterval(()=>{ aplicarEstadoPorHorario(true); }, 30000);
   }
 
-  // ==== ORGANIZADO UNIFICADO - SOPORTA LAS DOS FORMAS DE GUARDADO ====
   get(ref(dbAliados, 'doloya_aliados')).then(allSnap=>{
     if(!allSnap.exists()){
       refEstadoReal = ref(dbAliados, `${pathBaseNegocio}/categorias/disponibilidad`);
@@ -323,8 +347,6 @@ else {
     const todas = allSnap.val();
     const target = normalize(idNegocio);
     let encontrado = false;
-
-    // 1. Busca directo: doloya_aliados/santillos (RUTA UNICA NUEVA)
     for(const k of Object.keys(todas)){
       if(normalize(k) === target){
         idReal = k;
@@ -333,8 +355,6 @@ else {
         break;
       }
     }
-
-    // 2. Si no, busca viejo: doloya_aliados/alitas/santillos
     if(!encontrado){
       for(const cat of Object.keys(todas)){
         const nivel = todas[cat];
@@ -351,12 +371,10 @@ else {
         if(encontrado) break;
       }
     }
-
     if(!encontrado){
       idReal = idNegocio;
       pathBaseNegocio = `doloya_aliados/${idNegocio}`;
     }
-
     refEstadoReal = ref(dbAliados, `${pathBaseNegocio}/categorias/disponibilidad`);
     escucharEstado();
     escucharHorarios();
@@ -375,7 +393,6 @@ else {
         } else if(data.estado !== undefined){
           manual = data.estado === 'abierto' || data.estado === 'activo';
         }
-        // Si hay horarios, el horario manda. Si no hay horarios, manda el boton manual.
         if(horariosGuardados){
           aplicarEstadoPorHorario(false);
         } else {
@@ -391,14 +408,11 @@ else {
   function actualizarUIEstado(abierto){ if(abierto){ switchEl.classList.add('on'); badgeEstado.textContent='ABIERTO'; badgeEstado.className='estado-badge abierto'; textoEstado.textContent='Abierto'; } else { switchEl.classList.remove('on'); badgeEstado.textContent='CERRADO'; badgeEstado.className='estado-badge cerrado'; textoEstado.textContent='Cerrado'; } }
 
   window.toggleEstado = function(){ 
-    // SOLO MODIFICADO - RESPETA EL HORARIO
     const porHorario = estaAbiertoSegunHorario();
     if(porHorario === false){
-      // Fuera de horario o dia cerrado: no se puede abrir a mano
       actualizarUIEstado(false); estadoActual = false;
       return;
     }
-    // Dentro del horario: permite cierre manual de emergencia, y volver a abrir
     const nuevo = !estadoActual;
     cierreManual = !nuevo;
     estadoActual = nuevo;
@@ -409,10 +423,6 @@ else {
 
   function sonarDoloYa(){ sonarFuerte(); }
 
-  // ===== CORREGIDO: SOLO PEDIDOS REALES DEL ALIADO, SIN CANCELADAS =====
-  // Solo cuenta: nuevo, pendiente, confirmado, aceptado, en_preparacion, preparando
-  // NO cuenta: cancelado, rechazado, listo, entregado, finalizado, etc.
-  // Si es 0, muestra 0, nunca se oculta.
   function esPedidoActivo(d){
     const est = normalize(d.estado || d.status || '');
     const estLimpio = est.replace(/[\s_-]+/g, '_');
