@@ -114,6 +114,7 @@ body{background:#fff;font-family:'Inter',Helvetica,Arial,sans-serif;color:#0f172
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
 import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCRx4B7mO444s0yU-WTnsqMjBHDWX4IRv8",
@@ -123,8 +124,19 @@ const firebaseConfig = {
   messagingSenderId: "41258055121",
   appId: "1:41258055121:web:19a443786320e04ebd9cf0"
 };
+const configAliados = {
+  apiKey: "AIzaSyD286qlJQT8D3rqbYTSfCyuTAEg9jjRchQ",
+  authDomain: "doloya-aliados.firebaseapp.com",
+  databaseURL: "https://doloya-aliados-default-rtdb.firebaseio.com",
+  projectId: "doloya-aliados",
+  storageBucket: "doloya-aliados.firebasestorage.app",
+  messagingSenderId: "122314467740",
+  appId: "1:122314467740:web:9947a0a9560557e3a00059"
+};
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const appAliados = initializeApp(configAliados, "aliadosApp");
+const dbAliados = getDatabase(appAliados);
 
 let todosPedidos = [];
 let filtro = "todos";
@@ -133,6 +145,74 @@ let filtroMes = "", filtroDia = "";
 const sesionAliado = JSON.parse(localStorage.getItem('doloya_aliado_sesion')||'null');
 const idAliado = (sesionAliado?.id || sesionAliado?.negocio || '').toLowerCase().trim();
 const nombreAliado = (sesionAliado?.nombre || sesionAliado?.restaurante || '').toLowerCase().trim();
+
+// SOLO NUEVO - COMISION DE RESUMEN PARA PEDIDOS VIEJOS SIN % CONGELADO
+let comisionResumenActual = null;
+function extraerComisionNodo(nodo){
+  if(!nodo || typeof nodo !== 'object') return null;
+  const claves = ['comision','comisionPorcentaje','porcentaje','porcentajeComision','comision_porcentaje'];
+  for(const c of claves){
+    if(nodo[c] !== undefined && nodo[c] !== '' && nodo[c] !== null){ const n = parseFloat(nodo[c]); if(!isNaN(n)) return n; }
+    if(nodo.info && nodo.info[c] !== undefined && nodo.info[c] !== '' && nodo.info[c] !== null){ const n = parseFloat(nodo.info[c]); if(!isNaN(n)) return n; }
+  }
+  return null;
+}
+async function cargarComisionResumen(){
+  try{
+    const idN = normalize(idAliado);
+    const nomN = normalize(nombreAliado);
+    const snapRoot = await get(child(ref(dbAliados), "doloya_aliados"));
+    if(!snapRoot.exists()) return;
+    const todos = snapRoot.val();
+    function revisar(nodo, clave){
+      if(!nodo || typeof nodo !== 'object') return null;
+      const nomNodo = normalize(nodo.info?.nombre || nodo.nombre || clave);
+      const idNodo = normalize(nodo.info?.id || clave);
+      if(idNodo === idN || nomNodo === idN || nomNodo === nomN || idNodo === nomN){
+        const c = extraerComisionNodo(nodo); if(c !== null) return c;
+      }
+      for(const k of Object.keys(nodo)){
+        const h = nodo[k];
+        if(h && typeof h === 'object' && !Array.isArray(h)){
+          const r = revisar(h, k); if(r !== null) return r;
+        }
+      }
+      return null;
+    }
+    for(const k of Object.keys(todos)){
+      const r = revisar(todos[k], k); if(r !== null){ comisionResumenActual = r; break; }
+    }
+  }catch(e){ console.log('comision resumen', e); }
+}
+cargarComisionResumen();
+// SOLO NUEVO - COMISION DE CADA PEDIDO CON SU % CONGELADO
+function comisionPedido(raw, prod){
+  if(!prod) return { porc: 0, comision: 0 };
+  // 1. Ganancia aliado congelada
+  const ganAliado = raw.totales?.gananciaAliado ?? raw.comision?.gananciaAliado ?? raw.gananciaAliado;
+  if(ganAliado !== undefined && ganAliado !== null && ganAliado !== '' && !isNaN(parseFloat(ganAliado))){
+    const porcTmp = raw.totales?.comisionPorcentaje ?? raw.comision?.porcentaje ?? raw.comisionPorcentaje ?? null;
+    const porc = porcTmp !== null && !isNaN(parseFloat(porcTmp)) ? parseFloat(porcTmp) : ((prod - parseFloat(ganAliado)) / prod) * 100;
+    return { porc: Number(porc.toFixed(2)), comision: Number((prod - parseFloat(ganAliado)).toFixed(2)) };
+  }
+  // 2. % congelado en el pedido
+  let porc = raw.totales?.comisionPorcentaje ?? raw.comision?.porcentaje ?? raw.comisionPorcentaje ?? null;
+  if(porc !== null && porc !== '' && !isNaN(parseFloat(porc))){
+    porc = parseFloat(porc);
+    return { porc, comision: Number((prod * porc / 100).toFixed(2)) };
+  }
+  // 3. Monto congelado
+  const montoCom = raw.totales?.comisionMonto ?? raw.comision?.monto;
+  if(montoCom !== undefined && montoCom !== null && montoCom !== '' && !isNaN(parseFloat(montoCom))){
+    return { porc: Number(((parseFloat(montoCom) / prod) * 100).toFixed(2)), comision: Number(parseFloat(montoCom).toFixed(2)) };
+  }
+  // 4. Fallback solo para pedidos viejos: % actual de Resumen
+  if(comisionResumenActual !== null){
+    return { porc: comisionResumenActual, comision: Number((prod * comisionResumenActual / 100).toFixed(2)) };
+  }
+  // 5. Si no hay % en ningún lado, no inventa 10%
+  return { porc: 0, comision: 0 };
+}
 
 function normalize(t){ return String(t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim(); }
 function toHora(ts){
@@ -165,12 +245,9 @@ function getEstadoPago(raw){
   return 'pendiente';
 }
 
-// CORREGIDO: VINCULACION EXACTA SOLO A ESTE RESTAURANTE LOGUEADO
 function esDeEsteRestaurante(p){
   if(!idAliado) return false;
   const raw = p.raw || {};
-  
-  // Todos los posibles campos donde guardas el ID del restaurante en Firestore
   const posiblesIds = [
     raw.restauranteId,
     raw.idRestaurante,
@@ -180,26 +257,18 @@ function esDeEsteRestaurante(p){
     raw.restaurante_id,
     raw.id_aliado
   ].map(v => String(v||'').toLowerCase().trim()).filter(Boolean);
-
-  // 1. Coincidencia EXACTA de ID - PRIORIDAD MAXIMA
   for(let rid of posiblesIds){
     let ridNorm = rid.replace(/-/g,'_').replace(/\s+/g,'_');
     let idAliadoNorm = idAliado.replace(/-/g,'_').replace(/\s+/g,'_');
     if(rid === idAliado || ridNorm === idAliadoNorm) return true;
   }
-
-  // 2. Si no hay ID, verifica por nombre EXACTO de tienda logueada
   const tiendaNorm = normalize(p.tienda);
   const nombreAliadoNorm = normalize(nombreAliado);
   const idAliadoNorm2 = normalize(idAliado);
-
   if(nombreAliadoNorm && tiendaNorm === nombreAliadoNorm) return true;
   if(idAliadoNorm2 && tiendaNorm === idAliadoNorm2) return true;
-
-  // 3. Fallback: si el campo restauranteNombre es EXACTO
   const rNombre = normalize(raw.restauranteNombre || raw.restaurante?.nombre || raw.negocio || '');
   if(nombreAliadoNorm && rNombre === nombreAliadoNorm) return true;
-
   return false;
 }
 
@@ -376,25 +445,28 @@ window.abrirDetalle = (id)=>{
   const badgePago = esPagado ? `<span class="badge-pago pagado">PAGADO</span>` : `<span class="badge-pago pendiente">PAGO PENDIENTE</span>`;
 
   const prod=p.producto||0;
-  const comision = prod*0.10;
+  // SOLO MODIFICADO - ANTES: prod*0.10
+  const c = comisionPedido(raw, prod);
+  const comision = c.comision;
+  const porc = c.porc;
   let htmlDesglose = '';
 
   if(p.estadoVisual==='cancelado'){
     const descCancel = prod*0.40;
-    const pagoRest = prod - comision - descCancel;
+    const pagoRest = Math.max(0, prod - comision - descCancel);
     htmlDesglose = `
       <div class="pres-row"><span>Producto</span><b>$${prod.toFixed(2)}</b></div>
       <div class="pres-row total-final"><span>Total pagado cliente</span><b>$0.00</b></div>
-      <div class="pres-row"><span>Descuento 10% plataforma</span><b>-$${comision.toFixed(2)}</b></div>
+      <div class="pres-row"><span>Descuento ${porc}% plataforma</span><b>-$${comision.toFixed(2)}</b></div>
       <div class="pres-row"><span>Descuento por cancelación 40%</span><b>-$${descCancel.toFixed(2)}</b></div>
       <div class="pres-row green"><span>Total a pagar al restaurante (50%)</span><b>$${pagoRest.toFixed(2)}</b></div>
     `;
   } else {
-    const pagoRest = prod - comision;
+    const pagoRest = Math.max(0, prod - comision);
     htmlDesglose = `
       <div class="pres-row"><span>Producto</span><b>$${prod.toFixed(2)}</b></div>
       <div class="pres-row total-final"><span>Total pagado cliente</span><b>$${prod.toFixed(2)}</b></div>
-      <div class="pres-row"><span>Descuento 10% plataforma</span><b>-$${comision.toFixed(2)}</b></div>
+      <div class="pres-row"><span>Descuento ${porc}% plataforma</span><b>-$${comision.toFixed(2)}</b></div>
       <div class="pres-row green"><span>Total a pagar al restaurante</span><b>$${pagoRest.toFixed(2)}</b></div>
     `;
   }
