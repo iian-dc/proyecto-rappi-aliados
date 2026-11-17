@@ -37,15 +37,11 @@ body{background:#f6f8fb;color:#0f172a}
 .modal-grafica .modal-box{max-width:520px}
 .resumen-grafica{margin-top:10px;padding:10px;background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0}
 .resumen-grafica div{display:flex;justify-content:space-between;padding:5px 0;font-size:10.5px;border-bottom:1px dashed #e2e8f0}
-
-/* TOP 4 CARDS A LO LARGO */
 @media(max-width:900px){
   .top-cards{display:flex;flex-wrap:nowrap;overflow-x:auto;gap:10px;padding:10px 10px 12px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
   .top-cards::-webkit-scrollbar{display:none}
   .tcard{min-width:165px;max-width:165px;flex:0 0 165px;padding:10px}
 }
-
-/* ABAJO COMO TABLA EXCEL DE IZQUIERDA A DERECHA */
 @media(max-width:700px){
   .header-top{padding:8px 10px}
   .box{margin:0 8px 12px;border-radius:12px;overflow-x:auto;-webkit-overflow-scrolling:touch}
@@ -125,6 +121,7 @@ body{background:#f6f8fb;color:#0f172a}
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 const configHistorial = {
   apiKey: "AIzaSyCRx4B7mO444s0yU-WTnsqMjBHDWX4IRv8",
   authDomain: "doloya-historial.firebaseapp.com",
@@ -133,26 +130,108 @@ const configHistorial = {
   messagingSenderId: "41258055121",
   appId: "1:41258055121:web:19a443786320e04ebd9cf0"
 };
+const configAliados = {
+  apiKey: "AIzaSyD286qlJQT8D3rqbYTSfCyuTAEg9jjRchQ",
+  authDomain: "doloya-aliados.firebaseapp.com",
+  databaseURL: "https://doloya-aliados-default-rtdb.firebaseio.com",
+  projectId: "doloya-aliados",
+  storageBucket: "doloya-aliados.firebasestorage.app",
+  messagingSenderId: "122314467740",
+  appId: "1:122314467740:web:9947a0a9560557e3a00059"
+};
 const appHis = initializeApp(configHistorial, "hisApp");
 const dbHis = getFirestore(appHis);
+const appAliados = initializeApp(configAliados, "aliadosApp");
+const dbAliados = getDatabase(appAliados);
 let restauranteIdReal = "";
 let pedidos = [];
 let pagos = [];
 let filtrados = [];
 let chartPedidoInstance = null;
+// SOLO NUEVO - COMISION DE RESUMEN PARA PEDIDOS VIEJOS SIN % CONGELADO
+let comisionResumenActual = null;
+function normalizarTxt(t){ return String(t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().replace(/[_-]+/g,' ').replace(/\s+/g,' '); }
+function extraerComisionNodo(nodo){
+  if(!nodo || typeof nodo !== 'object') return null;
+  const claves = ['comision','comisionPorcentaje','porcentaje','porcentajeComision','comision_porcentaje'];
+  for(const c of claves){
+    if(nodo[c] !== undefined && nodo[c] !== '' && nodo[c] !== null){ const n = parseFloat(nodo[c]); if(!isNaN(n)) return n; }
+    if(nodo.info && nodo.info[c] !== undefined && nodo.info[c] !== '' && nodo.info[c] !== null){ const n = parseFloat(nodo.info[c]); if(!isNaN(n)) return n; }
+  }
+  return null;
+}
+async function cargarComisionResumen(){
+  try{
+    const idN = normalizarTxt(restauranteIdReal);
+    const snapRoot = await get(child(ref(dbAliados), "doloya_aliados"));
+    if(!snapRoot.exists()) return;
+    const todos = snapRoot.val();
+    function revisar(nodo, clave){
+      if(!nodo || typeof nodo !== 'object') return null;
+      const nomNodo = normalizarTxt(nodo.info?.nombre || nodo.nombre || clave);
+      const idNodo = normalizarTxt(nodo.info?.id || clave);
+      if(idNodo === idN || nomNodo === idN){
+        const c = extraerComisionNodo(nodo); if(c !== null) return c;
+      }
+      for(const k of Object.keys(nodo)){
+        const h = nodo[k];
+        if(h && typeof h === 'object' && !Array.isArray(h)){
+          const r = revisar(h, k); if(r !== null) return r;
+        }
+      }
+      return null;
+    }
+    for(const k of Object.keys(todos)){
+      const r = revisar(todos[k], k); if(r !== null){ comisionResumenActual = r; break; }
+    }
+  }catch(e){ console.log('comision resumen', e); }
+}
+// SOLO NUEVO - GANANCIA DE CADA PEDIDO CON SU % CONGELADO
+function ganaPedido(data, venta, esCancelado){
+  if(!venta) return { porc: 0, comision: 0, gana: 0 };
+  // 1. Ganancia aliado congelada
+  const ganAliado = data.totales?.gananciaAliado ?? data.comision?.gananciaAliado ?? data.gananciaAliado;
+  if(ganAliado !== undefined && ganAliado !== null && ganAliado !== '' && !isNaN(parseFloat(ganAliado))){
+    const porcTmp = data.totales?.comisionPorcentaje ?? data.comision?.porcentaje ?? data.comisionPorcentaje ?? null;
+    let porc = porcTmp !== null && !isNaN(parseFloat(porcTmp)) ? parseFloat(porcTmp) : ((venta - parseFloat(ganAliado)) / venta) * 100;
+    if(esCancelado){
+      const ganaCanc = Math.max(0, Number((parseFloat(ganAliado) - venta * 0.40).toFixed(2)));
+      return { porc: Number(porc.toFixed(2)), comision: Number((venta - parseFloat(ganAliado)).toFixed(2)), gana: ganaCanc };
+    }
+    return { porc: Number(porc.toFixed(2)), comision: Number((venta - parseFloat(ganAliado)).toFixed(2)), gana: Number(parseFloat(ganAliado).toFixed(2)) };
+  }
+  // 2. % congelado
+  let porc = data.totales?.comisionPorcentaje ?? data.comision?.porcentaje ?? data.comisionPorcentaje ?? null;
+  if(porc === null || porc === '' || isNaN(parseFloat(porc))){
+    const montoCom = data.totales?.comisionMonto ?? data.comision?.monto;
+    if(montoCom !== undefined && montoCom !== null && montoCom !== '' && !isNaN(parseFloat(montoCom))){
+      porc = (parseFloat(montoCom) / venta) * 100;
+    } else {
+      porc = comisionResumenActual ?? 0;
+    }
+  }
+  porc = parseFloat(porc);
+  const comision = Number((venta * porc / 100).toFixed(2));
+  if(esCancelado){
+    const ganaCanc = Math.max(0, Number((venta - comision - venta * 0.40).toFixed(2)));
+    return { porc, comision, gana: ganaCanc };
+  }
+  return { porc, comision, gana: Number((venta - comision).toFixed(2)) };
+}
 function fechaCorta(f){ try{ let d=new Date(f); if(isNaN(d.getTime())) d=new Date(Number(f)); if(isNaN(d.getTime())) return "-"; return `<span style="font-size:7px">${d.toLocaleDateString('es-MX')}</span><br><span style="font-size:6.5px;color:#64748b">${d.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'})}</span>`; }catch{ return "-"; } }
 function obtenerSesionAliado(){ try{ const sesionRaw = localStorage.getItem('doloya_aliado_sesion'); if(!sesionRaw) return null; return JSON.parse(sesionRaw); }catch{ return null; } }
 async function cargar(){
   const sesion = obtenerSesionAliado();
   if(!sesion){ document.getElementById('listaPedidos').innerHTML='<div style="padding:20px;text-align:center;color:#E30613">No hay sesión.</div>'; return; }
   restauranteIdReal = (sesion.negocio || sesion.id || "").toLowerCase().trim();
+  await cargarComisionResumen();
   const snapP = await getDocs(collection(dbHis, "pagos_aliados"));
   snapP.forEach(d=>{ const data=d.data(); const id = (data.restauranteId || data.restaurante?.id || "").toLowerCase().trim(); if(id !== restauranteIdReal) return; pagos.push({ id:d.id, monto:Number(data.montoPagado||data.monto||0), fecha:data.fechaPago||data.fecha||data.timestamp, facturaId:data.facturaId||d.id }); });
   const rawPedidos = [];
   const snapE = await getDocs(collection(dbHis, "pedidos_entregados"));
-  snapE.forEach(d=>{ const data=d.data(); const rid = (data.restaurante?.id || "").toLowerCase().trim(); if(rid !== restauranteIdReal) return; const venta = Number(data.totales?.costoProductos || data.total || 0); rawPedidos.push({ id:d.id, tipo:"entregado", fecha: data.timestampEnvio || data.timestampAdmin || data.fecha || Date.now(), venta: venta, valorCancelado:0, gana: venta*0.9, cliente: data.cliente?.nombre || "Cliente" }); });
+  snapE.forEach(d=>{ const data=d.data(); const rid = (data.restaurante?.id || "").toLowerCase().trim(); if(rid !== restauranteIdReal) return; const venta = Number(data.totales?.costoProductos || data.total || 0); const g = ganaPedido(data, venta, false); rawPedidos.push({ id:d.id, tipo:"entregado", fecha: data.timestampEnvio || data.timestampAdmin || data.fecha || Date.now(), venta: venta, valorCancelado:0, gana: g.gana, porc: g.porc, comision: g.comision, cliente: data.cliente?.nombre || "Cliente" }); });
   const snapC = await getDocs(collection(dbHis, "pedidos_cancelados"));
-  snapC.forEach(d=>{ const data=d.data(); const rid = (data.restaurante?.id || "").toLowerCase().trim(); if(rid !== restauranteIdReal) return; const venta = Number(data.totales?.costoProductos || data.total || 0); const gana50 = venta*0.5; rawPedidos.push({ id:d.id, tipo:"cancelado", fecha: data.timestampEnvio || data.timestampAdmin || data.fecha || Date.now(), venta: venta, valorCancelado:gana50, gana: gana50, cliente: data.cliente?.nombre || "Cliente" }); });
+  snapC.forEach(d=>{ const data=d.data(); const rid = (data.restaurante?.id || "").toLowerCase().trim(); if(rid !== restauranteIdReal) return; const venta = Number(data.totales?.costoProductos || data.total || 0); const g = ganaPedido(data, venta, true); rawPedidos.push({ id:d.id, tipo:"cancelado", fecha: data.timestampEnvio || data.timestampAdmin || data.fecha || Date.now(), venta: venta, valorCancelado: g.gana, gana: g.gana, porc: g.porc, comision: g.comision, cliente: data.cliente?.nombre || "Cliente" }); });
   rawPedidos.sort((a,b)=> new Date(a.fecha)-new Date(b.fecha));
   rawPedidos.forEach((p, idx)=>{ p.numeroReal = idx+1; p.codigo = "ST-"+String(idx+1); });
   pedidos = [...rawPedidos].sort((a,b)=> new Date(b.fecha)-new Date(a.fecha));
@@ -161,10 +240,10 @@ async function cargar(){
 }
 function render(){
   const totalPagadoGlobal = pagos.reduce((s,p)=>s+Number(p.monto||0),0);
-  const ingresosEntregados = pedidos.filter(p=>p.tipo==="entregado").reduce((s,p)=>s+p.venta,0);
-  const ingresosEntregadosMenos10 = ingresosEntregados * 0.9;
+  // SOLO MODIFICADO - ANTES: ingresosEntregados * 0.9. AHORA: SUMA DE LA GANA DE CADA PEDIDO CON SU %
+  const ingresosEntregadosGana = pedidos.filter(p=>p.tipo==="entregado").reduce((s,p)=>s+p.gana,0);
   const ingresosCancelados = pedidos.filter(p=>p.tipo==="cancelado").reduce((s,p)=>s+p.valorCancelado,0);
-  const totalIngresosReal = ingresosEntregadosMenos10 + ingresosCancelados;
+  const totalIngresosReal = ingresosEntregadosGana + ingresosCancelados;
   const canceladosPerdida40 = pedidos.filter(p=>p.tipo==="cancelado").reduce((s,p)=>s+(p.venta * 0.4),0);
   const countCanc = pedidos.filter(p=>p.tipo==="cancelado").length;
   const countEnt = pedidos.filter(p=>p.tipo==="entregado").length;
@@ -227,7 +306,9 @@ window.abrirGraficaPedido = (idPedido)=>{
   document.getElementById('modalGraficaPedido').style.display='flex';
   document.getElementById('tituloGraficaPedido').textContent = "Gráfica del pedido";
   const valorProducto = p.venta;
-  const valorProductoMenos10 = valorProducto * 0.9;
+  // SOLO MODIFICADO - ANTES: valorProducto * 0.9. AHORA: gana de ese pedido con su %
+  const valorProductoMenosPorc = p.gana;
+  const porc = p.porc || 0;
   const totalPagadoGlobal = pagos.reduce((s,pa)=>s+Number(pa.monto||0),0);
   const estaPagado = pagos.length>0 && totalPagadoGlobal>0;
   let ingresosPedido = estaPagado ? p.gana : 0;
@@ -236,19 +317,19 @@ window.abrirGraficaPedido = (idPedido)=>{
   let labels, data, colors, resumenHtml, totalTexto, colorTotal;
   if(p.tipo==="cancelado"){
     labels = ['Valor producto', 'Ingresos', 'Pérdida 40%', 'Pendiente'];
-    data = [valorProductoMenos10, ingresosPedido, perdida40Real, pendientePedido];
+    data = [valorProductoMenosPorc, ingresosPedido, perdida40Real, pendientePedido];
     colors = ['#3b82f6', '#16a34a', '#E30613', '#f59e0b'];
     const totalCancel = ingresosPedido - valorProducto;
     totalTexto = totalCancel;
     colorTotal = totalCancel < 0 ? '#E30613' : '#16a34a';
-    resumenHtml = `<div><span style="color:#3b82f6">● Valor producto menos 10%</span><b>$ ${valorProductoMenos10.toFixed(2)}</b></div><div><span style="color:#16a34a">● Ingresos</span><b>$ ${ingresosPedido.toFixed(2)}</b></div><div><span style="color:#E30613">● Pérdida por cancelación 40%</span><b>$ ${perdida40Real.toFixed(2)}</b></div><div><span style="color:#f59e0b">● Pendiente por pagar</span><b>$ ${pendientePedido.toFixed(2)}</b></div><div style="border-top:2px solid #0f172a;margin-top:6px;padding-top:8px;font-weight:800"><span>Total</span><b style="font-size:13px;color:${colorTotal}">$ ${totalTexto.toFixed(2)}</b></div>`;
+    resumenHtml = `<div><span style="color:#3b82f6">● Valor producto menos ${porc}%</span><b>$ ${valorProductoMenosPorc.toFixed(2)}</b></div><div><span style="color:#16a34a">● Ingresos</span><b>$ ${ingresosPedido.toFixed(2)}</b></div><div><span style="color:#E30613">● Pérdida por cancelación 40%</span><b>$ ${perdida40Real.toFixed(2)}</b></div><div><span style="color:#f59e0b">● Pendiente por pagar</span><b>$ ${pendientePedido.toFixed(2)}</b></div><div style="border-top:2px solid #0f172a;margin-top:6px;padding-top:8px;font-weight:800"><span>Total</span><b style="font-size:13px;color:${colorTotal}">$ ${totalTexto.toFixed(2)}</b></div>`;
   }else{
     labels = ['Valor producto', 'Ingresos', 'Pendiente'];
-    data = [valorProductoMenos10, ingresosPedido, pendientePedido];
+    data = [valorProductoMenosPorc, ingresosPedido, pendientePedido];
     colors = ['#3b82f6', '#16a34a', '#f59e0b'];
     totalTexto = ingresosPedido;
     colorTotal = '#16a34a';
-    resumenHtml = `<div><span style="color:#3b82f6">● Valor producto menos 10%</span><b>$ ${valorProductoMenos10.toFixed(2)}</b></div><div><span style="color:#16a34a">● Ingresos</span><b>$ ${ingresosPedido.toFixed(2)}</b></div><div><span style="color:#f59e0b">● Pendiente por pagar</span><b>$ ${pendientePedido.toFixed(2)}</b></div><div style="border-top:2px solid #0f172a;margin-top:6px;padding-top:8px;font-weight:800"><span>Total</span><b style="font-size:13px;color:${colorTotal}">$ ${totalTexto.toFixed(2)}</b></div>`;
+    resumenHtml = `<div><span style="color:#3b82f6">● Valor producto menos ${porc}%</span><b>$ ${valorProductoMenosPorc.toFixed(2)}</b></div><div><span style="color:#16a34a">● Ingresos</span><b>$ ${ingresosPedido.toFixed(2)}</b></div><div><span style="color:#f59e0b">● Pendiente por pagar</span><b>$ ${pendientePedido.toFixed(2)}</b></div><div style="border-top:2px solid #0f172a;margin-top:6px;padding-top:8px;font-weight:800"><span>Total</span><b style="font-size:13px;color:${colorTotal}">$ ${totalTexto.toFixed(2)}</b></div>`;
   }
   const ctx = document.getElementById('chartPedido').getContext('2d');
   if(chartPedidoInstance) chartPedidoInstance.destroy();
