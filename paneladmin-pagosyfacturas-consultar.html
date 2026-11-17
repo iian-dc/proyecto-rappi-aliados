@@ -88,7 +88,7 @@ body{background:#f6f8fb;color:#0f172a}
 
 <div class="stats">
 <div class="stat"><label>Total ventas</label><b id="sVentas">$ 0.00</b></div>
-<div class="stat"><label>Comisión 10%</label><b id="sComision">$ 0.00</b></div>
+<div class="stat"><label id="sComisionLabel">Comisión</label><b id="sComision">$ 0.00</b></div>
 <div class="stat"><label>Neto a pagar</label><b id="sNeto">$ 0.00</b></div>
 <div class="stat"><label>Pedidos</label><b id="sPedidos">0</b></div>
 </div>
@@ -155,6 +155,90 @@ let seleccionados=new Set();
 let pedidoActual=null;
 let facturaParaSubir=null;
 
+// SOLO NUEVO - COMISION DESDE RESUMEN, SOLO PARA PEDIDOS VIEJOS SIN % CONGELADO
+let comisionResumenActual = null;
+function normalizarTxt(t){ return String(t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().replace(/[_-]+/g,' ').replace(/\s+/g,' '); }
+function extraerComisionNodo(nodo){
+  if(!nodo || typeof nodo !== 'object') return null;
+  const claves = ['comision','comisionPorcentaje','porcentaje','porcentajeComision','comision_porcentaje'];
+  for(const c of claves){
+    if(nodo[c] !== undefined && nodo[c] !== '' && nodo[c] !== null){ const n = parseFloat(nodo[c]); if(!isNaN(n)) return n; }
+    if(nodo.info && nodo.info[c] !== undefined && nodo.info[c] !== '' && nodo.info[c] !== null){ const n = parseFloat(nodo.info[c]); if(!isNaN(n)) return n; }
+  }
+  return null;
+}
+async function cargarComisionResumen(){
+  try{
+    const idN = normalizarTxt(idRest);
+    const snapRoot = await get(child(ref(dbAliados), "doloya_aliados"));
+    if(!snapRoot.exists()) return;
+    const todos = snapRoot.val();
+    function revisar(nodo, clave){
+      if(!nodo || typeof nodo !== 'object') return null;
+      const nomNodo = normalizarTxt(nodo.info?.nombre || nodo.nombre || clave);
+      if(normalizarTxt(clave) === idN || nomNodo === idN){
+        const c = extraerComisionNodo(nodo); if(c !== null) return c;
+      }
+      for(const k of Object.keys(nodo)){
+        const h = nodo[k];
+        if(h && typeof h === 'object' && !Array.isArray(h)){
+          const r = revisar(h, k); if(r !== null) return r;
+        }
+      }
+      return null;
+    }
+    for(const k of Object.keys(todos)){
+      if(k === 'admin') continue;
+      const r = revisar(todos[k], k); if(r !== null){ comisionResumenActual = r; break; }
+    }
+    // También revisa en doloya_aliados/admin por si ahí guardaste el %
+    if(comisionResumenActual === null){
+      const snapAdmin = await get(child(ref(dbAliados), "doloya_aliados/admin"));
+      if(snapAdmin.exists()){
+        const dataAdmin = snapAdmin.val();
+        for(const k of Object.keys(dataAdmin)){
+          const r = revisar(dataAdmin[k], k); if(r !== null){ comisionResumenActual = r; break; }
+        }
+      }
+    }
+  }catch(e){ console.log('comision resumen', e); }
+}
+// SOLO NUEVO - CALCULO CON % CONGELADO DE CADA PEDIDO
+function calculoPedido(p){
+  const venta = Number(p.totales?.costoProductos || 0);
+  // 1. Si ya trae ganancia congelada, úsala
+  const gananciaCongelada = p.totales?.gananciaAliado ?? p.comision?.gananciaAliado ?? p.gananciaAliado;
+  if(gananciaCongelada !== undefined && gananciaCongelada !== null && gananciaCongelada !== '' && !isNaN(parseFloat(gananciaCongelada)) && !p.cancelado){
+    const porcTmp = p.totales?.comisionPorcentaje ?? p.comision?.porcentaje ?? p.comisionPorcentaje ?? comisionResumenActual ?? 0;
+    const comisionTmp = Number((venta * parseFloat(porcTmp) / 100).toFixed(2));
+    return { venta, porc: parseFloat(porcTmp), comision: comisionTmp, cancelacion: 0, neto: Number(gananciaCongelada) };
+  }
+  // 2. % congelado en el pedido
+  let porc = p.totales?.comisionPorcentaje ?? p.comision?.porcentaje ?? p.comisionPorcentaje ?? null;
+  if(porc === null || porc === '' || isNaN(parseFloat(porc))){
+    // 3. Monto congelado
+    const montoCom = p.totales?.comisionMonto ?? p.comision?.monto;
+    if(montoCom !== undefined && montoCom !== null && montoCom !== '' && !isNaN(parseFloat(montoCom)) && venta > 0){
+      porc = (parseFloat(montoCom) / venta) * 100;
+    } else {
+      // 4. Fallback solo para pedidos viejos: % actual de Resumen
+      porc = comisionResumenActual ?? 0;
+    }
+  }
+  porc = parseFloat(porc);
+  const comision = Number((venta * porc / 100).toFixed(2));
+  let cancelacion = 0, neto = 0;
+  if(p.cancelado){
+    // Igual que antes: neto entregado menos 40% de castigo por cancelación
+    const netoBase = venta - comision;
+    neto = Math.max(0, Number((netoBase - venta * 0.40).toFixed(2)));
+    cancelacion = Number((venta - comision - neto).toFixed(2));
+  } else {
+    neto = Number((venta - comision).toFixed(2));
+  }
+  return { venta, porc, comision, cancelacion, neto };
+}
+
 function formatearFechaHora(fechaStr){
   if(!fechaStr) return "-";
   try{
@@ -186,6 +270,8 @@ async function cargarRestaurante(){
         direccion: info.direccion || val.direccion || "",
         categoria: info.categoria || ""
       };
+      const cDirecta = extraerComisionNodo(val);
+      if(cDirecta !== null) comisionResumenActual = cDirecta;
     } else {
       const snapRoot = await get(child(ref(dbAliados), "doloya_aliados/admin"));
       if(snapRoot.exists()){
@@ -206,6 +292,8 @@ async function cargarRestaurante(){
               direccion: info.direccion || val.direccion || "",
               categoria: info.categoria || ""
             };
+            const cDirecta = extraerComisionNodo(val);
+            if(cDirecta !== null) comisionResumenActual = cDirecta;
             break;
           }
         }
@@ -282,10 +370,10 @@ function render(){
   let filtrados=pedidos.filter(p=> filtro==="pendiente" ? !p.pagado : p.pagado);
   let totalVentas=0,totalComision=0,totalNeto=0;
   filtrados.forEach(p=>{
-    const venta=Number(p.totales?.costoProductos||0);
-    totalVentas+=venta; 
-    totalComision+=venta*0.10; 
-    totalNeto+= p.cancelado ? venta*0.50 : venta*0.90;
+    const c = calculoPedido(p);
+    totalVentas+=c.venta; 
+    totalComision+=c.comision; 
+    totalNeto+= c.neto;
   });
   document.getElementById('sVentas').textContent="$ "+totalVentas.toFixed(2);
   document.getElementById('sComision').textContent="$ "+totalComision.toFixed(2);
@@ -295,10 +383,8 @@ function render(){
   cont.innerHTML="";
   filtrados.forEach(p=>{
     const cliente=p.cliente||{};
-    const venta=Number(p.totales?.costoProductos||0);
-    const comision=venta*0.10;
-    const cancelacion = p.cancelado ? venta*0.40 : 0;
-    const neto = p.cancelado ? venta*0.50 : venta*0.90;
+    const c = calculoPedido(p);
+    const venta=c.venta, comision=c.comision, cancelacion=c.cancelacion, neto=c.neto, porc=c.porc;
     const fechaHora=formatearFechaHora(p.timestamp||p.fecha);
     const isChecked=seleccionados.has(p.idDoc);
     const fondoCancelado = p.cancelado ? 'style="background:#fff1f2;border:1px solid #fecaca"' : '';
@@ -317,7 +403,7 @@ function render(){
         </div>
         <div class="venta">
           <div class="row"><span class="t">Total venta</span><b>$ ${venta.toFixed(2)}</b></div>
-          <div class="row"><span class="t">Menos 10% comisión</span><b>-$ ${comision.toFixed(2)}</b></div>
+          <div class="row"><span class="t">Menos ${porc}% comisión</span><b>-$ ${comision.toFixed(2)}</b></div>
           ${p.cancelado ? `<div class="row"><span class="t">Menos 40% cancelación</span><b>-$ ${cancelacion.toFixed(2)}</b></div>` : ''}
           <div class="row net" style="${p.cancelado ? 'color:#E30613' : ''}"><span>Neto a pagar restaurante</span><b>$ ${neto.toFixed(2)}</b></div>
           <div class="row"><span class="t">Fecha pedido</span><b>${fechaHora}</b></div>
@@ -352,10 +438,8 @@ window.verFactura = async (idDoc)=>{
     }
   }catch(e){ console.log(e); }
 
-  const venta=Number(p.totales?.costoProductos||0);
-  const comision=venta*0.10;
-  const cancelacion = p.cancelado ? venta*0.40 : 0;
-  const neto = p.cancelado ? venta*0.50 : venta*0.90;
+  const c = calculoPedido(p);
+  const venta=c.venta, comision=c.comision, cancelacion=c.cancelacion, neto=c.neto, porc=c.porc;
   const fechaHora=formatearFechaHora(p.timestamp||p.fecha);
 
   document.getElementById('cuerpoFactura').innerHTML=`
@@ -372,7 +456,7 @@ window.verFactura = async (idDoc)=>{
     <table class="fact-table">
       <tr><th>Concepto</th><th>Monto</th></tr>
       <tr><td>Total producto</td><td>$ ${venta.toFixed(2)}</td></tr>
-      <tr><td>Comisión DoloYa 10%</td><td>-$ ${comision.toFixed(2)}</td></tr>
+      <tr><td>Comisión DoloYa ${porc}%</td><td>-$ ${comision.toFixed(2)}</td></tr>
       ${p.cancelado ? `<tr><td>Cancelación 40%</td><td>-$ ${cancelacion.toFixed(2)}</td></tr>` : ''}
       <tr><td><b>Neto a pagar restaurante ${p.cancelado ? '(Cancelado 50%)' : ''}</b></td><td><b>$ ${neto.toFixed(2)}</b></td></tr>
     </table>
@@ -490,15 +574,16 @@ document.getElementById('fileInput').addEventListener('change', async (e)=>{
 
 async function pagarEnDB(idDoc){
   const p=pedidos.find(x=>x.idDoc===idDoc);
-  const venta=Number(p.totales?.costoProductos||0);
-  const neto = p.cancelado ? venta*0.50 : venta*0.90;
+  const c = calculoPedido(p);
+  const venta=c.venta, neto=c.neto, comision=c.comision, cancelacion=c.cancelacion, porc=c.porc;
   await setDoc(doc(dbHis, "pagos_aliados", idDoc), {
     pagado:true,
     fechaPago:new Date().toISOString(),
     montoPagado:neto,
     montoVenta:venta,
-    comision:venta*0.10,
-    cancelacion: p.cancelado ? venta*0.40 : 0,
+    comision:comision,
+    comisionPorcentaje:porc,
+    cancelacion: cancelacion,
     esCancelado: p.cancelado || false,
     restauranteId:idRest,
     restauranteNombre:restaurante?.nombre||idRest,
@@ -528,6 +613,7 @@ window.pagarSeleccionados = async ()=>{
 };
 
 await cargarRestaurante();
+await cargarComisionResumen();
 await cargarPedidos();
 </script>
 </body>
