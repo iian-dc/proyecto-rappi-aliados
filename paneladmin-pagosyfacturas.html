@@ -87,7 +87,7 @@ body{background:#f6f8fb;color:#0f172a}
 </div>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, onValue, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 const configAliados = {
   apiKey: "AIzaSyD286qlJQT8D3rqbYTSfCyuTAEg9jjRchQ",
@@ -114,6 +114,66 @@ let aliados = [];
 let filtrados = [];
 let ventasMap = {};
 let pagosMap = {};
+// SOLO NUEVO - COMISION POR NEGOCIO DESDE PANEL ADMIN ALIADO RESUMEN (doloya_aliados)
+let comisionesResumen = {};
+function normalizarTxt(t){ return String(t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().replace(/[_-]+/g,' ').replace(/\s+/g,' '); }
+function extraerComisionNodo(nodo){
+  if(!nodo || typeof nodo !== 'object') return null;
+  const claves = ['comision','comisionPorcentaje','porcentaje','porcentajeComision','comision_porcentaje'];
+  for(const c of claves){
+    if(nodo[c] !== undefined && nodo[c] !== '' && nodo[c] !== null){ const n = parseFloat(nodo[c]); if(!isNaN(n)) return n; }
+    if(nodo.info && nodo.info[c] !== undefined && nodo.info[c] !== '' && nodo.info[c] !== null){ const n = parseFloat(nodo.info[c]); if(!isNaN(n)) return n; }
+  }
+  return null;
+}
+async function cargarComisionesResumen(){
+  comisionesResumen = {};
+  try{
+    const s = await get(ref(dbAliados, 'doloya_aliados'));
+    if(!s.exists()) return;
+    const todos = s.val();
+    function recorrer(nodo, clave){
+      if(!nodo || typeof nodo !== 'object') return;
+      const c = extraerComisionNodo(nodo);
+      if(c !== null){
+        comisionesResumen[normalizarTxt(clave)] = c;
+        if(nodo.info?.nombre) comisionesResumen[normalizarTxt(nodo.info.nombre)] = c;
+        if(nodo.nombre) comisionesResumen[normalizarTxt(nodo.nombre)] = c;
+      }
+      for(const k of Object.keys(nodo)){
+        const h = nodo[k];
+        if(h && typeof h === 'object' && !Array.isArray(h) && (h.info || h.comision !== undefined || h.categorias)) recorrer(h, k);
+      }
+    }
+    for(const k of Object.keys(todos)){ if(k==='admin') continue; recorrer(todos[k], k); }
+  }catch(e){ console.log('comisiones resumen', e); }
+}
+function comisionResumenPara(idRest, nombreRest){
+  return comisionesResumen[normalizarTxt(idRest)] ?? comisionesResumen[normalizarTxt(nombreRest)] ?? null;
+}
+// SOLO NUEVO - GANANCIA DE CADA PEDIDO CON SU % CONGELADO. SI NO TRAE, USA EL DE RESUMEN.
+function gananciaPedidoEntregado(p, idRest, nombreRest){
+  const costo = Number(p.totales?.costoProductos || 0);
+  if(!costo) return 0;
+  // 1. Ya trae ganancia congelada
+  const g = p.totales?.gananciaAliado ?? p.comision?.gananciaAliado ?? p.gananciaAliado;
+  if(g !== undefined && g !== null && g !== '' && !isNaN(parseFloat(g))) return Number(g);
+  // 2. Ya trae % congelado
+  const porcCongelado = p.totales?.comisionPorcentaje ?? p.comision?.porcentaje ?? p.comisionPorcentaje;
+  if(porcCongelado !== undefined && porcCongelado !== null && porcCongelado !== '' && !isNaN(parseFloat(porcCongelado))){
+    return Number((costo * (1 - parseFloat(porcCongelado)/100)).toFixed(2));
+  }
+  // 3. Si trae monto de comisión congelado
+  const montoCom = p.totales?.comisionMonto ?? p.comision?.monto;
+  if(montoCom !== undefined && montoCom !== null && montoCom !== '' && !isNaN(parseFloat(montoCom))){
+    return Number((costo - parseFloat(montoCom)).toFixed(2));
+  }
+  // 4. Fallback solo para pedidos viejos sin %: % actual de Resumen
+  const porcResumen = comisionResumenPara(idRest, nombreRest);
+  if(porcResumen !== null) return Number((costo * (1 - porcResumen/100)).toFixed(2));
+  // 5. Si de plano no hay % en ningún lado, no inventa 10%, paga completo
+  return costo;
+}
 function limpiarNombre(s){ return (s||"").replace(/_/g," ").trim(); }
 function fechaHora(f){
   if(!f) return "-";
@@ -121,6 +181,7 @@ function fechaHora(f){
 }
 async function cargarVentasYPagos(){
   ventasMap = {}; pagosMap = {};
+  await cargarComisionesResumen();
   try{
     const snapE = await getDocs(collection(dbHis, "pedidos_entregados"));
     snapE.forEach(d=>{
@@ -128,8 +189,10 @@ async function cargarVentasYPagos(){
       const r = p.restaurante || {};
       const id = (r.id || r.nombre || "").toLowerCase();
       if(!id) return;
-      if(!ventasMap[id]) ventasMap[id]={totalEnt:0, totalCanc:0, countEnt:0, countCanc:0};
+      if(!ventasMap[id]) ventasMap[id]={totalEnt:0, totalCanc:0, countEnt:0, countCanc:0, totalGananciaEnt:0};
       ventasMap[id].totalEnt += Number(p.totales?.costoProductos||0);
+      // SOLO MODIFICADO - YA NO ES totalEnt * 0.9, ES LA SUMA DE LA GANANCIA DE CADA PEDIDO CON SU %
+      ventasMap[id].totalGananciaEnt += gananciaPedidoEntregado(p, r.id || r.nombre, r.nombre);
       ventasMap[id].countEnt += 1;
     });
   }catch(e){ console.log(e); }
@@ -140,7 +203,7 @@ async function cargarVentasYPagos(){
       const r = p.restaurante || {};
       const id = (r.id || r.nombre || "").toLowerCase();
       if(!id) return;
-      if(!ventasMap[id]) ventasMap[id]={totalEnt:0, totalCanc:0, countEnt:0, countCanc:0};
+      if(!ventasMap[id]) ventasMap[id]={totalEnt:0, totalCanc:0, countEnt:0, countCanc:0, totalGananciaEnt:0};
       ventasMap[id].totalCanc += Number(p.totales?.costoProductos||0);
       ventasMap[id].countCanc += 1;
     });
@@ -167,6 +230,8 @@ function extraerRestaurantes(data){
       const abierto = obj.abierto !== undefined ? obj.abierto : info.abierto;
       const estado = obj.estado || info.estado || "activo";
       const keyReal = path.split("/").pop();
+      // SOLO NUEVO - GUARDA LA COMISION DE RESUMEN PARA MOSTRARLA
+      const comisionResumen = extraerComisionNodo(obj);
       lista.push({
         id: keyReal,
         nombre: info.nombre || limpiarNombre(keyReal),
@@ -175,7 +240,8 @@ function extraerRestaurantes(data){
         direccion: info.direccion || "",
         fechaRegistro: info.creado || "",
         estado: estado,
-        abierto: abierto
+        abierto: abierto,
+        comisionResumen: comisionResumen
       });
       return;
     }
@@ -206,11 +272,13 @@ async function iniciarTiempoReal(){
     restaurantes = restaurantes.map(r=>{
       const idLow = r.id.toLowerCase();
       const nombreLow = r.nombre.toLowerCase();
-      let v = ventasMap[idLow] || ventasMap[nombreLow] || {totalEnt:0, totalCanc:0, countEnt:0, countCanc:0};
+      let v = ventasMap[idLow] || ventasMap[nombreLow] || {totalEnt:0, totalCanc:0, countEnt:0, countCanc:0, totalGananciaEnt:0};
       let p = pagosMap[idLow] || pagosMap[nombreLow] || {pagado:0, ultimo:"", count:0};
       const totalVentas = v.totalEnt;
       const totalCancelado = v.totalCanc;
-      const desgloseReal = (v.totalEnt * 0.9) + (v.totalCanc * 0.5);
+      // SOLO MODIFICADO - ANTES: (totalEnt * 0.9) + (totalCanc * 0.5)
+      // AHORA: SUMA DE GANANCIAS CON % CONGELADO DE CADA PEDIDO + CANCELADOS IGUAL QUE ANTES (50%)
+      const desgloseReal = (v.totalGananciaEnt || 0) + (v.totalCanc * 0.5);
       const pendiente = Math.max(0, desgloseReal - (p.pagado||0));
       return { ...r, totalVentas: totalVentas, totalCancelado: totalCancelado, pagado: p.pagado||0, pendiente: pendiente, ultimoPago: p.ultimo||"", facturas: p.count||0, countEnt: v.countEnt||0, countCanc: v.countCanc||0 };
     });
@@ -265,9 +333,10 @@ function render(){
     const ultimo = a.ultimoPago ? fechaHora(a.ultimoPago) : "-";
     const estadoAbierto = a.abierto===true || a.abierto==="true" ? "Abierto" : a.abierto===false || a.abierto==="false" ? "Cerrado" : a.estado;
     const badgeClass = estadoAbierto.toLowerCase().includes("abierto") ? "badge-green" : estadoAbierto.toLowerCase().includes("cerrado") ? "badge-red" : "badge-yellow";
+    const textoComision = (a.comisionResumen !== null && a.comisionResumen !== undefined) ? `Comisión ${a.comisionResumen}%` : 'Sin comisión en Resumen';
     cont.innerHTML+=`
     <div class="table-row">
-      <div class="aliado"><div class="aliado-logo">${logoHtml}</div><div><div style="font-weight:700;font-size:11px;text-transform:capitalize">${limpiarNombre(a.nombre)}</div><div style="font-size:9px;color:#64748b">${a.categoria}</div></div></div>
+      <div class="aliado"><div class="aliado-logo">${logoHtml}</div><div><div style="font-weight:700;font-size:11px;text-transform:capitalize">${limpiarNombre(a.nombre)}</div><div style="font-size:9px;color:#64748b">${a.categoria}</div><div style="font-size:9px;color:#E30613;font-weight:700">${textoComision}</div></div></div>
       <div style="font-weight:600">$ ${a.totalVentas.toFixed(2)}</div>
       <div style="color:#E30613;font-weight:700">$ ${a.totalCancelado.toFixed(2)}</div>
       <div style="color:#16a34a;font-weight:600">$ ${a.pagado.toFixed(2)}</div>
