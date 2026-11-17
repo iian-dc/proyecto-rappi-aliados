@@ -155,7 +155,6 @@ let seleccionados=new Set();
 let pedidoActual=null;
 let facturaParaSubir=null;
 
-// SOLO NUEVO - COMISION DESDE RESUMEN, SOLO PARA PEDIDOS VIEJOS SIN % CONGELADO
 let comisionResumenActual = null;
 function normalizarTxt(t){ return String(t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().replace(/[_-]+/g,' ').replace(/\s+/g,' '); }
 function extraerComisionNodo(nodo){
@@ -166,6 +165,25 @@ function extraerComisionNodo(nodo){
     if(nodo.info && nodo.info[c] !== undefined && nodo.info[c] !== '' && nodo.info[c] !== null){ const n = parseFloat(nodo.info[c]); if(!isNaN(n)) return n; }
   }
   return null;
+}
+// SOLO NUEVO - BUSCA EL LOGO EN TODAS LAS FORMAS POSIBLES
+function extraerLogoNodo(val){
+  if(!val || typeof val !== 'object') return "";
+  const info = val.info || {};
+  const clavesLogo = ['imagen','logo','logoUrl','logo_url','foto','imagenUrl','imagen_url','image','photo','avatar','img','picture','icon'];
+  for(const c of clavesLogo){
+    if(typeof info[c] === 'string' && info[c].length > 5) return info[c];
+    if(typeof val[c] === 'string' && val[c].length > 5) return val[c];
+  }
+  // Por si el logo está dentro de otro objeto
+  for(const k of Object.keys(val)){
+    const h = val[k];
+    if(h && typeof h === 'object' && !Array.isArray(h)){
+      const l = extraerLogoNodo(h);
+      if(l) return l;
+    }
+  }
+  return "";
 }
 async function cargarComisionResumen(){
   try{
@@ -191,7 +209,6 @@ async function cargarComisionResumen(){
       if(k === 'admin') continue;
       const r = revisar(todos[k], k); if(r !== null){ comisionResumenActual = r; break; }
     }
-    // También revisa en doloya_aliados/admin por si ahí guardaste el %
     if(comisionResumenActual === null){
       const snapAdmin = await get(child(ref(dbAliados), "doloya_aliados/admin"));
       if(snapAdmin.exists()){
@@ -203,25 +220,20 @@ async function cargarComisionResumen(){
     }
   }catch(e){ console.log('comision resumen', e); }
 }
-// SOLO NUEVO - CALCULO CON % CONGELADO DE CADA PEDIDO
 function calculoPedido(p){
   const venta = Number(p.totales?.costoProductos || 0);
-  // 1. Si ya trae ganancia congelada, úsala
   const gananciaCongelada = p.totales?.gananciaAliado ?? p.comision?.gananciaAliado ?? p.gananciaAliado;
   if(gananciaCongelada !== undefined && gananciaCongelada !== null && gananciaCongelada !== '' && !isNaN(parseFloat(gananciaCongelada)) && !p.cancelado){
     const porcTmp = p.totales?.comisionPorcentaje ?? p.comision?.porcentaje ?? p.comisionPorcentaje ?? comisionResumenActual ?? 0;
     const comisionTmp = Number((venta * parseFloat(porcTmp) / 100).toFixed(2));
     return { venta, porc: parseFloat(porcTmp), comision: comisionTmp, cancelacion: 0, neto: Number(gananciaCongelada) };
   }
-  // 2. % congelado en el pedido
   let porc = p.totales?.comisionPorcentaje ?? p.comision?.porcentaje ?? p.comisionPorcentaje ?? null;
   if(porc === null || porc === '' || isNaN(parseFloat(porc))){
-    // 3. Monto congelado
     const montoCom = p.totales?.comisionMonto ?? p.comision?.monto;
     if(montoCom !== undefined && montoCom !== null && montoCom !== '' && !isNaN(parseFloat(montoCom)) && venta > 0){
       porc = (parseFloat(montoCom) / venta) * 100;
     } else {
-      // 4. Fallback solo para pedidos viejos: % actual de Resumen
       porc = comisionResumenActual ?? 0;
     }
   }
@@ -229,7 +241,6 @@ function calculoPedido(p){
   const comision = Number((venta * porc / 100).toFixed(2));
   let cancelacion = 0, neto = 0;
   if(p.cancelado){
-    // Igual que antes: neto entregado menos 40% de castigo por cancelación
     const netoBase = venta - comision;
     neto = Math.max(0, Number((netoBase - venta * 0.40).toFixed(2)));
     cancelacion = Number((venta - comision - neto).toFixed(2));
@@ -256,13 +267,15 @@ function limpiarNombre(str){
   return str.replace(/_/g, " ").replace(/\s+/g, " ").trim();
 }
 
+// SOLO MODIFICADO - AHORA BUSCA EL LOGO EN TODO doloya_aliados, NO SOLO EN admin/
 async function cargarRestaurante(){
   try{
+    // 1. Intenta directo en admin/ como antes
     const snapDirecto = await get(child(ref(dbAliados), "doloya_aliados/admin/"+idRest));
     if(snapDirecto.exists()){
       const val = snapDirecto.val();
       const info = val.info || val;
-      const logo = info.imagen || info.logo || info.logoUrl || info.foto || info.imagenUrl || info.image || val.imagen || val.logo || val.logoUrl || "";
+      const logo = extraerLogoNodo(val);
       restaurante={
         id: info.id || idRest,
         nombre: info.nombre || limpiarNombre(idRest),
@@ -272,30 +285,62 @@ async function cargarRestaurante(){
       };
       const cDirecta = extraerComisionNodo(val);
       if(cDirecta !== null) comisionResumenActual = cDirecta;
-    } else {
-      const snapRoot = await get(child(ref(dbAliados), "doloya_aliados/admin"));
+    }
+    // 2. Si no lo encontró en admin/, busca en TODO doloya_aliados (categoría / id)
+    if(!restaurante){
+      const snapRoot = await get(child(ref(dbAliados), "doloya_aliados"));
       if(snapRoot.exists()){
         const data = snapRoot.val();
         const idLimpio = limpiarNombre(idRest).toLowerCase();
-        for(let k in data){
-          const val = data[k];
-          const info = val.info || {};
-          const nombreInfo = (info.nombre||"").toLowerCase();
-          const idInfo = (info.id||k).toLowerCase();
-          const kLimpio = limpiarNombre(k).toLowerCase();
-          if(idInfo===idRest.toLowerCase() || k.toLowerCase()===idRest.toLowerCase() || nombreInfo===idRest.toLowerCase() || nombreInfo===idLimpio || kLimpio===idLimpio){
-            const logo = info.imagen || info.logo || info.logoUrl || info.foto || info.imagenUrl || info.image || val.imagen || val.logo || "";
-            restaurante={
-              id: info.id || k,
-              nombre: info.nombre || limpiarNombre(k),
-              logo: logo,
-              direccion: info.direccion || val.direccion || "",
-              categoria: info.categoria || ""
-            };
-            const cDirecta = extraerComisionNodo(val);
-            if(cDirecta !== null) comisionResumenActual = cDirecta;
-            break;
+        const idN = normalizarTxt(idRest);
+        let encontrado = null;
+        function buscar(nodo, clave){
+          if(!nodo || typeof nodo !== 'object' || encontrado) return;
+          const info = nodo.info || {};
+          const nombreInfo = normalizarTxt(info.nombre || nodo.nombre || "");
+          const idInfo = normalizarTxt(info.id || clave || "");
+          const kN = normalizarTxt(clave || "");
+          if(idInfo===idN || kN===idN || nombreInfo===idN || nombreInfo===idLimpio || kN===normalizarTxt(idLimpio)){
+            encontrado = { nodo, clave };
+            return;
           }
+          for(const k in nodo){
+            const h = nodo[k];
+            if(h && typeof h === 'object' && !Array.isArray(h)) buscar(h, k);
+            if(encontrado) return;
+          }
+        }
+        for(const k in data){
+          if(k === 'admin') continue;
+          buscar(data[k], k);
+          if(encontrado) break;
+        }
+        // 3. Si tampoco ahí, busca en admin/ completo
+        if(!encontrado && data.admin){
+          for(let k in data.admin){
+            const val = data.admin[k];
+            const info = val.info || {};
+            const nombreInfo = (info.nombre||"").toLowerCase();
+            const idInfo = (info.id||k).toLowerCase();
+            const kLimpio = limpiarNombre(k).toLowerCase();
+            if(idInfo===idRest.toLowerCase() || k.toLowerCase()===idRest.toLowerCase() || nombreInfo===idRest.toLowerCase() || nombreInfo===idLimpio || kLimpio===idLimpio){
+              encontrado = { nodo: val, clave: k };
+              break;
+            }
+          }
+        }
+        if(encontrado){
+          const val = encontrado.nodo;
+          const info = val.info || val;
+          restaurante={
+            id: info.id || encontrado.clave,
+            nombre: info.nombre || limpiarNombre(encontrado.clave),
+            logo: extraerLogoNodo(val),
+            direccion: info.direccion || val.direccion || "",
+            categoria: info.categoria || ""
+          };
+          const cDirecta = extraerComisionNodo(val);
+          if(cDirecta !== null) comisionResumenActual = cDirecta;
         }
       }
     }
