@@ -56,6 +56,9 @@ body{background:#fff;min-height:100vh}
 .por{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px}
 .por.restaurante{color:#B70A1A}
 .por.repartidor{color:#111}
+/* SOLO NUEVO - BOTON ELIMINAR EN CADA TARJETICA DE CANCELACION */
+.btn-eliminar-cancel{width:100%;margin-top:10px;background:#B70A1A;color:white;border:none;border-radius:999px;padding:10px;font-size:12px;font-weight:800;cursor:pointer}
+.btn-eliminar-cancel:disabled{opacity:.6}
 @media(max-width:900px){
   .header{padding:0 14px;height:auto;min-height:64px;flex-wrap:wrap;gap:8px;padding-top:10px;padding-bottom:10px}
   .header h1{font-size:18px}
@@ -103,7 +106,9 @@ body{background:#fff;min-height:100vh}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+import { getFirestore, collection, onSnapshot, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+// SOLO NUEVO - PARA TRAER LA IMAGEN EN TIEMPO REAL DEL RESTAURANTE VINCULADO
+import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js";
 const configConfirmacion = {
   apiKey: "AIzaSyDLKngPyi_SWAXEQwdrHO5h8L8OufulAR4",
   authDomain: "doloya-confirmacion.firebaseapp.com",
@@ -114,11 +119,100 @@ const configConfirmacion = {
 };
 const app = initializeApp(configConfirmacion);
 const db = getFirestore(app);
+// SOLO NUEVO - APP ALIADOS PARA LA IMAGEN EN TIEMPO REAL
+const configAliados = {
+  apiKey: "AIzaSyD286qlJQT8D3rqbYTSfCyuTAEg9jjRchQ",
+  authDomain: "doloya-aliados.firebaseapp.com",
+  databaseURL: "https://doloya-aliados-default-rtdb.firebaseio.com",
+  projectId: "doloya-aliados",
+  storageBucket: "doloya-aliados.firebasestorage.app",
+  messagingSenderId: "122314467740",
+  appId: "1:122314467740:web:9947a0a9560557e3a00059"
+};
+let dbAliadosRT = null;
+try{
+  const appAliados = initializeApp(configAliados, "aliadosCancelaciones");
+  dbAliadosRT = getDatabase(appAliados);
+}catch(e){ console.log('aliados cancelaciones', e); }
 const listaEl = document.getElementById('listaRestaurantes');
 const totalEl = document.getElementById('totalGlobal');
 const totalCirculoEl = document.getElementById('totalGlobalCirculo');
 const totalRestEl = document.getElementById('totalRestaurantes');
 let grupos = new Map();
+let modalKeyActual = null;
+// SOLO NUEVO - MAPA IMAGEN EN TIEMPO REAL POR ID / NOMBRE / CATEGORIA
+let mapaLogosVivo = {};
+function normalizeTxt(t){ return String(t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim(); }
+// SOLO NUEVO - BUSCA LA IMAGEN EN CUALQUIER CAMPO DONDE LA GUARDES
+function extraerLogoNodo(nodo){
+  if(!nodo || typeof nodo !== 'object') return '';
+  const campos = ['logo','imagen','foto','img','image','logoUrl','imagenUrl','photo','urlImagen'];
+  for(const c of campos){
+    if(typeof nodo[c] === 'string' && nodo[c].trim()) return nodo[c].trim();
+  }
+  if(nodo.info && typeof nodo.info === 'object'){
+    for(const c of campos){
+      if(typeof nodo.info[c] === 'string' && nodo.info[c].trim()) return nodo.info[c].trim();
+    }
+  }
+  if(nodo.restaurante && typeof nodo.restaurante === 'object'){
+    for(const c of campos){
+      if(typeof nodo.restaurante[c] === 'string' && nodo.restaurante[c].trim()) return nodo.restaurante[c].trim();
+    }
+  }
+  return '';
+}
+// SOLO NUEVO - LLENA EL MAPA CON LA IMAGEN EN TIEMPO REAL DE TODOS LOS RESTAURANTES
+function llenarMapaLogos(todos){
+  mapaLogosVivo = {};
+  if(!todos || typeof todos !== 'object') return;
+  const recorrer = (nodo, clave, cat) => {
+    if(!nodo || typeof nodo !== 'object' || Array.isArray(nodo)) return;
+    const logo = extraerLogoNodo(nodo);
+    const claves = [];
+    if(clave) claves.push(normalizeTxt(clave));
+    if(nodo.info?.nombre) claves.push(normalizeTxt(nodo.info.nombre));
+    if(nodo.nombre) claves.push(normalizeTxt(nodo.nombre));
+    if(nodo.id) claves.push(normalizeTxt(nodo.id));
+    if(nodo.restaurante?.id) claves.push(normalizeTxt(nodo.restaurante.id));
+    if(nodo.restaurante?.nombre) claves.push(normalizeTxt(nodo.restaurante.nombre));
+    if(cat && clave) claves.push(normalizeTxt(cat + '_' + clave));
+    if(logo){
+      claves.forEach(k=>{ if(k) mapaLogosVivo[k] = logo; });
+    }
+    for(const k of Object.keys(nodo)){ recorrer(nodo[k], k, clave); }
+  };
+  for(const k of Object.keys(todos)){ if(k==='admin') continue; recorrer(todos[k], k, ''); }
+}
+if(dbAliadosRT){
+  try{
+    onValue(ref(dbAliadosRT, 'doloya_aliados'), (snap)=>{
+      if(snap.exists()) llenarMapaLogos(snap.val());
+      // Actualiza las imagenes que ya estan en pantalla sin recargar
+      grupos.forEach((g)=>{
+        const vivo = logoVivoParaGrupo(g);
+        if(vivo) g.logo = vivo;
+      });
+      renderLista();
+      if(modalKeyActual && document.getElementById('modalDetalle').classList.contains('active')){
+        abrirDetalle(modalKeyActual);
+      }
+    });
+  }catch(e){ console.log('logo vivo', e); }
+}
+// SOLO NUEVO - IMAGEN EN TIEMPO REAL PARA ESTE GRUPO
+function logoVivoParaGrupo(g){
+  if(!g) return '';
+  const nombreN = normalizeTxt(g.nombre);
+  if(mapaLogosVivo[nombreN]) return mapaLogosVivo[nombreN];
+  const primer = g.lista && g.lista[0] ? g.lista[0] : {};
+  const idN = normalizeTxt(primer.restaurante?.id || primer.restauranteId || primer.idRestaurante || '');
+  if(idN && mapaLogosVivo[idN]) return mapaLogosVivo[idN];
+  const catN = normalizeTxt(primer.restauranteCat || primer.restaurante?.cat || '');
+  if(catN && idN && mapaLogosVivo[catN + '_' + idN]) return mapaLogosVivo[catN + '_' + idN];
+  if(g.key && mapaLogosVivo[normalizeTxt(g.key)]) return mapaLogosVivo[normalizeTxt(g.key)];
+  return '';
+}
 function logoRestaurante(d){
   return d.restaurante?.logo || d.restaurante?.imagen || d.restaurante?.foto || d.restaurante?.img || d.restauranteLogo || d.logo || d.imagen || '';
 }
@@ -146,6 +240,9 @@ function renderLista(){
   const arr = [...grupos.values()].sort((a,b)=> b.lista.length - a.lista.length);
   listaEl.innerHTML = '';
   arr.forEach(g=>{
+    // Si ya llego la imagen en tiempo real, la usa
+    const vivo = logoVivoParaGrupo(g);
+    if(vivo) g.logo = vivo;
     const div = document.createElement('div');
     div.className = 'card-rest';
     const inicial = (g.nombre||'?').charAt(0).toUpperCase();
@@ -156,6 +253,9 @@ function renderLista(){
 window.abrirDetalle = function(key){
   const g = grupos.get(key);
   if(!g) return;
+  modalKeyActual = key;
+  const vivo = logoVivoParaGrupo(g);
+  if(vivo) g.logo = vivo;
   document.getElementById('modalLogo').innerHTML = g.logo ? `<img src="${g.logo}">` : (g.nombre||'?').charAt(0).toUpperCase();
   document.getElementById('modalNombre').textContent = g.nombre;
   document.getElementById('modalSub').textContent = g.lista.length + ' cancelaciones en total';
@@ -167,11 +267,29 @@ window.abrirDetalle = function(key){
   document.getElementById('modalLista').innerHTML = ordenadas.map((d,i)=>{
     const por = (d.canceladoPor||'restaurante').toLowerCase();
     const clasePor = por === 'restaurante' ? 'restaurante' : 'repartidor';
-    return `<div class="item-cancel"><div style="display:flex;justify-content:space-between;align-items:center"><b>#${ordenadas.length - i}</b><span class="por ${clasePor}">Cancelado por ${por}</span></div><div class="fila"><span>Fecha</span><b>${fechaTexto(d)}</b></div><div class="fila"><span>Código</span><b>${d.codigo || d.idOriginal || 'ST-0'}</b></div><div class="fila"><span>Cliente</span><b>${clienteNombre(d)}</b></div><div class="fila"><span>Teléfono</span><b>${d.telefono || d.cliente?.celular || d.cliente?.telefono || 'Sin teléfono'}</b></div><div class="fila"><span>Dirección</span><b>${d.direccionEntrega || d.cliente?.direccion || 'Sin dirección'}</b></div><div class="motivo-box"><b>Motivo:</b> ${d.motivoCancelacion || 'Sin motivo'}</div></div>`;
+    return `<div class="item-cancel"><div style="display:flex;justify-content:space-between;align-items:center"><b>#${ordenadas.length - i}</b><span class="por ${clasePor}">Cancelado por ${por}</span></div><div class="fila"><span>Fecha</span><b>${fechaTexto(d)}</b></div><div class="fila"><span>Código</span><b>${d.codigo || d.idOriginal || 'ST-0'}</b></div><div class="fila"><span>Cliente</span><b>${clienteNombre(d)}</b></div><div class="fila"><span>Teléfono</span><b>${d.telefono || d.cliente?.celular || d.cliente?.telefono || 'Sin teléfono'}</b></div><div class="fila"><span>Dirección</span><b>${d.direccionEntrega || d.cliente?.direccion || 'Sin dirección'}</b></div><div class="motivo-box"><b>Motivo:</b> ${d.motivoCancelacion || 'Sin motivo'}</div><button class="btn-eliminar-cancel" onclick="eliminarCancelacion('${d.id}','${key}',this)">Eliminar</button></div>`;
   }).join('');
   document.getElementById('modalDetalle').classList.add('active');
 };
-window.cerrarModal = function(){ document.getElementById('modalDetalle').classList.remove('active'); };
+// SOLO NUEVO - ELIMINA ESA CANCELACION EN TIEMPO REAL
+window.eliminarCancelacion = async function(id, key, btn){
+  if(!id) return;
+  if(!confirm('¿Deseas eliminar esta cancelación? Se borrará permanentemente.')) return;
+  if(btn){ btn.textContent = 'Eliminando...'; btn.disabled = true; }
+  try{
+    await deleteDoc(doc(db, "pedidos_cancelados", id));
+    // El onSnapshot ya lo quita en tiempo real de la lista y del modal
+    // Si el grupo se queda en 0, cierra el modal
+    const g = grupos.get(key);
+    if(g && g.lista.length <= 1){
+      setTimeout(()=>{ cerrarModal(); }, 300);
+    }
+  }catch(e){
+    alert('Error al eliminar: ' + e.message);
+    if(btn){ btn.textContent = 'Eliminar'; btn.disabled = false; }
+  }
+};
+window.cerrarModal = function(){ modalKeyActual = null; document.getElementById('modalDetalle').classList.remove('active'); };
 document.getElementById('modalDetalle').addEventListener('click', (e)=>{ if(e.target.id === 'modalDetalle') cerrarModal(); });
 onSnapshot(collection(db,"pedidos_cancelados"), (snap)=>{
   grupos.clear();
@@ -189,10 +307,24 @@ onSnapshot(collection(db,"pedidos_cancelados"), (snap)=>{
     const g = grupos.get(key);
     const logoNuevo = logoRestaurante(d);
     if(logoNuevo) g.logo = logoNuevo;
+    // Si ya tenemos la imagen en tiempo real, la usa aunque el pedido no la traiga
+    const vivo = logoVivoParaGrupo(g);
+    if(vivo) g.logo = vivo;
     g.lista.push({ id: docSnap.id, ...d });
+  });
+  // Segunda pasada por si la imagen en tiempo real llego despues
+  grupos.forEach((g)=>{
+    const vivo = logoVivoParaGrupo(g);
+    if(vivo) g.logo = vivo;
   });
   totalRestEl.textContent = grupos.size;
   renderLista();
+  // Si el modal esta abierto, lo actualiza en tiempo real al eliminar
+  if(modalKeyActual && document.getElementById('modalDetalle').classList.contains('active')){
+    const g = grupos.get(modalKeyActual);
+    if(!g || g.lista.length === 0){ cerrarModal(); }
+    else { abrirDetalle(modalKeyActual); }
+  }
 });
 window.cerrarSesion = function(){
   localStorage.removeItem('doloya_aliado_sesion');
