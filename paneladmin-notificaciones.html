@@ -57,7 +57,6 @@ body{background:#fff;min-height:100vh}
 .fecha-reciente{font-size:11px;color:#6b7280;font-weight:600;display:block}
 .btn-seleccionar-todos{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;background:#f3f4f6;border:none;border-radius:10px;padding:9px;font-size:12px;font-weight:700;cursor:pointer;margin-bottom:12px}
 .empty{text-align:center;padding:40px 20px;color:#9ca3af}
-/* VISTA PREVIA - FONDO BLANCO ARRIBA Y ABAJO, NOTIFICACION EN EL CENTRO DEL MISMO TAMANO QUE LE LLEGARA AL CLIENTE */
 .modal-vista{position:fixed;inset:0;background:#fff;display:none;align-items:center;justify-content:center;z-index:9999;padding:16px}
 .modal-vista.active{display:flex}
 .vista-wrap{width:100%;max-width:380px}
@@ -102,7 +101,6 @@ body{background:#fff;min-height:100vh}
         <span class="total-num" id="totalCirculo">0</span>
       </div>
     </div>
-
     <div class="layout-notif">
       <div class="col-izq">
         <div class="titulo-col">Imagen que se va a enviar</div>
@@ -124,7 +122,6 @@ body{background:#fff;min-height:100vh}
           <p style="font-size:11px;color:#6b7280;margin-top:8px;text-align:center" id="textoSeleccion">Sin clientes seleccionados, se enviará a todos.</p>
         </div>
       </div>
-
       <div class="col-der">
         <div class="titulo-col">Listado de clientes</div>
         <p class="sub-col">Selecciona con el cuadrito a quién le quieres enviar. Al lado de cada cliente está cuántas veces ha ingresado y su fecha más reciente.</p>
@@ -134,8 +131,6 @@ body{background:#fff;min-height:100vh}
     </div>
   </div>
 </div>
-
-<!-- VISTA PREVIA - FONDO BLANCO ARRIBA Y ABAJO, EN EL CENTRO LA NOTIFICACION TAL COMO LE LLEGARA AL CLIENTE -->
 <div class="modal-vista" id="modalVista">
   <div class="vista-wrap">
     <div class="vista-label">Vista previa - Así le llegará al cliente</div>
@@ -155,10 +150,9 @@ body{background:#fff;min-height:100vh}
     </div>
   </div>
 </div>
-
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-import { getFirestore, collection, onSnapshot, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+import { getFirestore, collection, onSnapshot, doc, setDoc, serverTimestamp, addDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 const configConfirmacion = {
   apiKey: "AIzaSyDLKngPyi_SWAXEQwdrHO5h8L8OufulAR4",
   authDomain: "doloya-confirmacion.firebaseapp.com",
@@ -267,8 +261,11 @@ async function enviarMensaje(){
   const label = seleccionados.size > 0 ? 'a ' + destinatarios.length + ' clientes seleccionados' : 'a todos los ' + destinatarios.length + ' clientes';
   if(!confirm('¿Enviar ' + label + '?\n\n' + (imagenLogo ? '[Con imagen del logo]\n' : '') + msg)) return;
   try{
-    await setDoc(doc(db, "notificaciones_envios", "ultimo"), { mensaje: msg, tieneImagen: !!imagenLogo, totalClientes: destinatarios.length, ids: destinatarios, soloSeleccionados: seleccionados.size>0, fecha: serverTimestamp() });
-    alert('Listo, mensaje guardado para ' + destinatarios.length + ' clientes. En el siguiente paso lo conectamos para que les llegue al celular como Rappi.');
+    // SOLO NUEVO OPCION A - Cada envio crea un documento NUEVO, no sobreescribe "ultimo". Asi la Cloud Function lo detecta y lo manda.
+    // La imagen solo se guarda si es una URL corta. Si es base64 muy grande, se manda solo el texto + tieneImagen para no romper Firestore.
+    const imagenParaEnviar = (imagenLogo && !imagenLogo.startsWith('data:')) ? imagenLogo : '';
+    await addDoc(collection(db, "notificaciones_envios"), { titulo: "DoloYa", mensaje: msg, tieneImagen: !!imagenLogo, imagen: imagenParaEnviar, totalClientes: destinatarios.length, ids: destinatarios, soloSeleccionados: seleccionados.size>0, estado: "pendiente", fecha: serverTimestamp() });
+    alert('Enviando a ' + destinatarios.length + ' clientes. Les va a llegar como notificacion de DoloYa, aunque tengan la app cerrada.');
     document.getElementById('mensajeNotif').value = '';
     cerrarVista();
   }catch(e){ alert('Error: ' + e.message); }
