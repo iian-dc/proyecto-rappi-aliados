@@ -138,6 +138,8 @@ body{background:#fff;font-family:'Inter',Helvetica,Arial,sans-serif;color:#0f172
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
 import { getFirestore, collection, onSnapshot, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+// SOLO NUEVO - PARA LEER LA COMISION EN TIEMPO REAL DEL RESTAURANTE VINCULADO
+import { getDatabase, ref, get, onValue } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCRx4B7mO444s0yU-WTnsqMjBHDWX4IRv8",
@@ -150,10 +152,28 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+// SOLO NUEVO - APP ALIADOS PARA LA COMISION EN TIEMPO REAL
+const configAliados = {
+  apiKey: "AIzaSyD286qlJQT8D3rqbYTSfCyuTAEg9jjRchQ",
+  authDomain: "doloya-aliados.firebaseapp.com",
+  databaseURL: "https://doloya-aliados-default-rtdb.firebaseio.com",
+  projectId: "doloya-aliados",
+  storageBucket: "doloya-aliados.firebasestorage.app",
+  messagingSenderId: "122314467740",
+  appId: "1:122314467740:web:9947a0a9560557e3a00059"
+};
+let dbAliadosRT = null;
+try{
+  const appAliados = initializeApp(configAliados, "aliadosHistorial");
+  dbAliadosRT = getDatabase(appAliados);
+}catch(e){ console.log('aliados historial', e); }
+
 let todosPedidos = [];
 let filtro = "todos";
 let filtroMes = "", filtroDia = "";
 let pedidoAEliminar = null;
+// SOLO NUEVO - MAPA COMISION EN TIEMPO REAL POR ID / NOMBRE DEL RESTAURANTE
+let mapaComisionVivo = {};
 
 function normalize(t){ return String(t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim(); }
 function toHora(ts){
@@ -176,6 +196,65 @@ function buscar(raw, palabras){
     if(typeof raw[k]==='object'){ let r=buscar(raw[k], palabras); if(r && r!=='-' && r!=='' ) return r; }
   }
   return null;
+}
+// SOLO NUEVO - EXTRAE LA COMISION DE UN NODO DE ALIADOS
+function extraerComisionNodo(nodo){
+  if(!nodo || typeof nodo !== 'object') return null;
+  const claves = ['comision','comisionPorcentaje','porcentaje','porcentajeComision','comision_porcentaje'];
+  for(const c of claves){
+    if(nodo[c] !== undefined && nodo[c] !== '' && nodo[c] !== null){
+      const n = parseFloat(nodo[c]); if(!isNaN(n)) return n;
+    }
+    if(nodo.info && nodo.info[c] !== undefined && nodo.info[c] !== '' && nodo.info[c] !== null){
+      const n = parseFloat(nodo.info[c]); if(!isNaN(n)) return n;
+    }
+  }
+  return null;
+}
+// SOLO NUEVO - LLENA EL MAPA CON LA COMISION EN TIEMPO REAL DE TODOS LOS RESTAURANTES
+function llenarMapaComision(todos){
+  mapaComisionVivo = {};
+  if(!todos || typeof todos !== 'object') return;
+  const recorrer = (nodo, clave) => {
+    if(!nodo || typeof nodo !== 'object' || Array.isArray(nodo)) return;
+    const c = extraerComisionNodo(nodo);
+    const claves = [];
+    if(clave) claves.push(normalize(clave));
+    if(nodo.info?.nombre) claves.push(normalize(nodo.info.nombre));
+    if(nodo.nombre) claves.push(normalize(nodo.nombre));
+    if(nodo.id) claves.push(normalize(nodo.id));
+    if(nodo.restaurante?.id) claves.push(normalize(nodo.restaurante.id));
+    if(nodo.restaurante?.nombre) claves.push(normalize(nodo.restaurante.nombre));
+    if(c !== null){
+      claves.forEach(k=>{ if(k) mapaComisionVivo[k] = c; });
+    }
+    for(const k of Object.keys(nodo)){ recorrer(nodo[k], k); }
+  };
+  for(const k of Object.keys(todos)){ if(k==='admin') continue; recorrer(todos[k], k); }
+}
+if(dbAliadosRT){
+  try{
+    onValue(ref(dbAliadosRT, 'doloya_aliados'), (snap)=>{
+      if(snap.exists()) llenarMapaComision(snap.val());
+    });
+  }catch(e){ console.log('comision vivo', e); }
+}
+// SOLO NUEVO - COMISION EN TIEMPO REAL PARA ESTE PEDIDO, SI NO HAY USA LA CONGELADA EN EL PEDIDO
+function comisionRealPedido(p){
+  const raw = p.raw || {};
+  const idRest = normalize(raw.restaurante?.id || raw.restauranteId || raw.idRestaurante || '');
+  const nomRest = normalize(p.tienda || raw.restaurante?.nombre || raw.restauranteNombre || '');
+  if(idRest && mapaComisionVivo[idRest] !== undefined) return mapaComisionVivo[idRest];
+  if(nomRest && mapaComisionVivo[nomRest] !== undefined) return mapaComisionVivo[nomRest];
+  const congelada = raw.totales?.comisionPorcentaje ?? raw.comision?.porcentaje ?? raw.comisionPorcentaje ?? raw.totales?.porcentajeComision ?? null;
+  if(congelada !== null && congelada !== '' && !isNaN(parseFloat(congelada))) return parseFloat(congelada);
+  return 10;
+}
+// SOLO NUEVO - DESCUENTO REAL AL CLIENTE QUE TRAE ESE PEDIDO, SI NO TRAE ES 0
+function descuentoRealCliente(raw){
+  const v = raw?.descuentoCliente ?? raw?.descuento ?? raw?.totales?.descuento ?? raw?.totales?.descuentoCliente ?? raw?.totales?.descuentoTotal ?? raw?.cuponDescuento ?? raw?.descuentoCupon ?? 0;
+  const n = num(v);
+  return isNaN(n) ? 0 : n;
 }
 
 function parseDoc(docSnap){
@@ -412,12 +491,17 @@ window.abrirDetalle = (id)=>{
   const tCanc = buscar(raw, ['cancelado']);
 
   const prod=p.producto||0, envio=p.envio||0, serv=p.servicio||0, total=p.total||0;
-  const comision = prod*0.10;
+  // SOLO CORREGIDO - YA NO ES 10% FIJO, ES EL % REAL EN TIEMPO REAL DEL RESTAURANTE
+  const porcReal = comisionRealPedido(p);
+  const comision = prod * porcReal / 100;
   const pagoRest = prod - comision;
   const pagoRepa = envio*0.80;
   const subtotalPagos = pagoRest + pagoRepa;
   const desc10 = comision;
   const desc20 = envio - pagoRepa;
+  // SOLO CORREGIDO - DESCUENTO REAL AL CLIENTE QUE TRAE EL PEDIDO
+  const descuentoCliente = descuentoRealCliente(raw);
+  const gananciaPlataforma = desc10 + desc20 + serv - descuentoCliente;
 
   document.getElementById('modalTitle').textContent=`#${p.codigo} - ${p.estadoLabel}`;
   document.getElementById('modalBody').innerHTML=`
@@ -460,13 +544,14 @@ window.abrirDetalle = (id)=>{
       <div class="pres-row"><span>Envío</span><b>$${envio.toFixed(2)}</b></div>
       <div class="pres-row"><span>Tarifa Servicio</span><b>$${serv.toFixed(2)}</b></div>
       <div class="pres-row total-final"><span>Total pagado</span><b>$${total.toFixed(2)}</b></div>
-      <div class="pres-row"><span>Pago a restaurante (producto - 10%)</span><b>$${pagoRest.toFixed(2)}</b></div>
+      <div class="pres-row"><span>Pago a restaurante (producto - ${porcReal}%)</span><b>$${pagoRest.toFixed(2)}</b></div>
       <div class="pres-row"><span>Pago a repartidor (80% envío)</span><b>$${pagoRepa.toFixed(2)}</b></div>
       <div class="pres-row sub"><span>Subtotal pagos</span><b>$${subtotalPagos.toFixed(2)}</b></div>
-      <div class="pres-row"><span>Descuento 10% plataforma sobre producto</span><b>$${desc10.toFixed(2)}</b></div>
+      <div class="pres-row"><span>Descuento ${porcReal}% plataforma sobre producto</span><b>$${desc10.toFixed(2)}</b></div>
       <div class="pres-row"><span>Descuento repartidor 20% del envío</span><b>$${desc20.toFixed(2)}</b></div>
+      <div class="pres-row"><span>Descuento real al cliente</span><b>$${descuentoCliente.toFixed(2)}</b></div>
       <div class="pres-row"><span>Tarifa de servicio</span><b>$${serv.toFixed(2)}</b></div>
-      <div class="pres-row green"><span>Total ganancia plataforma</span><b>$${(desc10+desc20+serv).toFixed(2)}</b></div>
+      <div class="pres-row green"><span>Total ganancia plataforma</span><b>$${gananciaPlataforma.toFixed(2)}</b></div>
     </div>
   `;
   document.getElementById('modal').classList.add('active');
