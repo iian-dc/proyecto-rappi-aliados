@@ -19,36 +19,45 @@ body{background:#fff;min-height:100vh}
 .bell{position:relative;width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:#FEF2F2;border-radius:50%}
 .bell-count{position:absolute;top:-4px;right:-4px;background:#E30613;color:white;min-width:20px;height:20px;border-radius:50%;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0 5px}
 .contenido{padding:20px 24px 40px;max-width:1000px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
-.card{background:#fff;border:1px solid #eee;border-radius:16px;padding:16px;box-shadow:0 2px 10px rgba(0,0,0,.04);display:flex;gap:16px}
+.card{background:#fff;border:1px solid #eee;border-radius:16px;padding:16px;box-shadow:0 2px 10px rgba(0,0,0,.04)}
+/* NUEVO - FILA SUPERIOR: IZQUIERDA LOGO+NOMBRE, DERECHA NUMERO+BOTONES */
+.fila-superior{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}
+.izquierda{display:flex;gap:14px;align-items:center;flex:1;min-width:0}
 .logo-restaurante{width:62px;height:62px;min-width:62px;border-radius:14px;background:#FEF2F2;border:1px solid #FEE2E2;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:900;color:#B70A1A;overflow:hidden}
 .logo-restaurante img{width:100%;height:100%;object-fit:cover}
-.info-principal{flex:1;min-width:0}
-.codigo{font-size:13px;font-weight:800;color:#B70A1A}
-.nombre-restaurante{font-size:16px;font-weight:800;color:#111;margin-top:2px}
-.para-quien{font-size:13px;color:#374151;margin-top:2px}
+.nombre-restaurante{font-size:17px;font-weight:800;color:#111;line-height:1.2}
+.para-quien{font-size:13px;color:#374151;margin-top:3px}
 .para-quien b{color:#111}
 .detalle{font-size:12.5px;color:#6b7280;margin-top:4px}
-.tiempo-real{margin-top:10px;display:flex;align-items:center;gap:8px}
+.derecha{text-align:right;min-width:180px}
+.codigo{font-size:13px;font-weight:800;color:#B70A1A}
+.codigo b{font-size:16px;color:#111;display:block;margin-top:1px}
+/* NUEVO - BOTONES DEBAJO DEL NUMERO */
+.botones-estado{display:flex;flex-direction:column;gap:6px;margin-top:10px;align-items:flex-end}
+.btn-estado{border:none;border-radius:999px;padding:7px 14px;font-size:12px;font-weight:800;min-width:120px;text-align:center;color:#9CA3AF;background:#F3F4F6}
+.btn-estado.verde-activo{background:#16A34A;color:#fff}
+.btn-estado.amarillo-activo{background:#F59E0B;color:#fff}
+.btn-estado.azul-activo{background:#2563EB;color:#fff}
+.btn-estado.hecho{opacity:1}
+.tiempo-real{margin-top:10px}
 .tiempo-real span{font-size:12px;color:#B70A1A;font-weight:700;background:#FEF2F2;padding:5px 10px;border-radius:999px}
-.barra{height:6px;background:#F3F4F6;border-radius:999px;margin-top:8px;overflow:hidden}
-.barra div{height:100%;background:#B70A1A;border-radius:999px;transition:width 1s}
-.procesos{width:200px;min-width:200px;border-left:1px solid #F3F4F6;padding-left:16px;display:flex;flex-direction:column;gap:10px}
-.proceso{display:flex;gap:10px;align-items:flex-start;font-size:12.5px;line-height:1.3;color:#9CA3AF}
-.proceso b{display:block;color:#9CA3AF}
-.proceso .punto{width:22px;height:22px;min-width:22px;border-radius:50%;background:#F3F4F6;color:#9CA3AF;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800}
-.proceso.activo{color:#111}
-.proceso.activo b{color:#111}
-.proceso.activo .punto{background:#B70A1A;color:#fff}
-.proceso.hecho{color:#111}
-.proceso.hecho b{color:#111}
-.proceso.hecho .punto{background:#16A34A;color:#fff}
+/* NUEVO - BARRA DE TIEMPO CON 3 TRAMOS Y TIEMPO EN EL MEDIO */
+.barra-tiempo{display:flex;gap:4px;margin-top:14px}
+.tramo{flex:1;height:34px;border-radius:8px;background:#F3F4F6;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#9CA3AF;position:relative}
+.tramo.verde{background:#16A34A;color:#fff}
+.tramo.amarillo{background:#F59E0B;color:#fff}
+.tramo.azul{background:#2563EB;color:#fff}
+.tramo.activo{opacity:1}
+.etiquetas-barra{display:flex;gap:4px;margin-top:6px}
+.etiquetas-barra span{flex:1;text-align:center;font-size:11px;font-weight:700;color:#6b7280}
 .vacio{background:#fff;border:1px dashed #ddd;border-radius:16px;padding:30px 20px;text-align:center;color:#6b7280;font-size:13.5px;line-height:1.5}
 @media(max-width:760px){
   .header-top{padding:12px 14px}
   .header-left h1{font-size:18px}
   .contenido{padding:14px}
-  .card{flex-direction:column}
-  .procesos{width:100%;min-width:0;border-left:none;border-top:1px solid #F3F4F6;padding-left:0;padding-top:12px}
+  .fila-superior{flex-direction:column}
+  .derecha{text-align:left;min-width:0;width:100%}
+  .botones-estado{align-items:flex-start;flex-direction:row;flex-wrap:wrap}
 }
 </style>
 </head>
@@ -76,7 +85,6 @@ body{background:#fff;min-height:100vh}
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
 import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
-// MISMA CONFIG QUE TU ARCHIVO TERMINAR Y PAGAR - DONDE SE CREA EL PEDIDO
 const configConfirmacion = {
   apiKey: "AIzaSyDLKngPyi_SWAXEQwdrHO5h8L8OufulAR4",
   authDomain: "doloya-confirmacion.firebaseapp.com",
@@ -92,37 +100,9 @@ const db = getFirestore(app);
 const lista = document.getElementById('listaPrePedidos');
 const bellCount = document.getElementById('bellCount');
 let pedidosReales = [];
+// Guarda cuando se vio por primera vez cada estado, para calcular cuanto demoro
+let tiemposEstados = {};
 
-function estadoAProcesos(estadoRaw){
-  const e = (estadoRaw || "confirmado").toLowerCase();
-  let aceptado = 0, preparando = 0, enviado = 0;
-  if(e === "confirmado" || e === "nuevo"){ aceptado = 1; }
-  if(e === "aceptado" || e === "activo"){ aceptado = 2; preparando = 1; }
-  if(e === "preparando" || e === "en_preparacion" || e === "listo" || e === "listo_para_admin"){ aceptado = 2; preparando = 2; enviado = 1; }
-  if(e === "enviado_a_repartidor" || e === "en_camino" || e === "recogido" || e === "ir_a_entregar" || e === "ir_a_recoger"){ aceptado = 2; preparando = 2; enviado = 2; }
-  if(e === "finalizado" || e === "entregado"){ aceptado = 2; preparando = 2; enviado = 2; }
-  return {aceptado, preparando, enviado};
-}
-function claseProceso(v){
-  if(v === 2) return {clase:"hecho", punto:"✓"};
-  if(v === 1) return {clase:"activo", punto:"●"};
-  return {clase:"", punto:"○"};
-}
-function barraPorcentaje(estadoRaw){
-  const e = (estadoRaw || "").toLowerCase();
-  if(e === "aceptado" || e === "activo") return 33;
-  if(e === "preparando" || e === "en_preparacion" || e === "listo" || e === "listo_para_admin") return 66;
-  if(e === "enviado_a_repartidor" || e === "en_camino" || e === "recogido" || e === "ir_a_entregar" || e === "ir_a_recoger" || e === "finalizado" || e === "entregado") return 100;
-  return 15;
-}
-function formatoTiempo(ms){
-  if(!ms) return "Hace un momento";
-  const diff = Math.max(0, Math.floor((Date.now() - ms)/1000));
-  if(diff < 60) return "Hace " + diff + " seg";
-  if(diff < 3600) return "Hace " + Math.floor(diff/60) + " min";
-  if(diff < 86400) return "Hace " + Math.floor(diff/3600) + " h";
-  return "Hace " + Math.floor(diff/86400) + " d";
-}
 function obtenerTiempoMs(d){
   const c = d.fecha || d.fechaCreacion || d.createdAt || d.timestamp;
   if(!c) return Date.now();
@@ -130,6 +110,29 @@ function obtenerTiempoMs(d){
   if(c.seconds) return c.seconds * 1000;
   const t = new Date(c).getTime();
   return isNaN(t) ? Date.now() : t;
+}
+function formatoCorto(ms){
+  if(ms == null || ms < 0) return "—";
+  const seg = Math.floor(ms/1000);
+  if(seg < 60) return seg + "s";
+  const min = Math.floor(seg/60);
+  const resto = seg % 60;
+  if(min < 60) return min + "m " + resto + "s";
+  return Math.floor(min/60) + "h " + (min%60) + "m";
+}
+function formatoTiempo(ms){
+  if(!ms) return "Hace un momento";
+  const diff = Math.max(0, Math.floor((Date.now() - ms)/1000));
+  if(diff < 60) return "Hace " + diff + " seg";
+  if(diff < 3600) return "Hace " + Math.floor(diff/60) + " min";
+  return "Hace " + Math.floor(diff/3600) + " h";
+}
+function nivelEstado(e){
+  e = (e||"confirmado").toLowerCase();
+  if(e==="aceptado"||e==="activo") return 1;
+  if(e==="preparando"||e==="en_preparacion"||e==="listo"||e==="listo_para_admin") return 2;
+  if(e==="enviado_a_repartidor"||e==="en_camino"||e==="recogido"||e==="ir_a_entregar"||e==="ir_a_recoger"||e==="finalizado"||e==="entregado") return 3;
+  return 0;
 }
 function render(){
   if(pedidosReales.length === 0){
@@ -147,38 +150,59 @@ function render(){
     const total = d.totales?.total || d.total || 0;
     const productos = (d.productos || []).map(pr=> (pr.cantidad||1) + "x " + (pr.nombre||"Producto")).join(" • ") || "Pedido";
     const estado = d.estado || "confirmado";
-    const proc = estadoAProcesos(estado);
-    const pa = claseProceso(proc.aceptado);
-    const pp = claseProceso(proc.preparando);
-    const pe = claseProceso(proc.enviado);
-    const tiempoMs = obtenerTiempoMs(d);
+    const nivel = nivelEstado(estado);
+    const creado = obtenerTiempoMs(d);
+    const t = tiemposEstados[p.id] || {};
+    // Tiempos que demoro en cada boton
+    const tiempoAceptar = t.aceptado ? t.aceptado - creado : (nivel >= 1 ? Date.now() - creado : null);
+    const tiempoPreparar = (t.aceptado && t.preparando) ? t.preparando - t.aceptado : (nivel >= 2 && t.aceptado ? Date.now() - t.aceptado : null);
+    const tiempoListo = (t.preparando && t.listo) ? t.listo - t.preparando : (nivel >= 3 && t.preparando ? Date.now() - t.preparando : null);
     return `
-    <div class="card" data-tiempo="${tiempoMs}">
-      <div class="logo-restaurante">${letra}</div>
-      <div class="info-principal">
-        <div class="codigo">Código: ${codigo}</div>
-        <div class="nombre-restaurante">${nombreRest}</div>
-        <div class="para-quien">Le llegó a: <b>${nombreRest}</b> • Cliente: <b>${cliente}</b></div>
-        <div class="detalle">${productos} • Total $ ${Number(total).toLocaleString('es-CO')} • ${d.metodoPago?.tipo || "Efectivo"}</div>
-        <div class="tiempo-real"><span class="texto-tiempo">${formatoTiempo(tiempoMs)}</span></div>
-        <div class="barra"><div style="width:${barraPorcentaje(estado)}%"></div></div>
+    <div class="card" data-tiempo="${creado}">
+      <div class="fila-superior">
+        <div class="izquierda">
+          <div class="logo-restaurante">${letra}</div>
+          <div>
+            <div class="nombre-restaurante">${nombreRest}</div>
+            <div class="para-quien">Le llegó a: <b>${nombreRest}</b> • Cliente: <b>${cliente}</b></div>
+            <div class="detalle">${productos} • Total $ ${Number(total).toLocaleString('es-CO')} • ${d.metodoPago?.tipo || "Efectivo"}</div>
+            <div class="tiempo-real"><span class="texto-tiempo">${formatoTiempo(creado)}</span></div>
+          </div>
+        </div>
+        <div class="derecha">
+          <div class="codigo">N° Pedido<b>${codigo}</b></div>
+          <div class="botones-estado">
+            <button class="btn-estado ${nivel>=1?'verde-activo hecho':''}">✓ Aceptado</button>
+            <button class="btn-estado ${nivel>=2?'amarillo-activo hecho':''}">◉ Preparando</button>
+            <button class="btn-estado ${nivel>=3?'azul-activo hecho':''}">✓ Listo</button>
+          </div>
+        </div>
       </div>
-      <div class="procesos">
-        <div class="proceso ${pa.clase}"><span class="punto">${pa.punto}</span><div><b>Aceptado</b>${proc.aceptado===2?"El restaurante lo aceptó":proc.aceptado===1?"Esperando que lo acepte":"Aún no lo acepta"}</div></div>
-        <div class="proceso ${pp.clase}"><span class="punto">${pp.punto}</span><div><b>Preparando</b>${proc.preparando===2?"Ya lo está preparando":proc.preparando===1?"Lo está preparando ahora":"Aún no lo prepara"}</div></div>
-        <div class="proceso ${pe.clase}"><span class="punto">${pe.punto}</span><div><b>Enviado</b>${proc.enviado===2?"Ya lo envió":proc.enviado===1?"Ya lo envió a repartidor":"Aún no lo envía"}</div></div>
+      <div class="barra-tiempo">
+        <div class="tramo ${nivel>=1?'verde':''}">${nivel>=1 ? formatoCorto(tiempoAceptar) : 'Esperando'}</div>
+        <div class="tramo ${nivel>=2?'amarillo':''}">${nivel>=2 ? formatoCorto(tiempoPreparar) : 'Esperando'}</div>
+        <div class="tramo ${nivel>=3?'azul':''}">${nivel>=3 ? formatoCorto(tiempoListo) : 'Esperando'}</div>
       </div>
+      <div class="etiquetas-barra"><span>Min 1 → Aceptado</span><span>Aceptado → Preparando</span><span>Preparando → Listo</span></div>
     </div>`;
   }).join("");
 }
 
-// CORREGIDO - AHORA LEE DE "pedidos", DONDE TU ARCHIVO TERMINAR Y PAGAR LO GUARDA
 onSnapshot(collection(db, "pedidos"), (snap)=>{
   const ESTADOS_FINALES = ["finalizado","entregado","cancelado"];
   pedidosReales = snap.docs
     .map(doc=>({id: doc.id, data: doc.data()}))
     .filter(p=> !ESTADOS_FINALES.includes((p.data.estado||"").toLowerCase()))
     .sort((a,b)=> obtenerTiempoMs(b.data) - obtenerTiempoMs(a.data));
+  // Registra la hora en que se vio cada estado por primera vez
+  pedidosReales.forEach(p=>{
+    const niv = nivelEstado(p.data.estado);
+    if(!tiemposEstados[p.id]) tiemposEstados[p.id] = {};
+    const tt = tiemposEstados[p.id];
+    if(niv >= 1 && !tt.aceptado) tt.aceptado = Date.now();
+    if(niv >= 2 && !tt.preparando) tt.preparando = Date.now();
+    if(niv >= 3 && !tt.listo) tt.listo = Date.now();
+  });
   render();
 });
 
@@ -188,7 +212,9 @@ setInterval(()=>{
     const el = card.querySelector('.texto-tiempo');
     if(el) el.textContent = formatoTiempo(ms);
   });
-}, 1000);
+  // Recalcula los tiempos del medio de la barra en vivo
+  render();
+}, 30000);
 </script>
 </body>
 </html>
