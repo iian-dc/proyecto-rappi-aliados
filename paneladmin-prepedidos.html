@@ -54,7 +54,6 @@ body{background:#fff;min-height:100vh}
 </head>
 <body>
 
-<!-- SOLO ARRIBA - CIRCULO X + TITULO A LA IZQUIERDA, CAMPANA A LA DERECHA -->
 <div class="header-top">
   <div class="header-left">
     <a href="paneladmin.html" class="btn-circulo-x" title="Regresar a Panel Admin">✕</a>
@@ -69,75 +68,127 @@ body{background:#fff;min-height:100vh}
   </div>
 </div>
 
-<!-- LISTA DE SEGUIMIENTO -->
 <div class="contenido" id="listaPrePedidos">
-
-  <!-- EJEMPLO 1 -->
-  <div class="card" data-tiempo="2026-11-24T11:50:00">
-    <div class="logo-restaurante">🍔</div>
-    <div class="info-principal">
-      <div class="codigo">Código: DY-001</div>
-      <div class="nombre-restaurante">Restaurante Ejemplo</div>
-      <div class="para-quien">Le llegó a: <b>Restaurante Ejemplo</b> • Cliente: <b>Juan Pérez</b></div>
-      <div class="detalle">2x Hamburguesa • Total $150 • Dolores Hidalgo</div>
-      <div class="tiempo-real"><span class="texto-tiempo">Hace 2 min</span></div>
-      <div class="barra"><div style="width:66%"></div></div>
-    </div>
-    <div class="procesos">
-      <div class="proceso hecho"><span class="punto">✓</span><div><b>Aceptado</b>El restaurante lo aceptó</div></div>
-      <div class="proceso activo"><span class="punto">●</span><div><b>Preparando</b>Lo está preparando ahora</div></div>
-      <div class="proceso"><span class="punto">○</span><div><b>Enviado</b>Aún no lo envía</div></div>
-    </div>
-  </div>
-
-  <!-- EJEMPLO 2 -->
-  <div class="card" data-tiempo="2026-11-24T11:58:00">
-    <div class="logo-restaurante">🌮</div>
-    <div class="info-principal">
-      <div class="codigo">Código: DY-002</div>
-      <div class="nombre-restaurante">Taquería Ejemplo</div>
-      <div class="para-quien">Le llegó a: <b>Taquería Ejemplo</b> • Cliente: <b>María López</b></div>
-      <div class="detalle">3x Tacos • Total $120 • Dolores Hidalgo</div>
-      <div class="tiempo-real"><span class="texto-tiempo">Hace 1 min</span></div>
-      <div class="barra"><div style="width:33%"></div></div>
-    </div>
-    <div class="procesos">
-      <div class="proceso activo"><span class="punto">●</span><div><b>Aceptado</b>Esperando que lo acepte</div></div>
-      <div class="proceso"><span class="punto">○</span><div><b>Preparando</b>Aún no lo prepara</div></div>
-      <div class="proceso"><span class="punto">○</span><div><b>Enviado</b>Aún no lo envía</div></div>
-    </div>
-  </div>
-
-  <div class="vacio">
-    <b style="color:#111;font-size:15px">Sin más Pre-Pedidos por ahora</b><br>
-    Cuando un cliente haga su compra y la confirme, aquí te va a aparecer en tiempo real, y también le va a llegar al restaurante.
-  </div>
-
+  <div class="vacio"><b style="color:#111;font-size:15px">Esperando Pre-Pedidos...</b><br>Cuando un cliente le de Finalizar pedido, aquí te va a aparecer en tiempo real, y también le va a llegar al restaurante.</div>
 </div>
 
-<script>
-// Campana = cantidad de pedidos en seguimiento
-function actualizarCampana(){
-  const total = document.querySelectorAll('#listaPrePedidos .card').length;
-  document.getElementById('bellCount').textContent = total;
-}
-actualizarCampana();
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
-// Tiempo en tiempo real: hace X min / hace X seg
-function actualizarTiempos(){
+// MISMA CONFIG QUE TU ARCHIVO TERMINAR Y PAGAR - DONDE SE CREA EL PEDIDO
+const configConfirmacion = {
+  apiKey: "AIzaSyDLKngPyi_SWAXEQwdrHO5h8L8OufulAR4",
+  authDomain: "doloya-confirmacion.firebaseapp.com",
+  databaseURL: "https://doloya-confirmacion-default-rtdb.firebaseio.com",
+  projectId: "doloya-confirmacion",
+  storageBucket: "doloya-confirmacion.firebasestorage.app",
+  messagingSenderId: "832228761099",
+  appId: "1:832228761099:web:ddd4b6a0ee0d7f0494b10e"
+};
+const app = initializeApp(configConfirmacion);
+const db = getFirestore(app);
+
+const lista = document.getElementById('listaPrePedidos');
+const bellCount = document.getElementById('bellCount');
+let pedidosReales = [];
+
+function estadoAProcesos(estadoRaw){
+  const e = (estadoRaw || "confirmado").toLowerCase();
+  let aceptado = 0, preparando = 0, enviado = 0;
+  if(e === "confirmado" || e === "nuevo"){ aceptado = 1; }
+  if(e === "aceptado" || e === "activo"){ aceptado = 2; preparando = 1; }
+  if(e === "preparando" || e === "en_preparacion" || e === "listo" || e === "listo_para_admin"){ aceptado = 2; preparando = 2; enviado = 1; }
+  if(e === "enviado_a_repartidor" || e === "en_camino" || e === "recogido" || e === "ir_a_entregar" || e === "ir_a_recoger"){ aceptado = 2; preparando = 2; enviado = 2; }
+  if(e === "finalizado" || e === "entregado"){ aceptado = 2; preparando = 2; enviado = 2; }
+  return {aceptado, preparando, enviado};
+}
+function claseProceso(v){
+  if(v === 2) return {clase:"hecho", punto:"✓"};
+  if(v === 1) return {clase:"activo", punto:"●"};
+  return {clase:"", punto:"○"};
+}
+function barraPorcentaje(estadoRaw){
+  const e = (estadoRaw || "").toLowerCase();
+  if(e === "aceptado" || e === "activo") return 33;
+  if(e === "preparando" || e === "en_preparacion" || e === "listo" || e === "listo_para_admin") return 66;
+  if(e === "enviado_a_repartidor" || e === "en_camino" || e === "recogido" || e === "ir_a_entregar" || e === "ir_a_recoger" || e === "finalizado" || e === "entregado") return 100;
+  return 15;
+}
+function formatoTiempo(ms){
+  if(!ms) return "Hace un momento";
+  const diff = Math.max(0, Math.floor((Date.now() - ms)/1000));
+  if(diff < 60) return "Hace " + diff + " seg";
+  if(diff < 3600) return "Hace " + Math.floor(diff/60) + " min";
+  if(diff < 86400) return "Hace " + Math.floor(diff/3600) + " h";
+  return "Hace " + Math.floor(diff/86400) + " d";
+}
+function obtenerTiempoMs(d){
+  const c = d.fecha || d.fechaCreacion || d.createdAt || d.timestamp;
+  if(!c) return Date.now();
+  if(typeof c === "number") return c;
+  if(c.seconds) return c.seconds * 1000;
+  const t = new Date(c).getTime();
+  return isNaN(t) ? Date.now() : t;
+}
+function render(){
+  if(pedidosReales.length === 0){
+    lista.innerHTML = `<div class="vacio"><b style="color:#111;font-size:15px">Sin Pre-Pedidos por ahora</b><br>Cuando un cliente le de Finalizar pedido, aquí te va a aparecer en tiempo real.</div>`;
+    bellCount.textContent = "0";
+    return;
+  }
+  bellCount.textContent = pedidosReales.length;
+  lista.innerHTML = pedidosReales.map(p=>{
+    const d = p.data;
+    const codigo = d.numeroPedido || d.codigo || p.id;
+    const nombreRest = d.restaurante?.nombre || "Restaurante";
+    const letra = (nombreRest||"R").charAt(0).toUpperCase();
+    const cliente = d.cliente?.nombre || d.nombre || "Cliente";
+    const total = d.totales?.total || d.total || 0;
+    const productos = (d.productos || []).map(pr=> (pr.cantidad||1) + "x " + (pr.nombre||"Producto")).join(" • ") || "Pedido";
+    const estado = d.estado || "confirmado";
+    const proc = estadoAProcesos(estado);
+    const pa = claseProceso(proc.aceptado);
+    const pp = claseProceso(proc.preparando);
+    const pe = claseProceso(proc.enviado);
+    const tiempoMs = obtenerTiempoMs(d);
+    return `
+    <div class="card" data-tiempo="${tiempoMs}">
+      <div class="logo-restaurante">${letra}</div>
+      <div class="info-principal">
+        <div class="codigo">Código: ${codigo}</div>
+        <div class="nombre-restaurante">${nombreRest}</div>
+        <div class="para-quien">Le llegó a: <b>${nombreRest}</b> • Cliente: <b>${cliente}</b></div>
+        <div class="detalle">${productos} • Total $ ${Number(total).toLocaleString('es-CO')} • ${d.metodoPago?.tipo || "Efectivo"}</div>
+        <div class="tiempo-real"><span class="texto-tiempo">${formatoTiempo(tiempoMs)}</span></div>
+        <div class="barra"><div style="width:${barraPorcentaje(estado)}%"></div></div>
+      </div>
+      <div class="procesos">
+        <div class="proceso ${pa.clase}"><span class="punto">${pa.punto}</span><div><b>Aceptado</b>${proc.aceptado===2?"El restaurante lo aceptó":proc.aceptado===1?"Esperando que lo acepte":"Aún no lo acepta"}</div></div>
+        <div class="proceso ${pp.clase}"><span class="punto">${pp.punto}</span><div><b>Preparando</b>${proc.preparando===2?"Ya lo está preparando":proc.preparando===1?"Lo está preparando ahora":"Aún no lo prepara"}</div></div>
+        <div class="proceso ${pe.clase}"><span class="punto">${pe.punto}</span><div><b>Enviado</b>${proc.enviado===2?"Ya lo envió":proc.enviado===1?"Ya lo envió a repartidor":"Aún no lo envía"}</div></div>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+// CORREGIDO - AHORA LEE DE "pedidos", DONDE TU ARCHIVO TERMINAR Y PAGAR LO GUARDA
+onSnapshot(collection(db, "pedidos"), (snap)=>{
+  const ESTADOS_FINALES = ["finalizado","entregado","cancelado"];
+  pedidosReales = snap.docs
+    .map(doc=>({id: doc.id, data: doc.data()}))
+    .filter(p=> !ESTADOS_FINALES.includes((p.data.estado||"").toLowerCase()))
+    .sort((a,b)=> obtenerTiempoMs(b.data) - obtenerTiempoMs(a.data));
+  render();
+});
+
+setInterval(()=>{
   document.querySelectorAll('.card').forEach(card=>{
-    const inicio = new Date(card.getAttribute('data-tiempo')).getTime();
-    const ahora = new Date().getTime();
-    let diff = Math.max(0, Math.floor((ahora - inicio)/1000));
+    const ms = parseInt(card.getAttribute('data-tiempo'));
     const el = card.querySelector('.texto-tiempo');
-    if(diff < 60) el.textContent = 'Hace ' + diff + ' seg';
-    else if(diff < 3600) el.textContent = 'Hace ' + Math.floor(diff/60) + ' min';
-    else el.textContent = 'Hace ' + Math.floor(diff/3600) + ' h';
+    if(el) el.textContent = formatoTiempo(ms);
   });
-}
-actualizarTiempos();
-setInterval(actualizarTiempos, 1000);
+}, 1000);
 </script>
-
 </body>
 </html>
