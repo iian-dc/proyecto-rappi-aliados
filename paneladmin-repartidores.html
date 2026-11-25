@@ -114,7 +114,7 @@ const firebaseConfig = {
 };
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
-// CORREGIDO - CONEXION A PEDIDOS REALES EN TIEMPO REAL
+// CORREGIDO - TUS PEDIDOS REALES ESTAN EN pedidos_admin + HISTORIAL, NO EN pedidos
 const configConfirmacion = {
   apiKey: "AIzaSyDLKngPyi_SWAXEQwdrHO5h8L8OufulAR4",
   authDomain: "doloya-confirmacion.firebaseapp.com",
@@ -125,48 +125,52 @@ const configConfirmacion = {
   appId: "1:832228761099:web:ddd4b6a0ee0d7f0494b10e"
 };
 const appConfirmacion = initializeApp(configConfirmacion, "confirmacionPedidos");
-const dbPedidos = getFirestore(appConfirmacion);
+const dbPedidosAdmin = getFirestore(appConfirmacion);
+const configHistorial = {
+  apiKey: "AIzaSyCRx4B7mO444s0yU-WTnsqMjBHDWX4IRv8",
+  authDomain: "doloya-historial.firebaseapp.com",
+  projectId: "doloya-historial",
+  storageBucket: "doloya-historial.firebasestorage.app",
+  messagingSenderId: "41258055121",
+  appId: "1:41258055121:web:19a443786320e04ebd9cf0",
+  measurementId: "G-ENELTJ1X6R"
+};
+const appHistorial = initializeApp(configHistorial, "historialApp");
+const dbHistorial = getFirestore(appHistorial);
 let repartidores = {};
 let editId = null;
 let modoAgregar = true;
 let idEliminar = null;
-// CORREGIDO - CONTEO REAL POR REPARTIDOR, SE ACTUALIZA SOLO CUANDO LLEGA UN PEDIDO
-let conteoReal = {}; // clave normalizada -> {hoy, general, total, cancelados}
-let pedidosRealesCargados = false;
-function normalizarClave(v){
-  return String(v||'').toLowerCase().trim().replace(/\s+/g,' ').replace(/_/g,' ');
-}
+// CORREGIDO - CONTEO REAL SUMANDO LAS 3 COLECCIONES
+let listaAdmin = [];
+let listaEntregados = [];
+let listaCancelados = [];
+function normalizarClave(v){ return String(v||'').toLowerCase().trim().replace(/\s+/g,' ').replace(/_/g,' '); }
 function clavesRepartidor(id, r){
   const s = new Set();
-  [id, r.usuario, r.nombre, r.nombreCompleto, r.user].forEach(v=>{
-    const n = normalizarClave(v);
-    if(n) s.add(n);
-  });
+  [id, r.usuario, r.nombre, r.nombreCompleto, r.user].forEach(v=>{ const n = normalizarClave(v); if(n) s.add(n); });
   return s;
 }
 function clavesPedido(d){
   const s = new Set();
   const rep = d.repartidor || {};
   const candidatos = [
-    rep.id, rep.usuario, rep.nombre, rep.nombreCompleto, rep.user,
-    d.repartidorId, d.repartidor_id, d.repartidorUsuario, d.repartidorNombre,
-    d.repartidor, d.driverId, d.driver, d.asignadoA, d.asignado_a
+    rep.id, rep.usuario, rep.nombre,
+    d.repartidorId, d.repartidor_id, d.repartidorUsuario, d.repartidorNombre, d.repartidor,
+    d.asignadoA, d.driverId
   ];
   candidatos.forEach(v=>{
-    if(v && typeof v === 'object'){
-      [v.id, v.usuario, v.nombre].forEach(x=>{ const n = normalizarClave(x); if(n) s.add(n); });
-    } else {
-      const n = normalizarClave(v);
-      if(n) s.add(n);
-    }
+    if(v && typeof v === 'object'){ [v.id, v.usuario, v.nombre].forEach(x=>{ const n = normalizarClave(x); if(n) s.add(n); }); }
+    else { const n = normalizarClave(v); if(n) s.add(n); }
   });
   return s;
 }
 function fechaMsPedido(d){
-  const c = d.fechaEntregado || d.fechaEntrega || d.fechaFinalizado || d.fecha || d.fechaCreacion || d.createdAt || d.timestamp;
+  const c = d.fechaEntrega || d.enviadoAHistorialEn || d.fechaCancelacion || d.canceladoEn || d.fechaEntregado || d.enviadoARepartidorEn || d.timestampEnvio || d.fecha || d.timestampAdmin || d.timestamp;
   if(!c) return 0;
   if(typeof c === 'number') return c;
   if(c.seconds) return c.seconds * 1000;
+  if(c.toDate) { try{ return c.toDate().getTime(); }catch{} }
   const t = new Date(c).getTime();
   return isNaN(t) ? 0 : t;
 }
@@ -174,6 +178,32 @@ function esHoy(ms){
   if(!ms) return false;
   const a = new Date(ms); const hoy = new Date();
   return a.getFullYear()===hoy.getFullYear() && a.getMonth()===hoy.getMonth() && a.getDate()===hoy.getDate();
+}
+function conteoParaRepartidor(id, r){
+  const claves = clavesRepartidor(id, r);
+  let hoy=0, general=0, total=0, cancelados=0;
+  const coincide = (d)=>{ const cp = clavesPedido(d); for(const k of claves){ if(cp.has(k)) return true; } return false; };
+  // 1) HISTORIAL ENTREGADOS - YA SON GENERAL
+  listaEntregados.forEach(d=>{
+    if(!coincide(d)) return;
+    general++; total++;
+    if(esHoy(fechaMsPedido(d))) hoy++;
+  });
+  // 2) HISTORIAL CANCELADOS
+  listaCancelados.forEach(d=>{
+    if(!coincide(d)) return;
+    cancelados++; total++;
+  });
+  // 3) PEDIDOS_ADMIN ACTIVOS - LOS QUE AUN NO SE MANDARON A HISTORIAL
+  listaAdmin.forEach(d=>{
+    if(!coincide(d)) return;
+    const estado = String(d.estado||'').toLowerCase();
+    total++;
+    if(estado.includes('cancel')) cancelados++;
+    else if(estado.includes('entreg') || estado.includes('finaliz')){ general++; if(esHoy(fechaMsPedido(d))) hoy++; }
+    else { if(esHoy(fechaMsPedido(d))) hoy++; }
+  });
+  return {hoy, general, total, cancelados};
 }
 function renderTabla(){
   const val = repartidores; const ids = Object.keys(val);
@@ -184,8 +214,7 @@ function renderTabla(){
     if((r.estadoConexion||r.estado)==='disponible' || r.estadoConexion==='conectado') disp++;
     if((r.estadoConexion||'')==='desconectado' || r.conectado===false) inact++;
     const c = conteoParaRepartidor(k, r);
-    compTotal += c.general;
-    cancTotal += c.cancelados;
+    compTotal += c.general; cancTotal += c.cancelados;
   });
   document.getElementById('sDisp').textContent = disp;
   document.getElementById('sInact').textContent = inact;
@@ -205,18 +234,15 @@ function renderTabla(){
     else { txt=estadoRaw; }
     const porc = parseFloat(r.porcentaje ?? r.porcentajeEntrega ?? r.porcentajeRepartidor ?? 80);
     const c = conteoParaRepartidor(id, r);
-    const pedidosHoy = c.hoy;
-    const general = c.general;
-    const totalPedidos = c.total;
     html+=`<div class="row">
       <div style="display:flex;gap:8px;align-items:center"><div class="avatar">${r.foto?`<img src="${r.foto}">`:`<span style="font-weight:800">${(r.nombre||id).charAt(0)}</span>`}</div><div><b>${r.nombre||id}</b><div style="font-size:11px;color:#64748b">${r.ine||''}</div></div></div>
       <div>${r.usuario||''}</div>
       <div style="font-weight:700">${r.password||''}</div>
       <div><span class="badge ${badgeClass}">${txt}</span></div>
       <div style="text-align:center"><span class="badge-porc">${porc}%</span></div>
-      <div style="text-align:center;font-weight:800">${pedidosHoy}</div>
-      <div style="text-align:center;font-weight:800">${general}</div>
-      <div style="text-align:center;font-weight:800">${totalPedidos}</div>
+      <div style="text-align:center;font-weight:800">${c.hoy}</div>
+      <div style="text-align:center;font-weight:800">${c.general}</div>
+      <div style="text-align:center;font-weight:800">${c.total}</div>
       <div style="display:flex;gap:6px">
         <button class="btn-edit" onclick="editar('${id}')">Editar</button>
         <button class="btn-del" onclick="eliminar('${id}')">Eliminar</button>
@@ -225,45 +251,10 @@ function renderTabla(){
   });
   cont.innerHTML=html;
 }
-function conteoParaRepartidor(id, r){
-  // Si ya hay pedidos reales, ese es el conteo real. Si aun no llegan, usa el guardado como respaldo.
-  const claves = clavesRepartidor(id, r);
-  let hoy=0, general=0, total=0, cancelados=0, encontrado=false;
-  claves.forEach(k=>{
-    const c = conteoReal[k];
-    if(c){ encontrado=true; hoy+=c.hoy; general+=c.general; total+=c.total; cancelados+=c.cancelados; }
-  });
-  if(encontrado || pedidosRealesCargados) return {hoy, general, total, cancelados};
-  // Respaldo mientras no hay pedidos reales
-  const gen = parseInt(r.pedidosGeneral||r.pedidosCompletados||0);
-  const can = parseInt(r.pedidosCancelados||0);
-  return {hoy: parseInt(r.pedidosHoy||0), general: gen, total: gen+can, cancelados: can};
-}
-// CORREGIDO - ESCUCHA PEDIDOS REALES EN TIEMPO REAL Y CUENTA POR REPARTIDOR
-onSnapshot(collection(dbPedidos, "pedidos"), (snap)=>{
-  conteoReal = {};
-  snap.docs.forEach(doc=>{
-    const d = doc.data();
-    const claves = clavesPedido(d);
-    if(claves.size===0) return;
-    const estado = String(d.estado||'').toLowerCase();
-    const esCancelado = estado.includes('cancel');
-    const esEntregado = estado.includes('entreg') || estado.includes('finaliz') || estado.includes('complet');
-    const ms = fechaMsPedido(d);
-    const hoy = esHoy(ms);
-    claves.forEach(k=>{
-      if(!conteoReal[k]) conteoReal[k] = {hoy:0, general:0, total:0, cancelados:0};
-      conteoReal[k].total++;
-      if(esCancelado) conteoReal[k].cancelados++;
-      if(esEntregado){
-        conteoReal[k].general++;
-        if(hoy) conteoReal[k].hoy++;
-      }
-    });
-  });
-  pedidosRealesCargados = true;
-  renderTabla();
-});
+// CORREGIDO - ESCUCHA LAS 3 COLECCIONES REALES EN TIEMPO REAL
+onSnapshot(collection(dbPedidosAdmin, "pedidos_admin"), (snap)=>{ listaAdmin = snap.docs.map(d=>d.data()); renderTabla(); });
+onSnapshot(collection(dbHistorial, "pedidos_entregados"), (snap)=>{ listaEntregados = snap.docs.map(d=>d.data()); renderTabla(); });
+onSnapshot(collection(dbHistorial, "pedidos_cancelados"), (snap)=>{ listaCancelados = snap.docs.map(d=>d.data()); renderTabla(); });
 window.cerrar = ()=>{ document.getElementById('sidePanel').classList.remove('open'); }
 window.agregarNuevo = ()=>{
   modoAgregar=true; editId=null;
