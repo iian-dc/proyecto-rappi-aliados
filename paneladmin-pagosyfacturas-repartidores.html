@@ -147,7 +147,7 @@ let filtrados = [];
 let entregados = [];
 let cancelados = [];
 let adminActivos = [];
-let pagosMap = {};
+let pagosLista = [];
 let pagarId = null;
 let pagarNombre = "";
 function normalizarTxt(t){ return String(t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().replace(/[_-]+/g,' ').replace(/\s+/g,' '); }
@@ -174,7 +174,6 @@ function calcular(){
       let ok=false; claves.forEach(k=>{ if(cp.has(k)) ok=true; });
       if(!ok) return;
       const envio = Number(p.totales?.costoEnvio ?? p.totales?.envio ?? 30);
-      // Si el pedido ya trae ganancia de repartidor congelada, usarla. Si no, envio * % actual
       const gCong = p.totales?.gananciaRepartidor ?? p.gananciaRepartidor ?? p.comision?.gananciaRepartidor;
       const g = (gCong!==undefined && gCong!==null && gCong!=='' && !isNaN(parseFloat(gCong))) ? Number(gCong) : Number((envio * porc/100).toFixed(2));
       totalEnvio += envio; ganancia += g; countEnt++;
@@ -194,9 +193,20 @@ function calcular(){
       if(estado.includes('cancel')){ const envio = Number(p.totales?.costoEnvio ?? p.totales?.envio ?? 30); totalCancEnvio += envio; countCanc++; }
       else if(estado.includes('entreg') || estado.includes('finaliz')){ const envio = Number(p.totales?.costoEnvio ?? p.totales?.envio ?? 30); const g = Number((envio * porc/100).toFixed(2)); totalEnvio += envio; ganancia += g; countEnt++; }
     });
-    const pg = pagosMap[normalizarTxt(r.id)] || pagosMap[normalizarTxt(r.nombre)] || {pagado:0, ultimo:"", count:0};
-    const pendiente = Math.max(0, ganancia - pg.pagado);
-    return { ...r, porc, totalEnvio, ganancia, totalCancEnvio, countEnt, countCanc, pagado: pg.pagado, pendiente, ultimoPago: pg.ultimo, facturas: pg.count };
+    // SOLO CORREGIDO - ANTES: buscaba el pago por UNA sola llave (id O nombre). Si no coincidía exacto, no lo encontraba y el Resumen no se movía.
+    // AHORA: suma TODOS los pagos de pagos_repartidores donde el repartidorId O repartidorNombre O repartidorUsuario coincida con id / usuario / nombre del repartidor.
+    let pagadoTotal = 0, ultimoPago = "", countPagos = 0;
+    pagosLista.forEach(p=>{
+      const clavesPago = new Set([normalizarTxt(p.repartidorId), normalizarTxt(p.repartidorNombre), normalizarTxt(p.repartidorUsuario)].filter(Boolean));
+      let coincide = false;
+      claves.forEach(k=>{ if(clavesPago.has(k)) coincide = true; });
+      if(!coincide) return;
+      pagadoTotal += Number(p.montoPagado||0);
+      countPagos += 1;
+      if(p.fechaPago && (!ultimoPago || new Date(p.fechaPago) > new Date(ultimoPago))) ultimoPago = p.fechaPago;
+    });
+    const pendiente = Math.max(0, ganancia - pagadoTotal);
+    return { ...r, porc, totalEnvio, ganancia, totalCancEnvio, countEnt, countCanc, pagado: pagadoTotal, pendiente, ultimoPago, facturas: countPagos };
   });
   repartidores = lista;
   filtrados = [...lista];
@@ -301,16 +311,8 @@ onSnapshot(collection(dbHis, "pedidos_entregados"), (snap)=>{ entregados = snap.
 onSnapshot(collection(dbHis, "pedidos_cancelados"), (snap)=>{ cancelados = snap.docs.map(d=>d.data()); calcular(); });
 onSnapshot(collection(dbConf, "pedidos_admin"), (snap)=>{ adminActivos = snap.docs.map(d=>d.data()); calcular(); });
 onSnapshot(collection(dbHis, "pagos_repartidores"), (snap)=>{
-  pagosMap = {};
-  snap.docs.forEach(d=>{
-    const p = d.data();
-    const key = normalizarTxt(p.repartidorId || p.repartidorNombre || '');
-    if(!key) return;
-    if(!pagosMap[key]) pagosMap[key]={pagado:0, ultimo:"", count:0};
-    pagosMap[key].pagado += Number(p.montoPagado||0);
-    pagosMap[key].count += 1;
-    if(p.fechaPago && (!pagosMap[key].ultimo || new Date(p.fechaPago) > new Date(pagosMap[key].ultimo))) pagosMap[key].ultimo = p.fechaPago;
-  });
+  // SOLO CORREGIDO - AHORA GUARDA TODA LA LISTA DE PAGOS, NO SOLO UNA LLAVE, PARA QUE CALCULAR() PUEDA COMPARAR id / usuario / nombre
+  pagosLista = snap.docs.map(d=>d.data());
   calcular();
 });
 </script>
