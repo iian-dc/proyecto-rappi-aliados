@@ -20,7 +20,6 @@ body{background:#fff;min-height:100vh}
 .bell-count{position:absolute;top:-4px;right:-4px;background:#E30613;color:white;min-width:20px;height:20px;border-radius:50%;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0 5px}
 .contenido{padding:20px 24px 40px;max-width:1000px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
 .card{background:#fff;border:1px solid #eee;border-radius:16px;padding:16px;box-shadow:0 2px 10px rgba(0,0,0,.04)}
-/* NUEVO - FILA SUPERIOR: IZQUIERDA LOGO+NOMBRE, DERECHA NUMERO+BOTONES */
 .fila-superior{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}
 .izquierda{display:flex;gap:14px;align-items:center;flex:1;min-width:0}
 .logo-restaurante{width:62px;height:62px;min-width:62px;border-radius:14px;background:#FEF2F2;border:1px solid #FEE2E2;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:900;color:#B70A1A;overflow:hidden}
@@ -32,24 +31,20 @@ body{background:#fff;min-height:100vh}
 .derecha{text-align:right;min-width:180px}
 .codigo{font-size:13px;font-weight:800;color:#B70A1A}
 .codigo b{font-size:16px;color:#111;display:block;margin-top:1px}
-/* NUEVO - BOTONES DEBAJO DEL NUMERO */
 .botones-estado{display:flex;flex-direction:column;gap:6px;margin-top:10px;align-items:flex-end}
 .btn-estado{border:none;border-radius:999px;padding:7px 14px;font-size:12px;font-weight:800;min-width:120px;text-align:center;color:#9CA3AF;background:#F3F4F6}
 .btn-estado.verde-activo{background:#16A34A;color:#fff}
 .btn-estado.amarillo-activo{background:#F59E0B;color:#fff}
 .btn-estado.azul-activo{background:#2563EB;color:#fff}
-.btn-estado.hecho{opacity:1}
 .tiempo-real{margin-top:10px}
 .tiempo-real span{font-size:12px;color:#B70A1A;font-weight:700;background:#FEF2F2;padding:5px 10px;border-radius:999px}
-/* NUEVO - BARRA DE TIEMPO CON 3 TRAMOS Y TIEMPO EN EL MEDIO */
-.barra-tiempo{display:flex;gap:4px;margin-top:14px}
-.tramo{flex:1;height:34px;border-radius:8px;background:#F3F4F6;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#9CA3AF;position:relative}
-.tramo.verde{background:#16A34A;color:#fff}
-.tramo.amarillo{background:#F59E0B;color:#fff}
-.tramo.azul{background:#2563EB;color:#fff}
-.tramo.activo{opacity:1}
-.etiquetas-barra{display:flex;gap:4px;margin-top:6px}
-.etiquetas-barra span{flex:1;text-align:center;font-size:11px;font-weight:700;color:#6b7280}
+/* BARRA CRONOMETRO - UNA SOLA BARRA QUE VA CORRIENDO Y CAMBIA DE COLOR */
+.barra-cronometro{height:10px;background:#F3F4F6;border-radius:999px;margin-top:14px;overflow:hidden;display:flex}
+.barra-cronometro .seg-verde{background:#16A34A;height:100%;transition:width .5s}
+.barra-cronometro .seg-amarillo{background:#F59E0B;height:100%;transition:width .5s}
+.barra-cronometro .seg-azul{background:#2563EB;height:100%;transition:width .5s}
+.tiempos-barra{display:flex;justify-content:space-between;margin-top:6px;font-size:11px;font-weight:700;color:#6b7280}
+.tiempos-barra b{color:#111}
 .vacio{background:#fff;border:1px dashed #ddd;border-radius:16px;padding:30px 20px;text-align:center;color:#6b7280;font-size:13.5px;line-height:1.5}
 @media(max-width:760px){
   .header-top{padding:12px 14px}
@@ -84,6 +79,7 @@ body{background:#fff;min-height:100vh}
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
 import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js";
 
 const configConfirmacion = {
   apiKey: "AIzaSyDLKngPyi_SWAXEQwdrHO5h8L8OufulAR4",
@@ -97,12 +93,65 @@ const configConfirmacion = {
 const app = initializeApp(configConfirmacion);
 const db = getFirestore(app);
 
+const configAliados = {
+  apiKey: "AIzaSyD286qlJQT8D3rqbYTSfCyuTAEg9jjRchQ",
+  authDomain: "doloya-aliados.firebaseapp.com",
+  databaseURL: "https://doloya-aliados-default-rtdb.firebaseio.com",
+  projectId: "doloya-aliados",
+  storageBucket: "doloya-aliados.firebasestorage.app",
+  messagingSenderId: "122314467740",
+  appId: "1:122314467740:web:9947a0a9560557e3a00059"
+};
+const appAliados = initializeApp(configAliados, "aliadosLogo");
+const dbAliados = getDatabase(appAliados);
+
 const lista = document.getElementById('listaPrePedidos');
 const bellCount = document.getElementById('bellCount');
 let pedidosReales = [];
-// Guarda cuando se vio por primera vez cada estado, para calcular cuanto demoro
 let tiemposEstados = {};
+let logosCache = {};
 
+async function obtenerLogoRestaurante(idRest, catRest){
+  const key = (catRest||"") + "/" + (idRest||"");
+  if(logosCache[key]) return logosCache[key];
+  try{
+    if(catRest && idRest){
+      const s1 = await get(ref(dbAliados, `doloya_aliados/${catRest}/${idRest}`));
+      if(s1.exists()){
+        const v = s1.val();
+        const logo = v.logo || v.imagen || v.info?.logo || v.info?.imagen || "";
+        if(logo){ logosCache[key]=logo; return logo; }
+      }
+    }
+    if(idRest){
+      const s2 = await get(ref(dbAliados, `doloya_aliados/${idRest}`));
+      if(s2.exists()){
+        const v = s2.val();
+        const logo = v.logo || v.imagen || v.info?.logo || "";
+        if(logo){ logosCache[key]=logo; return logo; }
+      }
+    }
+    const sAll = await get(ref(dbAliados, `doloya_aliados`));
+    if(sAll.exists()){
+      const todos = sAll.val();
+      for(const k1 of Object.keys(todos)){
+        const n1 = todos[k1];
+        if(!n1 || typeof n1 !== 'object') continue;
+        if(String(k1).toLowerCase() === String(idRest).toLowerCase()){
+          const logo = n1.logo || n1.imagen || n1.info?.logo || "";
+          if(logo){ logosCache[key]=logo; return logo; }
+        }
+        for(const k2 of Object.keys(n1)){
+          if(String(k2).toLowerCase() === String(idRest).toLowerCase()){
+            const logo = n1[k2].logo || n1[k2].imagen || n1[k2].info?.logo || "";
+            if(logo){ logosCache[key]=logo; return logo; }
+          }
+        }
+      }
+    }
+  }catch(e){}
+  return "";
+}
 function obtenerTiempoMs(d){
   const c = d.fecha || d.fechaCreacion || d.createdAt || d.timestamp;
   if(!c) return Date.now();
@@ -111,21 +160,19 @@ function obtenerTiempoMs(d){
   const t = new Date(c).getTime();
   return isNaN(t) ? Date.now() : t;
 }
-function formatoCorto(ms){
-  if(ms == null || ms < 0) return "—";
-  const seg = Math.floor(ms/1000);
-  if(seg < 60) return seg + "s";
-  const min = Math.floor(seg/60);
-  const resto = seg % 60;
-  if(min < 60) return min + "m " + resto + "s";
-  return Math.floor(min/60) + "h " + (min%60) + "m";
-}
 function formatoTiempo(ms){
   if(!ms) return "Hace un momento";
   const diff = Math.max(0, Math.floor((Date.now() - ms)/1000));
   if(diff < 60) return "Hace " + diff + " seg";
-  if(diff < 3600) return "Hace " + Math.floor(diff/60) + " min";
-  return "Hace " + Math.floor(diff/3600) + " h";
+  if(diff < 3600) return "Hace " + Math.floor(diff/60) + " min " + (diff%60) + " seg";
+  return "Hace " + Math.floor(diff/3600) + " h " + Math.floor((diff%3600)/60) + " min";
+}
+function formatoCorto(ms){
+  if(ms == null || ms < 0) return "0s";
+  const seg = Math.floor(ms/1000);
+  if(seg < 60) return seg + "s";
+  const min = Math.floor(seg/60);
+  return min + "m " + (seg%60) + "s";
 }
 function nivelEstado(e){
   e = (e||"confirmado").toLowerCase();
@@ -134,17 +181,22 @@ function nivelEstado(e){
   if(e==="enviado_a_repartidor"||e==="en_camino"||e==="recogido"||e==="ir_a_entregar"||e==="ir_a_recoger"||e==="finalizado"||e==="entregado") return 3;
   return 0;
 }
-function render(){
+async function render(){
   if(pedidosReales.length === 0){
     lista.innerHTML = `<div class="vacio"><b style="color:#111;font-size:15px">Sin Pre-Pedidos por ahora</b><br>Cuando un cliente le de Finalizar pedido, aquí te va a aparecer en tiempo real.</div>`;
     bellCount.textContent = "0";
     return;
   }
   bellCount.textContent = pedidosReales.length;
-  lista.innerHTML = pedidosReales.map(p=>{
+  const html = [];
+  for(const p of pedidosReales){
     const d = p.data;
-    const codigo = d.numeroPedido || d.codigo || p.id;
+    // CORREGIDO - EL REAL ES ST- , QUE ES codigo, NO numeroPedido DOLOYA-
+    const codigo = d.codigo || d.numeroPedido || p.id;
     const nombreRest = d.restaurante?.nombre || "Restaurante";
+    const idRest = d.restaurante?.id || "";
+    const catRest = d.restaurante?.cat || "";
+    const logo = await obtenerLogoRestaurante(idRest, catRest);
     const letra = (nombreRest||"R").charAt(0).toUpperCase();
     const cliente = d.cliente?.nombre || d.nombre || "Cliente";
     const total = d.totales?.total || d.total || 0;
@@ -152,16 +204,11 @@ function render(){
     const estado = d.estado || "confirmado";
     const nivel = nivelEstado(estado);
     const creado = obtenerTiempoMs(d);
-    const t = tiemposEstados[p.id] || {};
-    // Tiempos que demoro en cada boton
-    const tiempoAceptar = t.aceptado ? t.aceptado - creado : (nivel >= 1 ? Date.now() - creado : null);
-    const tiempoPreparar = (t.aceptado && t.preparando) ? t.preparando - t.aceptado : (nivel >= 2 && t.aceptado ? Date.now() - t.aceptado : null);
-    const tiempoListo = (t.preparando && t.listo) ? t.listo - t.preparando : (nivel >= 3 && t.preparando ? Date.now() - t.preparando : null);
-    return `
-    <div class="card" data-tiempo="${creado}">
+    html.push(`
+    <div class="card" data-id="${p.id}" data-creado="${creado}" data-nivel="${nivel}">
       <div class="fila-superior">
         <div class="izquierda">
-          <div class="logo-restaurante">${letra}</div>
+          <div class="logo-restaurante">${logo ? `<img src="${logo}">` : letra}</div>
           <div>
             <div class="nombre-restaurante">${nombreRest}</div>
             <div class="para-quien">Le llegó a: <b>${nombreRest}</b> • Cliente: <b>${cliente}</b></div>
@@ -172,20 +219,72 @@ function render(){
         <div class="derecha">
           <div class="codigo">N° Pedido<b>${codigo}</b></div>
           <div class="botones-estado">
-            <button class="btn-estado ${nivel>=1?'verde-activo hecho':''}">✓ Aceptado</button>
-            <button class="btn-estado ${nivel>=2?'amarillo-activo hecho':''}">◉ Preparando</button>
-            <button class="btn-estado ${nivel>=3?'azul-activo hecho':''}">✓ Listo</button>
+            <button class="btn-estado ${nivel>=1?'verde-activo':''}">✓ Aceptado</button>
+            <button class="btn-estado ${nivel>=2?'amarillo-activo':''}">◉ Preparando</button>
+            <button class="btn-estado ${nivel>=3?'azul-activo':''}">✓ Listo</button>
           </div>
         </div>
       </div>
-      <div class="barra-tiempo">
-        <div class="tramo ${nivel>=1?'verde':''}">${nivel>=1 ? formatoCorto(tiempoAceptar) : 'Esperando'}</div>
-        <div class="tramo ${nivel>=2?'amarillo':''}">${nivel>=2 ? formatoCorto(tiempoPreparar) : 'Esperando'}</div>
-        <div class="tramo ${nivel>=3?'azul':''}">${nivel>=3 ? formatoCorto(tiempoListo) : 'Esperando'}</div>
+      <div class="barra-cronometro">
+        <div class="seg-verde" style="width:0%"></div>
+        <div class="seg-amarillo" style="width:0%"></div>
+        <div class="seg-azul" style="width:0%"></div>
       </div>
-      <div class="etiquetas-barra"><span>Min 1 → Aceptado</span><span>Aceptado → Preparando</span><span>Preparando → Listo</span></div>
-    </div>`;
-  }).join("");
+      <div class="tiempos-barra">
+        <span>Aceptado: <b class="t-aceptado">—</b></span>
+        <span>Preparando: <b class="t-preparando">—</b></span>
+        <span>Listo: <b class="t-listo">—</b></span>
+      </div>
+    </div>`);
+  }
+  lista.innerHTML = html.join("");
+  actualizarBarraYTexto();
+}
+function actualizarBarraYTexto(){
+  document.querySelectorAll('.card').forEach(card=>{
+    const creado = parseInt(card.getAttribute('data-creado'));
+    const nivel = parseInt(card.getAttribute('data-nivel'));
+    const id = card.getAttribute('data-id');
+    const t = tiemposEstados[id] || {};
+    const ahora = Date.now();
+    // Texto Hace X seg / min - CADA SEGUNDO
+    const elTiempo = card.querySelector('.texto-tiempo');
+    if(elTiempo) elTiempo.textContent = formatoTiempo(creado);
+    // Calcula cuanto demoro en cada tramo
+    const finAceptado = t.aceptado || (nivel>=1 ? ahora : null);
+    const finPreparando = t.preparando || (nivel>=2 ? ahora : null);
+    const finListo = t.listo || (nivel>=3 ? ahora : null);
+    const durAceptado = finAceptado ? finAceptado - creado : 0;
+    const durPreparando = (finAceptado && finPreparando) ? finPreparando - finAceptado : 0;
+    const durListo = (finPreparando && finListo) ? finListo - finPreparando : 0;
+    const total = Math.max(1, ahora - creado);
+    // Barra cronometro: verde hasta Aceptado, amarillo hasta Preparando, azul hasta Listo
+    let wVerde = 0, wAmarillo = 0, wAzul = 0;
+    if(nivel === 0){
+      wVerde = (ahora - creado) / total * 100;
+    } else if(nivel === 1){
+      wVerde = durAceptado / total * 100;
+      wAmarillo = (ahora - finAceptado) / total * 100;
+    } else if(nivel === 2){
+      wVerde = durAceptado / total * 100;
+      wAmarillo = durPreparando / total * 100;
+      wAzul = (ahora - finPreparando) / total * 100;
+    } else {
+      wVerde = durAceptado / total * 100;
+      wAmarillo = durPreparando / total * 100;
+      wAzul = durListo / total * 100;
+    }
+    card.querySelector('.seg-verde').style.width = wVerde + "%";
+    card.querySelector('.seg-amarillo').style.width = wAmarillo + "%";
+    card.querySelector('.seg-azul').style.width = wAzul + "%";
+    // Tiempo en el medio de cada tramo
+    const elA = card.querySelector('.t-aceptado');
+    const elP = card.querySelector('.t-preparando');
+    const elL = card.querySelector('.t-listo');
+    if(elA) elA.textContent = nivel>=1 ? formatoCorto(durAceptado) : "—";
+    if(elP) elP.textContent = nivel>=2 ? formatoCorto(durPreparando) : "—";
+    if(elL) elL.textContent = nivel>=3 ? formatoCorto(durListo) : "—";
+  });
 }
 
 onSnapshot(collection(db, "pedidos"), (snap)=>{
@@ -194,7 +293,6 @@ onSnapshot(collection(db, "pedidos"), (snap)=>{
     .map(doc=>({id: doc.id, data: doc.data()}))
     .filter(p=> !ESTADOS_FINALES.includes((p.data.estado||"").toLowerCase()))
     .sort((a,b)=> obtenerTiempoMs(b.data) - obtenerTiempoMs(a.data));
-  // Registra la hora en que se vio cada estado por primera vez
   pedidosReales.forEach(p=>{
     const niv = nivelEstado(p.data.estado);
     if(!tiemposEstados[p.id]) tiemposEstados[p.id] = {};
@@ -206,15 +304,8 @@ onSnapshot(collection(db, "pedidos"), (snap)=>{
   render();
 });
 
-setInterval(()=>{
-  document.querySelectorAll('.card').forEach(card=>{
-    const ms = parseInt(card.getAttribute('data-tiempo'));
-    const el = card.querySelector('.texto-tiempo');
-    if(el) el.textContent = formatoTiempo(ms);
-  });
-  // Recalcula los tiempos del medio de la barra en vivo
-  render();
-}, 30000);
+// CORREGIDO - CADA 1 SEGUNDO, NO CADA 30
+setInterval(actualizarBarraYTexto, 1000);
 </script>
 </body>
 </html>
