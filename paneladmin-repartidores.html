@@ -102,6 +102,7 @@ body{background:#f8fafc}
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, onValue, set, update, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 const firebaseConfig = {
   apiKey: "AIzaSyCYdy62kQCPEhz1d-Ln9H-sup2iOTYJPwU",
   authDomain: "doloya-repartidores.firebaseapp.com",
@@ -113,10 +114,156 @@ const firebaseConfig = {
 };
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
+// CORREGIDO - CONEXION A PEDIDOS REALES EN TIEMPO REAL
+const configConfirmacion = {
+  apiKey: "AIzaSyDLKngPyi_SWAXEQwdrHO5h8L8OufulAR4",
+  authDomain: "doloya-confirmacion.firebaseapp.com",
+  databaseURL: "https://doloya-confirmacion-default-rtdb.firebaseio.com",
+  projectId: "doloya-confirmacion",
+  storageBucket: "doloya-confirmacion.firebasestorage.app",
+  messagingSenderId: "832228761099",
+  appId: "1:832228761099:web:ddd4b6a0ee0d7f0494b10e"
+};
+const appConfirmacion = initializeApp(configConfirmacion, "confirmacionPedidos");
+const dbPedidos = getFirestore(appConfirmacion);
 let repartidores = {};
 let editId = null;
 let modoAgregar = true;
 let idEliminar = null;
+// CORREGIDO - CONTEO REAL POR REPARTIDOR, SE ACTUALIZA SOLO CUANDO LLEGA UN PEDIDO
+let conteoReal = {}; // clave normalizada -> {hoy, general, total, cancelados}
+let pedidosRealesCargados = false;
+function normalizarClave(v){
+  return String(v||'').toLowerCase().trim().replace(/\s+/g,' ').replace(/_/g,' ');
+}
+function clavesRepartidor(id, r){
+  const s = new Set();
+  [id, r.usuario, r.nombre, r.nombreCompleto, r.user].forEach(v=>{
+    const n = normalizarClave(v);
+    if(n) s.add(n);
+  });
+  return s;
+}
+function clavesPedido(d){
+  const s = new Set();
+  const rep = d.repartidor || {};
+  const candidatos = [
+    rep.id, rep.usuario, rep.nombre, rep.nombreCompleto, rep.user,
+    d.repartidorId, d.repartidor_id, d.repartidorUsuario, d.repartidorNombre,
+    d.repartidor, d.driverId, d.driver, d.asignadoA, d.asignado_a
+  ];
+  candidatos.forEach(v=>{
+    if(v && typeof v === 'object'){
+      [v.id, v.usuario, v.nombre].forEach(x=>{ const n = normalizarClave(x); if(n) s.add(n); });
+    } else {
+      const n = normalizarClave(v);
+      if(n) s.add(n);
+    }
+  });
+  return s;
+}
+function fechaMsPedido(d){
+  const c = d.fechaEntregado || d.fechaEntrega || d.fechaFinalizado || d.fecha || d.fechaCreacion || d.createdAt || d.timestamp;
+  if(!c) return 0;
+  if(typeof c === 'number') return c;
+  if(c.seconds) return c.seconds * 1000;
+  const t = new Date(c).getTime();
+  return isNaN(t) ? 0 : t;
+}
+function esHoy(ms){
+  if(!ms) return false;
+  const a = new Date(ms); const hoy = new Date();
+  return a.getFullYear()===hoy.getFullYear() && a.getMonth()===hoy.getMonth() && a.getDate()===hoy.getDate();
+}
+function renderTabla(){
+  const val = repartidores; const ids = Object.keys(val);
+  document.getElementById('sTotal').textContent = ids.length;
+  let disp=0, inact=0, compTotal=0, cancTotal=0;
+  ids.forEach(k=>{
+    const r = val[k];
+    if((r.estadoConexion||r.estado)==='disponible' || r.estadoConexion==='conectado') disp++;
+    if((r.estadoConexion||'')==='desconectado' || r.conectado===false) inact++;
+    const c = conteoParaRepartidor(k, r);
+    compTotal += c.general;
+    cancTotal += c.cancelados;
+  });
+  document.getElementById('sDisp').textContent = disp;
+  document.getElementById('sInact').textContent = inact;
+  document.getElementById('sComp').textContent = compTotal;
+  document.getElementById('sCancel').textContent = cancTotal;
+  const cont = document.getElementById('lista');
+  if(ids.length===0){ cont.innerHTML='<div style="padding:20px;text-align:center;color:#94a3b8">Sin repartidores</div>'; return; }
+  let html='';
+  ids.forEach(id=>{
+    const r = val[id];
+    const estadoRaw = (r.estadoConexion || r.estado || 'disponible').toLowerCase();
+    let badgeClass='badge-ok', txt='Disponible';
+    if(estadoRaw.includes('desconect')){ badgeClass='badge-off'; txt='Desconectado'; }
+    else if(estadoRaw.includes('conect')){ badgeClass='badge-ok'; txt='Conectado'; }
+    else if(estadoRaw.includes('ocup')){ badgeClass='badge-disc'; txt='Ocupado'; }
+    else if(estadoRaw.includes('dispon')){ badgeClass='badge-ok'; txt='Disponible'; }
+    else { txt=estadoRaw; }
+    const porc = parseFloat(r.porcentaje ?? r.porcentajeEntrega ?? r.porcentajeRepartidor ?? 80);
+    const c = conteoParaRepartidor(id, r);
+    const pedidosHoy = c.hoy;
+    const general = c.general;
+    const totalPedidos = c.total;
+    html+=`<div class="row">
+      <div style="display:flex;gap:8px;align-items:center"><div class="avatar">${r.foto?`<img src="${r.foto}">`:`<span style="font-weight:800">${(r.nombre||id).charAt(0)}</span>`}</div><div><b>${r.nombre||id}</b><div style="font-size:11px;color:#64748b">${r.ine||''}</div></div></div>
+      <div>${r.usuario||''}</div>
+      <div style="font-weight:700">${r.password||''}</div>
+      <div><span class="badge ${badgeClass}">${txt}</span></div>
+      <div style="text-align:center"><span class="badge-porc">${porc}%</span></div>
+      <div style="text-align:center;font-weight:800">${pedidosHoy}</div>
+      <div style="text-align:center;font-weight:800">${general}</div>
+      <div style="text-align:center;font-weight:800">${totalPedidos}</div>
+      <div style="display:flex;gap:6px">
+        <button class="btn-edit" onclick="editar('${id}')">Editar</button>
+        <button class="btn-del" onclick="eliminar('${id}')">Eliminar</button>
+      </div>
+    </div>`;
+  });
+  cont.innerHTML=html;
+}
+function conteoParaRepartidor(id, r){
+  // Si ya hay pedidos reales, ese es el conteo real. Si aun no llegan, usa el guardado como respaldo.
+  const claves = clavesRepartidor(id, r);
+  let hoy=0, general=0, total=0, cancelados=0, encontrado=false;
+  claves.forEach(k=>{
+    const c = conteoReal[k];
+    if(c){ encontrado=true; hoy+=c.hoy; general+=c.general; total+=c.total; cancelados+=c.cancelados; }
+  });
+  if(encontrado || pedidosRealesCargados) return {hoy, general, total, cancelados};
+  // Respaldo mientras no hay pedidos reales
+  const gen = parseInt(r.pedidosGeneral||r.pedidosCompletados||0);
+  const can = parseInt(r.pedidosCancelados||0);
+  return {hoy: parseInt(r.pedidosHoy||0), general: gen, total: gen+can, cancelados: can};
+}
+// CORREGIDO - ESCUCHA PEDIDOS REALES EN TIEMPO REAL Y CUENTA POR REPARTIDOR
+onSnapshot(collection(dbPedidos, "pedidos"), (snap)=>{
+  conteoReal = {};
+  snap.docs.forEach(doc=>{
+    const d = doc.data();
+    const claves = clavesPedido(d);
+    if(claves.size===0) return;
+    const estado = String(d.estado||'').toLowerCase();
+    const esCancelado = estado.includes('cancel');
+    const esEntregado = estado.includes('entreg') || estado.includes('finaliz') || estado.includes('complet');
+    const ms = fechaMsPedido(d);
+    const hoy = esHoy(ms);
+    claves.forEach(k=>{
+      if(!conteoReal[k]) conteoReal[k] = {hoy:0, general:0, total:0, cancelados:0};
+      conteoReal[k].total++;
+      if(esCancelado) conteoReal[k].cancelados++;
+      if(esEntregado){
+        conteoReal[k].general++;
+        if(hoy) conteoReal[k].hoy++;
+      }
+    });
+  });
+  pedidosRealesCargados = true;
+  renderTabla();
+});
 window.cerrar = ()=>{ document.getElementById('sidePanel').classList.remove('open'); }
 window.agregarNuevo = ()=>{
   modoAgregar=true; editId=null;
@@ -164,52 +311,8 @@ document.getElementById('overlayDel').addEventListener('click', (e)=>{
   if(e.target.id==='overlayDel') cerrarDel();
 });
 onValue(ref(db,'repartidores'), snap=>{
-  const val=snap.val()||{}; repartidores=val; const ids=Object.keys(val);
-  document.getElementById('sTotal').textContent=ids.length;
-  let disp=0,inact=0,comp=0,canc=0;
-  ids.forEach(k=>{ 
-    const r=val[k]; 
-    if((r.estadoConexion||r.estado)==='disponible' || r.estadoConexion==='conectado') disp++; 
-    if((r.estadoConexion||'')==='desconectado' || r.conectado===false) inact++; 
-    comp+=parseInt(r.pedidosGeneral||r.pedidosCompletados||0); 
-    canc+=parseInt(r.pedidosCancelados||0); 
-  });
-  document.getElementById('sDisp').textContent=disp;
-  document.getElementById('sInact').textContent=inact;
-  document.getElementById('sComp').textContent=comp;
-  document.getElementById('sCancel').textContent=canc;
-  const cont=document.getElementById('lista');
-  if(ids.length===0){ cont.innerHTML='<div style="padding:20px;text-align:center;color:#94a3b8">Sin repartidores</div>'; return; }
-  let html='';
-  ids.forEach(id=>{
-    const r=val[id];
-    const estadoRaw = (r.estadoConexion || r.estado || 'disponible').toLowerCase();
-    let badgeClass='badge-ok', txt='Disponible';
-    if(estadoRaw.includes('desconect')){ badgeClass='badge-off'; txt='Desconectado'; }
-    else if(estadoRaw.includes('conect')){ badgeClass='badge-ok'; txt='Conectado'; }
-    else if(estadoRaw.includes('ocup')){ badgeClass='badge-disc'; txt='Ocupado'; }
-    else if(estadoRaw.includes('dispon')){ badgeClass='badge-ok'; txt='Disponible'; }
-    else { txt=estadoRaw; }
-    const porc = parseFloat(r.porcentaje ?? r.porcentajeEntrega ?? r.porcentajeRepartidor ?? 80);
-    const completados = parseInt(r.pedidosGeneral||r.pedidosCompletados||0);
-    const cancelados = parseInt(r.pedidosCancelados||0);
-    const totalPedidos = completados + cancelados;
-    html+=`<div class="row">
-      <div style="display:flex;gap:8px;align-items:center"><div class="avatar">${r.foto?`<img src="${r.foto}">`:`<span style="font-weight:800">${(r.nombre||id).charAt(0)}</span>`}</div><div><b>${r.nombre||id}</b><div style="font-size:11px;color:#64748b">${r.ine||''}</div></div></div>
-      <div>${r.usuario||''}</div>
-      <div style="font-weight:700">${r.password||''}</div>
-      <div><span class="badge ${badgeClass}">${txt}</span></div>
-      <div style="text-align:center"><span class="badge-porc">${porc}%</span></div>
-      <div style="text-align:center;font-weight:800">${r.pedidosHoy||0}</div>
-      <div style="text-align:center;font-weight:800">${completados}</div>
-      <div style="text-align:center;font-weight:800">${totalPedidos}</div>
-      <div style="display:flex;gap:6px">
-        <button class="btn-edit" onclick="editar('${id}')">Editar</button>
-        <button class="btn-del" onclick="eliminar('${id}')">Eliminar</button>
-      </div>
-    </div>`;
-  });
-  cont.innerHTML=html;
+  const val=snap.val()||{}; repartidores=val;
+  renderTabla();
 });
 window.guardar = async ()=>{
   const nombre=document.getElementById('fNombre').value.trim();
