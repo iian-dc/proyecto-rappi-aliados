@@ -1,1 +1,318 @@
-
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pagos a Repartidores - DoloYa</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
+body{background:#f6f8fb;color:#0f172a}
+.header-top{background:white;padding:10px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #e2e8f0;position:sticky;top:0;z-index:20}
+.btn-x{width:34px;height:34px;background:#E30613;border-radius:50%;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.header-top h1{font-size:15px;font-weight:800}
+.top-cards{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;padding:12px}
+@media(max-width:900px){.top-cards{grid-template-columns:repeat(2,1fr)}}
+.tcard{background:white;border-radius:12px;border:1px solid #eef2f7;padding:10px 12px;display:flex;gap:10px;align-items:center}
+.ticon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center}
+.tcard b{font-size:14px;font-weight:800;display:block}
+.tcard span{font-size:10px;color:#64748b;font-weight:600}
+.main{display:grid;grid-template-columns:1fr 290px;gap:12px;padding:0 12px 20px}
+@media(max-width:1100px){.main{grid-template-columns:1fr}}
+.box{background:white;border-radius:12px;border:1px solid #eef2f7;overflow:hidden}
+.filters{display:flex;gap:8px;padding:10px}
+.filters input,.filters select{flex:1;padding:8px 10px;border-radius:8px;border:1px solid #e2e8f0;font-size:11px}
+.table-head{background:#0a1020;color:white;display:grid;grid-template-columns:1.3fr .6fr .6fr .5fr .5fr .6fr .5fr .5fr .6fr;padding:8px 10px;font-size:9px;font-weight:700;text-transform:uppercase;align-items:center}
+.table-row{display:grid;grid-template-columns:1.3fr .6fr .6fr .5fr .5fr .6fr .5fr .5fr .6fr;padding:8px 10px;border-bottom:1px solid #f1f5f9;align-items:center;font-size:10.5px}
+.aliado{display:flex;gap:8px;align-items:center}
+.aliado-logo{width:32px;height:32px;border-radius:50%;background:#fff1f1;display:flex;align-items:center;justify-content:center;font-weight:800;color:#E30613;border:1px solid #fee2e2;overflow:hidden;flex-shrink:0}
+.aliado-logo img{width:100%;height:100%;object-fit:cover}
+.badge{padding:3px 7px;border-radius:999px;font-size:8.5px;font-weight:700}
+.badge-green{background:#dcfce7;color:#166534}
+.badge-yellow{background:#fef9c3;color:#854d0e}
+.badge-red{background:#fee2e2;color:#991b1b}
+.btn-ver{border:1px solid #E30613;color:#E30613;background:white;padding:4px 9px;border-radius:999px;font-size:10px;font-weight:700;cursor:pointer}
+.btn-pagar{background:#16a34a;color:white;border:none;padding:5px 12px;border-radius:999px;font-size:10px;font-weight:700;cursor:pointer}
+.right{display:flex;flex-direction:column;gap:12px}
+.resumen{padding:12px}
+.resumen h3{font-size:11px;font-weight:800;margin-bottom:8px}
+.item-res{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f1f5f9;font-size:11px}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;z-index:200;padding:16px}
+.overlay.show{display:flex}
+.modal{background:#fff;border-radius:16px;padding:20px;width:100%;max-width:360px;text-align:center}
+.modal h4{font-size:15px;font-weight:800;margin-bottom:6px}
+.modal p{font-size:12px;color:#64748b;margin-bottom:12px}
+.modal input{width:100%;height:42px;border:1.5px solid #e5e7eb;border-radius:8px;padding:0 12px;font-size:13px;font-weight:700;margin-bottom:10px;outline:none}
+.modal-actions{display:flex;gap:10px}
+.btn-no{flex:1;height:42px;border:1.5px solid #e2e8f0;background:#fff;border-radius:10px;font-weight:700;cursor:pointer}
+.btn-si{flex:1;height:42px;background:#16a34a;color:#fff;border:none;border-radius:10px;font-weight:800;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="header-top">
+<button class="btn-x" onclick="location.href='paneladmin-pagos-y-facturas.html'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+<div style="width:2px;height:16px;background:#E30613"></div>
+<h1>Pagos a Repartidores</h1>
+</div>
+<div class="top-cards">
+<div class="tcard"><div class="ticon" style="background:#16a34a;color:white">$</div><div><span>Pagos realizados</span><b id="kPagados">$ 0.00</b></div></div>
+<div class="tcard"><div class="ticon" style="background:#f59e0b;color:white">$</div><div><span>Pagos pendientes</span><b id="kPendiente">$ 0.00</b></div></div>
+<div class="tcard"><div class="ticon" style="background:#E30613;color:white">$</div><div><span>Total Cancelado</span><b id="kCancel">$ 0.00</b></div></div>
+<div class="tcard"><div class="ticon" style="background:#0f172a;color:white">R</div><div><span>Total repartidores</span><b id="kTotalRest">0</b></div></div>
+<div class="tcard"><div class="ticon" style="background:#0f172a;color:white">F</div><div><span>Total facturas pendientes</span><b id="kFactPend">0</b></div></div>
+</div>
+<div class="main">
+<div class="box">
+<div class="filters">
+<input id="buscar" placeholder="Buscar repartidor..." onkeyup="filtrar()">
+<select id="fEstado" onchange="filtrar()"><option value="todos">Todos los estados</option><option value="disponible">Disponible</option><option value="desconectado">Desconectado</option><option value="ocupado">Ocupado</option></select>
+</div>
+<div class="table-head">
+<span>Repartidor</span>
+<span>Total pedidos</span>
+<span>Total envío</span>
+<span>Ganancia</span>
+<span>Pagado</span>
+<span>Pendiente</span>
+<span style="text-align:center;justify-self:center">Ultimo pago</span>
+<span>Estado</span>
+<span>Acciones</span>
+</div>
+<div id="listaAliados"><div style="padding:20px;text-align:center;color:#94a3b8;font-size:11px">Conectando en tiempo real a repartidores...</div></div>
+</div>
+<div class="right">
+<div class="box resumen">
+<h3>Resumen</h3>
+<div class="item-res"><span>Total envío cobrado</span><b id="rIngresos">$ 0.00</b></div>
+<div class="item-res" style="color:#E30613"><span>Total cancelado (envío)</span><b id="rCancelNeg">- $ 0.00</b></div>
+<div class="item-res" style="color:#d97706"><span>Total pendiente por pagar</span><b id="rPendNeg">- $ 0.00</b></div>
+<div class="item-res" style="color:#16a34a"><span>Total pagado</span><b id="rPagadoNeg">- $ 0.00</b></div>
+<div class="item-res" id="rowBalance" style="background:#0f172a;color:white"><span>Total balance</span><b id="rBalance">$ 0.00</b></div>
+<div class="item-res"><span>Total pedidos</span><b id="rTotalPed">0</b></div>
+<div class="item-res"><span>Total pedidos entregados</span><b id="rPedEnt">0</b></div>
+<div class="item-res"><span>Total pedidos cancelados</span><b id="rPedCancel">0</b></div>
+<div class="item-res"><span>Total facturas pendientes</span><b id="rFactPend">0</b></div>
+</div>
+</div>
+</div>
+<div class="overlay" id="overlayPagar">
+<div class="modal">
+<h4 id="pagarTitulo">Pagar a repartidor</h4>
+<p id="pagarSub">Pendiente: $ 0.00</p>
+<input id="pagarMonto" type="number" min="0" step="0.01" placeholder="Monto a pagar">
+<div class="modal-actions">
+<button class="btn-no" onclick="cerrarPagar()">Cancelar</button>
+<button class="btn-si" onclick="confirmarPago()">Registrar pago</button>
+</div>
+<div id="pagarMsg" style="margin-top:10px;font-size:12px;font-weight:700;display:none"></div>
+</div>
+</div>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getFirestore, collection, onSnapshot, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+const configRep = {
+  apiKey: "AIzaSyCYdy62kQCPEhz1d-Ln9H-sup2iOTYJPwU",
+  authDomain: "doloya-repartidores.firebaseapp.com",
+  databaseURL: "https://doloya-repartidores-default-rtdb.firebaseio.com",
+  projectId: "doloya-repartidores",
+  storageBucket: "doloya-repartidores.firebasestorage.app",
+  messagingSenderId: "308893983803",
+  appId: "1:308893983803:web:fe2b85c80f3a203de9a81e"
+};
+const configHistorial = {
+  apiKey: "AIzaSyCRx4B7mO444s0yU-WTnsqMjBHDWX4IRv8",
+  authDomain: "doloya-historial.firebaseapp.com",
+  projectId: "doloya-historial",
+  storageBucket: "doloya-historial.firebasestorage.app",
+  messagingSenderId: "41258055121",
+  appId: "1:41258055121:web:19a443786320e04ebd9cf0"
+};
+const configConfirmacion = {
+  apiKey: "AIzaSyDLKngPyi_SWAXEQwdrHO5h8L8OufulAR4",
+  authDomain: "doloya-confirmacion.firebaseapp.com",
+  projectId: "doloya-confirmacion",
+  storageBucket: "doloya-confirmacion.firebasestorage.app",
+  messagingSenderId: "832228761099",
+  appId: "1:832228761099:web:ddd4b6a0ee0d7f0494b10e"
+};
+const appRep = initializeApp(configRep, "repApp");
+const dbRep = getDatabase(appRep);
+const appHis = initializeApp(configHistorial, "hisApp");
+const dbHis = getFirestore(appHis);
+const appConf = initializeApp(configConfirmacion, "confApp");
+const dbConf = getFirestore(appConf);
+let repartidores = [];
+let filtrados = [];
+let entregados = [];
+let cancelados = [];
+let adminActivos = [];
+let pagosMap = {};
+let pagarId = null;
+let pagarNombre = "";
+function normalizarTxt(t){ return String(t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().replace(/[_-]+/g,' ').replace(/\s+/g,' '); }
+function clavesPedido(d){
+  const s = new Set();
+  const rep = d.repartidor || {};
+  [rep.id, rep.usuario, rep.nombre, d.repartidorId, d.repartidor_id, d.repartidorUsuario, d.repartidorNombre, d.repartidor].forEach(v=>{
+    if(v && typeof v === 'object'){ [v.id, v.usuario, v.nombre].forEach(x=>{ const n = normalizarTxt(x); if(n) s.add(n); }); }
+    else { const n = normalizarTxt(v); if(n) s.add(n); }
+  });
+  return s;
+}
+function fechaHora(f){
+  if(!f) return "-";
+  try{ let d=new Date(f); if(isNaN(d.getTime())) d=new Date(Number(f)); if(isNaN(d.getTime())) return "-"; return d.toLocaleDateString('es-MX')+" "+d.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'}); }catch{ return "-"; }
+}
+function calcular(){
+  const lista = repartidores.map(r=>{
+    const claves = new Set([normalizarTxt(r.id), normalizarTxt(r.usuario), normalizarTxt(r.nombre)].filter(Boolean));
+    const porc = parseFloat(r.porcentaje ?? r.porcentajeEntrega ?? r.porcentajeRepartidor ?? 80);
+    let totalEnvio=0, ganancia=0, countEnt=0, countCanc=0, totalCancEnvio=0;
+    entregados.forEach(p=>{
+      const cp = clavesPedido(p);
+      let ok=false; claves.forEach(k=>{ if(cp.has(k)) ok=true; });
+      if(!ok) return;
+      const envio = Number(p.totales?.costoEnvio ?? p.totales?.envio ?? 30);
+      // Si el pedido ya trae ganancia de repartidor congelada, usarla. Si no, envio * % actual
+      const gCong = p.totales?.gananciaRepartidor ?? p.gananciaRepartidor ?? p.comision?.gananciaRepartidor;
+      const g = (gCong!==undefined && gCong!==null && gCong!=='' && !isNaN(parseFloat(gCong))) ? Number(gCong) : Number((envio * porc/100).toFixed(2));
+      totalEnvio += envio; ganancia += g; countEnt++;
+    });
+    cancelados.forEach(p=>{
+      const cp = clavesPedido(p);
+      let ok=false; claves.forEach(k=>{ if(cp.has(k)) ok=true; });
+      if(!ok) return;
+      const envio = Number(p.totales?.costoEnvio ?? p.totales?.envio ?? 30);
+      totalCancEnvio += envio; countCanc++;
+    });
+    adminActivos.forEach(p=>{
+      const cp = clavesPedido(p);
+      let ok=false; claves.forEach(k=>{ if(cp.has(k)) ok=true; });
+      if(!ok) return;
+      const estado = String(p.estado||'').toLowerCase();
+      if(estado.includes('cancel')){ const envio = Number(p.totales?.costoEnvio ?? p.totales?.envio ?? 30); totalCancEnvio += envio; countCanc++; }
+      else if(estado.includes('entreg') || estado.includes('finaliz')){ const envio = Number(p.totales?.costoEnvio ?? p.totales?.envio ?? 30); const g = Number((envio * porc/100).toFixed(2)); totalEnvio += envio; ganancia += g; countEnt++; }
+    });
+    const pg = pagosMap[normalizarTxt(r.id)] || pagosMap[normalizarTxt(r.nombre)] || {pagado:0, ultimo:"", count:0};
+    const pendiente = Math.max(0, ganancia - pg.pagado);
+    return { ...r, porc, totalEnvio, ganancia, totalCancEnvio, countEnt, countCanc, pagado: pg.pagado, pendiente, ultimoPago: pg.ultimo, facturas: pg.count };
+  });
+  repartidores = lista;
+  filtrados = [...lista];
+  render();
+}
+function render(){
+  const cont = document.getElementById('listaAliados');
+  if(filtrados.length===0){ cont.innerHTML='<div style="padding:20px;text-align:center;color:#94a3b8;font-size:11px">No hay repartidores</div>'; return; }
+  const totalPagados = filtrados.reduce((s,a)=>s+a.pagado,0);
+  const totalPend = filtrados.reduce((s,a)=>s+a.pendiente,0);
+  const totalCancelado = filtrados.reduce((s,a)=>s+a.totalCancEnvio,0);
+  const totalEnvio = filtrados.reduce((s,a)=>s+a.totalEnvio,0);
+  const totalPedCanc = filtrados.reduce((s,a)=>s+a.countCanc,0);
+  const totalPedEnt = filtrados.reduce((s,a)=>s+a.countEnt,0);
+  const balance = totalEnvio - totalPend - totalPagados;
+  document.getElementById('kPagados').textContent = "$ "+totalPagados.toFixed(2);
+  document.getElementById('kPendiente').textContent = "$ "+totalPend.toFixed(2);
+  document.getElementById('kCancel').textContent = "$ "+totalCancelado.toFixed(2);
+  document.getElementById('kTotalRest').textContent = filtrados.length;
+  document.getElementById('kFactPend').textContent = filtrados.filter(a=>a.pendiente>0).length;
+  document.getElementById('rIngresos').textContent = "$ "+totalEnvio.toFixed(2);
+  document.getElementById('rCancelNeg').textContent = "- $ "+totalCancelado.toFixed(2);
+  document.getElementById('rPendNeg').textContent = "- $ "+totalPend.toFixed(2);
+  document.getElementById('rPagadoNeg').textContent = "- $ "+totalPagados.toFixed(2);
+  const balanceEl = document.getElementById('rBalance');
+  const rowBalance = document.getElementById('rowBalance');
+  balanceEl.textContent = "$ "+balance.toFixed(2);
+  if(balance >= 0){ rowBalance.style.background = "#00ff6a"; rowBalance.style.color = "#065f29"; rowBalance.style.boxShadow = "0 0 8px rgba(0,255,106,.6)"; }
+  else { rowBalance.style.background = "#fee2e2"; rowBalance.style.color = "#991b1b"; rowBalance.style.boxShadow = "0 0 8px rgba(239,68,68,.5)"; }
+  document.getElementById('rTotalPed').textContent = totalPedEnt + totalPedCanc;
+  document.getElementById('rPedEnt').textContent = totalPedEnt;
+  document.getElementById('rPedCancel').textContent = totalPedCanc;
+  document.getElementById('rFactPend').textContent = filtrados.filter(a=>a.pendiente>0).length;
+  cont.innerHTML="";
+  filtrados.forEach(a=>{
+    const inicial = (a.nombre||a.id||"R").charAt(0).toUpperCase();
+    const logoHtml = a.foto ? `<img src="${a.foto}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.textContent='${inicial}'">` : inicial;
+    const ultimo = a.ultimoPago ? fechaHora(a.ultimoPago) : "-";
+    const estadoRaw = String(a.estadoConexion || a.estado || 'disponible').toLowerCase();
+    const estadoTxt = estadoRaw.includes('desconect') ? 'Desconectado' : estadoRaw.includes('ocup') ? 'Ocupado' : 'Disponible';
+    const badgeClass = estadoTxt==='Disponible' ? "badge-green" : estadoTxt==='Desconectado' ? "badge-red" : "badge-yellow";
+    cont.innerHTML+=`
+    <div class="table-row">
+      <div class="aliado"><div class="aliado-logo">${logoHtml}</div><div><div style="font-weight:700;font-size:11px;text-transform:capitalize">${(a.nombre||a.id).replace(/_/g,' ')}</div><div style="font-size:9px;color:#64748b">${a.usuario||''}</div><div style="font-size:9px;color:#E30613;font-weight:700">Gana ${a.porc}% del envío</div></div></div>
+      <div style="font-weight:600">${a.countEnt + a.countCanc}</div>
+      <div style="font-weight:600">$ ${a.totalEnvio.toFixed(2)}</div>
+      <div style="color:#16a34a;font-weight:700">$ ${a.ganancia.toFixed(2)}</div>
+      <div style="color:#16a34a;font-weight:600">$ ${a.pagado.toFixed(2)}</div>
+      <div style="color:#d97706;font-weight:600">$ ${a.pendiente.toFixed(2)}</div>
+      <div style="font-size:8.5px;line-height:1.2;text-align:center">${ultimo}</div>
+      <div><span class="badge ${badgeClass}">${estadoTxt}</span></div>
+      <div><button class="btn-pagar" onclick="abrirPagar('${a.id}','${(a.nombre||a.id).replace(/'/g,'')}','${a.pendiente}')">Pagar</button></div>
+    </div>`;
+  });
+}
+window.abrirPagar = (id, nombre, pendiente)=>{
+  pagarId = id; pagarNombre = nombre;
+  document.getElementById('pagarTitulo').textContent = 'Pagar a ' + nombre;
+  document.getElementById('pagarSub').textContent = 'Pendiente: $ ' + Number(pendiente).toFixed(2);
+  document.getElementById('pagarMonto').value = Number(pendiente).toFixed(2);
+  document.getElementById('pagarMsg').style.display = 'none';
+  document.getElementById('overlayPagar').classList.add('show');
+};
+window.cerrarPagar = ()=>{ document.getElementById('overlayPagar').classList.remove('show'); pagarId=null; };
+window.confirmarPago = async ()=>{
+  const monto = parseFloat(document.getElementById('pagarMonto').value);
+  const msg = document.getElementById('pagarMsg');
+  if(!pagarId || isNaN(monto) || monto<=0){ msg.style.display='block'; msg.style.color='#E30613'; msg.textContent='Escribe un monto válido'; return; }
+  try{
+    msg.style.display='block'; msg.style.color='#0A7D2E'; msg.textContent='Guardando pago...';
+    await addDoc(collection(dbHis, "pagos_repartidores"), {
+      repartidorId: pagarId,
+      repartidorNombre: pagarNombre,
+      montoPagado: monto,
+      fechaPago: new Date().toISOString(),
+      guardadoDesde: 'paneladmin-pagos-y-facturas-repartidores'
+    });
+    msg.textContent='✓ Pago registrado';
+    setTimeout(()=>{ cerrarPagar(); }, 800);
+  }catch(e){ msg.style.display='block'; msg.style.color='#E30613'; msg.textContent='Error: '+e.message; }
+};
+window.filtrar = ()=>{
+  const txt = document.getElementById('buscar').value.toLowerCase();
+  const est = document.getElementById('fEstado').value;
+  filtrados = repartidores.filter(a=>{
+    const matchTxt = (a.nombre||'').toLowerCase().includes(txt) || (a.id||'').toLowerCase().includes(txt) || (a.usuario||'').toLowerCase().includes(txt);
+    let matchEst = true;
+    const estadoRaw = String(a.estadoConexion || a.estado || '').toLowerCase();
+    if(est==="disponible") matchEst = estadoRaw.includes('dispon') || estadoRaw.includes('conect');
+    else if(est==="desconectado") matchEst = estadoRaw.includes('desconect');
+    else if(est==="ocupado") matchEst = estadoRaw.includes('ocup');
+    return matchTxt && matchEst;
+  });
+  render();
+};
+onValue(ref(dbRep, 'repartidores'), (snap)=>{
+  const val = snap.val() || {};
+  repartidores = Object.entries(val).map(([id, r])=>({ id, ...r }));
+  calcular();
+});
+onSnapshot(collection(dbHis, "pedidos_entregados"), (snap)=>{ entregados = snap.docs.map(d=>d.data()); calcular(); });
+onSnapshot(collection(dbHis, "pedidos_cancelados"), (snap)=>{ cancelados = snap.docs.map(d=>d.data()); calcular(); });
+onSnapshot(collection(dbConf, "pedidos_admin"), (snap)=>{ adminActivos = snap.docs.map(d=>d.data()); calcular(); });
+onSnapshot(collection(dbHis, "pagos_repartidores"), (snap)=>{
+  pagosMap = {};
+  snap.docs.forEach(d=>{
+    const p = d.data();
+    const key = normalizarTxt(p.repartidorId || p.repartidorNombre || '');
+    if(!key) return;
+    if(!pagosMap[key]) pagosMap[key]={pagado:0, ultimo:"", count:0};
+    pagosMap[key].pagado += Number(p.montoPagado||0);
+    pagosMap[key].count += 1;
+    if(p.fechaPago && (!pagosMap[key].ultimo || new Date(p.fechaPago) > new Date(pagosMap[key].ultimo))) pagosMap[key].ultimo = p.fechaPago;
+  });
+  calcular();
+});
+</script>
+</body>
+</html>
