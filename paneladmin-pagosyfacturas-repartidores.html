@@ -33,6 +33,7 @@ body{background:#f6f8fb;color:#0f172a}
 .badge-red{background:#fee2e2;color:#991b1b}
 .btn-ver{border:1px solid #E30613;color:#E30613;background:white;padding:4px 9px;border-radius:999px;font-size:10px;font-weight:700;cursor:pointer}
 .btn-pagar{background:#16a34a;color:white;border:none;padding:5px 12px;border-radius:999px;font-size:10px;font-weight:700;cursor:pointer}
+.btn-config{background:#0f172a;color:white;border:none;padding:5px 10px;border-radius:999px;font-size:10px;font-weight:700;cursor:pointer}
 .right{display:flex;flex-direction:column;gap:12px}
 .resumen{padding:12px}
 .resumen h3{font-size:11px;font-weight:800;margin-bottom:8px}
@@ -42,10 +43,11 @@ body{background:#f6f8fb;color:#0f172a}
 .modal{background:#fff;border-radius:16px;padding:20px;width:100%;max-width:360px;text-align:center}
 .modal h4{font-size:15px;font-weight:800;margin-bottom:6px}
 .modal p{font-size:12px;color:#64748b;margin-bottom:12px}
-.modal input{width:100%;height:42px;border:1.5px solid #e5e7eb;border-radius:8px;padding:0 12px;font-size:13px;font-weight:700;margin-bottom:10px;outline:none}
+.modal input,.modal select{width:100%;height:42px;border:1.5px solid #e5e7eb;border-radius:8px;padding:0 12px;font-size:13px;font-weight:700;margin-bottom:10px;outline:none}
 .modal-actions{display:flex;gap:10px}
 .btn-no{flex:1;height:42px;border:1.5px solid #e2e8f0;background:#fff;border-radius:10px;font-weight:700;cursor:pointer}
 .btn-si{flex:1;height:42px;background:#16a34a;color:#fff;border:none;border-radius:10px;font-weight:800;cursor:pointer}
+.btn-si-negro{flex:1;height:42px;background:#0f172a;color:#fff;border:none;border-radius:10px;font-weight:800;cursor:pointer}
 </style>
 </head>
 <body>
@@ -107,6 +109,23 @@ body{background:#f6f8fb;color:#0f172a}
 <div id="pagarMsg" style="margin-top:10px;font-size:12px;font-weight:700;display:none"></div>
 </div>
 </div>
+<div class="overlay" id="overlayConfig">
+<div class="modal">
+<h4 id="configTitulo">Configurar repartidor</h4>
+<p id="configSub">Pagado actual: $ 0.00 | Pendiente: $ 0.00</p>
+<select id="configTipo">
+<option value="restar">Restar - Corregir pago de más / número equivocado</option>
+<option value="sumar">Sumar - Ajuste / le falta</option>
+</select>
+<input id="configMonto" type="number" min="0" step="0.01" placeholder="Monto a ajustar">
+<input id="configMotivo" type="text" placeholder="Motivo: Ej: me equivoqué, puse $100 de más">
+<div class="modal-actions">
+<button class="btn-no" onclick="cerrarConfig()">Cancelar</button>
+<button class="btn-si-negro" onclick="confirmarConfig()">Guardar ajuste</button>
+</div>
+<div id="configMsg" style="margin-top:10px;font-size:12px;font-weight:700;display:none"></div>
+</div>
+</div>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
@@ -150,6 +169,10 @@ let adminActivos = [];
 let pagosLista = [];
 let pagarId = null;
 let pagarNombre = "";
+let configId = null;
+let configNombre = "";
+let configPagadoActual = 0;
+let configPendienteActual = 0;
 function normalizarTxt(t){ return String(t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().replace(/[_-]+/g,' ').replace(/\s+/g,' '); }
 function clavesPedido(d){
   const s = new Set();
@@ -193,8 +216,6 @@ function calcular(){
       if(estado.includes('cancel')){ const envio = Number(p.totales?.costoEnvio ?? p.totales?.envio ?? 30); totalCancEnvio += envio; countCanc++; }
       else if(estado.includes('entreg') || estado.includes('finaliz')){ const envio = Number(p.totales?.costoEnvio ?? p.totales?.envio ?? 30); const g = Number((envio * porc/100).toFixed(2)); totalEnvio += envio; ganancia += g; countEnt++; }
     });
-    // SOLO CORREGIDO - ANTES: buscaba el pago por UNA sola llave (id O nombre). Si no coincidía exacto, no lo encontraba y el Resumen no se movía.
-    // AHORA: suma TODOS los pagos de pagos_repartidores donde el repartidorId O repartidorNombre O repartidorUsuario coincida con id / usuario / nombre del repartidor.
     let pagadoTotal = 0, ultimoPago = "", countPagos = 0;
     pagosLista.forEach(p=>{
       const clavesPago = new Set([normalizarTxt(p.repartidorId), normalizarTxt(p.repartidorNombre), normalizarTxt(p.repartidorUsuario)].filter(Boolean));
@@ -258,7 +279,7 @@ function render(){
       <div style="color:#d97706;font-weight:600">$ ${a.pendiente.toFixed(2)}</div>
       <div style="font-size:8.5px;line-height:1.2;text-align:center">${ultimo}</div>
       <div><span class="badge ${badgeClass}">${estadoTxt}</span></div>
-      <div><button class="btn-pagar" onclick="abrirPagar('${a.id}','${(a.nombre||a.id).replace(/'/g,'')}','${a.pendiente}')">Pagar</button></div>
+      <div style="display:flex;gap:5px;flex-wrap:wrap"><button class="btn-pagar" onclick="abrirPagar('${a.id}','${(a.nombre||a.id).replace(/'/g,'')}','${a.pendiente}')">Pagar</button><button class="btn-config" onclick="abrirConfig('${a.id}','${(a.nombre||a.id).replace(/'/g,'')}','${a.pagado}','${a.pendiente}')">Configurar</button></div>
     </div>`;
   });
 }
@@ -288,6 +309,43 @@ window.confirmarPago = async ()=>{
     setTimeout(()=>{ cerrarPagar(); }, 800);
   }catch(e){ msg.style.display='block'; msg.style.color='#E30613'; msg.textContent='Error: '+e.message; }
 };
+window.abrirConfig = (id, nombre, pagado, pendiente)=>{
+  configId = id; configNombre = nombre;
+  configPagadoActual = Number(pagado||0);
+  configPendienteActual = Number(pendiente||0);
+  document.getElementById('configTitulo').textContent = 'Configurar a ' + nombre;
+  document.getElementById('configSub').textContent = 'Pagado actual: $ ' + configPagadoActual.toFixed(2) + ' | Pendiente: $ ' + configPendienteActual.toFixed(2);
+  document.getElementById('configMonto').value = '';
+  document.getElementById('configMotivo').value = '';
+  document.getElementById('configTipo').value = 'restar';
+  document.getElementById('configMsg').style.display = 'none';
+  document.getElementById('overlayConfig').classList.add('show');
+};
+window.cerrarConfig = ()=>{ document.getElementById('overlayConfig').classList.remove('show'); configId=null; };
+window.confirmarConfig = async ()=>{
+  const montoRaw = parseFloat(document.getElementById('configMonto').value);
+  const tipo = document.getElementById('configTipo').value;
+  const motivo = document.getElementById('configMotivo').value.trim() || 'Ajuste manual';
+  const msg = document.getElementById('configMsg');
+  if(!configId || isNaN(montoRaw) || montoRaw<=0){ msg.style.display='block'; msg.style.color='#E30613'; msg.textContent='Escribe un monto válido'; return; }
+  if(tipo==='restar' && montoRaw > configPagadoActual){ msg.style.display='block'; msg.style.color='#E30613'; msg.textContent='No puedes restar más de lo pagado: $ '+configPagadoActual.toFixed(2); return; }
+  const montoFinal = tipo==='restar' ? -Math.abs(montoRaw) : Math.abs(montoRaw);
+  try{
+    msg.style.display='block'; msg.style.color='#0A7D2E'; msg.textContent='Guardando ajuste...';
+    await addDoc(collection(dbHis, "pagos_repartidores"), {
+      repartidorId: configId,
+      repartidorNombre: configNombre,
+      montoPagado: montoFinal,
+      tipo: 'ajuste',
+      ajusteTipo: tipo,
+      motivo: motivo,
+      fechaPago: new Date().toISOString(),
+      guardadoDesde: 'paneladmin-pagos-y-facturas-repartidores-configurar'
+    });
+    msg.textContent='✓ Ajuste guardado';
+    setTimeout(()=>{ cerrarConfig(); }, 800);
+  }catch(e){ msg.style.display='block'; msg.style.color='#E30613'; msg.textContent='Error: '+e.message; }
+};
 window.filtrar = ()=>{
   const txt = document.getElementById('buscar').value.toLowerCase();
   const est = document.getElementById('fEstado').value;
@@ -311,7 +369,6 @@ onSnapshot(collection(dbHis, "pedidos_entregados"), (snap)=>{ entregados = snap.
 onSnapshot(collection(dbHis, "pedidos_cancelados"), (snap)=>{ cancelados = snap.docs.map(d=>d.data()); calcular(); });
 onSnapshot(collection(dbConf, "pedidos_admin"), (snap)=>{ adminActivos = snap.docs.map(d=>d.data()); calcular(); });
 onSnapshot(collection(dbHis, "pagos_repartidores"), (snap)=>{
-  // SOLO CORREGIDO - AHORA GUARDA TODA LA LISTA DE PAGOS, NO SOLO UNA LLAVE, PARA QUE CALCULAR() PUEDA COMPARAR id / usuario / nombre
   pagosLista = snap.docs.map(d=>d.data());
   calcular();
 });
