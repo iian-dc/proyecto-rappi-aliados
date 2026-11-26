@@ -11,7 +11,6 @@
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
 body{background:#FBFBFD;min-height:100vh}
 .wrap{max-width:1000px;margin:0 auto;padding:0 0 40px}
-/* HEADER - BIEN A LA IZQUIERDA, PEGADO A LA ESQUINA */
 .top{display:flex;align-items:center;gap:12px;padding:14px 12px 14px 10px;margin-bottom:6px}
 .btn-x{width:42px;height:42px;background:#B70A1A;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;font-weight:800;text-decoration:none;flex-shrink:0;box-shadow:0 4px 12px rgba(183,10,26,.3)}
 .btn-x:active{transform:scale(.95)}
@@ -20,13 +19,16 @@ body{background:#FBFBFD;min-height:100vh}
 .count{background:#FFE7EA;color:#B70A1A;font-size:12px;font-weight:800;padding:5px 10px;border-radius:999px;margin-left:auto;white-space:nowrap}
 .count-visitas{background:#EAF2FF;color:#1D4ED8;font-size:12px;font-weight:800;padding:5px 10px;border-radius:999px;white-space:nowrap;display:flex;align-items:center;gap:5px}
 .count-visitas svg{width:15px;height:15px;flex-shrink:0}
-/* LISTADO TIPO EXCEL */
+/* BARRA VERDE NEON - CONTADORES ARRIBA */
+.barra-neon{background:#00E676;color:#fff;display:flex;gap:8px;justify-content:space-between;padding:12px 10px;margin:0 10px 12px;border-radius:14px;box-shadow:0 0 18px rgba(0,230,118,.65);flex-wrap:wrap}
+.barra-neon .item{flex:1;min-width:100px;background:rgba(0,0,0,.18);border-radius:10px;padding:10px 8px;text-align:center}
+.barra-neon .item b{font-size:22px;line-height:1;display:block}
+.barra-neon .item span{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;opacity:.95;display:block;margin-top:4px;line-height:1.2}
 .tabla-wrap{background:#fff;border:1px solid #eee;border-radius:16px;overflow:hidden;margin:0 10px;box-shadow:0 2px 10px rgba(0,0,0,.04);overflow-x:auto}
 table{width:100%;border-collapse:collapse;min-width:720px}
 thead th{background:#FFF0F1;color:#B70A1A;font-size:11px;text-transform:uppercase;letter-spacing:.5px;text-align:left;padding:11px 12px;font-weight:800}
 tbody td{padding:11px 12px;border-top:1px solid #f1f1f1;font-size:14px;color:#111;vertical-align:middle;white-space:nowrap}
 tbody tr:first-child td{border-top:none}
-/* FILA COMPLETA ROJA / VERDE NEON */
 tbody tr.row-rojo{background:#FFE9EB}
 tbody tr.row-rojo td{border-top-color:#FFD0D4}
 tbody tr.row-verde{background:#E2FFEC}
@@ -42,7 +44,6 @@ td.btn-cell{text-align:right}
 .btn-abrir:active{transform:scale(.97)}
 .empty{background:#fff;border:1px dashed #ddd;border-radius:16px;padding:40px 20px;text-align:center;color:#6b7280;font-size:14px;line-height:1.5;margin:0 10px}
 .empty b{color:#111;font-size:16px;display:block;margin-bottom:6px}
-/* MODAL CENTRADO */
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:100;padding:16px}
 .modal.show{display:flex}
 .modal .box{background:#fff;width:100%;max-width:480px;border-radius:22px;padding:20px 18px 18px;animation:subir .3s ease;max-height:90vh;overflow-y:auto}
@@ -55,20 +56,17 @@ td.btn-cell{text-align:right}
 .fila{background:#F8F8F8;border-radius:12px;padding:11px 12px;margin-bottom:9px;display:flex;gap:10px;align-items:flex-start}
 .fila small{font-size:11px;color:#6b7280;font-weight:700;text-transform:uppercase;min-width:78px;padding-top:2px}
 .fila span{font-size:14px;color:#111;font-weight:600;line-height:1.35;word-break:break-word}
-/* BOTONES ABAJO - UNO AL LADO DEL OTRO */
+.fila-logo{align-items:center}
+.fila-logo img{width:90px;height:90px;object-fit:cover;border-radius:14px;border:1px solid #eee;display:block}
 .btns-row{display:flex;gap:10px;margin-top:14px}
 .btn-wa{flex:1;background:#25D366;color:#fff;border:none;padding:14px 10px;border-radius:999px;font-size:14px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer}
 .btn-wa img{width:22px;height:22px}
 .btn-marcar{flex:1;border:none;padding:14px 10px;border-radius:999px;font-size:14px;font-weight:800;cursor:pointer;color:#fff}
-/* ROJO NEON = SIN REGISTRAR / VERDE NEON = YA REGISTRADO */
 .btn-marcar.rojo{background:#FF1E2D;box-shadow:0 0 14px rgba(255,30,45,.65)}
 .btn-marcar.verde{background:#00E676;box-shadow:0 0 14px rgba(0,230,118,.65)}
 .btn-eliminar{flex:1;background:#111;color:#fff;border:none;padding:14px 10px;border-radius:999px;font-size:14px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:7px;cursor:pointer}
 .btn-eliminar:active{transform:scale(.97)}
-@media(max-width:600px){
-  .top h1{font-size:21px}
-  .btns-row{flex-direction:column}
-}
+@media(max-width:600px){ .top h1{font-size:21px} .btns-row{flex-direction:column} }
 </style>
 </head>
 <body>
@@ -84,6 +82,13 @@ td.btn-cell{text-align:right}
     <div class="count-visitas" id="totalVisitas"><svg viewBox="0 0 24 24" fill="none" stroke="#1D4ED8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><span id="visitasNum">0</span> visitas</div>
   </div>
 
+  <div class="barra-neon">
+    <div class="item"><b id="neonVisitas">0</b><span>Visitas a la página</span></div>
+    <div class="item"><b id="neonFlotante">0</b><span>WhatsApp flotante</span></div>
+    <div class="item"><b id="neonHabla">0</b><span>Habla con DoloYa</span></div>
+    <div class="item"><b id="neonTotalWa">0</b><span>Total WhatsApp</span></div>
+  </div>
+
   <div id="lista">
     <div class="empty"><b>Cargando registros...</b>Espera un momento</div>
   </div>
@@ -97,11 +102,14 @@ td.btn-cell{text-align:right}
       <button class="cerrar" onclick="cerrarModal()">✕</button>
     </div>
 
-    <div class="fila"><small>Negocio</small><span id="mNombre2"></span></div>
+    <div class="fila"><small>Nombre</small><span id="mNombre2"></span></div>
     <div class="fila"><small>Tipo</small><span id="mTipo2"></span></div>
     <div class="fila"><small>WhatsApp</small><span id="mWhats"></span></div>
     <div class="fila"><small>Dirección</small><span id="mDir"></span></div>
     <div class="fila"><small>Fecha</small><span id="mFecha"></span></div>
+    <div class="fila fila-logo"><small>Logo</small><span id="mLogoWrap"><img id="mLogo" src="" alt="Logo" style="display:none"><span id="mLogoVacio">Sin logo</span></span></div>
+    <div class="fila"><small>Contraseña</small><span id="mPass"></span></div>
+    <div class="fila"><small>Correo</small><span id="mEmail"></span></div>
     <div class="fila"><small>Estado</small><span id="mEstado"></span></div>
 
     <div class="btns-row">
@@ -131,6 +139,14 @@ const db = firebase.database();
 let actual = null;
 let actualId = null;
 let listaDatos = {};
+let vVisitas=0, vFlotante=0, vHabla=0;
+function fmt(n){ return Number(n||0).toLocaleString('es-MX'); }
+function actualizarNeon(){
+  document.getElementById('neonVisitas').textContent = fmt(vVisitas);
+  document.getElementById('neonFlotante').textContent = fmt(vFlotante);
+  document.getElementById('neonHabla').textContent = fmt(vHabla);
+  document.getElementById('neonTotalWa').textContent = fmt(vFlotante+vHabla);
+}
 
 function formatearFecha(iso){
   if(!iso) return 'Sin fecha';
@@ -169,10 +185,19 @@ function actualizarBotonMarcar(){
   }
 }
 
-// CONTADOR DE VISITAS - desde estadisticas/visitas
+// CONTADORES - VISITAS + WHATSAPP
 db.ref('estadisticas/visitas').on('value', (snap)=>{
-  const visitas = snap.val() || 0;
-  document.getElementById('visitasNum').textContent = Number(visitas).toLocaleString('es-MX');
+  vVisitas = snap.val() || 0;
+  document.getElementById('visitasNum').textContent = fmt(vVisitas);
+  actualizarNeon();
+});
+db.ref('estadisticas/whatsapp_flotante').on('value', (snap)=>{
+  vFlotante = snap.val() || 0;
+  actualizarNeon();
+});
+db.ref('estadisticas/whatsapp_habla').on('value', (snap)=>{
+  vHabla = snap.val() || 0;
+  actualizarNeon();
 });
 
 db.ref('aliados').on('value', (snap)=>{
@@ -185,7 +210,6 @@ db.ref('aliados').on('value', (snap)=>{
     lista.innerHTML = '<div class="empty"><b>Aún no hay registros</b>Cuando un negocio se registre en el formulario, aquí te va a aparecer.</div>';
     return;
   }
-  // Si el modal está abierto, actualizar el estado actual
   if(actualId && listaDatos[actualId]){
     actual = listaDatos[actualId];
     actualizarBotonMarcar();
@@ -218,12 +242,20 @@ function abrirRegistro(id){
   actual = listaDatos[id];
   if(!actual) return;
   document.getElementById('mNombre').textContent = actual.nombre||'';
-  document.getElementById('mNombre2').textContent = actual.nombre||'';
+  document.getElementById('mNombre2').textContent = actual.nombre||'Sin nombre';
   document.getElementById('mTipo').textContent = actual.tipo||'';
-  document.getElementById('mTipo2').textContent = actual.tipo||'';
-  document.getElementById('mWhats').textContent = actual.whatsapp||'';
-  document.getElementById('mDir').textContent = actual.direccion||'';
+  document.getElementById('mTipo2').textContent = actual.tipo||'Sin tipo';
+  document.getElementById('mWhats').textContent = actual.whatsapp||'Sin WhatsApp';
+  document.getElementById('mDir').textContent = actual.direccion||'Sin dirección';
   document.getElementById('mFecha').textContent = formatearFecha(actual.fecha);
+  // LOGO
+  const foto = fotoDe(actual);
+  const imgLogo = document.getElementById('mLogo');
+  const txtVacio = document.getElementById('mLogoVacio');
+  if(foto){ imgLogo.src = foto; imgLogo.style.display='block'; txtVacio.style.display='none'; }
+  else { imgLogo.style.display='none'; imgLogo.src=''; txtVacio.style.display='inline'; txtVacio.textContent='Sin logo'; }
+  document.getElementById('mPass').textContent = actual.password||actual.contrasena||'Sin contraseña';
+  document.getElementById('mEmail').textContent = actual.email||actual.correo||'Sin correo';
   document.getElementById('mEstado').textContent = esRegistrado(actual) ? 'registrado' : (actual.estado||'pendiente');
   document.getElementById('mAvatar').innerHTML = avatarHTML(actual);
   actualizarBotonMarcar();
@@ -243,7 +275,6 @@ async function toggleRegistrado(){
     registrado: nuevo,
     estado: nuevo ? 'registrado' : 'pendiente'
   });
-  // El listener de Firebase ya actualiza el botón y la fila solito
 }
 
 async function eliminarRegistro(){
